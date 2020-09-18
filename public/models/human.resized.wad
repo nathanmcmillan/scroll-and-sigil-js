@@ -1,0 +1,180 @@
+texture:textures/hero.png
+bones{
+    body{
+        pivot[0, 0, 0]
+        rotation[0, 0, 0]
+        cubes[{
+            size[8, 14, 5]
+            pivot[0, 0, 0]
+            origin[0, 0, 0]
+            rotation[0, 0, 0]
+            sample{
+                front[40, 40, 56, 64]
+                back[64, 40, 80, 64]
+                left[32, 40, 40, 64]
+                right[56, 40, 64, 64]
+                top[40, 32, 56, 40]
+                bottom[56, 32, 72, 40]
+            }
+            extension{
+                front[40, 72, 56, 96]
+                back[64, 72, 80, 96]
+                left[32, 72, 40, 96]
+                right[56, 72, 64, 96]
+                top[40, 64, 56, 72]
+                bottom[56, 64, 72, 72]
+            }
+        }]
+    }
+    neck{
+        pivot[0, 0, 0]
+        rotation[0, 0, 0]
+        cubes[{
+            size[3, 2.2, 3]
+            pivot[0, 0, 0]
+            origin[0, 15.2, 0]
+            rotation[0, 0, 0]
+            sample{
+                front[0, 0, 64, 64]
+                back[0, 0, 64, 64]
+                left[0, 0, 64, 64]
+                right[0, 0, 64, 64]
+            }
+        }]
+        parent:body
+    }
+    head{
+        pivot[0, 0, 0]
+        rotation[0, 0, 0]
+        cubes[{
+            size[6, 6, 6]
+            pivot[0, 0, 0]
+            origin[0, 22.2, 0]
+            rotation[0, 0, 0]
+            sample{
+                front[16, 16, 32, 32]
+                back[48, 16, 64, 32]
+                left[32, 16, 48, 32]
+                right[0, 16, 16, 32]
+                top[16, 0, 32, 16]
+                bottom[32, 0, 48, 16]
+            }
+            extension{
+                front[80, 16, 96, 32]
+                back[112, 16, 128, 32]
+                left[96, 16, 112, 32]
+                right[64, 16, 80, 32]
+                top[80, 0, 96, 16]
+            }
+        }]
+        parent:neck
+    }
+    left-arm{
+        pivot[0, 0, 0]
+        rotation[0, 0, 0]
+        cubes[{
+            size[3, 7, 3]
+            pivot[0, -7, 0]
+            origin[11, 14, 0]
+            rotation[0, 0, 0]
+            sample{
+                front[104, 40, 112, 64]
+                back[88, 40, 96, 64]
+                left[80, 40, 88, 64]
+                right[96, 40, 104, 64]
+                top[88, 32, 96, 40]
+                bottom[96, 32, 104, 40]
+            }
+            extension{
+                front[104, 72, 112, 96]
+                back[88, 72, 96, 96]
+                left[80, 72, 88, 96]
+                right[96, 72, 104, 96]
+                top[88, 64, 96, 72]
+                bottom[96, 64, 104, 72]
+            }
+        }]
+        parent:body
+    }
+    left-forearm{
+        pivot[0, 0, 0]
+        rotation[0, 0, 0]
+        cubes[{
+            size[3, 9, 3]
+            pivot[0, 0, 0]
+            origin[11, -10, 0]
+            rotation[0, 0, 0]
+            sample{
+                front[104, 40, 112, 64]
+                back[88, 40, 96, 64]
+                left[80, 40, 88, 64]
+                right[96, 40, 104, 64]
+                top[88, 32, 96, 40]
+                bottom[96, 32, 104, 40]
+            }
+            extension{
+                front[104, 72, 112, 96]
+                back[88, 72, 96, 96]
+                left[80, 72, 88, 96]
+                right[96, 72, 104, 96]
+                top[88, 64, 96, 72]
+                bottom[96, 64, 104, 72]
+            }
+        }]
+        parent:left-arm
+    }
+    left-leg{
+        pivot[0, 0, 0]
+        rotation[0, 0, 0]
+        cubes[{
+            size[3, 8, 3]
+            pivot[0, 0, 0]
+            origin[5, -24, 0]
+            rotation[0, 0, 0]
+            sample{
+                front[24, 40, 32, 64]
+                back[8, 40, 16, 64]
+                left[0, 40, 8, 64]
+                right[16, 40, 24, 64]
+                top[8, 32, 16, 40]
+                bottom[16, 32, 24, 40]
+            }
+            extension{
+                front[24, 72, 32, 96]
+                back[8, 72, 16, 96]
+                left[8, 72, 8, 96]
+                right[16, 72, 24, 96]
+                top[8, 64, 16, 72]
+                bottom[16, 64, 24, 72]
+            }
+        }]
+        parent:body
+    }
+    left-knee{
+        pivot[0, -16, 0]
+        rotation[0, 0, 0]
+        cubes[{
+            size[3, 8, 3]
+            pivot[0, 0, 0]
+            origin[5, -8, 0]
+            rotation[0, 0, 0]
+            sample{
+                front[24, 40, 32, 64]
+                back[8, 40, 16, 64]
+                left[0, 40, 8, 64]
+                right[16, 40, 24, 64]
+                top[8, 32, 16, 40]
+                bottom[16, 32, 24, 40]
+            }
+            extension{
+                front[24, 72, 32, 96]
+                back[8, 72, 16, 96]
+                left[8, 72, 8, 96]
+                right[16, 72, 24, 96]
+                top[8, 64, 16, 72]
+                bottom[16, 64, 24, 72]
+            }
+        }]
+        parent:left-leg
+    }
+}

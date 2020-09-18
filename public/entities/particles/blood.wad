@@ -1,0 +1,4 @@
+sprite: blood
+thinker: decal-on-collision
+box: 0.4
+height: 0.8

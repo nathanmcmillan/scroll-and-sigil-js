@@ -1,0 +1,95 @@
+texture:textures/tiles/stone-floor.png
+bones{
+    body{
+        pivot[0, 0, 0]
+        rotation[0, 0, 0]
+        cubes[{
+            size[8, 16, 6]
+            pivot[0, 0, 0]
+            origin[0, 0, 0]
+            rotation[0, 0, 0]
+            sample{
+                front[0, 0, 64, 64]
+                back[0, 0, 64, 64]
+                left[0, 0, 64, 64]
+                right[0, 0, 64, 64]
+                top[0, 0, 64, 64]
+                bottom[0, 0, 64, 64]
+            }
+        }]
+    }
+    neck{
+        pivot[0, 0, 0]
+        rotation[0, 0, 0]
+        cubes[{
+            size[3, 1.2, 3]
+            pivot[0, 0, 0]
+            origin[0, 17.2, 0]
+            rotation[0, 0, 0]
+            sample{
+                front[0, 0, 64, 64]
+                back[0, 0, 64, 64]
+                left[0, 0, 64, 64]
+                right[0, 0, 64, 64]
+            }
+        }]
+        parent:body
+    }
+    head{
+        pivot[0, 0, 0]
+        rotation[0, 0, 0]
+        cubes[{
+            size[6, 6, 6]
+            pivot[0, 0, 0]
+            origin[0, 23.2, 0]
+            rotation[0, 0, 0]
+            sample{
+                front[0, 0, 16, 16]
+                back[0, 0, 64, 64]
+                left[0, 0, 64, 64]
+                right[0, 0, 64, 64]
+                top[0, 0, 16, 16]
+                bottom[0, 0, 64, 64]
+            }
+            extension{
+                top[16, 16, 32, 32]
+            }
+        }]
+        parent:neck
+    }
+    left-arm{
+        pivot[0, 0, 0]
+        rotation[0, 0, 0]
+        cubes[{
+            size[3, 8, 3]
+            pivot[0, -8, 0]
+            origin[11, 16, 0]
+            rotation[0, 0, 0]
+            sample{
+                front[0, 0, 64, 64]
+                back[0, 0, 64, 64]
+                left[0, 0, 64, 64]
+                right[0, 0, 64, 64]
+                top[0, 0, 64, 64]
+                bottom[0, 0, 64, 64]
+            }
+        }]
+        parent:body
+    }
+    left-forearm{
+        pivot[0, 0, 0]
+        rotation[45, 0, 0]
+        cubes[{
+            size[3, 8, 3]
+            pivot[0, -8, 0]
+            origin[11, 0, 0]
+            rotation[0, 0, 0]
+            sample{
+                front[0, 0, 64, 64]
+                top[0, 0, 64, 64]
+                bottom[0, 0, 64, 64]
+            }
+        }]
+        parent:left-arm
+    }
+}
