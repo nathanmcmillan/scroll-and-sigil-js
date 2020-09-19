@@ -1,13 +1,13 @@
 class Sector {
-  constructor() {
-    this.bottom = 0.0
-    this.floor = 0.0
-    this.ceiling = 0.0
-    this.top = 0.0
-    this.floor_texture = -1
-    this.ceiling_texture = -1
-    this.vecs = []
-    this.lines = []
+  constructor(bottom, floor, ceiling, top, floor_texture, ceiling_texture, vecs, lines) {
+    this.bottom = bottom
+    this.floor = floor
+    this.ceiling = ceiling
+    this.top = top
+    this.floor_texture = floor_texture
+    this.ceiling_texture = ceiling_texture
+    this.vecs = vecs
+    this.lines = lines
     this.triangles = []
     this.inside = []
     this.outside = null
