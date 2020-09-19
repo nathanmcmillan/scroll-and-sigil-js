@@ -1,4 +1,9 @@
-function house(x, y) {
+import {Line} from '/src/map/line.js'
+import {Vector2} from '/src/math/vector.js'
+import {Sector} from '/src/map/sector.js'
+import {World} from '/src/world/world.js'
+
+function house(world, x, y) {
   let vecs = [
     new Vector2(x, y),
     new Vector2(x, y + 20.0),
@@ -23,7 +28,10 @@ function house(x, y) {
   let floor = 0.0
   let ceiling = 10.0
   let top = 0.0
-  return new Sector(bottom, floor, ceiling, top, 99, -1, vecs, lines)
+  let sector = Sector(bottom, floor, ceiling, top, 99, -1, vecs, lines)
+  world.pushSector(sector)
 }
 
-Triangulate.build(house(10, 40), 1.0)
+let world = new World()
+house(world, 10, 40)
+world.build()

@@ -1,0 +1,15 @@
+{
+  "parserOptions": {
+    "ecmaVersion": 6,
+    "sourceType": "module"
+  },
+  "env": {
+    "es6": true,
+    "browser": true
+  },
+  "extends": "eslint:recommended",
+  "rules": {
+    "no-constant-condition": 0,
+    "lines-between-class-members": ["error", "always"]
+  }
+}

@@ -2,5 +2,6 @@
   "printWidth": 240,
   "bracketSpacing": false,
   "semi": false,
-  "singleQuote": true
+  "singleQuote": true,
+  "endOfLine": "lf"
 }

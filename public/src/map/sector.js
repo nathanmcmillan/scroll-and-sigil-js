@@ -12,13 +12,18 @@ class Sector {
     this.inside = []
     this.outside = null
   }
+
   hasFloor() {
     return this.floor_texture >= 0
   }
+
   hasCeiling() {
     return this.ceiling_texture >= 0
   }
+
   updateTriangles(triangles) {
     this.triangles = triangles
   }
 }
+
+export {Sector}

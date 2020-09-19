@@ -9,3 +9,5 @@ class Triangle {
     this.normal = floor ? 1.0 : -1.0
   }
 }
+
+export {Triangle}

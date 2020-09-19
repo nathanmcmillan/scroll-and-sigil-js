@@ -1,3 +1,5 @@
+import {Wall} from '/src/map/wall.js'
+
 class Line {
   constructor(top, middle, bottom, a, b) {
     this.plus = null
@@ -9,3 +11,5 @@ class Line {
     this.bottom = bottom >= 0 ? new Wall(a, b, bottom) : null
   }
 }
+
+export {Line}

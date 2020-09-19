@@ -8,9 +8,12 @@ class Wall {
     this.ceiling = 0.0
     this.uv = [0.0, 0.0, 0.0, 0.0]
   }
+
   update(floor, ceiling, uv) {
     this.floor = floor
     this.ceiling = ceiling
     this.uv = uv
   }
 }
+
+export {Wall}
