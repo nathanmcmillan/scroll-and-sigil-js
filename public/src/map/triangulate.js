@@ -380,7 +380,7 @@ function populate(sector, floor, polygons) {
   }
 }
 
-function surface(sector, floor, scale, triangles) {
+function surface(sector, floor, scale) {
   if (skip(sector, floor)) {
     return
   }
@@ -388,15 +388,10 @@ function surface(sector, floor, scale, triangles) {
   let monotone = []
   populate(sector, floor, polygons)
   classify(polygons, monotone)
-  clipAll(sector, floor, scale, monotone, triangles)
+  clipAll(sector, floor, scale, monotone, sector.triangles)
 }
 
-function triangulate(sector, scale) {
-  let triangles = []
-  surface(sector, true, scale, triangles)
-  surface(sector, false, scale, triangles)
-  sector.updateTriangles(triangles)
-  console.log(sector)
+export function triangulate(sector, scale) {
+  surface(sector, true, scale)
+  surface(sector, false, scale)
 }
-
-export {triangulate}

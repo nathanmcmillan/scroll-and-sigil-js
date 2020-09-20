@@ -1,4 +1,4 @@
-class Triangle {
+export class Triangle {
   constructor(height, texture, a, b, c, floor, scale) {
     this.height = height
     this.texture = texture
@@ -9,5 +9,3 @@ class Triangle {
     this.normal = floor ? 1.0 : -1.0
   }
 }
-
-export {Triangle}

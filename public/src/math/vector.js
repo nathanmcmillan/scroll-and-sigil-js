@@ -1,6 +1,6 @@
 const FLOAT_PRECISION = 0.00000001
 
-class Float {
+export class Float {
   static eq(x, y) {
     return Math.abs(x - y) < FLOAT_PRECISION
   }
@@ -10,7 +10,7 @@ class Float {
   }
 }
 
-class Vector2 {
+export class Vector2 {
   constructor(x, y) {
     this.x = x
     this.y = y
@@ -23,8 +23,8 @@ class Vector2 {
   normal(b) {
     let x = this.y - b.y
     let y = -(this.x - b.x)
-    let m = Math.sqrt(x * x + y * y)
-    return new Vector2(x / m, y / m)
+    let magnitude = Math.sqrt(x * x + y * y)
+    return new Vector2(x / magnitude, y / magnitude)
   }
 
   angle(b) {
@@ -36,4 +36,26 @@ class Vector2 {
   }
 }
 
-export {Float, Vector2}
+export class Vector3 {
+  constructor(x, y, z) {
+    this.x = x
+    this.y = y
+    this.z = z
+  }
+
+  eq(b) {
+    return Float.eq(this.x, b.x) && Float.eq(this.y, b.y) && Float.eq(this.z, b.z)
+  }
+
+  normalize() {
+    let magnitude = (this.x * this.x + this.y * this.y + this.z * this.z).sqrt()
+    let multiple = 1.0 / magnitude
+    this.x *= multiple
+    this.y *= multiple
+    this.z *= multiple
+  }
+
+  cross(b) {
+    return new Vector3(this.y * b.z - this.z * b.y, this.z * b.x - this.x * b.z, this.x * b.y - this.y * b.x)
+  }
+}

@@ -1,6 +1,6 @@
 import {Wall} from '/src/map/wall.js'
 
-class Line {
+export class Line {
   constructor(top, middle, bottom, a, b) {
     this.plus = null
     this.minus = null
@@ -10,6 +10,9 @@ class Line {
     this.middle = middle >= 0 ? new Wall(a, b, middle) : null
     this.bottom = bottom >= 0 ? new Wall(a, b, bottom) : null
   }
-}
 
-export {Line}
+  updateSectors(plus, minus) {
+    this.plus = plus
+    this.minus = minus
+  }
+}
