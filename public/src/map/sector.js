@@ -21,21 +21,32 @@ export class Sector {
     return this.ceiling_texture >= 0
   }
 
-  contains(vec) {
+  contains(x, z) {
     let odd = false
     let len = this.vecs.length
     let k = len - 1
     for (let i = 0; i < len; i++) {
       let a = this.vecs[i]
       let b = this.vecs[k]
-      if (a.y > vec.y != b.y > vec.y) {
-        let val = ((b.x - a.x) * (vec.y - a.y)) / (b.y - a.y) + a.x
-        if (vec.x < val) {
+      if (a.y > z != b.y > z) {
+        let val = ((b.x - a.x) * (z - a.y)) / (b.y - a.y) + a.x
+        if (x < val) {
           odd = !odd
         }
       }
       k = i
     }
     return odd
+  }
+
+  find(x, z) {
+    let i = this.inside.length
+    while (i--) {
+      let inside = this.inside[i]
+      if (inside.contains(x, z)) {
+        return inside.find(x, z)
+      }
+    }
+    return this
   }
 }

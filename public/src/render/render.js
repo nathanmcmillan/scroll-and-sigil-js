@@ -80,7 +80,7 @@ export function rectangle(b, x, y, width, height, red, green, blue, alpha) {
   index4(b)
 }
 
-export function image(b, x, y, width, height, red, green, blue, alpha, left, top, right, bottom) {
+export function drawImage(b, x, y, width, height, red, green, blue, alpha, left, top, right, bottom) {
   let pos = b.vertexPosition
   let vertices = b.vertices
 
@@ -124,7 +124,7 @@ export function image(b, x, y, width, height, red, green, blue, alpha, left, top
   index4(b)
 }
 
-export function sprite(b, x, y, z, sprite, sine, cosine) {
+export function drawSprite(b, x, y, z, sprite, sine, cosine) {
   let pos = b.vertexPosition
   let vertices = b.vertices
 

@@ -1,18 +1,37 @@
 import {triangulate} from '/src/map/triangulate.js'
 
 const WORLD_SCALE = 0.25
-const WORLD_CELL_SHIFT = 5
+export const WORLD_CELL_SHIFT = 5
 
 export class Cell {
   constructor() {
     this.lines = []
     this.things = []
+    this.thingCount = 0
+  }
+
+  pushThing(thing) {
+    let things = this.things
+    if (things.length === this.thingCount) {
+      things.push(thing)
+    } else {
+      things[this.thingCount] = thing
+    }
+    this.thingCount++
+  }
+
+  removeThing(thing) {
+    let things = this.things
+    let index = things.indexOf(thing)
+    things[index] = things[things.length - 1]
+    this.thingCount--
   }
 }
 
 export class World {
   constructor() {
     this.things = []
+    this.thingCount = 0
     this.sectors = []
     this.cells = null
     this.columns = 0
@@ -124,8 +143,8 @@ export class World {
           continue
         }
         let contains = true
-        for (const o in other.vecs) {
-          for (const s in sector.vecs) {
+        for (const o of other.vecs) {
+          for (const s of sector.vecs) {
             if (s.eq(o)) {
               contains = false
               break
@@ -134,7 +153,7 @@ export class World {
           if (!contains) {
             break
           }
-          if (!sector.contains(o)) {
+          if (!sector.contains(o.x, o.y)) {
             contains = false
             break
           }
@@ -174,17 +193,50 @@ export class World {
   }
 
   pushThing(thing) {
-    this.thing.push(thing)
+    let things = this.things
+    if (things.length === this.thingCount) {
+      things.push(thing)
+    } else {
+      things[this.thingCount] = thing
+    }
+    this.thingCount++
+  }
+
+  removeThing(thing) {
+    let things = this.things
+    let index = things.indexOf(thing)
+    things[index] = things[things.length - 1]
+    this.thingCount--
   }
 
   pushSector(sector) {
     this.sectors.push(sector)
   }
 
+  findSector(x, z) {
+    let i = this.sectors.length
+    while (i--) {
+      let sector = this.sectors[i]
+      if (sector.outside != null) {
+        continue
+      } else if (sector.contains(x, z)) {
+        return sector.find(x, z)
+      }
+    }
+    return null
+  }
+
   update() {
-    let t = this.things.length
+    const things = this.things
+    let len = things.length
+    let t = len
     while (t--) {
-      this.things[t].update()
+      if (things[t].update()) {
+        things[t] = things[len - 1]
+        things[len - 1] = null
+        len--
+        t++
+      }
     }
   }
 }

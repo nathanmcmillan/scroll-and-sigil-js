@@ -4,9 +4,17 @@ import {Sector} from '/src/map/sector.js'
 import {World} from '/src/world/world.js'
 import {Camera} from '/src/game/camera.js'
 import {Input} from '/src/game/input.js'
+import {Hero} from '/src/thing/hero.js'
 
 const TEXTURE_GRASS = 0
 const TEXTURE_STONE = 1
+const TEXTURE_PLANK = 2
+
+function grass(world) {
+  let vecs = [new Vector2(0, 0), new Vector2(0, 127), new Vector2(127, 127), new Vector2(127, 0)]
+  let sector = new Sector(0.0, 0.0, 10.0, 0.0, TEXTURE_GRASS, -1, vecs, [])
+  world.pushSector(sector)
+}
 
 function house(world, x, y) {
   let vecs = [
@@ -33,7 +41,7 @@ function house(world, x, y) {
   let floor = 0.0
   let ceiling = 10.0
   let top = 0.0
-  let sector = new Sector(bottom, floor, ceiling, top, TEXTURE_GRASS, -1, vecs, lines)
+  let sector = new Sector(bottom, floor, ceiling, top, TEXTURE_STONE, TEXTURE_PLANK, vecs, lines)
   world.pushSector(sector)
 }
 
@@ -42,8 +50,12 @@ export class Game {
     this.world = new World()
     this.camera = new Camera()
     this.input = new Input()
-    house(this.world, 10, 40)
-    this.world.buildSectors()
+    let world = this.world
+    grass(world)
+    house(world, 10, 10)
+    house(world, 40, 60)
+    world.buildSectors()
+    new Hero(world, this.input, 10, 40)
   }
 
   update() {

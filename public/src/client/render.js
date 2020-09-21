@@ -51,8 +51,8 @@ export function drawTriangle(b, triangle) {
   vertices[pos] = triangle.c.x
   vertices[pos + 1] = triangle.height
   vertices[pos + 2] = triangle.c.y
-  vertices[pos + 3] = triangle.uvc.x
-  vertices[pos + 4] = triangle.uvc.y
+  vertices[pos + 3] = triangle.uv[4]
+  vertices[pos + 4] = triangle.uv[5]
   vertices[pos + 5] = 0.0
   vertices[pos + 6] = triangle.normal
   vertices[pos + 7] = 0.0
@@ -60,8 +60,8 @@ export function drawTriangle(b, triangle) {
   vertices[pos + 8] = triangle.b.x
   vertices[pos + 9] = triangle.height
   vertices[pos + 10] = triangle.b.y
-  vertices[pos + 11] = triangle.uvb.x
-  vertices[pos + 12] = triangle.uvb.y
+  vertices[pos + 11] = triangle.uv[2]
+  vertices[pos + 12] = triangle.uv[3]
   vertices[pos + 13] = 0.0
   vertices[pos + 14] = triangle.normal
   vertices[pos + 15] = 0.0
@@ -69,8 +69,8 @@ export function drawTriangle(b, triangle) {
   vertices[pos + 16] = triangle.a.x
   vertices[pos + 17] = triangle.height
   vertices[pos + 18] = triangle.a.y
-  vertices[pos + 19] = triangle.uva.x
-  vertices[pos + 20] = triangle.uva.y
+  vertices[pos + 19] = triangle.uv[0]
+  vertices[pos + 20] = triangle.uv[1]
   vertices[pos + 21] = 0.0
   vertices[pos + 22] = triangle.normal
   vertices[pos + 23] = 0.0

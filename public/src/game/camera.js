@@ -12,8 +12,8 @@ export class Camera {
     let cosX = Math.cos(this.rx)
     let sinY = Math.sin(this.ry)
     let cosY = Math.cos(this.ry)
-    this.x = target.position.x - this.radius * cosX * sinY
-    this.y = target.position.y + this.radius * sinX + target.height
-    this.z = target.position.z + this.radius * cosX * cosY
+    this.x = target.x - this.radius * cosX * sinY
+    this.y = target.y + this.radius * sinX + target.height
+    this.z = target.z + this.radius * cosX * cosY
   }
 }
