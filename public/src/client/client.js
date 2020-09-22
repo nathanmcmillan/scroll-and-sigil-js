@@ -3,10 +3,9 @@ import {fetchText, fetchImage} from '/src/client/net.js'
 import {Buffer} from '/src/webgl/buffer.js'
 import {createTexture, compileProgram} from '/src/webgl/webgl.js'
 import {Renderer} from '/src/webgl/renderer.js'
-import {drawWall, drawTriangle} from '/src/client/render.js'
+import {drawWall, drawTriangle} from '/src/client/render-sector.js'
 import {drawImage, drawSprite} from '/src/render/render.js'
 import {identity, multiply, orthographic, perspective, rotateX, rotateY, translate} from '/src/math/matrix.js'
-import {Sprite} from '/src/render/sprite.js'
 
 export class Client {
   constructor(canvas, gl) {
@@ -25,25 +24,37 @@ export class Client {
     this.textures = []
     this.rendering = null
     this.bufferGUI = null
-    this.bufferSectors = new Map()
+    this.sectorBuffers = new Map()
+    this.spriteBuffers = new Map()
   }
 
   keyEvent(code, down) {
     this.keyboard[code] = down
+    let input = this.game.input
     switch (code) {
       case 'KeyW':
+        input.moveForward = down
+        break
+      case 'KeyA':
+        input.moveLeft = down
+        break
+      case 'KeyS':
+        input.moveBackward = down
+        break
+      case 'KeyD':
+        input.moveRight = down
         break
       case 'ArrowLeft':
-        this.game.input.lookLeft = down
+        input.lookLeft = down
         break
       case 'ArrowRight':
-        this.game.input.lookRight = down
+        input.lookRight = down
         break
       case 'ArrowUp':
-        this.game.input.lookUp = down
+        input.lookUp = down
         break
       case 'ArrowDown':
-        this.game.input.lookDown = down
+        input.lookDown = down
         break
     }
   }
@@ -91,11 +102,21 @@ export class Client {
   }
 
   getSectorBuffer(texture) {
-    let buffer = this.bufferSectors.get(texture)
+    let buffer = this.sectorBuffers.get(texture)
     if (buffer == null) {
       buffer = new Buffer(3, 0, 2, 3, 4 * 800, 36 * 800)
       this.rendering.makeVAO(buffer)
-      this.bufferSectors.set(texture, buffer)
+      this.sectorBuffers.set(texture, buffer)
+    }
+    return buffer
+  }
+
+  getSpriteBuffer(texture) {
+    let buffer = this.spriteBuffers.get(texture)
+    if (buffer == null) {
+      buffer = new Buffer(3, 0, 2, 3, 4 * 800, 36 * 800)
+      this.rendering.makeVAO(buffer)
+      this.spriteBuffers.set(texture, buffer)
     }
     return buffer
   }
@@ -169,7 +190,7 @@ export class Client {
       this.sectorRender(sector)
     }
 
-    for (const buffer of this.bufferSectors.values()) {
+    for (const buffer of this.sectorBuffers.values()) {
       rendering.updateVAO(buffer, gl.STATIC_DRAW)
     }
 
@@ -234,18 +255,30 @@ export class Client {
     translate(view, -camera.x, -camera.y, -camera.z)
     multiply(projection, this.perspective, view)
     rendering.updateUniformMatrix('u_mvp', projection)
-    for (const [index, buffer] of this.bufferSectors) {
+
+    for (const [index, buffer] of this.sectorBuffers) {
       rendering.bindTexture(gl.TEXTURE0, this.textures[index].texture)
       rendering.bindAndDraw(buffer)
     }
-    rendering.bindTexture(gl.TEXTURE0, this.textures[0].texture)
-    let b = this.bufferSprites
-    b.zero()
-    let sprite = new Sprite(0, 0, 32, 32, 0, 0, 1.0, 1.0, 1.0)
+
+    let buffers = this.spriteBuffers
+    for (const buffer of buffers.values()) {
+      buffer.zero()
+    }
     let sine = Math.sin(-camera.ry)
     let cosine = Math.cos(-camera.ry)
-    drawSprite(b, 2.0, 0.0, 1.0, sprite, sine, cosine)
-    rendering.updateAndDraw(b)
+    let world = this.game.world
+    let things = world.things
+    let t = world.thingCount
+    while (t--) {
+      let thing = things[t]
+      let buffer = this.getSpriteBuffer(thing.texture)
+      drawSprite(buffer, thing.x, thing.y, thing.z, thing.sprite, sine, cosine)
+    }
+    for (const [index, buffer] of buffers) {
+      rendering.bindTexture(gl.TEXTURE0, this.textures[index].texture)
+      rendering.updateAndDraw(buffer, gl.DYNAMIC_DRAW)
+    }
 
     rendering.setProgram(1)
     rendering.setView(0, 0, this.width, this.height)
@@ -256,7 +289,7 @@ export class Client {
     identity(view)
     multiply(projection, this.orthographic, view)
     rendering.updateUniformMatrix('u_mvp', projection)
-    rendering.bindTexture(gl.TEXTURE0, this.textures[0].texture)
+    rendering.bindTexture(gl.TEXTURE0, this.textures[2].texture)
     rendering.bindAndDraw(this.bufferGUI)
   }
 }

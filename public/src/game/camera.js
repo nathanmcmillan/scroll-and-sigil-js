@@ -2,6 +2,7 @@ export class Camera {
   constructor(x, y, z, rx, ry, radius) {
     this.x = x
     this.y = y
+    this.z = z
     this.rx = rx
     this.ry = ry
     this.radius = radius
