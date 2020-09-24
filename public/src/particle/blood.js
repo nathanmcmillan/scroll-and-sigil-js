@@ -1,9 +1,9 @@
-import {Thing} from '/src/thing/thing.js'
+import {Particle} from '/src/particle/particle.js'
 import {Sprite} from '/src/render/sprite.js'
 
-export class Blood extends Thing {
-  constructor(world, x, z) {
-    super(world, x, z, 0.0, 0.25, 1.76)
+export class Blood extends Particle {
+  constructor(world, x, y, z, dx, dy, dz) {
+    super(world, x, y, z, dx, dy, dz, 0.2, 0.2)
     let scale = 1.0 / 64.0
     let atlasWidth = 1.0 / 1024.0
     let atlasHeight = 1.0 / 512.0
@@ -13,7 +13,6 @@ export class Blood extends Thing {
     let height = 128
     this.texture = 3
     this.sprite = new Sprite(left, top, width, height, 0.0, 0.0, atlasWidth, atlasHeight, scale)
-    this.speed = 0.1
   }
 
   update() {

@@ -1,13 +1,24 @@
+import {Cell} from '/src/world/cell.js'
 import {triangulate} from '/src/map/triangulate.js'
 
-const WORLD_SCALE = 0.25
+export const WORLD_SCALE = 0.25
 export const WORLD_CELL_SHIFT = 5
 
-export class Cell {
+export const GRAVITY = 0.028
+export const RESISTANCE = 0.88
+
+export class World {
   constructor() {
-    this.lines = []
+    this.sectors = []
+    this.cells = null
+    this.columns = 0
+    this.rows = 0
     this.things = []
     this.thingCount = 0
+    this.missiles = []
+    this.missileCount = 0
+    this.particles = []
+    this.particleCount = 0
   }
 
   pushThing(thing) {
@@ -23,19 +34,100 @@ export class Cell {
   removeThing(thing) {
     let things = this.things
     let index = things.indexOf(thing)
-    things[index] = things[things.length - 1]
     this.thingCount--
+    things[index] = things[this.thingCount]
+    things[this.thingCount] = null
   }
-}
 
-export class World {
-  constructor() {
-    this.things = []
-    this.thingCount = 0
-    this.sectors = []
-    this.cells = null
-    this.columns = 0
-    this.rows = 0
+  pushMissile(missile) {
+    let missiles = this.missiles
+    if (missiles.length === this.missileCount) {
+      missiles.push(missile)
+    } else {
+      missiles[this.missileCount] = missile
+    }
+    this.missileCount++
+  }
+
+  removeMissile(missile) {
+    let missiles = this.missiles
+    let index = missiles.indexOf(missile)
+    this.missileCount--
+    missiles[index] = missiles[this.missileCount]
+    missiles[this.missileCount] = null
+  }
+
+  pushParticle(particle) {
+    let particles = this.particles
+    if (particles.length === this.particleCount) {
+      particles.push(particle)
+    } else {
+      particles[this.particleCount] = particle
+    }
+    this.particleCount++
+  }
+
+  removeParticle(particle) {
+    let particles = this.particles
+    let index = particles.indexOf(particle)
+    this.particleCount--
+    particles[index] = particles[this.particleCount]
+    particles[this.particleCount] = null
+  }
+
+  update() {
+    const things = this.things
+    let i = this.thingCount
+    while (i--) {
+      if (things[i].update()) {
+        this.thingCount--
+        things[i] = things[this.thingCount]
+        things[this.thingCount] = null
+        if (this.thingCount == 0) break
+        i++
+      }
+    }
+
+    const missiles = this.missiles
+    i = this.missileCount
+    while (i--) {
+      if (missiles[i].update()) {
+        this.missileCount--
+        missiles[i] = missiles[this.missileCount]
+        missiles[this.missileCount] = null
+        if (this.missileCount == 0) break
+        i++
+      }
+    }
+
+    const particles = this.particles
+    i = this.particleCount
+    while (i--) {
+      if (particles[i].update()) {
+        this.particleCount--
+        particles[i] = particles[this.particleCount]
+        particles[this.particleCount] = null
+        if (this.particleCount == 0) break
+        i++
+      }
+    }
+  }
+
+  pushSector(sector) {
+    this.sectors.push(sector)
+  }
+
+  findSector(x, z) {
+    let i = this.sectors.length
+    while (i--) {
+      let sector = this.sectors[i]
+      if (sector.outside != null) {
+        continue
+      } else if (sector.contains(x, z)) {
+        return sector.find(x, z)
+      }
+    }
+    return null
   }
 
   buildCellLines(line) {
@@ -189,54 +281,6 @@ export class World {
     }
     for (const sector of this.sectors) {
       this.buildLines(sector)
-    }
-  }
-
-  pushThing(thing) {
-    let things = this.things
-    if (things.length === this.thingCount) {
-      things.push(thing)
-    } else {
-      things[this.thingCount] = thing
-    }
-    this.thingCount++
-  }
-
-  removeThing(thing) {
-    let things = this.things
-    let index = things.indexOf(thing)
-    things[index] = things[things.length - 1]
-    this.thingCount--
-  }
-
-  pushSector(sector) {
-    this.sectors.push(sector)
-  }
-
-  findSector(x, z) {
-    let i = this.sectors.length
-    while (i--) {
-      let sector = this.sectors[i]
-      if (sector.outside != null) {
-        continue
-      } else if (sector.contains(x, z)) {
-        return sector.find(x, z)
-      }
-    }
-    return null
-  }
-
-  update() {
-    const things = this.things
-    let len = things.length
-    let t = len
-    while (t--) {
-      if (things[t].update()) {
-        things[t] = things[len - 1]
-        things[len - 1] = null
-        len--
-        t++
-      }
     }
   }
 }

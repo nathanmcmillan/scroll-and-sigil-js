@@ -1,9 +1,11 @@
 import {Thing} from '/src/thing/thing.js'
 import {Sprite} from '/src/render/sprite.js'
+import {Blood} from '/src/particle/blood.js'
 
 export class Hero extends Thing {
   constructor(world, input, x, z) {
     super(world, x, z, 0.0, 0.25, 1.76)
+    this.input = input
     let scale = 1.0 / 64.0
     let atlasWidth = 1.0 / 1024.0
     let atlasHeight = 1.0 / 512.0
@@ -13,8 +15,16 @@ export class Hero extends Thing {
     let height = 128
     this.texture = 0
     this.sprite = new Sprite(left, top, width, height, 0.0, 0.0, atlasWidth, atlasHeight, scale)
-    this.speed = 0.1
-    this.input = input
+    this.speed = 0.025
+    this.health = 10
+  }
+
+  damage(health) {
+    this.health -= health
+    if (this.health <= 0) {
+      this.health = 0
+    }
+    new Blood(this.world, this.x, this.y + this.height * 0.5, this.z, 0.0, 0.2, 0.0)
   }
 
   update() {
@@ -61,8 +71,8 @@ export class Hero extends Thing {
       }
     }
     if (rotation !== null) {
-      this.deltaX = -Math.sin(rotation) * this.speed
-      this.deltaZ = -Math.cos(rotation) * this.speed
+      this.deltaX += Math.sin(rotation) * this.speed
+      this.deltaZ -= Math.cos(rotation) * this.speed
     }
     this.integrate()
     return false

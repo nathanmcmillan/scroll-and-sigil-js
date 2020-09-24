@@ -6,8 +6,8 @@ import {Camera} from '/src/game/camera.js'
 import {Input} from '/src/game/input.js'
 import {Hero} from '/src/thing/hero.js'
 import {Baron} from '/src/thing/baron.js'
-import {Blood} from '/src/thing/blood.js'
 import {Tree} from '/src/thing/tree.js'
+import {Blood} from '/src/particle/blood.js'
 
 const NO_TEXTURE = -1
 const TEXTURE_GRASS = 0
@@ -57,20 +57,46 @@ function house(world, x, y) {
 export class Game {
   constructor() {
     this.world = new World()
-    this.camera = new Camera(0.0, 0.0, 0.0, 0.0, 0.0, 6.0)
     this.input = new Input()
     let world = this.world
     grass(world)
     house(world, 10, 10)
     house(world, 40, 60)
     world.buildSectors()
-    new Hero(world, this.input, 10.0, 40.0)
+    let hero = new Hero(world, this.input, 10.0, 40.0)
     new Baron(world, 8.0, 45.0)
-    new Blood(world, 5.0, 1.0, 30.0)
+    new Blood(world, 5.0, 1.0, 30.0, 0.0, 0.0, 0.0)
     new Tree(world, 14.0, 42.0)
+    this.camera = new Camera(0.0, 0.0, 0.0, 0.0, 0.0, 6.0, hero)
   }
 
   update() {
+    let input = this.input
+    let camera = this.camera
+
+    if (input.lookLeft) {
+      camera.ry -= 0.05
+      if (camera.ry < 0.0) camera.ry += 2.0 * Math.PI
+    }
+
+    if (input.lookRight) {
+      camera.ry += 0.05
+      if (camera.ry >= 2.0 * Math.PI) camera.ry -= 2.0 * Math.PI
+    }
+
+    if (input.lookUp) {
+      camera.rx -= 0.05
+      if (camera.rx < 0.0) camera.rx += 2.0 * Math.PI
+    }
+
+    if (input.lookDown) {
+      camera.rx += 0.05
+      if (camera.rx >= 2.0 * Math.PI) camera.rx -= 2.0 * Math.PI
+    }
+
+    camera.updateOrbit()
+    camera.target.rotation = camera.ry
+
     this.world.update()
   }
 }

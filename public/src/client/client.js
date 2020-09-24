@@ -203,32 +203,6 @@ export class Client {
 
   update() {
     this.game.update()
-
-    let input = this.game.input
-    let camera = this.game.camera
-
-    if (input.lookLeft) {
-      camera.ry -= 0.05
-      if (camera.ry < 0.0) camera.ry += 2.0 * Math.PI
-    }
-
-    if (input.lookRight) {
-      camera.ry += 0.05
-      if (camera.ry >= 2.0 * Math.PI) camera.ry -= 2.0 * Math.PI
-    }
-
-    if (input.lookUp) {
-      camera.rx -= 0.05
-      if (camera.rx < 0.0) camera.rx += 2.0 * Math.PI
-    }
-
-    if (input.lookDown) {
-      camera.rx += 0.05
-      if (camera.rx >= 2.0 * Math.PI) camera.rx -= 2.0 * Math.PI
-    }
-
-    let target = this.game.world.things[0]
-    camera.updateOrbit(target)
   }
 
   render() {
@@ -268,6 +242,7 @@ export class Client {
     let sine = Math.sin(-camera.ry)
     let cosine = Math.cos(-camera.ry)
     let world = this.game.world
+
     let things = world.things
     let t = world.thingCount
     while (t--) {
@@ -275,6 +250,23 @@ export class Client {
       let buffer = this.getSpriteBuffer(thing.texture)
       drawSprite(buffer, thing.x, thing.y, thing.z, thing.sprite, sine, cosine)
     }
+
+    let missiles = world.missiles
+    let m = world.missileCount
+    while (m--) {
+      let missile = missiles[m]
+      let buffer = this.getSpriteBuffer(missile.texture)
+      drawSprite(buffer, missile.x, missile.y, missile.z, missile.sprite, sine, cosine)
+    }
+
+    let particles = world.particles
+    let p = world.particleCount
+    while (p--) {
+      let particle = particles[p]
+      let buffer = this.getSpriteBuffer(particle.texture)
+      drawSprite(buffer, particle.x, particle.y, particle.z, particle.sprite, sine, cosine)
+    }
+
     for (const [index, buffer] of buffers) {
       rendering.bindTexture(gl.TEXTURE0, this.textures[index].texture)
       rendering.updateAndDraw(buffer, gl.DYNAMIC_DRAW)

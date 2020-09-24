@@ -1,14 +1,16 @@
 export class Camera {
-  constructor(x, y, z, rx, ry, radius) {
+  constructor(x, y, z, rx, ry, radius, target) {
     this.x = x
     this.y = y
     this.z = z
     this.rx = rx
     this.ry = ry
     this.radius = radius
+    this.target = target
   }
 
-  updateOrbit(target) {
+  updateOrbit() {
+    let target = this.target
     let sinX = Math.sin(this.rx)
     let cosX = Math.cos(this.rx)
     let sinY = Math.sin(this.ry)

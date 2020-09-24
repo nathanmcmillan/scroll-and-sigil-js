@@ -14,12 +14,23 @@ function newCanvas(width, height) {
   return canvas
 }
 
+let active = true
+let client = null
+
+function tick() {
+  if (active) {
+    client.update()
+    client.render()
+  }
+  window.requestAnimationFrame(tick)
+}
+
 async function main() {
   let canvas = newCanvas(window.innerWidth, window.innerHeight)
   let gl = canvas.getContext('webgl2')
   document.body.appendChild(canvas)
 
-  let client = new Client(canvas, gl)
+  client = new Client(canvas, gl)
 
   document.onkeyup = (event) => {
     client.keyUp(event)
@@ -45,8 +56,6 @@ async function main() {
     client.resize(window.innerWidth, window.innerHeight)
   }
 
-  let active = true
-
   window.onblur = () => {
     console.log('pause')
     active = false
@@ -59,14 +68,6 @@ async function main() {
 
   await client.initialize()
   client.resize(window.innerWidth, window.innerHeight)
-
-  let tick = () => {
-    if (active) {
-      client.update()
-      client.render()
-    }
-    window.requestAnimationFrame(tick)
-  }
 
   window.requestAnimationFrame(tick)
 }
