@@ -144,7 +144,7 @@ export class Thing {
 
     if (px * px + pz * pz > box * box) return
 
-    let collision = line.middle != null || this.y + this.height > line.plus.ceiling || this.y + 1.0 < line.plus.floor
+    let collision = line.middle != null || this.y + 1.0 < line.plus.floor || this.y + this.height > line.plus.ceiling
 
     if (collision) {
       if (this.sec == line.plus) return

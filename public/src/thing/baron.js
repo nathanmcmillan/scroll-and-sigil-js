@@ -4,6 +4,7 @@ import {Sprite} from '/src/render/sprite.js'
 import {WORLD_CELL_SHIFT} from '/src/world/world.js'
 import {Plasma} from '/src/missile/plasma.js'
 import {Blood} from '/src/particle/blood.js'
+import {playSound} from '/src/client/sound.js'
 
 const BARON_ANIMATION_MOVE = [0, 0, 0, 0]
 const BARON_ANIMATION_MELEE = [0, 0, 0, 0]
@@ -51,10 +52,12 @@ export class Baron extends Thing {
     let wx = x - line.a.x
     let wz = z - line.a.y
     let t = (wx * vx + wz * vz) / (vx * vx + vz * vz)
+    if (t < 0.0) t = 0.0
+    else if (t > 1.0) t = 1.0
     let px = line.a.x + vx * t - x
     let pz = line.a.y + vz * t - z
     if (px * px + pz * pz > box * box) return false
-    return line.middle != null || this.y + this.height > line.plus.ceiling || this.y + 1.0 < line.plus.floor
+    return line.middle != null || this.y + 1.0 < line.plus.floor || this.y + this.height > line.plus.ceiling
   }
 
   tryMove(x, z) {
@@ -64,6 +67,8 @@ export class Baron extends Thing {
     let minR = Math.floor(z - box) >> WORLD_CELL_SHIFT
     let maxR = Math.floor(z + box) >> WORLD_CELL_SHIFT
     let world = this.world
+    let columns = world.columns
+    if (minC < 0 || minR < 0 || maxC >= columns || maxR >= world.rows) return false
     for (let r = minR; r <= maxR; r++) {
       for (let c = minC; c <= maxC; c++) {
         let cell = world.cells[c + r * world.columns]
@@ -120,8 +125,20 @@ export class Baron extends Thing {
       this.status = BARON_DEAD
       this.animationFrame = 0
       this.animation = BARON_ANIMATION_DEATH
+      playSound('baron-death')
+    } else {
+      playSound('baron-pain')
     }
-    new Blood(this.world, this.x, this.y + this.height * 0.5, this.z, 0.0, 0.2, 0.0)
+    for (let i = 0; i < 20; i++) {
+      let x = this.x + this.box * (1.0 - 2.0 * Math.random())
+      let y = this.y + this.height * Math.random()
+      let z = this.z + this.box * (1.0 - 2.0 * Math.random())
+      const spread = 0.2
+      let dx = spread * (1.0 - Math.random() * 2.0)
+      let dy = spread * Math.random()
+      let dz = spread * (1.0 - Math.random() * 2.0)
+      new Blood(this.world, x, y, z, dx, dy, dz)
+    }
   }
 
   dead() {
@@ -140,6 +157,7 @@ export class Baron extends Thing {
       if (thing.health > 0) {
         this.target = thing
         this.status = BARON_CHASE
+        if (Math.random() < 0.2) playSound('baron-scream')
         return
       }
     }
@@ -195,10 +213,12 @@ export class Baron extends Thing {
         this.status = BARON_MELEE
         this.animationFrame = 0
         this.animation = BARON_ANIMATION_MELEE
+        playSound('baron-melee')
       } else if (this.reaction == 0 && distance < this.missileRange) {
         this.status = BARON_MISSILE
         this.animationFrame = 0
         this.animation = BARON_ANIMATION_MISSILE
+        playSound('baron-missile')
       } else {
         this.moveCount--
         if (this.moveCount < 0 || !this.move()) {

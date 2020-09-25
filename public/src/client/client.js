@@ -3,9 +3,10 @@ import {fetchText, fetchImage} from '/src/client/net.js'
 import {Buffer} from '/src/webgl/buffer.js'
 import {createTexture, compileProgram} from '/src/webgl/webgl.js'
 import {Renderer} from '/src/webgl/renderer.js'
-import {drawWall, drawTriangle} from '/src/client/render-sector.js'
+import {drawWall, drawTriangle, drawDecal} from '/src/client/render-sector.js'
 import {drawImage, drawSprite} from '/src/render/render.js'
 import {identity, multiply, orthographic, perspective, rotateX, rotateY, translate} from '/src/math/matrix.js'
+import {downloadSound, playSound, downloadMusic, playMusic, pauseMusic, resumeMusic} from '/src/client/sound.js'
 
 export class Client {
   constructor(canvas, gl) {
@@ -26,6 +27,7 @@ export class Client {
     this.bufferGUI = null
     this.sectorBuffers = new Map()
     this.spriteBuffers = new Map()
+    this.music = null
   }
 
   keyEvent(code, down) {
@@ -88,6 +90,14 @@ export class Client {
     this.mouseY = event.clientY
   }
 
+  pause() {
+    pauseMusic()
+  }
+
+  resume() {
+    resumeMusic()
+  }
+
   resize(width, height) {
     this.width = width
     this.height = height
@@ -97,7 +107,7 @@ export class Client {
     let fov = 60.0
     let ratio = width / height
     let near = 0.01
-    let far = 50.0
+    let far = 200.0
     perspective(this.perspective, fov, near, far, ratio)
   }
 
@@ -174,6 +184,15 @@ export class Client {
     this.textures[2] = createTexture(gl, plank, gl.NEAREST, gl.REPEAT)
     this.textures[3] = createTexture(gl, baron, gl.NEAREST, gl.CLAMP_TO_EDGE)
 
+    downloadMusic('vampire-killer', '/music/vampire-killer.wav')
+    playMusic('vampire-killer')
+
+    downloadSound('baron-scream', '/sounds/baron-scream.wav')
+    downloadSound('baron-melee', '/sounds/baron-melee.wav')
+    downloadSound('baron-missile', '/sounds/baron-missile.wav')
+    downloadSound('baron-pain', '/sounds/baron-pain.wav')
+    downloadSound('baron-death', '/sounds/baron-death.wav')
+
     this.rendering = new Renderer(gl)
     this.bufferGUI = new Buffer(2, 4, 2, 0, 4 * 800, 36 * 800)
     this.bufferSprites = new Buffer(3, 0, 2, 3, 4 * 800, 36 * 800)
@@ -239,6 +258,7 @@ export class Client {
     for (const buffer of buffers.values()) {
       buffer.zero()
     }
+
     let sine = Math.sin(-camera.ry)
     let cosine = Math.cos(-camera.ry)
     let world = this.game.world
@@ -268,8 +288,36 @@ export class Client {
     }
 
     for (const [index, buffer] of buffers) {
+      if (buffer.indexPosition === 0) continue
       rendering.bindTexture(gl.TEXTURE0, this.textures[index].texture)
       rendering.updateAndDraw(buffer, gl.DYNAMIC_DRAW)
+    }
+
+    let d = world.decalCount
+    if (d > 0) {
+      for (const buffer of buffers.values()) {
+        buffer.zero()
+      }
+
+      gl.depthMask(false)
+      gl.enable(gl.POLYGON_OFFSET_FILL)
+      gl.polygonOffset(-1, -1)
+
+      let decals = world.decals
+      while (d--) {
+        let decal = decals[d]
+        let buffer = this.getSpriteBuffer(decal.texture)
+        drawDecal(buffer, decal)
+      }
+
+      for (const [index, buffer] of buffers) {
+        if (buffer.indexPosition === 0) continue
+        rendering.bindTexture(gl.TEXTURE0, this.textures[index].texture)
+        rendering.updateAndDraw(buffer, gl.DYNAMIC_DRAW)
+      }
+
+      gl.depthMask(true)
+      gl.disable(gl.POLYGON_OFFSET_FILL)
     }
 
     rendering.setProgram(1)

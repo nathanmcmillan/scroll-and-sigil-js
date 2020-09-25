@@ -19,6 +19,8 @@ export class World {
     this.missileCount = 0
     this.particles = []
     this.particleCount = 0
+    this.decals = []
+    this.decalCount = 0
   }
 
   pushThing(thing) {
@@ -31,14 +33,6 @@ export class World {
     this.thingCount++
   }
 
-  removeThing(thing) {
-    let things = this.things
-    let index = things.indexOf(thing)
-    this.thingCount--
-    things[index] = things[this.thingCount]
-    things[this.thingCount] = null
-  }
-
   pushMissile(missile) {
     let missiles = this.missiles
     if (missiles.length === this.missileCount) {
@@ -47,14 +41,6 @@ export class World {
       missiles[this.missileCount] = missile
     }
     this.missileCount++
-  }
-
-  removeMissile(missile) {
-    let missiles = this.missiles
-    let index = missiles.indexOf(missile)
-    this.missileCount--
-    missiles[index] = missiles[this.missileCount]
-    missiles[this.missileCount] = null
   }
 
   pushParticle(particle) {
@@ -67,12 +53,22 @@ export class World {
     this.particleCount++
   }
 
-  removeParticle(particle) {
-    let particles = this.particles
-    let index = particles.indexOf(particle)
-    this.particleCount--
-    particles[index] = particles[this.particleCount]
-    particles[this.particleCount] = null
+  pushDecal(decal) {
+    let decals = this.decals
+    if (decals.length === this.decalCount) {
+      decals.push(decal)
+    } else {
+      decals[this.decalCount] = decal
+    }
+    this.decalCount++
+  }
+
+  removeDecal(decal) {
+    let decals = this.decals
+    let index = decals.indexOf(decal)
+    this.decalCount--
+    decals[index] = decals[this.decalCount]
+    decals[this.decalCount] = null
   }
 
   update() {
@@ -83,8 +79,6 @@ export class World {
         this.thingCount--
         things[i] = things[this.thingCount]
         things[this.thingCount] = null
-        if (this.thingCount == 0) break
-        i++
       }
     }
 
@@ -95,8 +89,6 @@ export class World {
         this.missileCount--
         missiles[i] = missiles[this.missileCount]
         missiles[this.missileCount] = null
-        if (this.missileCount == 0) break
-        i++
       }
     }
 
@@ -107,8 +99,6 @@ export class World {
         this.particleCount--
         particles[i] = particles[this.particleCount]
         particles[this.particleCount] = null
-        if (this.particleCount == 0) break
-        i++
       }
     }
   }

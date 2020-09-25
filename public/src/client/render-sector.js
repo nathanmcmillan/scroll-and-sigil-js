@@ -78,3 +78,47 @@ export function drawTriangle(b, triangle) {
   b.vertexPosition = pos + 24
   index3(b)
 }
+
+export function drawDecal(b, decal) {
+  let pos = b.vertexPosition
+  let vertices = b.vertices
+
+  vertices[pos] = decal.x1
+  vertices[pos + 1] = decal.y1
+  vertices[pos + 2] = decal.z1
+  vertices[pos + 3] = decal.u1
+  vertices[pos + 4] = decal.v1
+  vertices[pos + 5] = decal.nx
+  vertices[pos + 6] = decal.ny
+  vertices[pos + 7] = decal.nz
+
+  vertices[pos + 8] = decal.x2
+  vertices[pos + 9] = decal.y2
+  vertices[pos + 10] = decal.z2
+  vertices[pos + 11] = decal.u2
+  vertices[pos + 12] = decal.v2
+  vertices[pos + 13] = decal.nx
+  vertices[pos + 14] = decal.ny
+  vertices[pos + 15] = decal.nz
+
+  vertices[pos + 16] = decal.x3
+  vertices[pos + 17] = decal.y3
+  vertices[pos + 18] = decal.z3
+  vertices[pos + 19] = decal.u3
+  vertices[pos + 20] = decal.v3
+  vertices[pos + 21] = decal.nx
+  vertices[pos + 22] = decal.ny
+  vertices[pos + 23] = decal.nz
+
+  vertices[pos + 24] = decal.x4
+  vertices[pos + 25] = decal.y4
+  vertices[pos + 26] = decal.z4
+  vertices[pos + 27] = decal.u4
+  vertices[pos + 28] = decal.v4
+  vertices[pos + 29] = decal.nx
+  vertices[pos + 30] = decal.ny
+  vertices[pos + 31] = decal.nz
+
+  b.vertexPosition = pos + 32
+  index4(b)
+}

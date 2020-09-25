@@ -1,6 +1,7 @@
 import {Thing} from '/src/thing/thing.js'
 import {Sprite} from '/src/render/sprite.js'
 import {Blood} from '/src/particle/blood.js'
+import {playSound} from '/src/client/sound.js'
 
 export class Hero extends Thing {
   constructor(world, input, x, z) {
@@ -23,8 +24,20 @@ export class Hero extends Thing {
     this.health -= health
     if (this.health <= 0) {
       this.health = 0
+      playSound('baron-death')
+    } else {
+      playSound('baron-pain')
     }
-    new Blood(this.world, this.x, this.y + this.height * 0.5, this.z, 0.0, 0.2, 0.0)
+    for (let i = 0; i < 20; i++) {
+      let x = this.x + this.box * (1.0 - 2.0 * Math.random())
+      let y = this.y + this.height * Math.random()
+      let z = this.z + this.box * (1.0 - 2.0 * Math.random())
+      const spread = 0.2
+      let dx = spread * (1.0 - Math.random() * 2.0)
+      let dy = spread * Math.random()
+      let dz = spread * (1.0 - Math.random() * 2.0)
+      new Blood(this.world, x, y, z, dx, dy, dz)
+    }
   }
 
   update() {

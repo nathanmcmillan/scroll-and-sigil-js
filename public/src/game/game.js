@@ -7,7 +7,6 @@ import {Input} from '/src/game/input.js'
 import {Hero} from '/src/thing/hero.js'
 import {Baron} from '/src/thing/baron.js'
 import {Tree} from '/src/thing/tree.js'
-import {Blood} from '/src/particle/blood.js'
 
 const NO_TEXTURE = -1
 const TEXTURE_GRASS = 0
@@ -65,7 +64,6 @@ export class Game {
     world.buildSectors()
     let hero = new Hero(world, this.input, 10.0, 40.0)
     new Baron(world, 8.0, 45.0)
-    new Blood(world, 5.0, 1.0, 30.0, 0.0, 0.0, 0.0)
     new Tree(world, 14.0, 42.0)
     this.camera = new Camera(0.0, 0.0, 0.0, 0.0, 0.0, 6.0, hero)
   }

@@ -57,13 +57,13 @@ async function main() {
   }
 
   window.onblur = () => {
-    console.log('pause')
     active = false
+    client.pause()
   }
 
   window.onfocus = () => {
-    console.log('continue')
     active = true
+    client.resume()
   }
 
   await client.initialize()
