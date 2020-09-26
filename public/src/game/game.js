@@ -1,3 +1,5 @@
+import * as Wad from '/src/wad/wad.js'
+import {fetchText} from '/src/client/net.js'
 import {Line} from '/src/map/line.js'
 import {Vector2} from '/src/math/vector.js'
 import {Sector} from '/src/map/sector.js'
@@ -13,7 +15,11 @@ const TEXTURE_GRASS = 0
 const TEXTURE_STONE = 1
 const TEXTURE_PLANK = 2
 
-function grass(world) {
+async function grass(world) {
+  let txt = await fetchText('/maps/grass.wad')
+  let wad = Wad.parse(txt)
+  console.log('wad', wad)
+
   let vecs = [new Vector2(0, 0), new Vector2(0, 127), new Vector2(127, 127), new Vector2(127, 0)]
   let sector = new Sector(0.0, 0.0, 10.0, 0.0, TEXTURE_GRASS, -1, vecs, [])
   world.pushSector(sector)
@@ -57,15 +63,19 @@ export class Game {
   constructor() {
     this.world = new World()
     this.input = new Input()
+    this.camera = new Camera(0.0, 0.0, 0.0, 0.0, 0.0, 6.0, null)
+  }
+
+  async mapper() {
     let world = this.world
-    grass(world)
+    await grass(world)
     house(world, 10, 10)
     house(world, 40, 60)
     world.buildSectors()
     let hero = new Hero(world, this.input, 10.0, 40.0)
     new Baron(world, 8.0, 45.0)
     new Tree(world, 14.0, 42.0)
-    this.camera = new Camera(0.0, 0.0, 0.0, 0.0, 0.0, 6.0, hero)
+    this.camera.target = hero
   }
 
   update() {

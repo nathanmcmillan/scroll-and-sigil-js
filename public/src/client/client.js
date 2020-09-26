@@ -6,7 +6,7 @@ import {Renderer} from '/src/webgl/renderer.js'
 import {drawWall, drawTriangle, drawDecal} from '/src/client/render-sector.js'
 import {drawImage, drawSprite} from '/src/render/render.js'
 import {identity, multiply, orthographic, perspective, rotateX, rotateY, translate} from '/src/math/matrix.js'
-import {downloadSound, playSound, downloadMusic, playMusic, pauseMusic, resumeMusic} from '/src/client/sound.js'
+import {downloadSound, downloadMusic, playMusic, pauseMusic, resumeMusic} from '/src/client/sound.js'
 
 export class Client {
   constructor(canvas, gl) {
@@ -163,6 +163,8 @@ export class Client {
     gl.cullFace(gl.BACK)
     gl.disable(gl.BLEND)
 
+    await this.game.mapper()
+
     let grass = fetchImage('/textures/tiles/grass.png')
     let stone = fetchImage('/textures/tiles/stone.png')
     let plank = fetchImage('/textures/tiles/plank.png')
@@ -192,6 +194,7 @@ export class Client {
     downloadSound('baron-missile', '/sounds/baron-missile.wav')
     downloadSound('baron-pain', '/sounds/baron-pain.wav')
     downloadSound('baron-death', '/sounds/baron-death.wav')
+    downloadSound('plasma-impact', '/sounds/plasma-impact.wav')
 
     this.rendering = new Renderer(gl)
     this.bufferGUI = new Buffer(2, 4, 2, 0, 4 * 800, 36 * 800)

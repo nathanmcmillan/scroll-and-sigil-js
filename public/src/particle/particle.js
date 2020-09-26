@@ -1,5 +1,5 @@
 import {Float} from '/src/math/vector.js'
-import {WORLD_CELL_SHIFT, GRAVITY} from '/src/world/world.js'
+import {WORLD_CELL_SHIFT, GRAVITY, ANIMATION_RATE, ANIMATION_NOT_DONE, ANIMATION_ALMOST_DONE, ANIMATION_DONE} from '/src/world/world.js'
 
 export class Particle {
   constructor(world, x, y, z, dx, dy, dz, box, height) {
@@ -53,6 +53,18 @@ export class Particle {
         world.cells[c + r * world.columns].removeParticle(this)
       }
     }
+  }
+
+  updateAnimation() {
+    this.animationMod++
+    if (this.animationMod === ANIMATION_RATE) {
+      this.animationMod = 0
+      this.animationFrame++
+      let frames = this.animation.length
+      if (this.animationFrame === frames - 1) return ANIMATION_ALMOST_DONE
+      else if (this.animationFrame === frames) return ANIMATION_DONE
+    }
+    return ANIMATION_NOT_DONE
   }
 
   lineCollision() {}

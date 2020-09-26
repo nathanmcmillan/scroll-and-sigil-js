@@ -1,5 +1,7 @@
 import {Missile} from '/src/missile/missile.js'
 import {Sprite} from '/src/render/sprite.js'
+import {PlasmaExplosion} from '/src/particle/plasma-explosion.js'
+import {playSound} from '/src/client/sound.js'
 
 export class Plasma extends Missile {
   constructor(world, x, y, z, dx, dy, dz, damage) {
@@ -13,6 +15,12 @@ export class Plasma extends Missile {
     let height = 128
     this.texture = 3
     this.sprite = new Sprite(left, top, width, height, 0.0, 0.0, atlasWidth, atlasHeight, scale)
+  }
+
+  hit(thing) {
+    super.hit(thing)
+    playSound('plasma-impact')
+    new PlasmaExplosion(this.world, this.x, this.y, this.z)
   }
 
   update() {

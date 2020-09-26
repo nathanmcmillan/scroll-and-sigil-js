@@ -7,6 +7,11 @@ export const WORLD_CELL_SHIFT = 5
 export const GRAVITY = 0.028
 export const RESISTANCE = 0.88
 
+export const ANIMATION_RATE = 16
+export const ANIMATION_NOT_DONE = 0
+export const ANIMATION_ALMOST_DONE = 1
+export const ANIMATION_DONE = 2
+
 export class World {
   constructor() {
     this.sectors = []

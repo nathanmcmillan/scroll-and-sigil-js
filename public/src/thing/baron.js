@@ -1,5 +1,6 @@
 import {randomInt} from '/src/math/random.js'
-import {Thing, ANIMATION_ALMOST_DONE, ANIMATION_DONE} from '/src/thing/thing.js'
+import {ANIMATION_ALMOST_DONE, ANIMATION_DONE} from '/src/world/world.js'
+import {Thing} from '/src/thing/thing.js'
 import {Sprite} from '/src/render/sprite.js'
 import {WORLD_CELL_SHIFT} from '/src/world/world.js'
 import {Plasma} from '/src/missile/plasma.js'
