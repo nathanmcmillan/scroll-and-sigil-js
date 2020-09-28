@@ -4,9 +4,9 @@ vectors[
   [127, 127]
   [127, 0]
 ]
-floor-texture: grass
-ceiling-texture: none
 bottom: 0
 floor: 0
 ceiling: 10
 top: 0
+floor-texture: grass
+ceiling-texture: none

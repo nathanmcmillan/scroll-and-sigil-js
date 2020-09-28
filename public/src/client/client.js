@@ -6,7 +6,9 @@ import {Renderer} from '/src/webgl/renderer.js'
 import {drawWall, drawTriangle, drawDecal} from '/src/client/render-sector.js'
 import {drawImage, drawSprite} from '/src/render/render.js'
 import {identity, multiply, orthographic, perspective, rotateX, rotateY, translate} from '/src/math/matrix.js'
-import {downloadSound, downloadMusic, playMusic, pauseMusic, resumeMusic} from '/src/client/sound.js'
+import {downloadSound, downloadMusic, playMusic, pauseMusic, resumeMusic} from '/src/assets/sounds.js'
+import {saveEntity, saveTexture, textureByName, textureByIndex, saveSprites, waitForResources} from '/src/assets/assets.js'
+import {createSpriteSheet} from '/src/assets/sprite-sheet.js'
 
 export class Client {
   constructor(canvas, gl) {
@@ -22,7 +24,6 @@ export class Client {
     this.game = new Game()
     this.orthographic = new Array(16)
     this.perspective = new Array(16)
-    this.textures = []
     this.rendering = null
     this.bufferGUI = null
     this.sectorBuffers = new Map()
@@ -31,7 +32,7 @@ export class Client {
   }
 
   keyEvent(code, down) {
-    this.keyboard[code] = down
+    this.keyboard.set(code, down)
     let input = this.game.input
     switch (code) {
       case 'KeyW':
@@ -158,33 +159,41 @@ export class Client {
   async initialize() {
     const gl = this.gl
 
+    let grass = fetchImage('/textures/tiles/grass.png')
+    let stone = fetchImage('/textures/tiles/stone.png')
+    let plank = fetchImage('/textures/tiles/plank.png')
+    let baron = fetchImage('/sprites/baron/baron.png')
+    let missiles = fetchImage('/sprites/missiles/missiles.png')
+    let particles = fetchImage('/sprites/particles/particles.png')
+    let doodads = fetchImage('/sprites/doodads/doodads.png')
+    let color2d = fetchText('/shaders/color2d.glsl')
+    let texture2d = fetchText('/shaders/texture2d.glsl')
+    let texture3d = fetchText('/shaders/texture3d.glsl')
+
     gl.clearColor(0.0, 0.0, 0.0, 1.0)
     gl.depthFunc(gl.LEQUAL)
     gl.cullFace(gl.BACK)
     gl.disable(gl.BLEND)
 
-    await this.game.mapper()
-
-    let grass = fetchImage('/textures/tiles/grass.png')
-    let stone = fetchImage('/textures/tiles/stone.png')
-    let plank = fetchImage('/textures/tiles/plank.png')
-    let baron = fetchImage('/textures/baron.png')
-    let color2d = fetchText('/shaders/color2d.glsl')
-    let texture2d = fetchText('/shaders/texture2d.glsl')
-    let texture3d = fetchText('/shaders/texture3d.glsl')
-
     grass = await grass
     stone = await stone
     plank = await plank
     baron = await baron
+    missiles = await missiles
+    particles = await particles
+    doodads = await doodads
     color2d = await color2d
     texture2d = await texture2d
     texture3d = await texture3d
 
-    this.textures[0] = createTexture(gl, grass, gl.NEAREST, gl.REPEAT)
-    this.textures[1] = createTexture(gl, stone, gl.NEAREST, gl.REPEAT)
-    this.textures[2] = createTexture(gl, plank, gl.NEAREST, gl.REPEAT)
-    this.textures[3] = createTexture(gl, baron, gl.NEAREST, gl.CLAMP_TO_EDGE)
+    saveTexture('grass', createTexture(gl, grass, gl.NEAREST, gl.REPEAT))
+    saveTexture('stone', createTexture(gl, stone, gl.NEAREST, gl.REPEAT))
+    saveTexture('plank', createTexture(gl, plank, gl.NEAREST, gl.REPEAT))
+
+    saveTexture('baron', createTexture(gl, baron, gl.NEAREST, gl.CLAMP_TO_EDGE))
+    saveTexture('missiles', createTexture(gl, missiles, gl.NEAREST, gl.CLAMP_TO_EDGE))
+    saveTexture('particles', createTexture(gl, particles, gl.NEAREST, gl.CLAMP_TO_EDGE))
+    saveTexture('doodads', createTexture(gl, doodads, gl.NEAREST, gl.CLAMP_TO_EDGE))
 
     downloadMusic('vampire-killer', '/music/vampire-killer.wav')
     playMusic('vampire-killer')
@@ -195,6 +204,21 @@ export class Client {
     downloadSound('baron-pain', '/sounds/baron-pain.wav')
     downloadSound('baron-death', '/sounds/baron-death.wav')
     downloadSound('plasma-impact', '/sounds/plasma-impact.wav')
+
+    saveSprites('baron', createSpriteSheet(textureByName('baron'), await fetchText('/sprites/baron/baron.wad')))
+    saveSprites('missiles', createSpriteSheet(textureByName('missiles'), await fetchText('/sprites/missiles/missiles.wad')))
+    saveSprites('particles', createSpriteSheet(textureByName('particles'), await fetchText('/sprites/particles/particles.wad')))
+    saveSprites('doodads', createSpriteSheet(textureByName('doodads'), await fetchText('/sprites/doodads/doodads.wad')))
+
+    saveEntity('baron', '/entities/monster/baron.wad')
+    saveEntity('tree', '/entities/doodad/tree.wad')
+    saveEntity('plasma', '/entities/missile/plasma.wad')
+    saveEntity('blood', '/entities/particle/blood.wad')
+    saveEntity('plasma-explosion', '/entities/particle/plasma-explosion.wad')
+
+    await waitForResources()
+
+    await this.game.mapper()
 
     this.rendering = new Renderer(gl)
     this.bufferGUI = new Buffer(2, 4, 2, 0, 4 * 800, 36 * 800)
@@ -253,7 +277,7 @@ export class Client {
     rendering.updateUniformMatrix('u_mvp', projection)
 
     for (const [index, buffer] of this.sectorBuffers) {
-      rendering.bindTexture(gl.TEXTURE0, this.textures[index].texture)
+      rendering.bindTexture(gl.TEXTURE0, textureByIndex(index).texture)
       rendering.bindAndDraw(buffer)
     }
 
@@ -292,7 +316,7 @@ export class Client {
 
     for (const [index, buffer] of buffers) {
       if (buffer.indexPosition === 0) continue
-      rendering.bindTexture(gl.TEXTURE0, this.textures[index].texture)
+      rendering.bindTexture(gl.TEXTURE0, textureByIndex(index).texture)
       rendering.updateAndDraw(buffer, gl.DYNAMIC_DRAW)
     }
 
@@ -315,7 +339,7 @@ export class Client {
 
       for (const [index, buffer] of buffers) {
         if (buffer.indexPosition === 0) continue
-        rendering.bindTexture(gl.TEXTURE0, this.textures[index].texture)
+        rendering.bindTexture(gl.TEXTURE0, textureByIndex(index).texture)
         rendering.updateAndDraw(buffer, gl.DYNAMIC_DRAW)
       }
 
@@ -332,7 +356,7 @@ export class Client {
     identity(view)
     multiply(projection, this.orthographic, view)
     rendering.updateUniformMatrix('u_mvp', projection)
-    rendering.bindTexture(gl.TEXTURE0, this.textures[2].texture)
+    rendering.bindTexture(gl.TEXTURE0, textureByName('plank').texture)
     rendering.bindAndDraw(this.bufferGUI)
   }
 }

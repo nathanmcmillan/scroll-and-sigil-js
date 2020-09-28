@@ -1,6 +1,0 @@
-sprite: blood
-function: particle-decal-on-collision
-box: 0.2
-height: 0.2
-gravity: 0.01
-wind: 0.95

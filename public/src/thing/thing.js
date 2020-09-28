@@ -78,6 +78,10 @@ export class Thing {
     return ANIMATION_NOT_DONE
   }
 
+  updateSprite() {
+    this.sprite = this.animation[this.animationFrame]
+  }
+
   damage() {}
 
   approximateDistance(thing) {

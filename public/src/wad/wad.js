@@ -1,69 +1,109 @@
+function skip(str, i) {
+  i++
+  let c = str[i]
+  if (c !== '\n' && c !== ' ') {
+    return i - 1
+  }
+  let len = str.length
+  do {
+    i++
+    if (i === len) return i
+    c = str[i]
+  } while (c === '\n' || c === ' ')
+  return i - 1
+}
+
 export function parse(str) {
-  let data = {}
-  let stack = [data]
+  let wad = new Map()
+  let stack = [wad]
   let key = ''
   let value = ''
-  let state = 'key'
-  for (let i = 0; i < str.length; i++) {
+  let pc = ''
+  let iskey = true
+  let len = str.length
+  for (let i = 0; i < len; i++) {
     let c = str[i]
-    if (c === ':') {
-      state = 'value'
+    if (c === '\n') {
+      if (!iskey && pc !== '}' && pc !== ']') {
+        if (stack[0].constructor === Array) {
+          stack[0].push(value)
+        } else {
+          stack[0].set(key.trim(), value)
+          key = ''
+          iskey = true
+        }
+        value = ''
+      }
+      pc = c
+      i = skip(str, i)
+    } else if (c === ':') {
+      iskey = false
+      pc = c
+      i = skip(str, i)
     } else if (c === ',') {
-      let pc = str[i - 1]
       if (pc !== '}' && pc !== ']') {
         if (stack[0].constructor === Array) {
           stack[0].push(value)
         } else {
-          stack[0][key] = value
+          stack[0].set(key.trim(), value)
           key = ''
-          state = 'key'
+          iskey = true
         }
         value = ''
       }
+      pc = c
+      i = skip(str, i)
     } else if (c === '{') {
-      let map = {}
+      let map = new Map()
       if (stack[0].constructor === Array) {
         stack[0].push(map)
-        state = 'key'
+        iskey = true
       } else {
-        stack[0][key] = map
+        stack[0].set(key.trim(), map)
         key = ''
       }
       stack.unshift(map)
+      pc = c
+      i = skip(str, i)
     } else if (c === '[') {
       let array = []
       if (stack[0].constructor === Array) {
         stack[0].push(array)
       } else {
-        stack[0][key] = array
+        stack[0].set(key.trim(), array)
         key = ''
       }
       stack.unshift(array)
-      state = 'value'
+      iskey = false
+      pc = c
+      i = skip(str, i)
     } else if (c === '}') {
-      let pc = str[i - 1]
-      if (pc !== ',' && pc !== '{' && pc !== ']' && pc !== '}') {
-        stack[0][key] = value
+      if (pc !== ',' && pc !== '{' && pc !== ']' && pc !== '}' && pc !== '\n') {
+        stack[0].set(key.trim(), value)
         key = ''
         value = ''
       }
       stack.shift()
-      if (stack[0].constructor === Array) state = 'value'
-      else state = 'key'
+      iskey = stack[0].constructor !== Array
+      pc = c
+      i = skip(str, i)
     } else if (c === ']') {
-      let pc = str[i - 1]
-      if (pc !== ',' && pc !== '[' && pc !== ']' && pc !== '}') {
+      if (pc !== ',' && pc !== '[' && pc !== ']' && pc !== '}' && pc !== '\n') {
         stack[0].push(value)
         value = ''
       }
       stack.shift()
-      if (stack[0].constructor === Array) state = 'value'
-      else state = 'key'
-    } else if (state === 'key') {
+      iskey = stack[0].constructor !== Array
+      pc = c
+      i = skip(str, i)
+    } else if (iskey) {
+      pc = c
       key += c
-    } else value += c
+    } else {
+      pc = c
+      value += c
+    }
   }
-  let pc = str[str.length - 1]
-  if (pc !== ',' && pc !== ']' && pc !== '}') stack[0][key] = value
-  return data
+  if (pc !== ',' && pc !== ']' && pc !== '}' && pc !== '\n') stack[0].set(key.trim(), value)
+  return wad
 }

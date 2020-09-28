@@ -1,21 +1,17 @@
 import {Thing} from '/src/thing/thing.js'
-import {Sprite} from '/src/render/sprite.js'
 import {Blood} from '/src/particle/blood.js'
-import {playSound} from '/src/client/sound.js'
+import {playSound} from '/src/assets/sounds.js'
+import {textureIndexForName, entityByName} from '/src/assets/assets.js'
+import {animationMap} from '/src/entity/entity.js'
 
 export class Hero extends Thing {
-  constructor(world, input, x, z) {
-    super(world, x, z, 0.0, 0.25, 1.76)
+  constructor(world, entity, x, z, input) {
+    super(world, x, z, 0.0, 0.75, 2.0)
     this.input = input
-    let scale = 1.0 / 64.0
-    let atlasWidth = 1.0 / 1024.0
-    let atlasHeight = 1.0 / 512.0
-    let left = 696
-    let top = 0
-    let width = 110
-    let height = 128
-    this.texture = 0
-    this.sprite = new Sprite(left, top, width, height, 0.0, 0.0, atlasWidth, atlasHeight, scale)
+    this.texture = textureIndexForName(entity.get('sprite'))
+    this.animations = animationMap(entity)
+    this.animation = this.animations.get('idle')
+    this.sprite = this.animation[0]
     this.speed = 0.025
     this.health = 10
   }
@@ -36,7 +32,7 @@ export class Hero extends Thing {
       let dx = spread * (1.0 - Math.random() * 2.0)
       let dy = spread * Math.random()
       let dz = spread * (1.0 - Math.random() * 2.0)
-      new Blood(this.world, x, y, z, dx, dy, dz)
+      new Blood(this.world, entityByName('blood'), x, y, z, dx, dy, dz)
     }
   }
 

@@ -9,19 +9,46 @@ import {Input} from '/src/game/input.js'
 import {Hero} from '/src/thing/hero.js'
 import {Baron} from '/src/thing/baron.js'
 import {Tree} from '/src/thing/tree.js'
+import {textureIndexForName, entityByName} from '/src/assets/assets.js'
 
-const NO_TEXTURE = -1
-const TEXTURE_GRASS = 0
-const TEXTURE_STONE = 1
-const TEXTURE_PLANK = 2
+function vectorWad(wad) {
+  let vecs = wad.get('vectors')
+  let list = []
+  for (const vec of vecs) {
+    let x = parseFloat(vec[0])
+    let y = parseFloat(vec[1])
+    list.push(new Vector2(x, y))
+  }
+  return list
+}
+
+function texture(name) {
+  if (name === 'none') return -1
+  return textureIndexForName(name)
+}
+
+function lineWad(wad) {
+  let lines = wad.get('lines')
+  let list = []
+  if (lines === undefined) return list
+  return list
+}
+
+function sectorWad(wad, vecs, lines) {
+  let bottom = parseFloat(wad.get('bottom'))
+  let floor = parseFloat(wad.get('floor'))
+  let ceiling = parseFloat(wad.get('ceiling'))
+  let top = parseFloat(wad.get('top'))
+  let floorTexture = texture(wad.get('floor-texture'))
+  let ceilingTexture = texture(wad.get('ceiling-texture'))
+  return new Sector(bottom, floor, ceiling, top, floorTexture, ceilingTexture, vecs, lines)
+}
 
 async function grass(world) {
-  let txt = await fetchText('/maps/grass.wad')
-  let wad = Wad.parse(txt)
-  console.log('wad', wad)
-
-  let vecs = [new Vector2(0, 0), new Vector2(0, 127), new Vector2(127, 127), new Vector2(127, 0)]
-  let sector = new Sector(0.0, 0.0, 10.0, 0.0, TEXTURE_GRASS, -1, vecs, [])
+  let wad = Wad.parse(await fetchText('/maps/grass.wad'))
+  let vecs = vectorWad(wad)
+  let lines = lineWad(wad)
+  let sector = sectorWad(wad, vecs, lines)
   world.pushSector(sector)
 }
 
@@ -44,18 +71,18 @@ function house(world, x, y) {
   let lines = []
   let k = vecs.length - 1
   for (let i = 0; i < vecs.length; i++) {
-    lines.push(new Line(NO_TEXTURE, TEXTURE_STONE, NO_TEXTURE, vecs[k], vecs[i]))
+    lines.push(new Line(-1, texture('stone'), -1, vecs[k], vecs[i]))
     k = i
   }
 
-  let outside = new Sector(0.0, 0.0, 6.0, 0.0, NO_TEXTURE, NO_TEXTURE, vecs, lines)
+  let outside = new Sector(0.0, 0.0, 6.0, 0.0, -1, -1, vecs, lines)
   world.pushSector(outside)
 
   let inner = [vecs[2], vecs[9], vecs[8], vecs[7], vecs[6], vecs[5], vecs[4], vecs[3]]
 
-  lines = [new Line(NO_TEXTURE, NO_TEXTURE, TEXTURE_GRASS, vecs[2], vecs[9])]
+  lines = [new Line(-1, -1, texture('grass'), vecs[2], vecs[9])]
 
-  let inside = new Sector(0.0, 0.0, 5.0, 6.0, TEXTURE_PLANK, TEXTURE_STONE, inner, lines)
+  let inside = new Sector(0.0, 0.0, 5.0, 6.0, texture('plank'), texture('stone'), inner, lines)
   world.pushSector(inside)
 }
 
@@ -63,7 +90,7 @@ export class Game {
   constructor() {
     this.world = new World()
     this.input = new Input()
-    this.camera = new Camera(0.0, 0.0, 0.0, 0.0, 0.0, 6.0, null)
+    this.camera = new Camera(0.0, 0.0, 0.0, 0.0, 0.0, 8.0, null)
   }
 
   async mapper() {
@@ -72,10 +99,9 @@ export class Game {
     house(world, 10, 10)
     house(world, 40, 60)
     world.buildSectors()
-    let hero = new Hero(world, this.input, 10.0, 40.0)
-    new Baron(world, 8.0, 45.0)
-    new Tree(world, 14.0, 42.0)
-    this.camera.target = hero
+    new Baron(world, entityByName('baron'), 8.0, 45.0)
+    new Tree(world, entityByName('tree'), 14.0, 42.0)
+    this.camera.target = new Hero(world, entityByName('baron'), 10.0, 40.0, this.input)
   }
 
   update() {

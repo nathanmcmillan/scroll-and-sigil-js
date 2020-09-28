@@ -1,0 +1,16 @@
+import[
+  maps/grass,
+  maps/house
+]
+place[
+  {name:grass, x:0, y:0}
+  {name:house, x:10, y:10}
+  {name:house, x:40, y:60}
+]
+entities[
+  {name:hero, x:10, y:40}
+  {name:baron, x:8, y:45}
+  {name:tree, x:14, y:42}
+]
+music: vampire-killer
+background: night-sky
