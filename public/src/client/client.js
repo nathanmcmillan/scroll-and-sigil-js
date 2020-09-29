@@ -59,6 +59,12 @@ export class Client {
       case 'ArrowDown':
         input.lookDown = down
         break
+      case 'KeyJ':
+        input.attackLight = down
+        break
+      case 'KeyK':
+        input.attackHeavy = down
+        break
     }
   }
 

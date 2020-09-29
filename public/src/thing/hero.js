@@ -3,6 +3,14 @@ import {Blood} from '/src/particle/blood.js'
 import {playSound} from '/src/assets/sounds.js'
 import {textureIndexForName, entityByName} from '/src/assets/assets.js'
 import {animationMap} from '/src/entity/entity.js'
+import {ANIMATION_ALMOST_DONE, ANIMATION_DONE} from '/src/world/world.js'
+import {Plasma} from '/src/missile/plasma.js'
+import {randomInt} from '/src/math/random.js'
+
+const STATUS_IDLE = 0
+const STATUS_MOVE = 1
+const STATUS_MISSILE = 2
+const STATUS_DEAD = 3
 
 export class Hero extends Thing {
   constructor(world, entity, x, z, input) {
@@ -10,10 +18,12 @@ export class Hero extends Thing {
     this.input = input
     this.texture = textureIndexForName(entity.get('sprite'))
     this.animations = animationMap(entity)
-    this.animation = this.animations.get('idle')
+    this.animation = this.animations.get('move')
     this.sprite = this.animation[0]
     this.speed = 0.025
     this.health = 10
+    this.status = STATUS_IDLE
+    this.reaction = 0
   }
 
   damage(health) {
@@ -36,7 +46,45 @@ export class Hero extends Thing {
     }
   }
 
-  update() {
+  dead() {
+    if (this.animationFrame == this.animation.length - 1) {
+      return
+    }
+    this.updateAnimation()
+    this.updateSprite()
+  }
+
+  missile() {
+    let frame = this.updateAnimation()
+    if (frame == ANIMATION_ALMOST_DONE) {
+      this.reaction = 60
+      let speed = 0.3
+      let angle = this.rotation
+      let dx = Math.sin(angle)
+      let dz = -Math.cos(angle)
+      let x = this.x + dx * this.box * 3.0
+      let z = this.z + dz * this.box * 3.0
+      let y = this.y + this.height * 0.75
+      new Plasma(this.world, entityByName('plasma'), x, y, z, dx * speed, 0.0, dz * speed, 1 + randomInt(3))
+    } else if (frame == ANIMATION_DONE) {
+      this.status = STATUS_IDLE
+      this.animationFrame = 0
+      this.animation = this.animations.get('move')
+      this.updateSprite()
+    }
+  }
+
+  move() {
+    if (this.reaction > 0) {
+      this.reaction--
+    } else if (this.input.attackLight) {
+      this.status = STATUS_MISSILE
+      this.animationFrame = 0
+      this.animation = this.animations.get('missile')
+      this.updateSprite()
+      playSound('baron-missile')
+      return
+    }
     let direction = null
     let rotation = null
     if (this.input.moveForward) {
@@ -82,6 +130,26 @@ export class Hero extends Thing {
     if (rotation !== null) {
       this.deltaX += Math.sin(rotation) * this.speed
       this.deltaZ -= Math.cos(rotation) * this.speed
+
+      if (this.updateAnimation() == ANIMATION_DONE) {
+        this.animationFrame = 0
+      }
+      this.updateSprite()
+    }
+  }
+
+  update() {
+    switch (this.status) {
+      case STATUS_IDLE:
+      case STATUS_MOVE:
+        this.move()
+        break
+      case STATUS_MISSILE:
+        this.missile()
+        break
+      case STATUS_DEAD:
+        this.dead()
+        break
     }
     this.integrate()
     return false

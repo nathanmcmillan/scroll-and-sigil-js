@@ -8,11 +8,11 @@ import {playSound} from '/src/assets/sounds.js'
 import {textureIndexForName, entityByName} from '/src/assets/assets.js'
 import {animationMap} from '/src/entity/entity.js'
 
-const BARON_LOOK = 0
-const BARON_CHASE = 1
-const BARON_MELEE = 2
-const BARON_MISSILE = 3
-const BARON_DEAD = 4
+const STATUS_LOOK = 0
+const STATUS_CHASE = 1
+const STATUS_MELEE = 2
+const STATUS_MISSILE = 3
+const STATUS_DEAD = 4
 
 export class Baron extends Thing {
   constructor(world, entity, x, z) {
@@ -27,7 +27,7 @@ export class Baron extends Thing {
     this.moveCount = 0
     this.meleeRange = 2.0
     this.missileRange = 10.0
-    this.status = BARON_LOOK
+    this.status = STATUS_LOOK
     this.reaction = 0
   }
 
@@ -109,11 +109,11 @@ export class Baron extends Thing {
   }
 
   damage(health) {
-    if (this.status == BARON_DEAD) return
+    if (this.status == STATUS_DEAD) return
     this.health -= health
     if (this.health <= 0) {
       this.health = 0
-      this.status = BARON_DEAD
+      this.status = STATUS_DEAD
       this.animationFrame = 0
       this.animation = this.animations.get('death')
       this.updateSprite()
@@ -149,7 +149,7 @@ export class Baron extends Thing {
       if (this === thing) continue
       if (thing.health > 0) {
         this.target = thing
-        this.status = BARON_CHASE
+        this.status = STATUS_CHASE
         if (Math.random() < 0.2) playSound('baron-scream')
         return
       }
@@ -168,7 +168,7 @@ export class Baron extends Thing {
         this.target.damage(1 + randomInt(3))
       }
     } else if (frame == ANIMATION_DONE) {
-      this.status = BARON_CHASE
+      this.status = STATUS_CHASE
       this.animationFrame = 0
       this.animation = this.animations.get('move')
       this.updateSprite()
@@ -191,7 +191,7 @@ export class Baron extends Thing {
       let y = this.y + dy * this.height * 0.75
       new Plasma(this.world, entityByName('plasma'), x, y, z, dx * speed, dy, dz * speed, 1 + randomInt(3))
     } else if (frame == ANIMATION_DONE) {
-      this.status = BARON_CHASE
+      this.status = STATUS_CHASE
       this.animationFrame = 0
       this.animation = this.animations.get('move')
       this.updateSprite()
@@ -202,17 +202,17 @@ export class Baron extends Thing {
     if (this.reaction > 0) this.reaction--
     if (this.target.health <= 0 || this.target == null) {
       this.target = null
-      this.status = BARON_LOOK
+      this.status = STATUS_LOOK
     } else {
       let distance = this.approximateDistance(this.target)
       if (this.reaction == 0 && distance < this.meleeRange) {
-        this.status = BARON_MELEE
+        this.status = STATUS_MELEE
         this.animationFrame = 0
         this.animation = this.animations.get('melee')
         this.updateSprite()
         playSound('baron-melee')
       } else if (this.reaction == 0 && distance < this.missileRange) {
-        this.status = BARON_MISSILE
+        this.status = STATUS_MISSILE
         this.animationFrame = 0
         this.animation = this.animations.get('missile')
         this.updateSprite()
@@ -232,19 +232,19 @@ export class Baron extends Thing {
 
   update() {
     switch (this.status) {
-      case BARON_LOOK:
+      case STATUS_LOOK:
         this.look()
         break
-      case BARON_CHASE:
+      case STATUS_CHASE:
         this.chase()
         break
-      case BARON_MELEE:
+      case STATUS_MELEE:
         this.melee()
         break
-      case BARON_MISSILE:
+      case STATUS_MISSILE:
         this.missile()
         break
-      case BARON_DEAD:
+      case STATUS_DEAD:
         this.dead()
         break
     }

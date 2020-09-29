@@ -12,5 +12,7 @@ export class Input {
     this.moveDown = false
     this.jump = false
     this.console = false
+    this.attackLight = false
+    this.attackHeavy = false
   }
 }
