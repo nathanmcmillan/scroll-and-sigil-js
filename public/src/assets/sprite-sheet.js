@@ -1,10 +1,8 @@
-import * as Wad from '/src/wad/wad.js'
 import {Sprite} from '/src/render/sprite.js'
 
 const SCALE = 1.0 / 20.0
 
-export function createSpriteSheet(texture, text) {
-  let wad = Wad.parse(text)
+export function createSpriteSheet(texture, wad) {
   let sheetWidth = 1.0 / texture.width
   let sheetHeight = 1.0 / texture.height
   let sprites = new Map()

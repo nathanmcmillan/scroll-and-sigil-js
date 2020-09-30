@@ -1,4 +1,6 @@
-import {fetchText} from '/src/client/net.js'
+import {fetchText, fetchImage} from '/src/client/net.js'
+import {createSpriteSheet} from '/src/assets/sprite-sheet.js'
+
 import * as Wad from '/src/wad/wad.js'
 
 const PROMISES = []
@@ -26,6 +28,52 @@ export function textureByName(name) {
   return TEXTURES[index]
 }
 
+const SPRITE_IMAGES = new Map()
+
+async function promiseImage(sprite) {
+  let image = await fetchImage('/sprites/' + sprite + '/' + sprite + '.png')
+  SPRITE_IMAGES.set(sprite, image)
+}
+
+const SPRITE_ATLASES = new Map()
+
+async function promiseAtlas(sprite) {
+  let text = await fetchText('/sprites/' + sprite + '/' + sprite + '.wad')
+  SPRITE_ATLASES.set(sprite, Wad.parse(text))
+}
+
+const ENTITIES = new Map()
+const ASYNC_SPRITE_NAMES = new Set()
+
+async function promiseEntity(name, path) {
+  let text = await fetchText(path)
+  let wad = Wad.parse(text)
+  let sprite = wad.get('sprite')
+
+  ENTITIES.set(name, wad)
+
+  let image = promiseImage(sprite)
+  let atlas = promiseAtlas(sprite)
+
+  ASYNC_SPRITE_NAMES.add(sprite)
+
+  await image
+  await atlas
+}
+
+export function saveEntity(name, path) {
+  PROMISES.push(promiseEntity(name, path))
+}
+
+export function entityByName(name) {
+  return ENTITIES.get(name)
+}
+
+export async function waitForResources() {
+  await Promise.all(PROMISES)
+  PROMISES.length = 0
+}
+
 const SPRITE_SHEETS = new Map()
 
 export function saveSprites(name, sprites) {
@@ -36,22 +84,13 @@ export function spritesByName(name) {
   return SPRITE_SHEETS.get(name)
 }
 
-const ENTITIES = new Map()
-
-async function fetchEntity(name, path) {
-  let text = await fetchText(path)
-  ENTITIES.set(name, Wad.parse(text))
-}
-
-export function saveEntity(name, path) {
-  PROMISES.push(fetchEntity(name, path))
-}
-
-export function entityByName(name) {
-  return ENTITIES.get(name)
-}
-
-export async function waitForResources() {
-  await Promise.all(PROMISES)
-  PROMISES.length = 0
+export function createNewTexturesAndSpriteSheets(closure) {
+  for (const sprite of ASYNC_SPRITE_NAMES) {
+    let image = SPRITE_IMAGES.get(sprite)
+    let texture = closure(image)
+    let sheet = createSpriteSheet(texture, SPRITE_ATLASES.get(sprite))
+    saveTexture(sprite, texture)
+    saveSprites(sprite, sheet)
+  }
+  ASYNC_SPRITE_NAMES.clear()
 }
