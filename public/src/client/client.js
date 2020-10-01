@@ -64,6 +64,9 @@ export class Client {
       case 'KeyK':
         input.attackHeavy = down
         break
+      case 'KeyP':
+        input.pickupItem = down
+        break
     }
   }
 
@@ -169,6 +172,7 @@ export class Client {
     saveEntity('plasma', '/entities/missile/plasma.wad')
     saveEntity('blood', '/entities/particle/blood.wad')
     saveEntity('plasma-explosion', '/entities/particle/plasma-explosion.wad')
+    saveEntity('medkit', '/entities/item/medkit.wad')
 
     gl.clearColor(0.0, 0.0, 0.0, 1.0)
     gl.depthFunc(gl.LEQUAL)

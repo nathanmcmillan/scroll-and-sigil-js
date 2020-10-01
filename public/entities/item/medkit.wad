@@ -1,0 +1,4 @@
+sprite: item
+animation: medkit
+box: 0.2
+height: 0.2

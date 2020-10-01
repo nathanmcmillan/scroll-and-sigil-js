@@ -9,6 +9,7 @@ import {Input} from '/src/game/input.js'
 import {Hero} from '/src/thing/hero.js'
 import {Baron} from '/src/thing/baron.js'
 import {Tree} from '/src/thing/tree.js'
+import {Medkit} from '/src/thing/medkit.js'
 import {textureIndexForName, entityByName} from '/src/assets/assets.js'
 
 function vectorWad(wad) {
@@ -101,6 +102,7 @@ export class Game {
     world.buildSectors()
     new Baron(world, entityByName('baron'), 8.0, 45.0)
     new Tree(world, entityByName('tree'), 14.0, 42.0)
+    new Medkit(world, entityByName('medkit'), 18.0, 42.0)
     this.camera.target = new Hero(world, entityByName('baron'), 10.0, 40.0, this.input)
   }
 

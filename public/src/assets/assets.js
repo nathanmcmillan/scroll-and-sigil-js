@@ -31,6 +31,7 @@ export function textureByName(name) {
 const SPRITE_IMAGES = new Map()
 
 async function promiseImage(sprite) {
+  if (SPRITE_IMAGES.has(sprite)) return
   let image = await fetchImage('/sprites/' + sprite + '/' + sprite + '.png')
   SPRITE_IMAGES.set(sprite, image)
 }
@@ -38,6 +39,7 @@ async function promiseImage(sprite) {
 const SPRITE_ATLASES = new Map()
 
 async function promiseAtlas(sprite) {
+  if (SPRITE_ATLASES.has(sprite)) return
   let text = await fetchText('/sprites/' + sprite + '/' + sprite + '.wad')
   SPRITE_ATLASES.set(sprite, Wad.parse(text))
 }
@@ -46,6 +48,10 @@ const ENTITIES = new Map()
 const ASYNC_SPRITE_NAMES = new Set()
 
 async function promiseEntity(name, path) {
+  if (ENTITIES.has(name)) {
+    return
+  }
+
   let text = await fetchText(path)
   let wad = Wad.parse(text)
   let sprite = wad.get('sprite')
@@ -86,6 +92,7 @@ export function spritesByName(name) {
 
 export function createNewTexturesAndSpriteSheets(closure) {
   for (const sprite of ASYNC_SPRITE_NAMES) {
+    if (SPRITE_SHEETS.has(sprite)) continue
     let image = SPRITE_IMAGES.get(sprite)
     let texture = closure(image)
     let sheet = createSpriteSheet(texture, SPRITE_ATLASES.get(sprite))

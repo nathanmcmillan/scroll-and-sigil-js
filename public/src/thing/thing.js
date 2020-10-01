@@ -199,7 +199,7 @@ export class Thing {
           let i = cell.thingCount
           while (i--) {
             let thing = cell.things[i]
-            if (collisions.has(thing)) continue
+            if (!thing.isPhysical || collisions.has(thing)) continue
             if (this.collision(thing)) collided.add(thing)
             collisions.add(thing)
           }

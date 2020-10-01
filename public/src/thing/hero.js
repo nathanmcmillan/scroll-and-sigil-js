@@ -24,6 +24,7 @@ export class Hero extends Thing {
     this.health = 10
     this.status = STATUS_IDLE
     this.reaction = 0
+    this.inventory = []
   }
 
   damage(health) {
@@ -43,6 +44,23 @@ export class Hero extends Thing {
       let dy = spread * Math.random()
       let dz = spread * (1.0 - Math.random() * 2.0)
       new Blood(this.world, entityByName('blood'), x, y, z, dx, dy, dz)
+    }
+  }
+
+  pickup() {
+    let world = this.world
+    for (let r = this.minR; r <= this.maxR; r++) {
+      for (let c = this.minC; c <= this.maxC; c++) {
+        let cell = world.cells[c + r * world.columns]
+        let i = cell.thingCount
+        while (i--) {
+          let thing = cell.things[i]
+          if (thing.isItem && !thing.pickedUp && this.collision(thing)) {
+            this.inventory.push(thing)
+            thing.pickedUp = true
+          }
+        }
+      }
     }
   }
 
@@ -84,6 +102,9 @@ export class Hero extends Thing {
       this.updateSprite()
       playSound('baron-missile')
       return
+    } else if (this.input.pickupItem) {
+      this.input.pickupItem = false
+      this.pickup()
     }
     let direction = null
     let rotation = null
