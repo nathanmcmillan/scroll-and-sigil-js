@@ -198,6 +198,9 @@ export class Client {
     let stone = fetchImage('/textures/tiles/stone.png')
     let plank = fetchImage('/textures/tiles/plank.png')
 
+    let sky = fetchImage('/textures/sky.png')
+    let font = fetchImage('/textures/font.png')
+
     await waitForResources()
     createNewTexturesAndSpriteSheets((image) => {
       return createTexture(gl, image, gl.NEAREST, gl.CLAMP_TO_EDGE)
@@ -207,6 +210,9 @@ export class Client {
     stone = await stone
     plank = await plank
 
+    sky = await sky
+    font = await font
+
     color2d = await color2d
     texture2d = await texture2d
     texture3d = await texture3d
@@ -214,6 +220,9 @@ export class Client {
     saveTexture('grass', createTexture(gl, grass, gl.NEAREST, gl.REPEAT))
     saveTexture('stone', createTexture(gl, stone, gl.NEAREST, gl.REPEAT))
     saveTexture('plank', createTexture(gl, plank, gl.NEAREST, gl.REPEAT))
+
+    saveTexture('sky', createTexture(gl, sky, gl.NEAREST, gl.REPEAT))
+    saveTexture('font', createTexture(gl, font, gl.NEAREST, gl.CLAMP_TO_EDGE))
 
     await this.game.mapper()
 

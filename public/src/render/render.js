@@ -1,3 +1,10 @@
+const Font = '0123456789abcdefghijklmnopqrstuvwxyz%'
+const FontWidth = 9
+const FontHeight = 9
+const FontGrid = Math.floor(64.0 / FontWidth)
+const FontColumn = FontWidth / 64.0
+const FontRow = FontHeight / 64.0
+
 export function index3(b) {
   let pos = b.indexPosition
   let offset = b.indexOffset
@@ -169,4 +176,27 @@ export function drawSprite(b, x, y, z, sprite, sine, cosine) {
 
   b.vertexPosition = pos + 32
   index4(b)
+}
+
+export function print(buffer, x, y, text, scale) {
+  let xx = x
+  let yy = y
+  for (let i = 0; i < text.length; i++) {
+    let c = text.charAt(i)
+    if (c === ' ') {
+      xx += FontWidth * scale
+      continue
+    } else if (c === '\n') {
+      xx = x
+      yy += FontHeight * scale
+      continue
+    }
+    let loc = Font.indexOf(c)
+    let tx1 = Math.floor(loc % FontGrid) * FontColumn
+    let ty1 = Math.floor(loc / FontGrid) * FontRow
+    let tx2 = tx1 + FontColumn
+    let ty2 = ty1 + FontRow
+    drawImage(buffer, xx, yy, FontWidth * scale, FontHeight * scale, tx1, ty1, tx2, ty2)
+    xx += FontWidth * scale
+  }
 }
