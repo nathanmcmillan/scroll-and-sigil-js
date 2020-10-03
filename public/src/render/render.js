@@ -1,9 +1,9 @@
-const Font = '0123456789abcdefghijklmnopqrstuvwxyz%'
-const FontWidth = 9
-const FontHeight = 9
-const FontGrid = Math.floor(64.0 / FontWidth)
-const FontColumn = FontWidth / 64.0
-const FontRow = FontHeight / 64.0
+const FONT = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789:'
+const FONT_WIDTH = 6
+const FONT_HEIGHT = 8
+const FONT_GRID = Math.floor(128.0 / FONT_WIDTH)
+const FONT_COLUMN = FONT_WIDTH / 128.0
+const FONT_ROW = FONT_HEIGHT / 128.0
 
 export function index3(b) {
   let pos = b.indexPosition
@@ -51,7 +51,43 @@ export function screen(b, x, y, width, height) {
   index4(b)
 }
 
-export function rectangle(b, x, y, width, height, red, green, blue, alpha) {
+export function drawLine(b, x1, y1, x2, y2, thickness, red, green, blue, alpha) {
+  let pos = b.vertexPosition
+  let vertices = b.vertices
+
+  vertices[pos] = x1
+  vertices[pos + 1] = y1
+  vertices[pos + 2] = red
+  vertices[pos + 3] = green
+  vertices[pos + 4] = blue
+  vertices[pos + 5] = alpha
+
+  vertices[pos + 6] = x2
+  vertices[pos + 7] = y1
+  vertices[pos + 8] = red
+  vertices[pos + 9] = green
+  vertices[pos + 10] = blue
+  vertices[pos + 11] = alpha
+
+  vertices[pos + 12] = x2
+  vertices[pos + 13] = y2
+  vertices[pos + 14] = red
+  vertices[pos + 15] = green
+  vertices[pos + 16] = blue
+  vertices[pos + 17] = alpha
+
+  vertices[pos + 18] = x1
+  vertices[pos + 19] = y2
+  vertices[pos + 20] = red
+  vertices[pos + 21] = green
+  vertices[pos + 22] = blue
+  vertices[pos + 23] = alpha
+
+  b.vertexPosition = pos + 24
+  index4(b)
+}
+
+export function drawRectangle(b, x, y, width, height, red, green, blue, alpha) {
   let pos = b.vertexPosition
   let vertices = b.vertices
 
@@ -178,25 +214,27 @@ export function drawSprite(b, x, y, z, sprite, sine, cosine) {
   index4(b)
 }
 
-export function print(buffer, x, y, text, scale) {
-  let xx = x
-  let yy = y
+export function drawText(b, x, y, text, scale, red, green, blue, alpha) {
+  let currentX = x
+  let currentY = y
+  const fontWidth = FONT_WIDTH * scale
+  const fontHeight = FONT_HEIGHT * scale
   for (let i = 0; i < text.length; i++) {
     let c = text.charAt(i)
     if (c === ' ') {
-      xx += FontWidth * scale
+      currentX += fontWidth
       continue
     } else if (c === '\n') {
-      xx = x
-      yy += FontHeight * scale
+      currentX = x
+      currentY += fontHeight
       continue
     }
-    let loc = Font.indexOf(c)
-    let tx1 = Math.floor(loc % FontGrid) * FontColumn
-    let ty1 = Math.floor(loc / FontGrid) * FontRow
-    let tx2 = tx1 + FontColumn
-    let ty2 = ty1 + FontRow
-    drawImage(buffer, xx, yy, FontWidth * scale, FontHeight * scale, tx1, ty1, tx2, ty2)
-    xx += FontWidth * scale
+    let index = FONT.indexOf(c)
+    let left = Math.floor(index % FONT_GRID) * FONT_COLUMN
+    let top = Math.floor(index / FONT_GRID) * FONT_ROW
+    let right = left + FONT_COLUMN
+    let bottom = top + FONT_ROW
+    drawImage(b, currentX, currentY, fontWidth, fontHeight, red, green, blue, alpha, left, top, right, bottom)
+    currentX += fontWidth
   }
 }

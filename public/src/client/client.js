@@ -4,10 +4,11 @@ import {Buffer} from '/src/webgl/buffer.js'
 import {createTexture, compileProgram} from '/src/webgl/webgl.js'
 import {Renderer} from '/src/webgl/renderer.js'
 import {drawWall, drawTriangle, drawDecal} from '/src/client/render-sector.js'
-import {drawImage, drawSprite} from '/src/render/render.js'
+import {drawImage, drawSprite, drawText} from '/src/render/render.js'
 import {identity, multiply, orthographic, perspective, rotateX, rotateY, translate} from '/src/math/matrix.js'
-import {downloadSound, downloadMusic, playMusic, pauseMusic, resumeMusic} from '/src/assets/sounds.js'
+import {saveSound, saveMusic, playMusic, pauseMusic, resumeMusic} from '/src/assets/sounds.js'
 import {saveEntity, saveTexture, textureByName, textureByIndex, waitForResources, createNewTexturesAndSpriteSheets} from '/src/assets/assets.js'
+import {GameState} from '/src/client/game-state.js'
 
 export class Client {
   constructor(canvas, gl) {
@@ -28,6 +29,7 @@ export class Client {
     this.sectorBuffers = new Map()
     this.spriteBuffers = new Map()
     this.music = null
+    this.state = new GameState()
   }
 
   keyEvent(code, down) {
@@ -46,22 +48,26 @@ export class Client {
       case 'KeyD':
         input.moveRight = down
         break
+      case 'KeyJ':
       case 'ArrowLeft':
         input.lookLeft = down
         break
+      case 'KeyL':
       case 'ArrowRight':
         input.lookRight = down
         break
+      case 'KeyI':
       case 'ArrowUp':
         input.lookUp = down
         break
+      case 'KeyK':
       case 'ArrowDown':
         input.lookDown = down
         break
-      case 'KeyJ':
+      case 'KeyH':
         input.attackLight = down
         break
-      case 'KeyK':
+      case 'KeyU':
         input.attackHeavy = down
         break
       case 'KeyP':
@@ -179,16 +185,16 @@ export class Client {
     gl.cullFace(gl.BACK)
     gl.disable(gl.BLEND)
 
-    downloadMusic('vampire-killer', '/music/vampire-killer.wav')
+    saveMusic('vampire-killer', '/music/vampire-killer.wav')
 
     playMusic('vampire-killer')
 
-    downloadSound('baron-scream', '/sounds/baron-scream.wav')
-    downloadSound('baron-melee', '/sounds/baron-melee.wav')
-    downloadSound('baron-missile', '/sounds/baron-missile.wav')
-    downloadSound('baron-pain', '/sounds/baron-pain.wav')
-    downloadSound('baron-death', '/sounds/baron-death.wav')
-    downloadSound('plasma-impact', '/sounds/plasma-impact.wav')
+    saveSound('baron-scream', '/sounds/baron-scream.wav')
+    saveSound('baron-melee', '/sounds/baron-melee.wav')
+    saveSound('baron-missile', '/sounds/baron-missile.wav')
+    saveSound('baron-pain', '/sounds/baron-pain.wav')
+    saveSound('baron-death', '/sounds/baron-death.wav')
+    saveSound('plasma-impact', '/sounds/plasma-impact.wav')
 
     let color2d = fetchText('/shaders/color2d.glsl')
     let texture2d = fetchText('/shaders/texture2d.glsl')
@@ -228,7 +234,6 @@ export class Client {
 
     this.rendering = new Renderer(gl)
     this.bufferGUI = new Buffer(2, 4, 2, 0, 4 * 800, 36 * 800)
-    this.bufferSprites = new Buffer(3, 0, 2, 3, 4 * 800, 36 * 800)
 
     let rendering = this.rendering
 
@@ -247,10 +252,6 @@ export class Client {
     }
 
     rendering.makeVAO(this.bufferGUI)
-    rendering.makeVAO(this.bufferSprites)
-
-    drawImage(this.bufferGUI, 0.0, 0.0, 64.0, 64.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0)
-    rendering.updateVAO(this.bufferGUI, gl.STATIC_DRAW)
   }
 
   update() {
@@ -261,19 +262,40 @@ export class Client {
     const gl = this.gl
     const rendering = this.rendering
 
+    gl.clear(gl.COLOR_BUFFER_BIT)
+    gl.clear(gl.DEPTH_BUFFER_BIT)
+
+    let view = new Array(16)
+    let projection = new Array(16)
+
+    let camera = this.game.camera
+
+    rendering.setProgram(1)
+    rendering.setView(0, 0, this.width, this.height)
+
+    identity(view)
+    multiply(projection, this.orthographic, view)
+    rendering.updateUniformMatrix('u_mvp', projection)
+
+    this.bufferGUI.zero()
+
+    let sky = textureByName('sky')
+    let turnX = this.width * 2.0
+    let skyX = (camera.ry / (2.0 * Math.PI)) * turnX
+    if (skyX >= turnX) skyX -= turnX
+    let skyHeight = 2.0 * sky.height
+    let skyY = this.height - skyHeight
+
+    drawImage(this.bufferGUI, -skyX, skyY, turnX * 2.0, skyHeight, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 2.0, 1.0)
+
+    rendering.bindTexture(gl.TEXTURE0, sky.texture)
+    rendering.updateAndDraw(this.bufferGUI)
+
     rendering.setProgram(2)
     rendering.setView(0, 0, this.width, this.height)
 
     gl.enable(gl.CULL_FACE)
     gl.enable(gl.DEPTH_TEST)
-
-    gl.clear(gl.COLOR_BUFFER_BIT)
-    gl.clear(gl.DEPTH_BUFFER_BIT)
-
-    let camera = this.game.camera
-
-    let view = new Array(16)
-    let projection = new Array(16)
 
     identity(view)
     rotateX(view, Math.sin(camera.rx), Math.cos(camera.rx))
@@ -362,7 +384,11 @@ export class Client {
     identity(view)
     multiply(projection, this.orthographic, view)
     rendering.updateUniformMatrix('u_mvp', projection)
-    rendering.bindTexture(gl.TEXTURE0, textureByName('plank').texture)
-    rendering.bindAndDraw(this.bufferGUI)
+
+    this.bufferGUI.zero()
+    drawText(this.bufferGUI, 12.0, 8.0, 'Scroll and Sigil', 2.0, 0.0, 0.0, 0.0, 1.0)
+    drawText(this.bufferGUI, 10.0, 10.0, 'Scroll and Sigil', 2.0, 1.0, 0.0, 0.0, 1.0)
+    rendering.bindTexture(gl.TEXTURE0, textureByName('font').texture)
+    rendering.updateAndDraw(this.bufferGUI)
   }
 }

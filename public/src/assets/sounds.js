@@ -3,7 +3,7 @@ const SOUNDS = new Map()
 
 let CURRENT = null
 
-export function downloadSound(name, path) {
+export function saveSound(name, path) {
   if (SOUNDS.has(name)) return
   SOUNDS.set(name, new Audio(path))
 }
@@ -19,7 +19,7 @@ export function playSound(name) {
   }
 }
 
-export function downloadMusic(name, path) {
+export function saveMusic(name, path) {
   if (MUSIC.has(name)) return
   MUSIC.set(name, new Audio(path))
 }
