@@ -1,6 +1,7 @@
+export const FONT_WIDTH = 6
+export const FONT_HEIGHT = 8
+
 const FONT = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789:'
-const FONT_WIDTH = 6
-const FONT_HEIGHT = 8
 const FONT_GRID = Math.floor(128.0 / FONT_WIDTH)
 const FONT_COLUMN = FONT_WIDTH / 128.0
 const FONT_ROW = FONT_HEIGHT / 128.0
@@ -55,6 +56,18 @@ export function drawLine(b, x1, y1, x2, y2, thickness, red, green, blue, alpha) 
   let pos = b.vertexPosition
   let vertices = b.vertices
 
+  let x = y1 - y2
+  let y = -(x1 - x2)
+  let magnitude = Math.sqrt(x * x + y * y)
+  x = x / magnitude
+  y = y / magnitude
+
+  x1 = Math.floor(x1 - x * thickness)
+  y1 = Math.floor(y1 - y * thickness)
+
+  x2 = Math.ceil(x2 + x * thickness)
+  y2 = Math.ceil(y2 + y * thickness)
+
   vertices[pos] = x1
   vertices[pos + 1] = y1
   vertices[pos + 2] = red
@@ -85,6 +98,35 @@ export function drawLine(b, x1, y1, x2, y2, thickness, red, green, blue, alpha) 
 
   b.vertexPosition = pos + 24
   index4(b)
+}
+
+export function drawTriangle(b, x1, y1, x2, y2, x3, y3, red, green, blue, alpha) {
+  let pos = b.vertexPosition
+  let vertices = b.vertices
+
+  vertices[pos] = x1
+  vertices[pos + 1] = y1
+  vertices[pos + 2] = red
+  vertices[pos + 3] = green
+  vertices[pos + 4] = blue
+  vertices[pos + 5] = alpha
+
+  vertices[pos + 6] = x2
+  vertices[pos + 7] = y2
+  vertices[pos + 8] = red
+  vertices[pos + 9] = green
+  vertices[pos + 10] = blue
+  vertices[pos + 11] = alpha
+
+  vertices[pos + 12] = x3
+  vertices[pos + 13] = y3
+  vertices[pos + 14] = red
+  vertices[pos + 15] = green
+  vertices[pos + 16] = blue
+  vertices[pos + 17] = alpha
+
+  b.vertexPosition = pos + 18
+  index3(b)
 }
 
 export function drawRectangle(b, x, y, width, height, red, green, blue, alpha) {

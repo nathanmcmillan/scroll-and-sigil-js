@@ -2,33 +2,44 @@
 
 [website](https://scrollandsigil.com)
 
-# Bundling
+# Bundling Sprite Sheets
 
-- `$ go run bundle.go`
-- collects sprite images and generates sprite sheets
+- `$ bundle.sh`
+- Collects sprite images and generates sprite sheets
 
 # Map Editor
 
+Do not exceed 17 input buttons
+
+- 4 XYAB
+- 4 Bumpers
+- 4 Stick + Click
+- 4 D-Pad
+- 1 Select
+
 ## Modes
 
-# Vertex Mode
+### Vertex Mode
 
-Drag vertices
+- Top down view
+- Drag and drop existing vertices
 
-# Line Mode
+### Line Mode
 
-# Sector Mode
+- Top down view
+- Connect vectors to create new lines
 
-# Paint Mode
+### Sector Mode
 
-Fly in 3D view.
-Edit textures where camera is pointed.  
-Offset texture coordinates
+- Top down view
 
-# Thing Mode
+### Paint Mode
 
-# Loading description
+- Fly in 3D view
+- Edit textures where camera is pointed
+- Offset texture coordinates
 
-- read `loading/main.wad`
-- get map key and read file
-- open map at `maps/$name`
+### Thing Mode
+
+- Fly in 3D view
+- Place new things where camera is pointed

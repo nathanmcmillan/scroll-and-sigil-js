@@ -3,17 +3,17 @@ import {fetchText, fetchImage} from '/src/client/net.js'
 import {Buffer} from '/src/webgl/buffer.js'
 import {createTexture, compileProgram} from '/src/webgl/webgl.js'
 import {Renderer} from '/src/webgl/renderer.js'
-import {drawWall, drawTriangle, drawDecal} from '/src/client/render-sector.js'
-import {drawImage, drawSprite, drawText} from '/src/render/render.js'
-import {identity, multiply, orthographic, perspective, rotateX, rotateY, translate} from '/src/math/matrix.js'
-import {saveSound, saveMusic, playMusic, pauseMusic, resumeMusic} from '/src/assets/sounds.js'
-import {saveEntity, saveTexture, textureByName, textureByIndex, waitForResources, createNewTexturesAndSpriteSheets} from '/src/assets/assets.js'
-import {GameState} from '/src/client/game-state.js'
+import {drawWall, drawFloorCeil} from '/src/client/render-sector.js'
+import {orthographic, perspective} from '/src/math/matrix.js'
+import {saveSound, saveMusic, pauseMusic, resumeMusic} from '/src/assets/sounds.js'
+import {saveEntity, saveTexture, waitForResources, createNewTexturesAndSpriteSheets} from '/src/assets/assets.js'
+// import {GameState} from '/src/client/game-state.js'
+import {EditorState} from '/src/client/editor-state.js'
 
 export class Client {
   constructor(canvas, gl) {
-    this.width = 0
-    this.height = 0
+    this.width = canvas.width
+    this.height = canvas.height
     this.canvas = canvas
     this.gl = gl
     this.keyboard = new Map()
@@ -26,54 +26,16 @@ export class Client {
     this.perspective = new Array(16)
     this.rendering = null
     this.bufferGUI = null
+    this.bufferColor = null
     this.sectorBuffers = new Map()
     this.spriteBuffers = new Map()
     this.music = null
-    this.state = new GameState()
+    this.state = null
   }
 
   keyEvent(code, down) {
     this.keyboard.set(code, down)
-    let input = this.game.input
-    switch (code) {
-      case 'KeyW':
-        input.moveForward = down
-        break
-      case 'KeyA':
-        input.moveLeft = down
-        break
-      case 'KeyS':
-        input.moveBackward = down
-        break
-      case 'KeyD':
-        input.moveRight = down
-        break
-      case 'KeyJ':
-      case 'ArrowLeft':
-        input.lookLeft = down
-        break
-      case 'KeyL':
-      case 'ArrowRight':
-        input.lookRight = down
-        break
-      case 'KeyI':
-      case 'ArrowUp':
-        input.lookUp = down
-        break
-      case 'KeyK':
-      case 'ArrowDown':
-        input.lookDown = down
-        break
-      case 'KeyH':
-        input.attackLight = down
-        break
-      case 'KeyU':
-        input.attackHeavy = down
-        break
-      case 'KeyP':
-        input.pickupItem = down
-        break
-    }
+    this.state.keyEvent(code, down)
   }
 
   keyUp(event) {
@@ -124,6 +86,7 @@ export class Client {
     let near = 0.01
     let far = 200.0
     perspective(this.perspective, fov, near, far, ratio)
+    this.state.resize(width, height)
   }
 
   getSectorBuffer(texture) {
@@ -166,7 +129,7 @@ export class Client {
     }
     for (const triangle of sector.triangles) {
       let buffer = this.getSectorBuffer(triangle.texture)
-      drawTriangle(buffer, triangle)
+      drawFloorCeil(buffer, triangle)
     }
   }
 
@@ -187,8 +150,6 @@ export class Client {
 
     saveMusic('vampire-killer', '/music/vampire-killer.wav')
 
-    playMusic('vampire-killer')
-
     saveSound('baron-scream', '/sounds/baron-scream.wav')
     saveSound('baron-melee', '/sounds/baron-melee.wav')
     saveSound('baron-missile', '/sounds/baron-missile.wav')
@@ -206,6 +167,7 @@ export class Client {
 
     let sky = fetchImage('/textures/sky.png')
     let font = fetchImage('/textures/font.png')
+    let cursor = fetchImage('/textures/cursor.png')
 
     await waitForResources()
     createNewTexturesAndSpriteSheets((image) => {
@@ -218,6 +180,7 @@ export class Client {
 
     sky = await sky
     font = await font
+    cursor = await cursor
 
     color2d = await color2d
     texture2d = await texture2d
@@ -229,11 +192,13 @@ export class Client {
 
     saveTexture('sky', createTexture(gl, sky, gl.NEAREST, gl.REPEAT))
     saveTexture('font', createTexture(gl, font, gl.NEAREST, gl.CLAMP_TO_EDGE))
+    saveTexture('cursor', createTexture(gl, cursor, gl.NEAREST, gl.CLAMP_TO_EDGE))
 
     await this.game.mapper()
 
     this.rendering = new Renderer(gl)
     this.bufferGUI = new Buffer(2, 4, 2, 0, 4 * 800, 36 * 800)
+    this.bufferColor = new Buffer(2, 4, 0, 0, 4 * 800, 36 * 800)
 
     let rendering = this.rendering
 
@@ -252,143 +217,17 @@ export class Client {
     }
 
     rendering.makeVAO(this.bufferGUI)
+    rendering.makeVAO(this.bufferColor)
+
+    this.state = new EditorState(this) // new GameState(this)
+    this.state.initialize()
   }
 
   update() {
-    this.game.update()
+    this.state.update()
   }
 
   render() {
-    const gl = this.gl
-    const rendering = this.rendering
-
-    gl.clear(gl.COLOR_BUFFER_BIT)
-    gl.clear(gl.DEPTH_BUFFER_BIT)
-
-    let view = new Array(16)
-    let projection = new Array(16)
-
-    let camera = this.game.camera
-
-    rendering.setProgram(1)
-    rendering.setView(0, 0, this.width, this.height)
-
-    identity(view)
-    multiply(projection, this.orthographic, view)
-    rendering.updateUniformMatrix('u_mvp', projection)
-
-    this.bufferGUI.zero()
-
-    let sky = textureByName('sky')
-    let turnX = this.width * 2.0
-    let skyX = (camera.ry / (2.0 * Math.PI)) * turnX
-    if (skyX >= turnX) skyX -= turnX
-    let skyHeight = 2.0 * sky.height
-    let skyY = this.height - skyHeight
-
-    drawImage(this.bufferGUI, -skyX, skyY, turnX * 2.0, skyHeight, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 2.0, 1.0)
-
-    rendering.bindTexture(gl.TEXTURE0, sky.texture)
-    rendering.updateAndDraw(this.bufferGUI)
-
-    rendering.setProgram(2)
-    rendering.setView(0, 0, this.width, this.height)
-
-    gl.enable(gl.CULL_FACE)
-    gl.enable(gl.DEPTH_TEST)
-
-    identity(view)
-    rotateX(view, Math.sin(camera.rx), Math.cos(camera.rx))
-    rotateY(view, Math.sin(camera.ry), Math.cos(camera.ry))
-    translate(view, -camera.x, -camera.y, -camera.z)
-    multiply(projection, this.perspective, view)
-    rendering.updateUniformMatrix('u_mvp', projection)
-
-    for (const [index, buffer] of this.sectorBuffers) {
-      rendering.bindTexture(gl.TEXTURE0, textureByIndex(index).texture)
-      rendering.bindAndDraw(buffer)
-    }
-
-    let buffers = this.spriteBuffers
-    for (const buffer of buffers.values()) {
-      buffer.zero()
-    }
-
-    let sine = Math.sin(-camera.ry)
-    let cosine = Math.cos(-camera.ry)
-    let world = this.game.world
-
-    let things = world.things
-    let t = world.thingCount
-    while (t--) {
-      let thing = things[t]
-      let buffer = this.getSpriteBuffer(thing.texture)
-      drawSprite(buffer, thing.x, thing.y, thing.z, thing.sprite, sine, cosine)
-    }
-
-    let missiles = world.missiles
-    let m = world.missileCount
-    while (m--) {
-      let missile = missiles[m]
-      let buffer = this.getSpriteBuffer(missile.texture)
-      drawSprite(buffer, missile.x, missile.y, missile.z, missile.sprite, sine, cosine)
-    }
-
-    let particles = world.particles
-    let p = world.particleCount
-    while (p--) {
-      let particle = particles[p]
-      let buffer = this.getSpriteBuffer(particle.texture)
-      drawSprite(buffer, particle.x, particle.y, particle.z, particle.sprite, sine, cosine)
-    }
-
-    for (const [index, buffer] of buffers) {
-      if (buffer.indexPosition === 0) continue
-      rendering.bindTexture(gl.TEXTURE0, textureByIndex(index).texture)
-      rendering.updateAndDraw(buffer, gl.DYNAMIC_DRAW)
-    }
-
-    let d = world.decalCount
-    if (d > 0) {
-      for (const buffer of buffers.values()) {
-        buffer.zero()
-      }
-
-      gl.depthMask(false)
-      gl.enable(gl.POLYGON_OFFSET_FILL)
-      gl.polygonOffset(-1, -1)
-
-      let decals = world.decals
-      while (d--) {
-        let decal = decals[d]
-        let buffer = this.getSpriteBuffer(decal.texture)
-        drawDecal(buffer, decal)
-      }
-
-      for (const [index, buffer] of buffers) {
-        if (buffer.indexPosition === 0) continue
-        rendering.bindTexture(gl.TEXTURE0, textureByIndex(index).texture)
-        rendering.updateAndDraw(buffer, gl.DYNAMIC_DRAW)
-      }
-
-      gl.depthMask(true)
-      gl.disable(gl.POLYGON_OFFSET_FILL)
-    }
-
-    rendering.setProgram(1)
-    rendering.setView(0, 0, this.width, this.height)
-
-    gl.disable(gl.CULL_FACE)
-    gl.disable(gl.DEPTH_TEST)
-
-    identity(view)
-    multiply(projection, this.orthographic, view)
-    rendering.updateUniformMatrix('u_mvp', projection)
-
-    this.bufferGUI.zero()
-    drawText(this.bufferGUI, 12.0, 8.0, 'Scroll and Sigil', 2.0, 0.0, 0.0, 0.0, 1.0)
-    drawText(this.bufferGUI, 10.0, 10.0, 'Scroll and Sigil', 2.0, 1.0, 0.0, 0.0, 1.0)
-    rendering.bindTexture(gl.TEXTURE0, textureByName('font').texture)
-    rendering.updateAndDraw(this.bufferGUI)
+    this.state.render()
   }
 }

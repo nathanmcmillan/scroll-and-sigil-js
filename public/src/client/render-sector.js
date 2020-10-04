@@ -44,7 +44,7 @@ export function drawWall(b, wall) {
   index4(b)
 }
 
-export function drawTriangle(b, triangle) {
+export function drawFloorCeil(b, triangle) {
   let pos = b.vertexPosition
   let vertices = b.vertices
 
