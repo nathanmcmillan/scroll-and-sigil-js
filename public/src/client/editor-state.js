@@ -24,12 +24,16 @@ export class EditorState {
     keyEventMap.set('KeyK', In.LOOK_DOWN)
     keyEventMap.set('ArrowDown', In.LOOK_DOWN)
     keyEventMap.set('KeyH', In.CLICK_LEFT)
+    keyEventMap.set('Space', In.CLICK_LEFT)
     keyEventMap.set('KeyU', In.CLICK_RIGHT)
     keyEventMap.set('Enter', In.OPEN_MENU)
-    keyEventMap.set('KeyM', In.OPEN_SUB_MENU)
-    keyEventMap.set('KeyV', In.CHANGE_MODE)
-    keyEventMap.set('KeyX', In.ZOOM_IN)
-    keyEventMap.set('KeyZ', In.ZOOM_OUT)
+    keyEventMap.set('KeyM', In.OPEN_TOOL_MENU)
+    keyEventMap.set('KeyV', In.SWITCH_MODE)
+    keyEventMap.set('KeyZ', In.ZOOM_IN)
+    keyEventMap.set('KeyX', In.ZOOM_OUT)
+    keyEventMap.set('KeyU', In.UNDO)
+    keyEventMap.set('KeyR', In.REDO)
+    keyEventMap.set('KeyG', In.SNAP_TO_GRID)
 
     this.keyEventMap = keyEventMap
   }
