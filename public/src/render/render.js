@@ -62,35 +62,45 @@ export function drawLine(b, x1, y1, x2, y2, thickness, red, green, blue, alpha) 
   x = x / magnitude
   y = y / magnitude
 
-  x1 = Math.floor(x1 - x * thickness)
-  y1 = Math.floor(y1 - y * thickness)
+  // if (x1 < x2) {
+  //   x1 = Math.floor(x1 - x * thickness)
+  //   x2 = Math.ceil(x2 + x * thickness)
+  // } else {
+  //   x1 = Math.ceil(x1 + x * thickness)
+  //   x2 = Math.floor(x2 - x * thickness)
+  // }
 
-  x2 = Math.ceil(x2 + x * thickness)
-  y2 = Math.ceil(y2 + y * thickness)
+  // if (y1 < y2) {
+  //   y1 = Math.floor(y1 - y * thickness)
+  //   y2 = Math.ceil(y2 + y * thickness)
+  // } else {
+  //   y1 = Math.ceil(y1 + y * thickness)
+  //   y2 = Math.floor(y2 - y * thickness)
+  // }
 
-  vertices[pos] = x1
-  vertices[pos + 1] = y1
+  vertices[pos] = x1 - x * thickness
+  vertices[pos + 1] = y1 - y * thickness
   vertices[pos + 2] = red
   vertices[pos + 3] = green
   vertices[pos + 4] = blue
   vertices[pos + 5] = alpha
 
-  vertices[pos + 6] = x2
-  vertices[pos + 7] = y1
+  vertices[pos + 6] = x1 + x * thickness
+  vertices[pos + 7] = y1 + y * thickness
   vertices[pos + 8] = red
   vertices[pos + 9] = green
   vertices[pos + 10] = blue
   vertices[pos + 11] = alpha
 
-  vertices[pos + 12] = x2
-  vertices[pos + 13] = y2
+  vertices[pos + 12] = x2 + x * thickness
+  vertices[pos + 13] = y2 + y * thickness
   vertices[pos + 14] = red
   vertices[pos + 15] = green
   vertices[pos + 16] = blue
   vertices[pos + 17] = alpha
 
-  vertices[pos + 18] = x1
-  vertices[pos + 19] = y2
+  vertices[pos + 18] = x2 - x * thickness
+  vertices[pos + 19] = y2 - y * thickness
   vertices[pos + 20] = red
   vertices[pos + 21] = green
   vertices[pos + 22] = blue

@@ -25,8 +25,9 @@ export class EditorState {
     keyEventMap.set('ArrowDown', In.LOOK_DOWN)
     keyEventMap.set('KeyH', In.CLICK_LEFT)
     keyEventMap.set('Space', In.CLICK_LEFT)
+    keyEventMap.set('Enter', In.CLICK_LEFT)
     keyEventMap.set('KeyU', In.CLICK_RIGHT)
-    keyEventMap.set('Enter', In.OPEN_MENU)
+    keyEventMap.set('KeyI', In.OPEN_MENU)
     keyEventMap.set('KeyM', In.OPEN_TOOL_MENU)
     keyEventMap.set('KeyV', In.SWITCH_MODE)
     keyEventMap.set('KeyZ', In.ZOOM_IN)
@@ -48,7 +49,9 @@ export class EditorState {
     }
   }
 
-  initialize() {}
+  initialize() {
+    this.editor.load(this.client.game.world)
+  }
 
   update() {
     this.editor.update()

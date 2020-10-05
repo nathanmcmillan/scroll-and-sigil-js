@@ -1,20 +1,30 @@
 import {drawText, drawImage, drawRectangle, drawLine, drawTriangle, FONT_HEIGHT} from '/src/render/render.js'
 import {identity, multiply} from '/src/math/matrix.js'
 import {textureByName} from '/src/assets/assets.js'
-import {DESCRIBE_MENU, DESCRIBE_TOOL, NO_ACTION, DESCRIBE_ACTION} from '/src/editor/editor.js'
+import {vectorSize, DESCRIBE_MENU, DESCRIBE_TOOL, NO_ACTION, DESCRIBE_ACTION, END_LINE, END_LINE_NEW_VECTOR} from '/src/editor/editor.js'
 
 function mapRender(b, editor) {
   let zoom = editor.zoom
   let camera = editor.camera
-  const size = 1.0 + 0.05 * zoom
-  let red = 1.0
-  let green = 0.0
-  let blue = 0.0
+  const size = vectorSize(zoom)
   const alpha = 1.0
-  for (const vec of editor.vecs) {
-    let x = zoom * (vec.x - camera.x)
-    let y = zoom * (vec.y - camera.z)
-    drawRectangle(b, x - size, y - size, 2.0 * size, 2.0 * size, red, green, blue, alpha)
+  const thickness = 1.0
+  if (editor.viewLines) {
+    for (const line of editor.lines) {
+      let x1 = zoom * (line.a.x - camera.x)
+      let y1 = zoom * (line.a.y - camera.z)
+      let x2 = zoom * (line.b.x - camera.x)
+      let y2 = zoom * (line.b.y - camera.z)
+      drawLine(b, x1, y1, x2, y2, thickness, 1.0, 1.0, 1.0, alpha)
+    }
+  }
+  if (editor.viewVecs) {
+    for (const vec of editor.vecs) {
+      let x = Math.floor(zoom * (vec.x - camera.x))
+      let y = Math.floor(zoom * (vec.y - camera.z))
+      if (vec == editor.selectedVec) drawRectangle(b, x - size, y - size, 2.0 * size, 2.0 * size, 1.0, 0.0, 1.0, alpha)
+      else drawRectangle(b, x - size, y - size, 2.0 * size, 2.0 * size, 1.0, 0.0, 0.0, alpha)
+    }
   }
 }
 
@@ -34,30 +44,6 @@ function sectorRender(b, sector, editor) {
       let x3 = zoom * (triangle.c.x - camera.x)
       let y3 = zoom * (triangle.c.y - camera.z)
       drawTriangle(b, x1, y1, x2, y2, x3, y3, red, green, blue, alpha)
-    }
-  }
-  const thickness = 1.0
-  red = 1.0
-  green = 1.0
-  blue = 1.0
-  if (editor.viewLines) {
-    for (const line of sector.lines) {
-      let x1 = zoom * (line.a.x - camera.x)
-      let y1 = zoom * (line.a.y - camera.z)
-      let x2 = zoom * (line.b.x - camera.x)
-      let y2 = zoom * (line.b.y - camera.z)
-      drawLine(b, x1, y1, x2, y2, thickness, red, green, blue, alpha)
-    }
-  }
-  const size = 1.0 + 0.05 * zoom
-  red = 1.0
-  green = 0.0
-  blue = 0.0
-  if (editor.viewVecs) {
-    for (const vec of sector.vecs) {
-      let x = zoom * (vec.x - camera.x)
-      let y = zoom * (vec.y - camera.z)
-      drawRectangle(b, x - size, y - size, 2.0 * size, 2.0 * size, red, green, blue, alpha)
     }
   }
 }
@@ -96,6 +82,19 @@ export function renderEditorTopMode(state) {
     sectorRender(client.bufferColor, sector, editor)
   }
   mapRender(client.bufferColor, editor)
+  if (editor.action == END_LINE || editor.action == END_LINE_NEW_VECTOR) {
+    const thickness = 1.0
+    const alpha = 1.0
+    const zoom = editor.zoom
+    const camera = editor.camera
+    const a = editor.selectedVec
+    let x1 = zoom * (a.x - camera.x)
+    let y1 = zoom * (a.y - camera.z)
+    let x2 = zoom * -camera.x + editor.cursor.x
+    let y2 = zoom * -camera.z + editor.cursor.y
+    drawLine(client.bufferColor, x1, y1, x2, y2, thickness, 1.0, 1.0, 0.0, alpha)
+  }
+
   rendering.updateAndDraw(client.bufferColor)
 
   rendering.setProgram(1)
@@ -116,8 +115,10 @@ export function renderEditorTopMode(state) {
   if (editor.toolSelectionActive) {
     let x = Math.floor(0.5 * client.width)
     let y = Math.floor(0.5 * client.height)
-    for (const option of DESCRIBE_TOOL) {
-      drawTextSpecial(client.bufferGUI, x, y, option, 2.0, 1.0, 0.0, 0.0)
+    for (let i = 0; i < DESCRIBE_TOOL.length; i++) {
+      const option = DESCRIBE_TOOL[i]
+      if (i == editor.tool) drawTextSpecial(client.bufferGUI, x, y, option, 2.0, 1.0, 1.0, 0.0)
+      else drawTextSpecial(client.bufferGUI, x, y, option, 2.0, 1.0, 0.0, 0.0)
       y -= 2.0 * FONT_HEIGHT
     }
   }

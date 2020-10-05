@@ -1,5 +1,6 @@
 import {Camera} from '/src/game/camera.js'
 import {Vector2} from '/src/math/vector.js'
+import {Line} from '/src/map/line.js'
 import * as In from '/src/editor/editor-input.js'
 
 export const TOP_MODE = 0
@@ -9,15 +10,23 @@ export const VECTOR_TOOL = 0
 export const LINE_TOOL = 1
 export const THING_TOOL = 2
 export const SECTOR_TOOL = 3
+export const TOOL_COUNT = 4
 
 export const NO_ACTION = -1
 export const SELECT_VECTOR = 0
 export const MOVE_VECTOR = 1
+export const START_LINE = 2
+export const END_LINE = 3
+export const END_LINE_NEW_VECTOR = 4
 
 export const DESCRIBE_TOOL = ['Place vector', 'Place line', 'Place thing', 'Edit sector']
-export const DESCRIBE_ACTION = ['Select vector', 'Move vector']
+export const DESCRIBE_ACTION = ['Select vector', 'Move vector', 'Start line at vector', 'End line at vector', 'End line with new vector']
 
 export const DESCRIBE_MENU = ['Open', 'Save', 'Quit']
+
+export function vectorSize(zoom) {
+  return Math.ceil(1.0 + 0.05 * zoom)
+}
 
 export class Editor {
   constructor(width, height) {
@@ -38,6 +47,7 @@ export class Editor {
     this.selectedLine = null
     this.selectedSector = null
     this.selectedThing = null
+    this.selectedSecondVec = null
     this.menuActive = false
     this.toolSelectionActive = false
     this.snapToGrid = false
@@ -51,14 +61,78 @@ export class Editor {
     this.height = height
   }
 
+  load(world) {
+    for (const sector of world.sectors) {
+      for (const vec of sector.vecs) {
+        this.vecs.push(vec)
+      }
+      for (const line of sector.lines) {
+        this.lines.push(line)
+      }
+    }
+  }
+
+  vectorUnderCursor() {
+    let x = this.camera.x + this.cursor.x / this.zoom
+    let y = this.camera.z + this.cursor.y / this.zoom
+    const size = vectorSize(this.zoom)
+    for (const vec of this.vecs) {
+      if (Math.sqrt((vec.x - x) * (vec.x - x) + (vec.y - y) * (vec.y - y)) < size) {
+        return vec
+      }
+    }
+    return null
+  }
+
+  placeVectorAtCursor() {
+    let x = this.camera.x + this.cursor.x / this.zoom
+    let y = this.camera.z + this.cursor.y / this.zoom
+    let vec = new Vector2(x, y)
+    this.vecs.push(vec)
+    return vec
+  }
+
+  switchTool() {
+    this.action = NO_ACTION
+    this.selectedVec = null
+  }
+
   top() {
     let input = this.input
     let cursor = this.cursor
     let camera = this.camera
 
+    if (input.openToolMenu()) {
+      input.in[In.OPEN_TOOL_MENU] = false
+      this.toolSelectionActive = !this.toolSelectionActive
+    }
+
+    if (this.toolSelectionActive) {
+      if (input.clickLeft()) {
+        this.toolSelectionActive = false
+      } else if (input.moveForward() || input.lookUp()) {
+        input.in[In.MOVE_FORWARD] = false
+        input.in[In.LOOK_UP] = false
+        if (this.tool > 0) {
+          this.tool--
+          this.switchTool()
+        }
+      } else if (input.moveBackward() || input.lookDown()) {
+        input.in[In.MOVE_BACKWARD] = false
+        input.in[In.LOOK_DOWN] = false
+        if (this.tool + 1 < TOOL_COUNT) {
+          this.tool++
+          this.switchTool()
+        }
+      }
+      return
+    }
+
     if (input.switchMode()) {
       input.in[In.SWITCH_MODE] = false
       this.mode = VIEW_MODE
+      this.camera.x += cursor.x / this.zoom
+      this.camera.z += cursor.y / this.zoom
       return
     }
 
@@ -71,12 +145,6 @@ export class Editor {
     if (input.snapToGrid()) {
       input.in[In.SNAP_TO_GRID] = false
       this.snapToGrid = !this.snapToGrid
-      return
-    }
-
-    if (input.openToolMenu()) {
-      input.in[In.OPEN_TOOL_MENU] = false
-      this.toolSelectionActive = !this.toolSelectionActive
       return
     }
 
@@ -192,15 +260,9 @@ export class Editor {
     if (this.tool == VECTOR_TOOL) {
       if (this.action == NO_ACTION || this.action == SELECT_VECTOR) {
         this.action = NO_ACTION
-        let x = camera.x + cursor.x / this.zoom
-        let y = camera.z + cursor.y / this.zoom
-        const size = 1.0 + 0.05 * this.zoom
-        for (const vec of this.vecs) {
-          if (Math.sqrt((vec.x - x) * (vec.x - x) + (vec.y - y) * (vec.y - y)) < size) {
-            this.selectedVec = vec
-            this.action = SELECT_VECTOR
-            break
-          }
+        this.selectedVec = this.vectorUnderCursor()
+        if (this.selectedVec !== null) {
+          this.action = SELECT_VECTOR
         }
       } else {
         let x = camera.x + cursor.x / this.zoom
@@ -215,10 +277,39 @@ export class Editor {
         } else if (this.action == SELECT_VECTOR) {
           this.action = MOVE_VECTOR
         } else {
-          let cursor = this.cursor
-          let x = camera.x + cursor.x / this.zoom
-          let y = camera.z + cursor.y / this.zoom
-          this.vecs.push(new Vector2(x, y))
+          this.placeVectorAtCursor()
+        }
+      }
+    } else if (this.tool == LINE_TOOL) {
+      if (this.action == NO_ACTION || this.action == START_LINE) {
+        this.action = NO_ACTION
+        this.selectedVec = this.vectorUnderCursor()
+        if (this.selectedVec !== null) {
+          this.action = START_LINE
+        }
+      } else if (this.action == END_LINE || this.action == END_LINE_NEW_VECTOR) {
+        this.action = END_LINE_NEW_VECTOR
+        this.selectedSecondVec = this.vectorUnderCursor()
+        if (this.selectedSecondVec !== null) {
+          this.action = END_LINE
+        }
+      }
+      if (input.clickLeft()) {
+        input.in[In.CLICK_LEFT] = false
+        if (this.action == NO_ACTION) {
+          this.selectedVec = this.placeVectorAtCursor()
+          this.action = END_LINE
+        } else if (this.action == START_LINE) {
+          this.action = END_LINE
+        } else if (this.action == END_LINE) {
+          this.lines.push(new Line(-1, -1, -1, this.selectedVec, this.selectedSecondVec))
+          this.selectedVec = null
+          this.selectedSecondVec = null
+          this.action = NO_ACTION
+        } else if (this.action == END_LINE_NEW_VECTOR) {
+          this.lines.push(new Line(-1, -1, -1, this.selectedVec, this.placeVectorAtCursor()))
+          this.selectedVec = null
+          this.action = NO_ACTION
         }
       }
     }
@@ -231,6 +322,9 @@ export class Editor {
     if (input.switchMode()) {
       input.in[In.SWITCH_MODE] = false
       this.mode = TOP_MODE
+      let cursor = this.cursor
+      this.camera.x -= cursor.x / this.zoom
+      this.camera.z -= cursor.y / this.zoom
       return
     }
 
