@@ -1,7 +1,7 @@
 export const FONT_WIDTH = 6
 export const FONT_HEIGHT = 8
 
-const FONT = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789:'
+const FONT = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789:()'
 const FONT_GRID = Math.floor(128.0 / FONT_WIDTH)
 const FONT_COLUMN = FONT_WIDTH / 128.0
 const FONT_ROW = FONT_HEIGHT / 128.0
@@ -59,8 +59,8 @@ export function drawLine(b, x1, y1, x2, y2, thickness, red, green, blue, alpha) 
   let x = y1 - y2
   let y = -(x1 - x2)
   let magnitude = Math.sqrt(x * x + y * y)
-  x = x / magnitude
-  y = y / magnitude
+  x /= magnitude
+  y /= magnitude
 
   // if (x1 < x2) {
   //   x1 = Math.floor(x1 - x * thickness)

@@ -1,6 +1,7 @@
 import {Camera} from '/src/game/camera.js'
 import {Vector2} from '/src/math/vector.js'
 import {Line} from '/src/map/line.js'
+import {ThingReference} from '/src/editor/thing-reference.js'
 import * as In from '/src/editor/editor-input.js'
 
 export const TOP_MODE = 0
@@ -18,14 +19,21 @@ export const MOVE_VECTOR = 1
 export const START_LINE = 2
 export const END_LINE = 3
 export const END_LINE_NEW_VECTOR = 4
+export const FLIP_LINE = 5
+export const SELECT_THING = 6
+export const MOVE_THING = 7
 
 export const DESCRIBE_TOOL = ['Place vector', 'Place line', 'Place thing', 'Edit sector']
-export const DESCRIBE_ACTION = ['Select vector', 'Move vector', 'Start line at vector', 'End line at vector', 'End line with new vector']
+export const DESCRIBE_ACTION = ['Select vector', 'Move vector', 'Start line at vector', 'End line at vector', 'End line with new vector', 'Flip line', '(S) Select thing', '(S) Move thing']
 
 export const DESCRIBE_MENU = ['Open', 'Save', 'Quit']
 
 export function vectorSize(zoom) {
   return Math.ceil(1.0 + 0.05 * zoom)
+}
+
+export function thingSize(thing, zoom) {
+  return Math.ceil(thing.box * zoom)
 }
 
 export class Editor {
@@ -54,6 +62,7 @@ export class Editor {
     this.viewVecs = true
     this.viewLines = true
     this.viewSectors = false
+    this.viewThings = true
   }
 
   resize(width, height) {
@@ -69,6 +78,10 @@ export class Editor {
       for (const line of sector.lines) {
         this.lines.push(line)
       }
+    }
+    for (const thing of world.things) {
+      if (thing == null) break
+      this.things.push(thing)
     }
   }
 
@@ -92,15 +105,39 @@ export class Editor {
     return vec
   }
 
+  thingUnderCursor() {
+    let x = this.camera.x + this.cursor.x / this.zoom
+    let y = this.camera.z + this.cursor.y / this.zoom
+    for (const thing of this.things) {
+      let size = 0.25 * thingSize(thing, this.zoom)
+      if (x >= thing.x - size && x <= thing.x + size && y >= thing.z - size && y <= thing.z + size) {
+        return thing
+      }
+    }
+    return null
+  }
+
+  placeThingAtCursor() {
+    let x = this.camera.x + this.cursor.x / this.zoom
+    let y = this.camera.z + this.cursor.y / this.zoom
+    let thing = new ThingReference(x, y)
+    this.things.push(thing)
+    return thing
+  }
+
   switchTool() {
     this.action = NO_ACTION
     this.selectedVec = null
+    this.selectedLine = null
+    this.selectedSector = null
+    this.selectedThing = null
+    this.selectedSecondVec = null
   }
 
   top() {
-    let input = this.input
-    let cursor = this.cursor
-    let camera = this.camera
+    const input = this.input
+    const cursor = this.cursor
+    const camera = this.camera
 
     if (input.openToolMenu()) {
       input.in[In.OPEN_TOOL_MENU] = false
@@ -109,6 +146,7 @@ export class Editor {
 
     if (this.toolSelectionActive) {
       if (input.clickLeft()) {
+        input.in[In.CLICK_LEFT] = false
         this.toolSelectionActive = false
       } else if (input.moveForward() || input.lookUp()) {
         input.in[In.MOVE_FORWARD] = false
@@ -150,14 +188,14 @@ export class Editor {
 
     if (input.zoomIn()) {
       this.zoom += 0.25
-      this.camera.x -= 1
-      this.camera.z -= 1
+      this.camera.x -= 1.0 / this.zoom
+      this.camera.z -= 1.0 / this.zoom
     }
 
     if (input.zoomOut()) {
       this.zoom -= 0.25
-      this.camera.x += 1
-      this.camera.z += 1
+      this.camera.x += 1.0 / this.zoom
+      this.camera.z += 1.0 / this.zoom
     }
 
     if (this.snapToGrid) {
@@ -264,7 +302,7 @@ export class Editor {
         if (this.selectedVec !== null) {
           this.action = SELECT_VECTOR
         }
-      } else {
+      } else if (this.action == MOVE_VECTOR) {
         let x = camera.x + cursor.x / this.zoom
         let y = camera.z + cursor.y / this.zoom
         this.selectedVec.x = x
@@ -310,6 +348,29 @@ export class Editor {
           this.lines.push(new Line(-1, -1, -1, this.selectedVec, this.placeVectorAtCursor()))
           this.selectedVec = null
           this.action = NO_ACTION
+        }
+      }
+    } else if (this.tool == THING_TOOL) {
+      if (this.action == NO_ACTION || this.action == SELECT_THING) {
+        this.action = NO_ACTION
+        this.selectedThing = this.thingUnderCursor()
+        if (this.selectedThing !== null) {
+          this.action = SELECT_THING
+        }
+      } else if (this.action == MOVE_THING) {
+        let x = camera.x + cursor.x / this.zoom
+        let y = camera.z + cursor.y / this.zoom
+        this.selectedThing.x = x
+        this.selectedThing.z = y
+      }
+      if (input.clickLeft()) {
+        input.in[In.CLICK_LEFT] = false
+        if (this.action == NO_ACTION) {
+          this.selectedThing = this.placeThingAtCursor()
+        } else if (this.action == SELECT_THING) {
+          this.action = MOVE_THING
+        } else if (this.action == MOVE_THING) {
+          this.action = SELECT_THING
         }
       }
     }

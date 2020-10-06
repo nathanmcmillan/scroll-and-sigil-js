@@ -5,7 +5,7 @@ function foo(x, y)
   if x != 0
     print(x)
   else
-    y = y + 1
+    y += 1
   end
   list.push(4)
   table['key'] = list
@@ -13,11 +13,19 @@ function foo(x, y)
 end
 
 function bar()
-  for i = 0, i < 10, i = i + 1
+  for i = 0, i < 10, i += 1
     if i < 0
         continue
     end
   end
+end
+
+function zoo()
+  x = 0
+  closure = function()
+    x += 1
+  end
+  closure()
 end
 
 foo(2, 3)

@@ -1,29 +1,57 @@
 import {drawText, drawImage, drawRectangle, drawLine, drawTriangle, FONT_HEIGHT} from '/src/render/render.js'
 import {identity, multiply} from '/src/math/matrix.js'
 import {textureByName} from '/src/assets/assets.js'
-import {vectorSize, DESCRIBE_MENU, DESCRIBE_TOOL, NO_ACTION, DESCRIBE_ACTION, END_LINE, END_LINE_NEW_VECTOR} from '/src/editor/editor.js'
+import {vectorSize, thingSize, DESCRIBE_MENU, DESCRIBE_TOOL, NO_ACTION, DESCRIBE_ACTION, END_LINE, END_LINE_NEW_VECTOR} from '/src/editor/editor.js'
+
+function mapX(x, zoom, camera) {
+  return zoom * (x - camera.x)
+}
+
+function mapZ(z, zoom, camera) {
+  return zoom * (z - camera.z)
+}
+
+function drawLineWithNormal(b, x1, y1, x2, y2, thickness, red, green, blue, alpha, zoom) {
+  drawLine(b, x1, y1, x2, y2, thickness, red, green, blue, alpha)
+  let midX = 0.5 * (x1 + x2)
+  let midY = 0.5 * (y1 + y2)
+  let normX = y1 - y2
+  let normY = -(x1 - x2)
+  let magnitude = Math.sqrt(normX * normX + normY * normY)
+  normX /= magnitude
+  normY /= magnitude
+  drawLine(b, midX, midY, midX + normX * zoom, midY + normY * zoom, thickness, red, green, blue, alpha)
+}
 
 function mapRender(b, editor) {
   let zoom = editor.zoom
   let camera = editor.camera
-  const size = vectorSize(zoom)
   const alpha = 1.0
   const thickness = 1.0
   if (editor.viewLines) {
     for (const line of editor.lines) {
-      let x1 = zoom * (line.a.x - camera.x)
-      let y1 = zoom * (line.a.y - camera.z)
-      let x2 = zoom * (line.b.x - camera.x)
-      let y2 = zoom * (line.b.y - camera.z)
-      drawLine(b, x1, y1, x2, y2, thickness, 1.0, 1.0, 1.0, alpha)
+      let x1 = mapX(line.a.x, zoom, camera)
+      let y1 = mapZ(line.a.y, zoom, camera)
+      let x2 = mapX(line.b.x, zoom, camera)
+      let y2 = mapZ(line.b.y, zoom, camera)
+      drawLineWithNormal(b, x1, y1, x2, y2, thickness, 1.0, 1.0, 1.0, alpha, zoom)
     }
   }
   if (editor.viewVecs) {
+    const size = vectorSize(zoom)
     for (const vec of editor.vecs) {
-      let x = Math.floor(zoom * (vec.x - camera.x))
-      let y = Math.floor(zoom * (vec.y - camera.z))
+      let x = Math.floor(mapX(vec.x, zoom, camera))
+      let y = Math.floor(mapZ(vec.y, zoom, camera))
       if (vec == editor.selectedVec) drawRectangle(b, x - size, y - size, 2.0 * size, 2.0 * size, 1.0, 0.0, 1.0, alpha)
       else drawRectangle(b, x - size, y - size, 2.0 * size, 2.0 * size, 1.0, 0.0, 0.0, alpha)
+    }
+  }
+  if (editor.viewThings) {
+    for (const thing of editor.things) {
+      let x = Math.floor(mapX(thing.x, zoom, camera))
+      let y = Math.floor(mapZ(thing.z, zoom, camera))
+      let size = thingSize(thing, zoom)
+      drawRectangle(b, x - size, y - size, 2.0 * size, 2.0 * size, 0.0, 1.0, 0.0, alpha)
     }
   }
 }
@@ -87,12 +115,10 @@ export function renderEditorTopMode(state) {
     const alpha = 1.0
     const zoom = editor.zoom
     const camera = editor.camera
-    const a = editor.selectedVec
-    let x1 = zoom * (a.x - camera.x)
-    let y1 = zoom * (a.y - camera.z)
-    let x2 = zoom * -camera.x + editor.cursor.x
-    let y2 = zoom * -camera.z + editor.cursor.y
-    drawLine(client.bufferColor, x1, y1, x2, y2, thickness, 1.0, 1.0, 0.0, alpha)
+    const vec = editor.selectedVec
+    let x = zoom * (vec.x - camera.x)
+    let y = zoom * (vec.y - camera.z)
+    drawLineWithNormal(client.bufferColor, x, y, editor.cursor.x, editor.cursor.y, thickness, 1.0, 1.0, 0.0, alpha, zoom)
   }
 
   rendering.updateAndDraw(client.bufferColor)
