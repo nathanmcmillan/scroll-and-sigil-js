@@ -8,20 +8,22 @@ export const MOVE_LEFT = 6
 export const MOVE_RIGHT = 7
 export const MOVE_UP = 8
 export const MOVE_DOWN = 9
-export const CLICK_LEFT = 10
-export const CLICK_RIGHT = 11
-export const OPEN_MENU = 12
-export const OPEN_TOOL_MENU = 13
-export const UNDO = 14
-export const REDO = 15
-export const SWITCH_MODE = 16
-export const ZOOM_IN = 17
-export const ZOOM_OUT = 18
-export const SNAP_TO_GRID = 19
+export const BUTTON_A = 10
+export const BUTTON_B = 11
+export const BUTTON_X = 12
+export const BUTTON_Y = 13
+export const OPEN_MENU = 14
+export const OPEN_TOOL_MENU = 15
+export const UNDO = 16
+export const REDO = 17
+export const SWITCH_MODE = 18
+export const ZOOM_IN = 19
+export const ZOOM_OUT = 20
+export const SNAP_TO_GRID = 21
 
 export class EditorInput {
   constructor() {
-    this.in = new Array(20).fill(false)
+    this.in = new Array(22).fill(false)
   }
 
   set(index, down) {
@@ -68,12 +70,20 @@ export class EditorInput {
     return this.in[MOVE_DOWN]
   }
 
-  clickLeft() {
-    return this.in[CLICK_LEFT]
+  buttonA() {
+    return this.in[BUTTON_A]
   }
 
-  clickRight() {
-    return this.in[CLICK_RIGHT]
+  buttonB() {
+    return this.in[BUTTON_B]
+  }
+
+  buttonX() {
+    return this.in[BUTTON_X]
+  }
+
+  buttonY() {
+    return this.in[BUTTON_Y]
   }
 
   openMenu() {

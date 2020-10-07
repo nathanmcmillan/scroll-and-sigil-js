@@ -1,4 +1,16 @@
 
+interface goo
+  get()
+  set()
+end
+
+class zoo implements goo
+  constructor()
+    this.x = 0
+    this.y = "${this.x}"
+  end
+end
+
 function foo(x, y)
   list = []
   table = {}
@@ -14,18 +26,8 @@ end
 
 function bar()
   for i = 0, i < 10, i += 1
-    if i < 0
-        continue
-    end
+    if i < 0 continue end
   end
-end
-
-function zoo()
-  x = 0
-  closure = function()
-    x += 1
-  end
-  closure()
 end
 
 foo(2, 3)

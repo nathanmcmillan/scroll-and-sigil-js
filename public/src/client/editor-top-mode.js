@@ -1,7 +1,7 @@
-import {drawText, drawImage, drawRectangle, drawLine, drawTriangle, FONT_HEIGHT} from '/src/render/render.js'
+import {drawText, drawImage, drawRectangle, drawLine, drawTriangle, FONT_WIDTH, FONT_HEIGHT} from '/src/render/render.js'
 import {identity, multiply} from '/src/math/matrix.js'
 import {textureByName} from '/src/assets/assets.js'
-import {vectorSize, thingSize, DESCRIBE_MENU, DESCRIBE_TOOL, NO_ACTION, DESCRIBE_ACTION, END_LINE, END_LINE_NEW_VECTOR} from '/src/editor/editor.js'
+import {vectorSize, thingSize, DESCRIBE_MENU, DESCRIBE_TOOL, DESCRIBE_ACTION, DESCRIBE_OPTIONS, END_LINE, END_LINE_NEW_VECTOR} from '/src/editor/editor.js'
 
 function mapX(x, zoom, camera) {
   return zoom * (x - camera.x)
@@ -139,29 +139,31 @@ export function renderEditorTopMode(state) {
   client.bufferGUI.zero()
 
   if (editor.toolSelectionActive) {
-    let x = Math.floor(0.5 * client.width)
-    let y = Math.floor(0.5 * client.height)
+    let x = 10.0
+    let y = client.height - 10.0 - 2.0 * FONT_HEIGHT
     for (let i = 0; i < DESCRIBE_TOOL.length; i++) {
       const option = DESCRIBE_TOOL[i]
       if (i == editor.tool) drawTextSpecial(client.bufferGUI, x, y, option, 2.0, 1.0, 1.0, 0.0)
       else drawTextSpecial(client.bufferGUI, x, y, option, 2.0, 1.0, 0.0, 0.0)
-      y -= 2.0 * FONT_HEIGHT
+      y -= 2.5 * FONT_HEIGHT
     }
   }
 
   if (editor.menuActive) {
-    let x = Math.floor(0.5 * client.width)
-    let y = Math.floor(0.5 * client.height)
+    let x = 10.0
+    let y = client.height - 10.0 - 2.0 * FONT_HEIGHT
     for (const option of DESCRIBE_MENU) {
       drawTextSpecial(client.bufferGUI, x, y, option, 2.0, 1.0, 1.0, 1.0)
-      y -= 2.0 * FONT_HEIGHT
+      y -= 2.5 * FONT_HEIGHT
     }
   }
 
-  if (editor.action === NO_ACTION) {
-    drawTextSpecial(client.bufferGUI, 10.0, client.height - 10.0 - 2.0 * FONT_HEIGHT, DESCRIBE_TOOL[editor.tool], 2.0, 1.0, 0.0, 0.0)
-  } else {
-    drawTextSpecial(client.bufferGUI, 10.0, client.height - 10.0 - 2.0 * FONT_HEIGHT, DESCRIBE_ACTION[editor.action], 2.0, 1.0, 0.0, 0.0)
+  const options = DESCRIBE_OPTIONS[editor.action]
+  let x = 10.0
+  for (const [button, option] of options) {
+    let text = '(' + state.keys.reversed(button) + ') ' + DESCRIBE_ACTION[option]
+    drawTextSpecial(client.bufferGUI, x, 10.0, text, 2.0, 1.0, 0.0, 0.0)
+    x += 2.0 * FONT_WIDTH * (text.length + 1)
   }
 
   rendering.bindTexture(gl.TEXTURE0, textureByName('font').texture)

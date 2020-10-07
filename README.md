@@ -7,6 +7,24 @@
 - `$ bundle.sh`
 - Collects sprite images and generates sprite sheets
 
+# Packages
+
+## Resource Pack
+
+- Sprite sheets
+- Music
+- Sound effects
+
+## Entity Pack
+
+- Depends on resource pack
+- Defines things
+
+## Map Pack
+
+- Depends on resource and entity packs
+- List of connected maps
+
 # Map Editor
 
 Do not exceed 17 input buttons

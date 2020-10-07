@@ -13,18 +13,109 @@ export const THING_TOOL = 2
 export const SECTOR_TOOL = 3
 export const TOOL_COUNT = 4
 
-export const NO_ACTION = -1
-export const SELECT_VECTOR = 0
-export const MOVE_VECTOR = 1
-export const START_LINE = 2
-export const END_LINE = 3
-export const END_LINE_NEW_VECTOR = 4
-export const FLIP_LINE = 5
-export const SELECT_THING = 6
-export const MOVE_THING = 7
+export const VECTOR_MODE_DEFAULT = 0
+export const VECTOR_UNDER_CURSOR = 1
+export const MOVING_VECTOR = 2
+export const LINE_MODE_DEFAULT = 3
+export const START_LINE = 4
+export const END_LINE = 5
+export const END_LINE_NEW_VECTOR = 6
+export const LINE_UNDER_CURSOR = 7
+export const THING_MODE_DEFAULT = 8
+export const THING_UNDER_CURSOR = 9
+export const MOVING_THING = 10
+export const SECTOR_MODE_DEFAULT = 11
+export const OPTION_COUNT = 12
 
-export const DESCRIBE_TOOL = ['Place vector', 'Place line', 'Place thing', 'Edit sector']
-export const DESCRIBE_ACTION = ['Select vector', 'Move vector', 'Start line at vector', 'End line at vector', 'End line with new vector', 'Flip line', '(S) Select thing', '(S) Move thing']
+export const PLACE_VECTOR = 0
+export const PLACE_LINE = 1
+export const PLACE_THING = 2
+export const EDIT_SECTOR = 3
+export const MOVE_VECTOR = 4
+export const DELETE_VECTOR = 5
+export const END_MOVING_VECTOR = 6
+export const FLIP_LINE = 6
+export const DELETE_LINE = 7
+export const MOVE_THING = 9
+export const END_MOVING_THING = 10
+export const EDIT_THING = 11
+export const DELETE_THING = 12
+export const ACTION_COUNT = 14
+
+export const DESCRIBE_TOOL = new Array(TOOL_COUNT)
+DESCRIBE_TOOL[VECTOR_TOOL] = 'Vector mode'
+DESCRIBE_TOOL[LINE_TOOL] = 'Line mode'
+DESCRIBE_TOOL[THING_TOOL] = 'Thing mode'
+DESCRIBE_TOOL[SECTOR_TOOL] = 'Sector mode'
+
+const DEFAULT_TOOL_ACTION = new Array(TOOL_COUNT)
+DEFAULT_TOOL_ACTION[VECTOR_TOOL] = VECTOR_MODE_DEFAULT
+DEFAULT_TOOL_ACTION[LINE_TOOL] = LINE_MODE_DEFAULT
+DEFAULT_TOOL_ACTION[THING_TOOL] = THING_MODE_DEFAULT
+DEFAULT_TOOL_ACTION[SECTOR_TOOL] = SECTOR_MODE_DEFAULT
+
+export const DESCRIBE_ACTION = new Array(ACTION_COUNT)
+DESCRIBE_ACTION[PLACE_VECTOR] = 'Place vector'
+DESCRIBE_ACTION[MOVE_VECTOR] = 'Move vector'
+DESCRIBE_ACTION[DELETE_VECTOR] = 'Delete vector'
+DESCRIBE_ACTION[END_MOVING_VECTOR] = 'Stop moving vector'
+
+DESCRIBE_ACTION[PLACE_LINE] = 'Place line'
+DESCRIBE_ACTION[FLIP_LINE] = 'Flip line'
+DESCRIBE_ACTION[DELETE_LINE] = 'Delete line'
+DESCRIBE_ACTION[START_LINE] = 'Start line at vector'
+DESCRIBE_ACTION[END_LINE] = 'End line at vector'
+DESCRIBE_ACTION[END_LINE_NEW_VECTOR] = 'End line with new vector'
+
+DESCRIBE_ACTION[PLACE_THING] = 'Place thing'
+DESCRIBE_ACTION[MOVE_THING] = 'Move thing'
+DESCRIBE_ACTION[EDIT_THING] = 'Edit thing'
+DESCRIBE_ACTION[DELETE_THING] = 'Delete thing'
+DESCRIBE_ACTION[END_MOVING_THING] = 'Stop moving thing'
+
+DESCRIBE_ACTION[EDIT_SECTOR] = 'Edit sector'
+
+export const DESCRIBE_OPTIONS = new Array(OPTION_COUNT)
+
+const VECTOR_MODE_OPTIONS = new Map()
+VECTOR_MODE_OPTIONS.set(In.BUTTON_A, PLACE_VECTOR)
+DESCRIBE_OPTIONS[VECTOR_MODE_DEFAULT] = VECTOR_MODE_OPTIONS
+
+const VECTOR_UNDER_CURSOR_OPTIONS = new Map()
+VECTOR_UNDER_CURSOR_OPTIONS.set(In.BUTTON_A, MOVE_VECTOR)
+VECTOR_UNDER_CURSOR_OPTIONS.set(In.BUTTON_B, DELETE_VECTOR)
+DESCRIBE_OPTIONS[VECTOR_UNDER_CURSOR] = VECTOR_UNDER_CURSOR_OPTIONS
+
+const MOVING_VECTOR_OPTIONS = new Map()
+MOVING_VECTOR_OPTIONS.set(In.BUTTON_A, END_MOVING_VECTOR)
+DESCRIBE_OPTIONS[MOVING_VECTOR] = MOVING_VECTOR_OPTIONS
+
+const LINE_MODE_OPTIONS = new Map()
+LINE_MODE_OPTIONS.set(In.BUTTON_A, PLACE_LINE)
+DESCRIBE_OPTIONS[LINE_MODE_DEFAULT] = LINE_MODE_OPTIONS
+
+const LINE_UNDER_CURSOR_OPTIONS = new Map()
+LINE_UNDER_CURSOR_OPTIONS.set(In.BUTTON_A, FLIP_LINE)
+LINE_UNDER_CURSOR_OPTIONS.set(In.BUTTON_B, DELETE_LINE)
+DESCRIBE_OPTIONS[LINE_UNDER_CURSOR] = LINE_UNDER_CURSOR_OPTIONS
+
+const THING_MODE_OPTIONS = new Map()
+THING_MODE_OPTIONS.set(In.BUTTON_A, PLACE_THING)
+DESCRIBE_OPTIONS[THING_MODE_DEFAULT] = THING_MODE_OPTIONS
+
+const THING_UNDER_CURSOR_OPTIONS = new Map()
+THING_UNDER_CURSOR_OPTIONS.set(In.BUTTON_A, MOVE_THING)
+THING_UNDER_CURSOR_OPTIONS.set(In.BUTTON_B, DELETE_THING)
+THING_UNDER_CURSOR_OPTIONS.set(In.BUTTON_X, EDIT_THING)
+DESCRIBE_OPTIONS[THING_UNDER_CURSOR] = THING_UNDER_CURSOR_OPTIONS
+
+const MOVING_THING_OPTIONS = new Map()
+MOVING_THING_OPTIONS.set(In.BUTTON_A, END_MOVING_THING)
+DESCRIBE_OPTIONS[MOVING_THING] = MOVING_THING_OPTIONS
+
+const SECTOR_MODE_OPTIONS = new Map()
+SECTOR_MODE_OPTIONS.set(In.BUTTON_A, EDIT_SECTOR)
+DESCRIBE_OPTIONS[SECTOR_MODE_DEFAULT] = SECTOR_MODE_OPTIONS
 
 export const DESCRIBE_MENU = ['Open', 'Save', 'Quit']
 
@@ -44,7 +135,7 @@ export class Editor {
     this.camera = new Camera(0.0, 0.0, 0.0, 0.0, 0.0, null)
     this.mode = TOP_MODE
     this.tool = VECTOR_TOOL
-    this.action = NO_ACTION
+    this.action = VECTOR_MODE_DEFAULT
     this.zoom = 10.0
     this.cursor = new Vector2(0.5 * width, 0.5 * height)
     this.vecs = []
@@ -126,7 +217,7 @@ export class Editor {
   }
 
   switchTool() {
-    this.action = NO_ACTION
+    this.action = DEFAULT_TOOL_ACTION[this.tool]
     this.selectedVec = null
     this.selectedLine = null
     this.selectedSector = null
@@ -145,8 +236,8 @@ export class Editor {
     }
 
     if (this.toolSelectionActive) {
-      if (input.clickLeft()) {
-        input.in[In.CLICK_LEFT] = false
+      if (input.buttonA()) {
+        input.in[In.BUTTON_A] = false
         this.toolSelectionActive = false
       } else if (input.moveForward() || input.lookUp()) {
         input.in[In.MOVE_FORWARD] = false
@@ -296,31 +387,31 @@ export class Editor {
     }
 
     if (this.tool == VECTOR_TOOL) {
-      if (this.action == NO_ACTION || this.action == SELECT_VECTOR) {
-        this.action = NO_ACTION
+      if (this.action == VECTOR_MODE_DEFAULT || this.action == VECTOR_UNDER_CURSOR) {
+        this.action = VECTOR_MODE_DEFAULT
         this.selectedVec = this.vectorUnderCursor()
         if (this.selectedVec !== null) {
-          this.action = SELECT_VECTOR
+          this.action = VECTOR_UNDER_CURSOR
         }
-      } else if (this.action == MOVE_VECTOR) {
+      } else if (this.action == MOVING_VECTOR) {
         let x = camera.x + cursor.x / this.zoom
         let y = camera.z + cursor.y / this.zoom
         this.selectedVec.x = x
         this.selectedVec.y = y
       }
-      if (input.clickLeft()) {
-        input.in[In.CLICK_LEFT] = false
-        if (this.action == MOVE_VECTOR) {
-          this.action = SELECT_VECTOR
-        } else if (this.action == SELECT_VECTOR) {
-          this.action = MOVE_VECTOR
+      if (input.buttonA()) {
+        input.in[In.BUTTON_A] = false
+        if (this.action == VECTOR_UNDER_CURSOR) {
+          this.action = MOVING_VECTOR
+        } else if (this.action == MOVING_VECTOR) {
+          this.action = VECTOR_UNDER_CURSOR
         } else {
           this.placeVectorAtCursor()
         }
       }
     } else if (this.tool == LINE_TOOL) {
-      if (this.action == NO_ACTION || this.action == START_LINE) {
-        this.action = NO_ACTION
+      if (this.action == LINE_MODE_DEFAULT || this.action == START_LINE) {
+        this.action = LINE_MODE_DEFAULT
         this.selectedVec = this.vectorUnderCursor()
         if (this.selectedVec !== null) {
           this.action = START_LINE
@@ -332,9 +423,9 @@ export class Editor {
           this.action = END_LINE
         }
       }
-      if (input.clickLeft()) {
-        input.in[In.CLICK_LEFT] = false
-        if (this.action == NO_ACTION) {
+      if (input.buttonA()) {
+        input.in[In.BUTTON_A] = false
+        if (this.action == LINE_MODE_DEFAULT) {
           this.selectedVec = this.placeVectorAtCursor()
           this.action = END_LINE
         } else if (this.action == START_LINE) {
@@ -343,19 +434,19 @@ export class Editor {
           this.lines.push(new Line(-1, -1, -1, this.selectedVec, this.selectedSecondVec))
           this.selectedVec = null
           this.selectedSecondVec = null
-          this.action = NO_ACTION
+          this.action = LINE_MODE_DEFAULT
         } else if (this.action == END_LINE_NEW_VECTOR) {
           this.lines.push(new Line(-1, -1, -1, this.selectedVec, this.placeVectorAtCursor()))
           this.selectedVec = null
-          this.action = NO_ACTION
+          this.action = LINE_MODE_DEFAULT
         }
       }
     } else if (this.tool == THING_TOOL) {
-      if (this.action == NO_ACTION || this.action == SELECT_THING) {
-        this.action = NO_ACTION
+      if (this.action == THING_MODE_DEFAULT || this.action == THING_UNDER_CURSOR) {
+        this.action = THING_MODE_DEFAULT
         this.selectedThing = this.thingUnderCursor()
         if (this.selectedThing !== null) {
-          this.action = SELECT_THING
+          this.action = THING_UNDER_CURSOR
         }
       } else if (this.action == MOVE_THING) {
         let x = camera.x + cursor.x / this.zoom
@@ -363,14 +454,14 @@ export class Editor {
         this.selectedThing.x = x
         this.selectedThing.z = y
       }
-      if (input.clickLeft()) {
-        input.in[In.CLICK_LEFT] = false
-        if (this.action == NO_ACTION) {
+      if (input.buttonA()) {
+        input.in[In.BUTTON_A] = false
+        if (this.action == THING_MODE_DEFAULT) {
           this.selectedThing = this.placeThingAtCursor()
-        } else if (this.action == SELECT_THING) {
+        } else if (this.action == THING_UNDER_CURSOR) {
           this.action = MOVE_THING
         } else if (this.action == MOVE_THING) {
-          this.action = SELECT_THING
+          this.action = THING_UNDER_CURSOR
         }
       }
     }
