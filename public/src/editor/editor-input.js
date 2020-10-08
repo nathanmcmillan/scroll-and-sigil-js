@@ -30,6 +30,14 @@ export class EditorInput {
     this.in[index] = down
   }
 
+  nothingOn() {
+    let i = this.in.length
+    while (i--) {
+      if (this.in[i]) return false
+    }
+    return true
+  }
+
   lookLeft() {
     return this.in[LOOK_LEFT]
   }

@@ -1,7 +1,7 @@
 import {drawText, drawImage, drawRectangle, drawLine, drawTriangle, FONT_WIDTH, FONT_HEIGHT} from '/src/render/render.js'
 import {identity, multiply} from '/src/math/matrix.js'
 import {textureByName} from '/src/assets/assets.js'
-import {vectorSize, thingSize, DESCRIBE_MENU, DESCRIBE_TOOL, DESCRIBE_ACTION, DESCRIBE_OPTIONS, END_LINE, END_LINE_NEW_VECTOR} from '/src/editor/editor.js'
+import {vectorSize, thingSize, DESCRIBE_MENU, DESCRIBE_TOOL, DESCRIBE_ACTION, DESCRIBE_OPTIONS, OPTION_END_LINE, OPTION_END_LINE_NEW_VECTOR} from '/src/editor/editor.js'
 
 function mapX(x, zoom, camera) {
   return zoom * (x - camera.x)
@@ -110,7 +110,7 @@ export function renderEditorTopMode(state) {
     sectorRender(client.bufferColor, sector, editor)
   }
   mapRender(client.bufferColor, editor)
-  if (editor.action == END_LINE || editor.action == END_LINE_NEW_VECTOR) {
+  if (editor.action == OPTION_END_LINE || editor.action == OPTION_END_LINE_NEW_VECTOR) {
     const thickness = 1.0
     const alpha = 1.0
     const zoom = editor.zoom
