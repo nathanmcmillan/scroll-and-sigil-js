@@ -450,7 +450,7 @@ export class Editor {
         else camera.z -= modulo
       }
     } else {
-      const look = 1.0
+      const look = input.leftTrigger() ? 5.0 : 1.0
       if (input.lookLeft()) {
         cursor.x -= look
         if (cursor.x < 0.0) cursor.x = 0.0
@@ -468,7 +468,7 @@ export class Editor {
         if (cursor.y < 0.0) cursor.y = 0.0
       }
 
-      const speed = 0.5
+      const speed = input.leftTrigger() ? 2.0 : 0.5
       if (input.moveLeft()) {
         camera.x -= speed
       }

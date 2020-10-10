@@ -55,6 +55,8 @@ export class EditorState {
     keys.set('KeyU', In.UNDO)
     keys.set('KeyR', In.REDO)
     keys.set('KeyG', In.SNAP_TO_GRID)
+    keys.set('ShiftLeft', In.LEFT_TRIGGER)
+    keys.set('ShiftRight', In.RIGHT_TRIGGER)
 
     this.keys = keys
   }

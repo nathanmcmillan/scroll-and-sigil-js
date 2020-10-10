@@ -20,10 +20,12 @@ export const SWITCH_MODE = 18
 export const ZOOM_IN = 19
 export const ZOOM_OUT = 20
 export const SNAP_TO_GRID = 21
+export const LEFT_TRIGGER = 22
+export const RIGHT_TRIGGER = 23
 
 export class EditorInput {
   constructor() {
-    this.in = new Array(22).fill(false)
+    this.in = new Array(24).fill(false)
   }
 
   set(index, down) {
@@ -92,6 +94,14 @@ export class EditorInput {
 
   buttonY() {
     return this.in[BUTTON_Y]
+  }
+
+  leftTrigger() {
+    return this.in[LEFT_TRIGGER]
+  }
+
+  rightTrigger() {
+    return this.in[RIGHT_TRIGGER]
   }
 
   openMenu() {

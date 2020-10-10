@@ -1,6 +1,56 @@
 import {drawImage, drawSprite, drawText} from '/src/render/render.js'
 import {identity, multiply, rotateX, rotateY, translate} from '/src/math/matrix.js'
 import {textureByName, textureByIndex} from '/src/assets/assets.js'
+import {drawWall, drawFloorCeil} from '/src/client/render-sector.js'
+
+function linesRender(client, lines) {
+  for (const line of lines) {
+    let wall = line.top
+    if (wall != null) {
+      let buffer = client.getSectorBuffer(wall.texture)
+      drawWall(buffer, wall)
+    }
+    wall = line.middle
+    if (wall != null) {
+      let buffer = client.getSectorBuffer(wall.texture)
+      drawWall(buffer, wall)
+    }
+    wall = line.bottom
+    if (wall != null) {
+      let buffer = client.getSectorBuffer(wall.texture)
+      drawWall(buffer, wall)
+    }
+  }
+}
+
+function floorCeilRender(client, sector) {
+  for (const triangle of sector.triangles) {
+    let buffer = client.getSectorBuffer(triangle.texture)
+    drawFloorCeil(buffer, triangle)
+  }
+}
+
+export function updateEditorViewSectorBuffer(state) {
+  const editor = state.world
+  const client = state.client
+  const gl = client.gl
+
+  for (const buffer of client.sectorBuffers.values()) {
+    buffer.zero()
+  }
+
+  for (const line of editor.lines) {
+    linesRender(client, line)
+  }
+
+  for (const sector of editor.sectors) {
+    floorCeilRender(client, sector)
+  }
+
+  for (const buffer of client.sectorBuffers.values()) {
+    client.rendering.updateVAO(buffer, gl.STATIC_DRAW)
+  }
+}
 
 export function renderEditorViewMode(state) {
   const editor = state.editor
