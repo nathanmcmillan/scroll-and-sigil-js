@@ -7,8 +7,8 @@ import {drawWall, drawFloorCeil} from '/src/client/render-sector.js'
 import {orthographic, perspective} from '/src/math/matrix.js'
 import {saveSound, saveMusic, pauseMusic, resumeMusic} from '/src/assets/sounds.js'
 import {saveEntity, saveTexture, waitForResources, createNewTexturesAndSpriteSheets} from '/src/assets/assets.js'
-// import {GameState} from '/src/client/game-state.js'
 import {EditorState} from '/src/client/editor-state.js'
+// import {GameState} from '/src/client/game-state.js'
 
 export class Client {
   constructor(canvas, gl) {

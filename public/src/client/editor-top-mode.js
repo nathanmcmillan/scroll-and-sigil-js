@@ -161,7 +161,9 @@ export function renderEditorTopMode(state) {
   const options = DESCRIBE_OPTIONS[editor.action]
   let x = 10.0
   for (const [button, option] of options) {
-    let text = '(' + state.keys.reversed(button) + ') ' + DESCRIBE_ACTION[option]
+    let key = state.keys.reversed(button)
+    if (key.startsWith('Key')) key = key.substring(3)
+    let text = '(' + key + ') ' + DESCRIBE_ACTION[option]
     drawTextSpecial(client.bufferGUI, x, 10.0, text, 2.0, 1.0, 0.0, 0.0)
     x += 2.0 * FONT_WIDTH * (text.length + 1)
   }

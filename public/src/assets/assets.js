@@ -75,6 +75,10 @@ export function entityByName(name) {
   return ENTITIES.get(name)
 }
 
+export function entityDictionary() {
+  return ENTITIES
+}
+
 export async function waitForResources() {
   await Promise.all(PROMISES)
   PROMISES.length = 0
