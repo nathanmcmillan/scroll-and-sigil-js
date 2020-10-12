@@ -1,6 +1,6 @@
 import {renderEditorTopMode} from '/src/client/editor-top-mode.js'
-import {renderEditorViewMode} from '/src/client/editor-view-mode.js'
-import {Editor, TOP_MODE, VIEW_MODE} from '/src/editor/editor.js'
+import {renderEditorViewMode, updateEditorViewSectorBuffer} from '/src/client/editor-view-mode.js'
+import {Editor, TOP_MODE, VIEW_MODE, SWITCH_MODE_CALLBACK} from '/src/editor/editor.js'
 import * as In from '/src/editor/editor-input.js'
 
 class TwoWayMap {
@@ -30,7 +30,6 @@ class TwoWayMap {
 export class EditorState {
   constructor(client) {
     this.client = client
-    this.editor = new Editor(client.width, client.height)
 
     let keys = new TwoWayMap()
     keys.set('KeyW', In.MOVE_FORWARD)
@@ -59,6 +58,14 @@ export class EditorState {
     keys.set('ShiftRight', In.RIGHT_TRIGGER)
 
     this.keys = keys
+
+    let self = this
+    let callbacks = []
+    callbacks[SWITCH_MODE_CALLBACK] = () => {
+      self.switchMode()
+    }
+
+    this.editor = new Editor(client.width, client.height, callbacks)
   }
 
   resize(width, height) {
@@ -75,18 +82,21 @@ export class EditorState {
     this.editor.load(this.client.game.world)
   }
 
+  switchMode() {
+    if (this.editor.mode === VIEW_MODE) {
+      updateEditorViewSectorBuffer(this)
+    }
+  }
+
   update() {
     this.editor.update()
   }
 
   render() {
-    switch (this.editor.mode) {
-      case TOP_MODE:
-        renderEditorTopMode(this)
-        break
-      case VIEW_MODE:
-        renderEditorViewMode(this)
-        break
+    if (this.editor.mode === TOP_MODE) {
+      renderEditorTopMode(this)
+    } else {
+      renderEditorViewMode(this)
     }
   }
 }

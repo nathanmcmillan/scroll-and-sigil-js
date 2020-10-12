@@ -1,25 +1,23 @@
 import {drawImage, drawSprite, drawText} from '/src/render/render.js'
 import {identity, multiply, rotateX, rotateY, translate} from '/src/math/matrix.js'
 import {textureByName, textureByIndex} from '/src/assets/assets.js'
-import {drawWall, drawFloorCeil} from '/src/client/render-sector.js'
+import {drawReferenceWall, drawFloorCeil} from '/src/client/render-sector.js'
 
-function linesRender(client, lines) {
-  for (const line of lines) {
-    let wall = line.top
-    if (wall != null) {
-      let buffer = client.getSectorBuffer(wall.texture)
-      drawWall(buffer, wall)
-    }
-    wall = line.middle
-    if (wall != null) {
-      let buffer = client.getSectorBuffer(wall.texture)
-      drawWall(buffer, wall)
-    }
-    wall = line.bottom
-    if (wall != null) {
-      let buffer = client.getSectorBuffer(wall.texture)
-      drawWall(buffer, wall)
-    }
+function lineRender(client, line) {
+  let wall = line.top
+  if (wall != null) {
+    let buffer = client.getSectorBuffer(wall.texture)
+    drawReferenceWall(buffer, wall)
+  }
+  wall = line.middle
+  if (wall != null) {
+    let buffer = client.getSectorBuffer(wall.texture)
+    drawReferenceWall(buffer, wall)
+  }
+  wall = line.bottom
+  if (wall != null) {
+    let buffer = client.getSectorBuffer(wall.texture)
+    drawReferenceWall(buffer, wall)
   }
 }
 
@@ -31,7 +29,7 @@ function floorCeilRender(client, sector) {
 }
 
 export function updateEditorViewSectorBuffer(state) {
-  const editor = state.world
+  const editor = state.editor
   const client = state.client
   const gl = client.gl
 
@@ -40,7 +38,7 @@ export function updateEditorViewSectorBuffer(state) {
   }
 
   for (const line of editor.lines) {
-    linesRender(client, line)
+    lineRender(client, line)
   }
 
   for (const sector of editor.sectors) {

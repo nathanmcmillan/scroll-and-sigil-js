@@ -1,14 +1,16 @@
 import {Camera} from '/src/game/camera.js'
 import {Vector2} from '/src/math/vector.js'
-import {Line} from '/src/map/line.js'
+import {ReferenceLine} from '/src/map/line.js'
 import {ThingReference} from '/src/editor/thing-reference.js'
-import {entityDictionary} from '/src/assets/assets.js'
+import {tileList, entityList, textureIndexForName, entityByName} from '/src/assets/assets.js'
+import {WORLD_SCALE} from '/src/world/world.js'
 import * as In from '/src/editor/editor-input.js'
 
 export const TOP_MODE = 0
 export const VIEW_MODE = 1
 
-// TODO: Combine VECTOR and LINE tool into DRAW tool
+export const SWITCH_MODE_CALLBACK = 0
+
 export const DRAW_TOOL = 0
 export const THING_TOOL = 1
 export const SECTOR_TOOL = 2
@@ -42,7 +44,9 @@ export const DO_DELETE_THING = 11
 export const DO_END_MOVING_THING = 12
 export const DO_EDIT_SECTOR = 13
 export const DO_MERGE_VECTOR = 14
-export const ACTION_COUNT = 15
+export const DO_SPLIT_LINE = 15
+export const DO_CANCEL = 16
+export const ACTION_COUNT = 17
 
 export const DESCRIBE_TOOL = new Array(TOOL_COUNT)
 DESCRIBE_TOOL[DRAW_TOOL] = 'Draw mode'
@@ -62,6 +66,7 @@ DESCRIBE_ACTION[DO_MERGE_VECTOR] = 'Merge vector'
 DESCRIBE_ACTION[DO_PLACE_LINE] = 'Start line with new vector'
 DESCRIBE_ACTION[DO_FLIP_LINE] = 'Flip line'
 DESCRIBE_ACTION[DO_DELETE_LINE] = 'Delete line'
+DESCRIBE_ACTION[DO_SPLIT_LINE] = 'Split line'
 DESCRIBE_ACTION[DO_START_LINE] = 'Start line at vector'
 DESCRIBE_ACTION[DO_END_LINE] = 'End line at vector'
 DESCRIBE_ACTION[DO_END_LINE_NEW_VECTOR] = 'End line with new vector'
@@ -73,6 +78,8 @@ DESCRIBE_ACTION[DO_DELETE_THING] = 'Delete thing'
 DESCRIBE_ACTION[DO_END_MOVING_THING] = 'Stop moving thing'
 
 DESCRIBE_ACTION[DO_EDIT_SECTOR] = 'Edit sector'
+
+DESCRIBE_ACTION[DO_CANCEL] = 'Cancel'
 
 export const DESCRIBE_OPTIONS = new Array(OPTION_COUNT)
 
@@ -96,14 +103,17 @@ DESCRIBE_OPTIONS[OPTION_VECTOR_OVERLAP] = VECTOR_OVERLAP_OPTIONS
 const LINE_UNDER_CURSOR_OPTIONS = new Map()
 LINE_UNDER_CURSOR_OPTIONS.set(In.BUTTON_A, DO_FLIP_LINE)
 LINE_UNDER_CURSOR_OPTIONS.set(In.BUTTON_B, DO_DELETE_LINE)
+LINE_UNDER_CURSOR_OPTIONS.set(In.BUTTON_X, DO_SPLIT_LINE)
 DESCRIBE_OPTIONS[OPTION_LINE_UNDER_CURSOR] = LINE_UNDER_CURSOR_OPTIONS
 
 const END_LINE_OPTIONS = new Map()
 END_LINE_OPTIONS.set(In.BUTTON_A, DO_END_LINE)
+END_LINE_OPTIONS.set(In.BUTTON_B, DO_CANCEL)
 DESCRIBE_OPTIONS[OPTION_END_LINE] = END_LINE_OPTIONS
 
 const DO_END_LINE_NEW_VECTOR_OPTIONS = new Map()
 DO_END_LINE_NEW_VECTOR_OPTIONS.set(In.BUTTON_A, DO_END_LINE_NEW_VECTOR)
+DO_END_LINE_NEW_VECTOR_OPTIONS.set(In.BUTTON_B, DO_CANCEL)
 DESCRIBE_OPTIONS[OPTION_END_LINE_NEW_VECTOR] = DO_END_LINE_NEW_VECTOR_OPTIONS
 
 const THING_MODE_OPTIONS = new Map()
@@ -135,11 +145,12 @@ export function thingSize(thing, zoom) {
 }
 
 export class Editor {
-  constructor(width, height) {
+  constructor(width, height, callbacks) {
     this.width = width
     this.height = height
+    this.callbacks = callbacks
     this.input = new In.EditorInput()
-    this.camera = new Camera(0.0, 0.0, 0.0, 0.0, 0.0, null)
+    this.camera = new Camera(0.0, 1.0, 0.0, 0.0, 0.0, null)
     this.mode = TOP_MODE
     this.tool = DRAW_TOOL
     this.action = OPTION_DRAW_MODE_DEFAULT
@@ -154,8 +165,10 @@ export class Editor {
     this.selectedSector = null
     this.selectedThing = null
     this.selectedSecondVec = null
-    this.usingEntity = null
-    this.entityTable = new Map()
+    this.tileSet = new Set()
+    this.defaultTile = null
+    this.entitySet = new Set()
+    this.defaultEntity = null
     this.menuActive = false
     this.toolSelectionActive = false
     this.snapToGrid = false
@@ -171,23 +184,27 @@ export class Editor {
     this.height = height
   }
 
-  addEntity(name, entity) {
-    this.entityTable.set(name, entity)
-  }
-
   load(world) {
-    for (let [name, entity] of entityDictionary()) {
-      this.addEntity(name, entity)
-      this.usingEntity = name
+    let keys = tileList().sort()
+    for (let name of keys) {
+      this.tileSet.add(name)
     }
+    this.defaultTile = keys[0]
+
+    keys = entityList().sort()
+    for (let name of keys) {
+      this.entitySet.add(name)
+    }
+    this.defaultEntity = keys[0]
 
     for (const sector of world.sectors) {
       for (const vec of sector.vecs) {
         this.vecs.push(vec)
       }
       for (const line of sector.lines) {
-        this.lines.push(line)
+        this.lines.push(ReferenceLine.copy(line))
       }
+      this.sectors.push(sector)
     }
 
     for (const thing of world.things) {
@@ -259,7 +276,7 @@ export class Editor {
   placeThingAtCursor() {
     let x = this.camera.x + this.cursor.x / this.zoom
     let y = this.camera.z + this.cursor.y / this.zoom
-    let thing = new ThingReference(this.entityTable.get(this.usingEntity), x, y)
+    let thing = new ThingReference(entityByName(this.defaultEntity), x, y)
     this.things.push(thing)
     return thing
   }
@@ -279,6 +296,20 @@ export class Editor {
     let temp = line.a
     line.a = line.b
     line.b = temp
+  }
+
+  splitSelectedLine() {
+    let line = this.selectedLine
+    let x = 0.5 * (line.a.x + line.b.x)
+    let y = 0.5 * (line.a.y + line.b.y)
+    let vec = new Vector2(x, y)
+    this.vecs.push(vec)
+
+    let split = ReferenceLine.copy(line)
+    split.b = vec
+    this.lines.push(split)
+
+    line.a = vec
   }
 
   deleteSelectedLine() {
@@ -312,6 +343,8 @@ export class Editor {
     }
     return list
   }
+
+  sectorUnderCursor() {}
 
   switchTool() {
     this.action = DEFAULT_TOOL_OPTIONS[this.tool]
@@ -359,6 +392,7 @@ export class Editor {
       this.mode = VIEW_MODE
       this.camera.x += cursor.x / this.zoom
       this.camera.z += cursor.y / this.zoom
+      this.callbacks[SWITCH_MODE_CALLBACK]()
       return
     }
 
@@ -488,6 +522,7 @@ export class Editor {
         this.action = OPTION_DRAW_MODE_DEFAULT
         this.selectedVec = this.vectorUnderCursor()
         if (this.selectedVec !== null) {
+          this.selectedLine = null
           this.action = OPTION_VECTOR_UNDER_CURSOR
         } else {
           this.selectedLine = this.lineUnderCursor()
@@ -533,6 +568,8 @@ export class Editor {
               this.flipSelectedLine()
             } else if (option === DO_DELETE_LINE) {
               this.deleteSelectedLine()
+            } else if (option === DO_SPLIT_LINE) {
+              this.splitSelectedLine()
             }
           }
         }
@@ -576,12 +613,31 @@ export class Editor {
           if (input.in[button]) {
             input.in[button] = false
             if (option === DO_END_LINE) {
-              if (this.selectedVec !== this.selectedSecondVec) {
-                this.lines.push(new Line(-1, -1, -1, this.selectedVec, this.selectedSecondVec))
+              if (this.selectedVec === this.selectedSecondVec) {
+                if (this.referenceLinesFromVec(this.selectedVec).length === 0) {
+                  this.deleteSelectedVector()
+                  this.action = OPTION_DRAW_MODE_DEFAULT
+                } else {
+                  this.action = OPTION_VECTOR_UNDER_CURSOR
+                }
+              } else {
+                let line = new ReferenceLine(-1, textureIndexForName(this.defaultTile), -1, this.selectedVec, this.selectedSecondVec)
+                let x = line.a.x - line.b.x
+                let y = line.a.y - line.b.y
+                let floor = 0.0
+                let ceil = 10.0
+                let st = Math.sqrt(x * x + y * y) * WORLD_SCALE
+                line.middle.update(floor, ceil, 0.0, floor * WORLD_SCALE, st, ceil * WORLD_SCALE)
+                this.lines.push(line)
+                this.action = OPTION_VECTOR_UNDER_CURSOR
               }
               this.selectedVec = null
               this.selectedSecondVec = null
-              this.action = OPTION_VECTOR_UNDER_CURSOR
+            } else if (option === DO_CANCEL) {
+              if (this.referenceLinesFromVec(this.selectedVec).length === 0) {
+                this.deleteSelectedVector()
+              }
+              this.action = OPTION_DRAW_MODE_DEFAULT
             }
           }
         }
@@ -590,9 +646,21 @@ export class Editor {
           if (input.in[button]) {
             input.in[button] = false
             if (option === DO_END_LINE_NEW_VECTOR) {
-              this.lines.push(new Line(-1, -1, -1, this.selectedVec, this.placeVectorAtCursor()))
+              let line = new ReferenceLine(-1, textureIndexForName(this.defaultTile), -1, this.selectedVec, this.placeVectorAtCursor())
+              let x = line.a.x - line.b.x
+              let y = line.a.y - line.b.y
+              let floor = 0.0
+              let ceil = 10.0
+              let st = Math.sqrt(x * x + y * y) * WORLD_SCALE
+              line.middle.update(floor, ceil, 0.0, floor * WORLD_SCALE, st, ceil * WORLD_SCALE)
+              this.lines.push(line)
               this.selectedVec = null
               this.action = OPTION_VECTOR_UNDER_CURSOR
+            } else if (option === DO_CANCEL) {
+              if (this.referenceLinesFromVec(this.selectedVec).length === 0) {
+                this.deleteSelectedVector()
+              }
+              this.action = OPTION_DRAW_MODE_DEFAULT
             }
           }
         }
@@ -642,6 +710,10 @@ export class Editor {
             }
           }
         }
+      }
+    } else if (this.tool == SECTOR_TOOL) {
+      if (this.action == OPTION_SECTOR_MODE_DEFAULT) {
+        this.selectedThing = this.sectorUnderCursor()
       }
     }
   }

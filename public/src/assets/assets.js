@@ -1,6 +1,5 @@
 import {fetchText, fetchImage} from '/src/client/net.js'
 import {createSpriteSheet} from '/src/assets/sprite-sheet.js'
-
 import * as Wad from '/src/wad/wad.js'
 
 const PROMISES = []
@@ -28,38 +27,55 @@ export function textureByName(name) {
   return TEXTURES[index]
 }
 
+export function textureList() {
+  return Array.from(TEXTURE_NAME_TO_INDEX.keys())
+}
+
+const TILES = []
+
+export function saveTile(name, texture) {
+  TILES.push(name)
+  return saveTexture(name, texture)
+}
+
+export function tileList() {
+  return TILES
+}
+
 const SPRITE_IMAGES = new Map()
 
-async function promiseImage(sprite) {
+async function promiseImage(sprite, directory) {
   if (SPRITE_IMAGES.has(sprite)) return
-  let image = await fetchImage('/sprites/' + sprite + '/' + sprite + '.png')
+  let image = await fetchImage(directory + '/' + sprite + '/' + sprite + '.png')
   SPRITE_IMAGES.set(sprite, image)
 }
 
 const SPRITE_ATLASES = new Map()
 
-async function promiseAtlas(sprite) {
+async function promiseAtlas(sprite, directory) {
   if (SPRITE_ATLASES.has(sprite)) return
-  let text = await fetchText('/sprites/' + sprite + '/' + sprite + '.wad')
+  let text = await fetchText(directory + '/' + sprite + '/' + sprite + '.wad')
   SPRITE_ATLASES.set(sprite, Wad.parse(text))
 }
 
 const ENTITIES = new Map()
 const ASYNC_SPRITE_NAMES = new Set()
 
-async function promiseEntity(name, path) {
+async function promiseEntity(name, directory, path) {
   if (ENTITIES.has(name)) {
     return
   }
 
-  let text = await fetchText(path)
+  let text = await fetchText(directory + path)
   let wad = Wad.parse(text)
   let sprite = wad.get('sprite')
 
   ENTITIES.set(name, wad)
 
-  let image = promiseImage(sprite)
-  let atlas = promiseAtlas(sprite)
+  directory += '/sprites'
+
+  let image = promiseImage(sprite, directory)
+  let atlas = promiseAtlas(sprite, directory)
 
   ASYNC_SPRITE_NAMES.add(sprite)
 
@@ -67,16 +83,16 @@ async function promiseEntity(name, path) {
   await atlas
 }
 
-export function saveEntity(name, path) {
-  PROMISES.push(promiseEntity(name, path))
+export function saveEntity(name, directory, path) {
+  PROMISES.push(promiseEntity(name, directory, path))
 }
 
 export function entityByName(name) {
   return ENTITIES.get(name)
 }
 
-export function entityDictionary() {
-  return ENTITIES
+export function entityList() {
+  return Array.from(ENTITIES.keys())
 }
 
 export async function waitForResources() {

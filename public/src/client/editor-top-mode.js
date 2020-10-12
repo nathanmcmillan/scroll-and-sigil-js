@@ -34,7 +34,8 @@ function mapRender(b, editor) {
       let y1 = mapZ(line.a.y, zoom, camera)
       let x2 = mapX(line.b.x, zoom, camera)
       let y2 = mapZ(line.b.y, zoom, camera)
-      drawLineWithNormal(b, x1, y1, x2, y2, thickness, 1.0, 1.0, 1.0, alpha, zoom)
+      if (line == editor.selectedLine) drawLineWithNormal(b, x1, y1, x2, y2, thickness, 0.0, 1.0, 0.0, alpha, zoom)
+      else drawLineWithNormal(b, x1, y1, x2, y2, thickness, 1.0, 1.0, 1.0, alpha, zoom)
     }
   }
   if (editor.viewVecs) {
@@ -42,7 +43,7 @@ function mapRender(b, editor) {
     for (const vec of editor.vecs) {
       let x = Math.floor(mapX(vec.x, zoom, camera))
       let y = Math.floor(mapZ(vec.y, zoom, camera))
-      if (vec == editor.selectedVec) drawRectangle(b, x - size, y - size, 2.0 * size, 2.0 * size, 1.0, 0.0, 1.0, alpha)
+      if (vec === editor.selectedVec || vec === editor.selectedSecondVec) drawRectangle(b, x - size, y - size, 2.0 * size, 2.0 * size, 0.0, 1.0, 0.0, alpha)
       else drawRectangle(b, x - size, y - size, 2.0 * size, 2.0 * size, 1.0, 0.0, 0.0, alpha)
     }
   }

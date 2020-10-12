@@ -6,9 +6,10 @@ import {Renderer} from '/src/webgl/renderer.js'
 import {drawWall, drawFloorCeil} from '/src/client/render-sector.js'
 import {orthographic, perspective} from '/src/math/matrix.js'
 import {saveSound, saveMusic, pauseMusic, resumeMusic} from '/src/assets/sounds.js'
-import {saveEntity, saveTexture, waitForResources, createNewTexturesAndSpriteSheets} from '/src/assets/assets.js'
+import {saveEntity, saveTile, saveTexture, waitForResources, createNewTexturesAndSpriteSheets} from '/src/assets/assets.js'
 import {EditorState} from '/src/client/editor-state.js'
-// import {GameState} from '/src/client/game-state.js'
+import {GameState} from '/src/client/game-state.js'
+import * as Wad from '/src/wad/wad.js'
 
 export class Client {
   constructor(canvas, gl) {
@@ -136,63 +137,69 @@ export class Client {
   async initialize() {
     const gl = this.gl
 
-    saveEntity('baron', '/entities/monster/baron.wad')
-    saveEntity('tree', '/entities/doodad/tree.wad')
-    saveEntity('plasma', '/entities/missile/plasma.wad')
-    saveEntity('blood', '/entities/particle/blood.wad')
-    saveEntity('plasma-explosion', '/entities/particle/plasma-explosion.wad')
-    saveEntity('medkit', '/entities/item/medkit.wad')
+    let main = Wad.parse(await fetchText('main.wad'))
+    let pack = main.get('package')
+    let directory = '/pack/' + pack
+    let contents = Wad.parse(await fetchText(directory + '/' + pack + '.wad'))
+
+    for (const entity of contents.get('entities')) {
+      saveEntity(entity, directory, '/entities/' + entity + '.wad')
+    }
 
     gl.clearColor(0.0, 0.0, 0.0, 1.0)
     gl.depthFunc(gl.LEQUAL)
     gl.cullFace(gl.BACK)
     gl.disable(gl.BLEND)
 
-    saveMusic('vampire-killer', '/music/vampire-killer.wav')
+    for (const music of contents.get('music')) {
+      saveMusic(music, directory + '/music/' + music + '.wav')
+    }
 
-    saveSound('baron-scream', '/sounds/baron-scream.wav')
-    saveSound('baron-melee', '/sounds/baron-melee.wav')
-    saveSound('baron-missile', '/sounds/baron-missile.wav')
-    saveSound('baron-pain', '/sounds/baron-pain.wav')
-    saveSound('baron-death', '/sounds/baron-death.wav')
-    saveSound('plasma-impact', '/sounds/plasma-impact.wav')
+    for (const sound of contents.get('sounds')) {
+      saveSound(sound, directory + '/sounds/' + sound + '.wav')
+    }
 
     let color2d = fetchText('/shaders/color2d.glsl')
     let texture2d = fetchText('/shaders/texture2d.glsl')
     let texture3d = fetchText('/shaders/texture3d.glsl')
 
-    let grass = fetchImage('/textures/tiles/grass.png')
-    let stone = fetchImage('/textures/tiles/stone.png')
-    let plank = fetchImage('/textures/tiles/plank.png')
+    let tiles = []
+    let textures = []
 
-    let sky = fetchImage('/textures/sky.png')
-    let font = fetchImage('/textures/font.png')
-    let cursor = fetchImage('/textures/cursor.png')
+    for (const tile of contents.get('tiles')) {
+      tiles.push(
+        fetchImage(directory + '/tiles/' + tile + '.png').then((image) => {
+          return {name: tile, image: image}
+        })
+      )
+    }
+
+    for (const texture of contents.get('textures')) {
+      let name = texture.get('name')
+      let wrap = texture.get('wrap')
+      textures.push(
+        fetchImage(directory + '/textures/' + name + '.png').then((image) => {
+          return {name: name, wrap: wrap, image: image}
+        })
+      )
+    }
 
     await waitForResources()
+
     createNewTexturesAndSpriteSheets((image) => {
       return createTexture(gl, image, gl.NEAREST, gl.CLAMP_TO_EDGE)
     })
 
-    grass = await grass
-    stone = await stone
-    plank = await plank
+    for (let tile of tiles) {
+      tile = await tile
+      saveTile(tile.name, createTexture(gl, tile.image, gl.NEAREST, gl.REPEAT))
+    }
 
-    sky = await sky
-    font = await font
-    cursor = await cursor
-
-    color2d = await color2d
-    texture2d = await texture2d
-    texture3d = await texture3d
-
-    saveTexture('grass', createTexture(gl, grass, gl.NEAREST, gl.REPEAT))
-    saveTexture('stone', createTexture(gl, stone, gl.NEAREST, gl.REPEAT))
-    saveTexture('plank', createTexture(gl, plank, gl.NEAREST, gl.REPEAT))
-
-    saveTexture('sky', createTexture(gl, sky, gl.NEAREST, gl.REPEAT))
-    saveTexture('font', createTexture(gl, font, gl.NEAREST, gl.CLAMP_TO_EDGE))
-    saveTexture('cursor', createTexture(gl, cursor, gl.NEAREST, gl.CLAMP_TO_EDGE))
+    for (let texture of textures) {
+      texture = await texture
+      let wrap = texture.wrap === 'repeat' ? gl.REPEAT : gl.CLAMP_TO_EDGE
+      saveTexture(texture.name, createTexture(gl, texture.image, gl.NEAREST, wrap))
+    }
 
     await this.game.mapper()
 
@@ -201,6 +208,10 @@ export class Client {
     this.bufferColor = new Buffer(2, 4, 0, 0, 4 * 1600, 36 * 1600)
 
     let rendering = this.rendering
+
+    color2d = await color2d
+    texture2d = await texture2d
+    texture3d = await texture3d
 
     rendering.insertProgram(0, compileProgram(gl, color2d))
     rendering.insertProgram(1, compileProgram(gl, texture2d))
@@ -219,7 +230,9 @@ export class Client {
     rendering.makeVAO(this.bufferGUI)
     rendering.makeVAO(this.bufferColor)
 
-    this.state = new EditorState(this) // new GameState(this)
+    if (main.get('open') === 'game') this.state = new GameState(this)
+    else this.state = new EditorState(this)
+
     this.state.initialize()
   }
 

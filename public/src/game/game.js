@@ -28,10 +28,15 @@ function texture(name) {
   return textureIndexForName(name)
 }
 
-function lineWad(wad) {
+function lineWad(wad, vecs) {
   let lines = wad.get('lines')
   let list = []
   if (lines === undefined) return list
+  for (const line of lines) {
+    let a = vecs[parseInt(line[0])]
+    let b = vecs[parseInt(line[1])]
+    list.push(new Line(texture(line[2]), texture(line[3]), texture(line[4]), a, b))
+  }
   return list
 }
 
@@ -48,7 +53,7 @@ function sectorWad(wad, vecs, lines) {
 async function grass(world) {
   let wad = Wad.parse(await fetchText('/maps/grass.wad'))
   let vecs = vectorWad(wad)
-  let lines = lineWad(wad)
+  let lines = lineWad(wad, vecs)
   let sector = sectorWad(wad, vecs, lines)
   world.pushSector(sector)
 }
@@ -81,9 +86,9 @@ function house(world, x, y) {
 
   let inner = [vecs[2], vecs[9], vecs[8], vecs[7], vecs[6], vecs[5], vecs[4], vecs[3]]
 
-  lines = [new Line(-1, -1, texture('grass'), vecs[2], vecs[9])]
+  lines = [new Line(texture('plank'), -1, -1, vecs[2], vecs[9])]
 
-  let inside = new Sector(0.0, 0.0, 5.0, 6.0, texture('plank'), texture('stone'), inner, lines)
+  let inside = new Sector(0.0, 0.0, 5.0, 6.0, texture('plank-floor'), texture('stone-floor'), inner, lines)
   world.pushSector(inside)
 }
 
