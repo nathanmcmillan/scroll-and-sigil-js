@@ -14,7 +14,7 @@ const STATUS_DEAD = 3
 
 export class Hero extends Thing {
   constructor(world, entity, x, z, input) {
-    super(world, x, z, 0.0, 0.75, 2.0)
+    super(world, entity, x, z, 0.0, 0.75, 2.0)
     this.input = input
     this.texture = textureIndexForName(entity.get('sprite'))
     this.animations = animationMap(entity)

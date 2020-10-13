@@ -1,3 +1,5 @@
+import {textureNameFromIndex} from '/src/assets/assets.js'
+
 export class Sector {
   constructor(bottom, floor, ceiling, top, floor_texture, ceiling_texture, vecs, lines) {
     this.bottom = bottom
@@ -48,5 +50,63 @@ export class Sector {
       }
     }
     return this
+  }
+
+  export() {
+    let content = `${this.bottom} ${this.floor} ${this.ceiling} ${this.top}`
+    content += ` ${this.hasFloor() ? textureNameFromIndex(this.floor_texture) : 'none'}`
+    content += ` ${this.hasCeiling() ? textureNameFromIndex(this.ceiling_texture) : 'none'}`
+    content += ` ${this.vecs.length}`
+    for (const vec of this.vecs) {
+      content += ` ${vec.index}`
+    }
+    content += ` ${this.lines.length}`
+    for (const line of this.lines) {
+      content += ` ${line.index}`
+    }
+    return content
+  }
+}
+
+export function sectorInsideOutside(sectors) {
+  for (const sector of sectors) {
+    for (const other of sectors) {
+      if (sector === other) {
+        continue
+      }
+      let contains = true
+      for (const o of other.vecs) {
+        for (const s of sector.vecs) {
+          if (s.eq(o)) {
+            contains = false
+            break
+          }
+        }
+        if (!contains) {
+          break
+        }
+        if (!sector.contains(o.x, o.y)) {
+          contains = false
+          break
+        }
+      }
+      if (contains) {
+        sector.inside.push(other)
+      }
+    }
+  }
+  for (const sector of sectors) {
+    let dead = new Set()
+    for (const inside of sector.inside) {
+      for (const nested of inside.inside) {
+        dead.add(nested)
+      }
+    }
+    for (const other of dead) {
+      sector.inside.splice(sector.inside.indexOf(other), 1)
+    }
+    for (const inside of sector.inside) {
+      inside.outside = sector
+    }
   }
 }

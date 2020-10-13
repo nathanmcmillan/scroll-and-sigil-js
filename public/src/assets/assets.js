@@ -22,6 +22,13 @@ export function textureIndexForName(name) {
   return TEXTURE_NAME_TO_INDEX.get(name)
 }
 
+export function textureNameFromIndex(search) {
+  for (const [name, index] of TEXTURE_NAME_TO_INDEX) {
+    if (search === index) return name
+  }
+  return null
+}
+
 export function textureByName(name) {
   let index = TEXTURE_NAME_TO_INDEX.get(name)
   return TEXTURES[index]
@@ -67,7 +74,10 @@ async function promiseEntity(name, directory, path) {
   }
 
   let text = await fetchText(directory + path)
+
   let wad = Wad.parse(text)
+  wad.set('name', name)
+
   let sprite = wad.get('sprite')
 
   ENTITIES.set(name, wad)

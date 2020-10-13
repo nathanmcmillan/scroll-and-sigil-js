@@ -16,7 +16,7 @@ const STATUS_DEAD = 4
 
 export class Baron extends Thing {
   constructor(world, entity, x, z) {
-    super(world, x, z, 0.0, 0.4, 1.0)
+    super(world, entity, x, z, 0.0, 0.4, 1.0)
     this.texture = textureIndexForName(entity.get('sprite'))
     this.animations = animationMap(entity)
     this.animation = this.animations.get('idle')

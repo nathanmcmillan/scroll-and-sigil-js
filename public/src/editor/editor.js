@@ -1,9 +1,9 @@
 import {Camera} from '/src/game/camera.js'
 import {Vector2} from '/src/math/vector.js'
-import {ReferenceLine} from '/src/map/line.js'
-import {ThingReference} from '/src/editor/thing-reference.js'
+import {VectorReference, LineReference, ThingReference} from '/src/editor/editor-references.js'
 import {tileList, entityList, textureIndexForName, entityByName} from '/src/assets/assets.js'
 import {WORLD_SCALE} from '/src/world/world.js'
+import {computeSectors} from '/src/editor/editor-sectors.js'
 import * as In from '/src/editor/editor-input.js'
 
 export const TOP_MODE = 0
@@ -174,7 +174,7 @@ export class Editor {
     this.snapToGrid = false
     this.viewVecs = true
     this.viewLines = true
-    this.viewSectors = false
+    this.viewSectors = true
     this.viewThings = true
     this.shadowInput = true
   }
@@ -198,18 +198,34 @@ export class Editor {
     this.defaultEntity = keys[0]
 
     for (const sector of world.sectors) {
+      let vecs = []
       for (const vec of sector.vecs) {
-        this.vecs.push(vec)
+        let ref = VectorReference.copy(vec)
+        this.vecs.push(ref)
+        vecs.push(ref)
       }
+      let lines = []
       for (const line of sector.lines) {
-        this.lines.push(ReferenceLine.copy(line))
+        let a = null
+        let b = null
+        for (const vec of this.vecs) {
+          if (vec.eq(line.a)) a = vec
+          else if (vec.eq(line.b)) b = vec
+        }
+        let ref = LineReference.copy(line)
+        ref.a = a
+        ref.b = b
+        this.lines.push(ref)
+        lines.push(ref)
       }
+      sector.vecs = vecs
+      sector.lines = lines
       this.sectors.push(sector)
     }
 
     for (const thing of world.things) {
       if (thing == null) break
-      this.things.push(thing)
+      this.things.push(ThingReference.copy(thing))
     }
   }
 
@@ -305,7 +321,7 @@ export class Editor {
     let vec = new Vector2(x, y)
     this.vecs.push(vec)
 
-    let split = ReferenceLine.copy(line)
+    let split = LineReference.copy(line)
     split.b = vec
     this.lines.push(split)
 
@@ -344,7 +360,15 @@ export class Editor {
     return list
   }
 
-  sectorUnderCursor() {}
+  sectorUnderCursor() {
+    let x = this.camera.x + this.cursor.x / this.zoom
+    let y = this.camera.z + this.cursor.y / this.zoom
+    for (const sector of this.sectors) {
+      if (sector.contains(x, y)) {
+        return sector.find(x, y)
+      }
+    }
+  }
 
   switchTool() {
     this.action = DEFAULT_TOOL_OPTIONS[this.tool]
@@ -621,7 +645,7 @@ export class Editor {
                   this.action = OPTION_VECTOR_UNDER_CURSOR
                 }
               } else {
-                let line = new ReferenceLine(-1, textureIndexForName(this.defaultTile), -1, this.selectedVec, this.selectedSecondVec)
+                let line = new LineReference(-1, textureIndexForName(this.defaultTile), -1, this.selectedVec, this.selectedSecondVec)
                 let x = line.a.x - line.b.x
                 let y = line.a.y - line.b.y
                 let floor = 0.0
@@ -630,6 +654,7 @@ export class Editor {
                 line.middle.update(floor, ceil, 0.0, floor * WORLD_SCALE, st, ceil * WORLD_SCALE)
                 this.lines.push(line)
                 this.action = OPTION_VECTOR_UNDER_CURSOR
+                computeSectors(this)
               }
               this.selectedVec = null
               this.selectedSecondVec = null
@@ -646,7 +671,7 @@ export class Editor {
           if (input.in[button]) {
             input.in[button] = false
             if (option === DO_END_LINE_NEW_VECTOR) {
-              let line = new ReferenceLine(-1, textureIndexForName(this.defaultTile), -1, this.selectedVec, this.placeVectorAtCursor())
+              let line = new LineReference(-1, textureIndexForName(this.defaultTile), -1, this.selectedVec, this.placeVectorAtCursor())
               let x = line.a.x - line.b.x
               let y = line.a.y - line.b.y
               let floor = 0.0
@@ -656,6 +681,7 @@ export class Editor {
               this.lines.push(line)
               this.selectedVec = null
               this.action = OPTION_VECTOR_UNDER_CURSOR
+              computeSectors(this)
             } else if (option === DO_CANCEL) {
               if (this.referenceLinesFromVec(this.selectedVec).length === 0) {
                 this.deleteSelectedVector()
@@ -713,7 +739,7 @@ export class Editor {
       }
     } else if (this.tool == SECTOR_TOOL) {
       if (this.action == OPTION_SECTOR_MODE_DEFAULT) {
-        this.selectedThing = this.sectorUnderCursor()
+        this.selectedSector = this.sectorUnderCursor()
       }
     }
   }
@@ -835,6 +861,27 @@ export class Editor {
   }
 
   export() {
-    return ''
+    let content = ''
+    content += `vectors ${this.vecs.length}\n`
+    let index = 0
+    for (const vec of this.vecs) {
+      vec.index = index++
+      content += vec.export() + '\n'
+    }
+    content += `lines ${this.lines.length}\n`
+    index = 0
+    for (const line of this.lines) {
+      line.index = index++
+      content += line.export() + '\n'
+    }
+    content += `sectors ${this.sectors.length}\n`
+    for (const sector of this.sectors) {
+      content += sector.export() + '\n'
+    }
+    content += `things ${this.things.length}\n`
+    for (const thing of this.things) {
+      content += thing.export() + '\n'
+    }
+    return content
   }
 }

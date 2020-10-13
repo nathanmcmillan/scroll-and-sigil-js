@@ -32,6 +32,9 @@ async function main() {
 
   client = new Client(canvas, gl)
 
+  await client.initialize()
+  client.resize(window.innerWidth, window.innerHeight)
+
   document.onkeyup = (event) => {
     client.keyUp(event)
   }
@@ -65,9 +68,6 @@ async function main() {
     active = true
     client.resume()
   }
-
-  await client.initialize()
-  client.resize(window.innerWidth, window.innerHeight)
 
   window.requestAnimationFrame(tick)
 }

@@ -28,6 +28,20 @@ function mapRender(b, editor) {
   let camera = editor.camera
   const alpha = 1.0
   const thickness = 1.0
+  if (editor.viewSectors) {
+    for (const sector of editor.sectors) {
+      for (const triangle of sector.triangles) {
+        let x1 = mapX(triangle.a.x, zoom, camera)
+        let y1 = mapZ(triangle.a.y, zoom, camera)
+        let x2 = mapX(triangle.b.x, zoom, camera)
+        let y2 = mapZ(triangle.b.y, zoom, camera)
+        let x3 = mapX(triangle.c.x, zoom, camera)
+        let y3 = mapZ(triangle.c.y, zoom, camera)
+        if (sector == editor.selectedSector) drawTriangle(b, x1, y1, x2, y2, x3, y3, 0.5, 0.5, 0.5, alpha)
+        else drawTriangle(b, x1, y1, x2, y2, x3, y3, 0.25, 0.25, 0.25, alpha)
+      }
+    }
+  }
   if (editor.viewLines) {
     for (const line of editor.lines) {
       let x1 = mapX(line.a.x, zoom, camera)
@@ -52,27 +66,8 @@ function mapRender(b, editor) {
       let x = Math.floor(mapX(thing.x, zoom, camera))
       let y = Math.floor(mapZ(thing.z, zoom, camera))
       let size = thingSize(thing, zoom)
-      drawRectangle(b, x - size, y - size, 2.0 * size, 2.0 * size, 0.0, 1.0, 0.0, alpha)
-    }
-  }
-}
-
-function sectorRender(b, sector, editor) {
-  let zoom = editor.zoom
-  let camera = editor.camera
-  let red = 0.5
-  let green = 0.5
-  let blue = 0.5
-  const alpha = 1.0
-  if (editor.viewSectors) {
-    for (const triangle of sector.triangles) {
-      let x1 = zoom * (triangle.a.x - camera.x)
-      let y1 = zoom * (triangle.a.y - camera.z)
-      let x2 = zoom * (triangle.b.x - camera.x)
-      let y2 = zoom * (triangle.b.y - camera.z)
-      let x3 = zoom * (triangle.c.x - camera.x)
-      let y3 = zoom * (triangle.c.y - camera.z)
-      drawTriangle(b, x1, y1, x2, y2, x3, y3, red, green, blue, alpha)
+      if (thing == editor.selectedThing) drawRectangle(b, x - size, y - size, 2.0 * size, 2.0 * size, 1.0, 1.0, 0.0, alpha)
+      else drawRectangle(b, x - size, y - size, 2.0 * size, 2.0 * size, 0.0, 1.0, 0.0, alpha)
     }
   }
 }
@@ -104,13 +99,10 @@ export function renderEditorTopMode(state) {
   multiply(projection, client.orthographic, view)
   rendering.updateUniformMatrix('u_mvp', projection)
 
-  let world = client.game.world
-
   client.bufferColor.zero()
-  for (const sector of world.sectors) {
-    sectorRender(client.bufferColor, sector, editor)
-  }
+
   mapRender(client.bufferColor, editor)
+
   if (editor.action == OPTION_END_LINE || editor.action == OPTION_END_LINE_NEW_VECTOR) {
     const thickness = 1.0
     const alpha = 1.0

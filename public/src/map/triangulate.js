@@ -173,7 +173,8 @@ function clipAll(sector, floor, scale, monotone, triangles) {
   }
 }
 
-function classify(polygons, monotone) {
+function classify(polygons) {
+  let monotone = []
   let merge = []
   let split = []
   for (const current of polygons) {
@@ -226,6 +227,7 @@ function classify(polygons, monotone) {
       }
     }
   }
+  return monotone
 }
 
 function cullVectors(polygons) {
@@ -359,7 +361,8 @@ function skip(sector, floor) {
   return !sector.hasCeiling()
 }
 
-function populate(sector, floor, polygons) {
+function populate(sector, floor) {
+  let polygons = []
   for (let inner of sector.inside) {
     if (skip(inner, floor)) {
       continue
@@ -378,20 +381,19 @@ function populate(sector, floor, polygons) {
   for (let i = 0; i < polygons.length; i++) {
     polygons[i].index = i
   }
+  return polygons
 }
 
-function surface(sector, floor, scale) {
+function floorCeil(sector, floor, scale) {
   if (skip(sector, floor)) {
     return
   }
-  let polygons = []
-  let monotone = []
-  populate(sector, floor, polygons)
-  classify(polygons, monotone)
+  let polygons = populate(sector, floor)
+  let monotone = classify(polygons)
   clipAll(sector, floor, scale, monotone, sector.triangles)
 }
 
-export function triangulate(sector, scale) {
-  surface(sector, true, scale)
-  surface(sector, false, scale)
+export function sectorTriangulate(sector, scale) {
+  floorCeil(sector, true, scale)
+  floorCeil(sector, false, scale)
 }

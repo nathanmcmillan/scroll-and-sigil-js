@@ -1,5 +1,6 @@
 import {Cell} from '/src/world/cell.js'
-import {triangulate} from '/src/map/triangulate.js'
+import {sectorInsideOutside} from '/src/map/sector.js'
+import {sectorTriangulate} from '/src/map/triangulate.js'
 
 export const WORLD_SCALE = 0.25
 export const WORLD_CELL_SHIFT = 5
@@ -224,46 +225,6 @@ export class World {
         if (vec.x > right) right = vec.x
       }
     }
-    for (const sector of this.sectors) {
-      for (const other of this.sectors) {
-        if (sector === other) {
-          continue
-        }
-        let contains = true
-        for (const o of other.vecs) {
-          for (const s of sector.vecs) {
-            if (s.eq(o)) {
-              contains = false
-              break
-            }
-          }
-          if (!contains) {
-            break
-          }
-          if (!sector.contains(o.x, o.y)) {
-            contains = false
-            break
-          }
-        }
-        if (contains) {
-          sector.inside.push(other)
-        }
-      }
-    }
-    for (const sector of this.sectors) {
-      let dead = new Set()
-      for (const inside of sector.inside) {
-        for (const nested of inside.inside) {
-          dead.add(nested)
-        }
-      }
-      for (const other of dead) {
-        sector.inside.splice(sector.inside.indexOf(other), 1)
-      }
-      for (const inside of sector.inside) {
-        inside.outside = sector
-      }
-    }
     const size = 1 << WORLD_CELL_SHIFT
     this.rows = Math.ceil(top / size)
     this.columns = Math.ceil(right / size)
@@ -271,8 +232,9 @@ export class World {
     for (let i = 0; i < this.cells.length; i++) {
       this.cells[i] = new Cell()
     }
+    sectorInsideOutside(this.sectors)
     for (const sector of this.sectors) {
-      triangulate(sector, WORLD_SCALE)
+      sectorTriangulate(sector, WORLD_SCALE)
     }
     for (const sector of this.sectors) {
       this.buildLines(sector)

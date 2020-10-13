@@ -2,9 +2,10 @@ import {Float} from '/src/math/vector.js'
 import {WORLD_CELL_SHIFT, GRAVITY, RESISTANCE, ANIMATION_RATE, ANIMATION_NOT_DONE, ANIMATION_ALMOST_DONE, ANIMATION_DONE} from '/src/world/world.js'
 
 export class Thing {
-  constructor(world, x, z, rotation, box, height) {
+  constructor(world, entity, x, z, rotation, box, height) {
     let sector = world.findSector(x, z)
     this.world = world
+    this.entity = entity
     this.sector = sector
     this.x = x
     this.y = sector.floor

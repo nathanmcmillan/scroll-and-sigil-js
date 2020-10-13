@@ -76,6 +76,9 @@ export class EditorState {
     if (this.keys.has(code)) {
       this.editor.input.set(this.keys.get(code), down)
     }
+    if (down && code === 'Digit0') {
+      console.log(this.editor.export())
+    }
   }
 
   initialize() {
