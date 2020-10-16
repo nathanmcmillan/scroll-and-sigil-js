@@ -13,6 +13,21 @@ export class VectorReference {
     return Float.eq(this.x, b.x) && Float.eq(this.y, b.y)
   }
 
+  normal(b) {
+    let x = this.y - b.y
+    let y = -(this.x - b.x)
+    let magnitude = Math.sqrt(x * x + y * y)
+    return new VectorReference(x / magnitude, y / magnitude)
+  }
+
+  angle(b) {
+    let angle = Math.atan2(this.y - b.y, this.x - b.x)
+    if (angle < 0.0) {
+      angle += 2.0 * Math.PI
+    }
+    return angle
+  }
+
   export() {
     return `${this.x} ${this.y}`
   }
@@ -30,6 +45,16 @@ export class LineReference {
     this.middle = middle >= 0 ? new WallReference(this, middle) : null
     this.bottom = bottom >= 0 ? new WallReference(this, bottom) : null
     this.index = 0
+  }
+
+  has(vec) {
+    return this.a === vec || this.b === vec
+  }
+
+  other(vec) {
+    if (this.a === vec) return this.b
+    if (this.b === vec) return this.a
+    return null
   }
 
   export() {
@@ -109,5 +134,79 @@ export class ThingReference {
 
   static copy(thing) {
     return new ThingReference(thing.entity, thing.x, thing.z)
+  }
+}
+
+export class SectorReference {
+  constructor(bottom, floor, ceiling, top, floor_texture, ceiling_texture, vecs, lines) {
+    this.bottom = bottom
+    this.floor = floor
+    this.ceiling = ceiling
+    this.top = top
+    this.floor_texture = floor_texture
+    this.ceiling_texture = ceiling_texture
+    this.vecs = vecs
+    this.lines = lines
+    this.triangles = []
+    this.inside = []
+    this.outside = null
+    this.view = []
+    this.index = 0
+  }
+
+  hasFloor() {
+    return this.floor_texture >= 0
+  }
+
+  hasCeiling() {
+    return this.ceiling_texture >= 0
+  }
+
+  contains(x, z) {
+    let odd = false
+    let len = this.vecs.length
+    let k = len - 1
+    for (let i = 0; i < len; i++) {
+      let a = this.vecs[i]
+      let b = this.vecs[k]
+      if (a.y > z != b.y > z) {
+        let val = ((b.x - a.x) * (z - a.y)) / (b.y - a.y) + a.x
+        if (x < val) {
+          odd = !odd
+        }
+      }
+      k = i
+    }
+    return odd
+  }
+
+  find(x, z) {
+    let i = this.inside.length
+    while (i--) {
+      let inside = this.inside[i]
+      if (inside.contains(x, z)) {
+        return inside.find(x, z)
+      }
+    }
+    return this
+  }
+
+  export() {
+    let content = `${this.bottom} ${this.floor} ${this.ceiling} ${this.top}`
+    content += ` ${this.hasFloor() ? textureNameFromIndex(this.floor_texture) : 'none'}`
+    content += ` ${this.hasCeiling() ? textureNameFromIndex(this.ceiling_texture) : 'none'}`
+    content += ` ${this.vecs.length}`
+    for (const vec of this.vecs) {
+      content += ` ${vec.index}`
+    }
+    content += ` ${this.lines.length}`
+    for (const line of this.lines) {
+      content += ` ${line.index}`
+    }
+    return content
+  }
+
+  static copy(sector) {
+    return new SectorReference(sector.bottom, sector.floor, sector.ceiling, sector.top, sector.floor_texture, sector.ceiling_texture, sector.vecs, sector.lines)
   }
 }

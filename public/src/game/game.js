@@ -84,12 +84,12 @@ function house(world, x, y) {
   let outside = new Sector(0.0, 0.0, 6.0, 0.0, -1, -1, vecs, lines)
   world.pushSector(outside)
 
-  let inner = [vecs[2], vecs[9], vecs[8], vecs[7], vecs[6], vecs[5], vecs[4], vecs[3]]
+  // let inner = [vecs[2], vecs[9], vecs[8], vecs[7], vecs[6], vecs[5], vecs[4], vecs[3]]
 
-  lines = [new Line(texture('plank'), -1, -1, vecs[2], vecs[9])]
+  // lines = [new Line(texture('plank'), -1, -1, vecs[2], vecs[9])]
 
-  let inside = new Sector(0.0, 0.0, 5.0, 6.0, texture('plank-floor'), texture('stone-floor'), inner, lines)
-  world.pushSector(inside)
+  // let inside = new Sector(0.0, 0.0, 5.0, 6.0, texture('plank-floor'), texture('stone-floor'), inner, lines)
+  // world.pushSector(inside)
 }
 
 export class Game {

@@ -1,5 +1,3 @@
-import {textureNameFromIndex} from '/src/assets/assets.js'
-
 export class Sector {
   constructor(bottom, floor, ceiling, top, floor_texture, ceiling_texture, vecs, lines) {
     this.bottom = bottom
@@ -51,21 +49,6 @@ export class Sector {
     }
     return this
   }
-
-  export() {
-    let content = `${this.bottom} ${this.floor} ${this.ceiling} ${this.top}`
-    content += ` ${this.hasFloor() ? textureNameFromIndex(this.floor_texture) : 'none'}`
-    content += ` ${this.hasCeiling() ? textureNameFromIndex(this.ceiling_texture) : 'none'}`
-    content += ` ${this.vecs.length}`
-    for (const vec of this.vecs) {
-      content += ` ${vec.index}`
-    }
-    content += ` ${this.lines.length}`
-    for (const line of this.lines) {
-      content += ` ${line.index}`
-    }
-    return content
-  }
 }
 
 export function sectorInsideOutside(sectors) {
@@ -74,23 +57,26 @@ export function sectorInsideOutside(sectors) {
       if (sector === other) {
         continue
       }
-      let contains = true
+      let inside = 0
+      let outside = 0
       for (const o of other.vecs) {
+        let shared = false
         for (const s of sector.vecs) {
           if (s.eq(o)) {
-            contains = false
+            shared = true
             break
           }
         }
-        if (!contains) {
-          break
+        if (shared) {
+          continue
         }
-        if (!sector.contains(o.x, o.y)) {
-          contains = false
-          break
+        if (sector.contains(o.x, o.y)) {
+          inside++
+        } else {
+          outside++
         }
       }
-      if (contains) {
+      if (outside === 0 && inside > 0) {
         sector.inside.push(other)
       }
     }

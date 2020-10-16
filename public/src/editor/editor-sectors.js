@@ -1,6 +1,24 @@
-import {Sector, sectorInsideOutside} from '/src/map/sector.js'
 import {WORLD_SCALE} from '/src/world/world.js'
-import {sectorTriangulate} from '/src/map/triangulate.js'
+import {sectorInsideOutside} from '/src/map/sector.js'
+import {referenceLinesFromVec} from '/src/editor/editor-util.js'
+import {sectorTriangulateForEditor} from '/src/map/triangulate.js'
+import {SectorReference} from '/src/editor/editor-references.js'
+
+function vecCompare(a, b) {
+  if (a.y > b.y) return -1
+  if (a.y < b.y) return 1
+  if (a.x > b.x) return 1
+  if (a.x < b.x) return -1
+  return 0
+}
+
+function lineCompare(i, k) {
+  if (i.a.y > k.a.y) return -1
+  if (i.a.y < k.a.y) return 1
+  if (i.a.x > k.a.x) return 1
+  if (i.a.x < k.a.x) return -1
+  return 0
+}
 
 function copy(src, dest) {
   dest.bottom = src.bottom
@@ -12,16 +30,9 @@ function copy(src, dest) {
 }
 
 function match(src, dest) {
-  if (src.lines.length !== dest.lines.length) return false
-  for (let a of src.lines) {
-    let found = false
-    for (let b of dest.lines) {
-      if (a === b) {
-        found = true
-        break
-      }
-    }
-    if (!found) return false
+  if (src.vecs.length !== dest.vecs.length) return false
+  for (let a of src.vecs) {
+    if (dest.vecs.indexOf(a) === -1) return false
   }
   return true
 }
@@ -34,49 +45,36 @@ function transfer(previous, sectors) {
       if (match(old, sector)) {
         copy(old, sector)
         previous.splice(i, 1)
-        console.log('match', old)
         break
       }
     }
   }
 }
 
-function unused(sectors, check) {
+function duplicate(sectors, vecs) {
   for (const sector of sectors) {
-    for (const line of sector.lines) {
-      if (check === line) return false
+    if (vecs.length !== sector.vecs.length) continue
+    let duplicate = true
+    for (const s of sector.vecs) {
+      if (vecs.indexOf(s) == -1) {
+        duplicate = false
+        break
+      }
+    }
+    if (duplicate) {
+      console.error('duplicate computed sector')
+      return true
     }
   }
-  return true
+  return false
 }
 
-function range(angle) {
-  while (angle >= 360.0) angle -= 360.0
-  while (angle < 0.0) angle += 360.0
+function interior(a, b, c) {
+  let angle = Math.atan2(b.y - a.y, b.x - a.x) - Math.atan2(b.y - c.y, b.x - c.x)
+  angle = (180.0 * angle) / Math.PI
+  if (angle < 0.0) angle += 360.0
+  if (angle >= 360.0) angle -= 360.0
   return angle
-}
-
-function swap(lines) {
-  for (const line of lines) {
-    let left = null
-    let right = null
-    let start = null
-    let end = null
-    for (const other of lines) {
-      if (other === line) continue
-      if (line.a == other.a) start = other
-      if (line.a == other.b) left = other
-      if (line.b == other.b) end = other
-      if (line.b == other.a) right = other
-    }
-    if (left !== null && right !== null) continue
-    if (left === null && right !== null) continue
-    if (left === null && start === null) continue
-    if (right === null && end === null) continue
-    let temp = line.a
-    line.a = line.b
-    line.b = temp
-  }
 }
 
 function reorder(vecs) {
@@ -86,15 +84,15 @@ function reorder(vecs) {
     let k = i + 1 == len ? 0 : i + 1
     sum += (vecs[k].x - vecs[i].x) * (vecs[k].y + vecs[i].y)
   }
-  if (sum >= 0.0) return
+  if (sum >= 0.0) {
+    console.error('not re-ordering polygon vectors')
+    return
+  }
   let temp = vecs[0]
   vecs[0] = vecs[1]
   vecs[1] = temp
   let i = 2
-  while (true) {
-    if (i >= len - i + 1) {
-      break
-    }
+  while (i < len - i + 1) {
     temp = vecs[i]
     vecs[i] = vecs[len - i + 1]
     vecs[len - i + 1] = temp
@@ -103,89 +101,111 @@ function reorder(vecs) {
 }
 
 function construct(editor, sectors, start) {
-  let first = start
-  let clockwise = true
-  let vecs = [start.a]
+  let a = start.a
+  let b = start.b
+  let vecs = [a, b]
   let lines = [start]
+  let origin = a
+  let initial = true
   while (true) {
     let second = null
-    let secondAngle = Number.MAX_VALUE
-    let clockChange = false
+    let next = null
+    let best = Number.MAX_VALUE
+    let reverse = false
     for (const line of editor.lines) {
-      if (line === first) continue
-      if (line.a !== first.a && line.b !== first.a && line.a !== first.b && line.b !== first.b) continue
-      let angle = Math.atan2(line.a.y - line.b.y, line.a.x - line.b.x) - Math.atan2(first.a.y - first.b.y, first.a.x - first.b.x)
-      angle = (180.0 * angle) / Math.PI
-      if (clockwise) {
-        if (first.b === line.a) {
-          angle = range(angle + 180.0)
-          if (angle < secondAngle) {
-            second = line
-            secondAngle = angle
-            clockChange = false
-          }
-        } else if (first.b === line.b) {
-          angle = range(angle)
-          if (angle < secondAngle) {
-            second = line
-            secondAngle = angle
-            clockChange = true
-          }
-        }
+      if (line === start) continue
+      if (!line.has(b)) continue
+      let c = line.other(b)
+      let angle = interior(a, b, c)
+      let wind = false
+      if (initial && angle >= 180.0) {
+        angle = interior(c, b, a)
+        wind = true
+        console.log('reversed interior', angle, 'of', a, b, c)
       } else {
-        if (first.a === line.b) {
-          angle = range(angle + 180.0)
-          if (angle < secondAngle) {
-            second = line
-            secondAngle = angle
-            clockChange = false
-          }
-        } else if (first.a === line.a) {
-          angle = range(angle)
-          if (angle < secondAngle) {
-            second = line
-            secondAngle = angle
-            clockChange = true
-          }
-        }
+        console.log('interior', angle, 'of', a, b, c)
+      }
+      if (angle < best) {
+        second = line
+        next = c
+        best = angle
+        reverse = wind
       }
     }
-    if (second === null || start === second) break
-    if (clockChange) clockwise = !clockwise
-    if (clockwise) vecs.push(second.a)
-    else vecs.push(second.b)
+    if (second === null) {
+      console.log('return (not found)')
+      return [null, null]
+    }
+    if (initial) {
+      if (reverse) {
+        a = next
+        origin = a
+        vecs[0] = a
+        next = start.a
+        lines[0] = second
+        second = start
+        start = lines[0]
+        console.log('(reversed)')
+      }
+      initial = false
+      console.log('a', a.x, a.y)
+      console.log('b', b.x, b.y)
+    }
+    console.log('c', next.x, next.y)
+    if (next === origin) {
+      console.log('return (good)')
+      lines.push(second)
+      return [vecs, lines]
+    }
+    if (vecs.indexOf(next) >= 0) {
+      console.log('return (bad)')
+      return [null, null]
+    }
+    vecs.push(next)
     lines.push(second)
-    first = second
+    a = b
+    b = next
+    start = second
   }
-  return [vecs, lines]
 }
 
 export function computeSectors(editor) {
-  console.log('----------')
-  for (const sector of editor.sectors) {
-    console.log('original sector:', sector)
-  }
+  console.log('--- begin compute sectors ---')
 
-  // TODO does this do anything?
-  swap(editor.lines)
+  editor.vecs.sort(vecCompare)
+  editor.lines.sort(lineCompare)
 
-  // TODO not all sectors are correctly regenerated
+  // there can still be sectors composed entirely of previously used lines
+  // so we need to try every vector combination for valid sectors
+
   let sectors = []
-  for (const line of editor.lines) {
-    if (!unused(sectors, line)) continue
-    let [vecs, lines] = construct(editor, sectors, line)
-    if (lines.length < 3) continue
-    reorder(vecs)
-    sectors.push(new Sector(0.0, 0.0, 5.0, 6.0, -1, -1, vecs, lines))
+  for (const vec of editor.vecs) {
+    let references = referenceLinesFromVec(vec, editor.lines)
+    for (const line of references) {
+      let [vecs, lines] = construct(editor, sectors, line)
+      if (vecs === null || lines.length < 3) continue
+      if (duplicate(sectors, vecs)) continue
+      reorder(vecs)
+      console.log('sector:')
+      for (const vec of vecs) {
+        console.log(' ', vec.x, vec.y)
+      }
+      console.log('----------')
+      sectors.push(new SectorReference(0.0, 0.0, 5.0, 6.0, -1, -1, vecs, lines))
+    }
   }
 
   transfer(editor.sectors, sectors)
   sectorInsideOutside(sectors)
-  for (const sector of sectors) {
-    // TODO triangulate should ignore floor / ceil texture skipping for editing purposes
-    sectorTriangulate(sector, WORLD_SCALE)
-    console.log('sector:', sector)
+
+  try {
+    for (const sector of sectors) {
+      sectorTriangulateForEditor(sector, WORLD_SCALE)
+    }
+  } catch {
+    console.error('triangulation failed')
   }
 
   editor.sectors = sectors
+  console.log('--- end compute sectors', sectors.length, '---')
 }

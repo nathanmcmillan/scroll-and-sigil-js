@@ -11,8 +11,9 @@ function mapZ(z, zoom, camera) {
   return zoom * (z - camera.z)
 }
 
-function drawLineWithNormal(b, x1, y1, x2, y2, thickness, red, green, blue, alpha, zoom) {
+function drawLineWithNormal(b, x1, y1, x2, y2, thickness, red, green, blue, alpha, zoom, normal) {
   drawLine(b, x1, y1, x2, y2, thickness, red, green, blue, alpha)
+  if (!normal) return
   let midX = 0.5 * (x1 + x2)
   let midY = 0.5 * (y1 + y2)
   let normX = y1 - y2
@@ -23,14 +24,21 @@ function drawLineWithNormal(b, x1, y1, x2, y2, thickness, red, green, blue, alph
   drawLine(b, midX, midY, midX + normX * zoom, midY + normY * zoom, thickness, red, green, blue, alpha)
 }
 
+var debug_seed = 1
+function debug_random() {
+  var x = Math.sin(debug_seed++) * 10000
+  return x - Math.floor(x)
+}
+
 function mapRender(b, editor) {
   let zoom = editor.zoom
   let camera = editor.camera
   const alpha = 1.0
   const thickness = 1.0
   if (editor.viewSectors) {
+    debug_seed = 1
     for (const sector of editor.sectors) {
-      for (const triangle of sector.triangles) {
+      for (const triangle of sector.view) {
         let x1 = mapX(triangle.a.x, zoom, camera)
         let y1 = mapZ(triangle.a.y, zoom, camera)
         let x2 = mapX(triangle.b.x, zoom, camera)
@@ -38,18 +46,23 @@ function mapRender(b, editor) {
         let x3 = mapX(triangle.c.x, zoom, camera)
         let y3 = mapZ(triangle.c.y, zoom, camera)
         if (sector == editor.selectedSector) drawTriangle(b, x1, y1, x2, y2, x3, y3, 0.5, 0.5, 0.5, alpha)
-        else drawTriangle(b, x1, y1, x2, y2, x3, y3, 0.25, 0.25, 0.25, alpha)
+        else {
+          // 0.25
+          let color = 0.2 + debug_random() * 0.25
+          drawTriangle(b, x1, y1, x2, y2, x3, y3, color, color, color, alpha)
+        }
       }
     }
   }
   if (editor.viewLines) {
+    let normal = editor.viewLineNormals
     for (const line of editor.lines) {
       let x1 = mapX(line.a.x, zoom, camera)
       let y1 = mapZ(line.a.y, zoom, camera)
       let x2 = mapX(line.b.x, zoom, camera)
       let y2 = mapZ(line.b.y, zoom, camera)
-      if (line == editor.selectedLine) drawLineWithNormal(b, x1, y1, x2, y2, thickness, 0.0, 1.0, 0.0, alpha, zoom)
-      else drawLineWithNormal(b, x1, y1, x2, y2, thickness, 1.0, 1.0, 1.0, alpha, zoom)
+      if (line == editor.selectedLine) drawLineWithNormal(b, x1, y1, x2, y2, thickness, 0.0, 1.0, 0.0, alpha, zoom, normal)
+      else drawLineWithNormal(b, x1, y1, x2, y2, thickness, 1.0, 1.0, 1.0, alpha, zoom, normal)
     }
   }
   if (editor.viewVecs) {
@@ -111,7 +124,7 @@ export function renderEditorTopMode(state) {
     const vec = editor.selectedVec
     let x = zoom * (vec.x - camera.x)
     let y = zoom * (vec.y - camera.z)
-    drawLineWithNormal(client.bufferColor, x, y, editor.cursor.x, editor.cursor.y, thickness, 1.0, 1.0, 0.0, alpha, zoom)
+    drawLineWithNormal(client.bufferColor, x, y, editor.cursor.x, editor.cursor.y, thickness, 1.0, 1.0, 0.0, alpha, zoom, editor.viewLineNormals)
   }
 
   rendering.updateAndDraw(client.bufferColor)
@@ -159,6 +172,13 @@ export function renderEditorTopMode(state) {
     let text = '(' + key + ') ' + DESCRIBE_ACTION[option]
     drawTextSpecial(client.bufferGUI, x, 10.0, text, 2.0, 1.0, 0.0, 0.0)
     x += 2.0 * FONT_WIDTH * (text.length + 1)
+  }
+
+  if (editor.selectedVec != null) {
+    let x = 10.0
+    let y = editor.height - 2.0 * FONT_HEIGHT - 10.0
+    let text = 'X:' + editor.selectedVec.x + ' Y:' + editor.selectedVec.y
+    drawTextSpecial(client.bufferGUI, x, y, text, 2.0, 1.0, 0.0, 0.0)
   }
 
   rendering.bindTexture(gl.TEXTURE0, textureByName('font').texture)

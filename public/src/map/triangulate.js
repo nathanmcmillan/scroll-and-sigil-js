@@ -39,18 +39,23 @@ function polygonRemove(polygons, point) {
   }
 }
 
-function interiorAngle(a, b, c) {
-  let one = Math.atan2(a.y - b.y, a.x - b.x)
-  let two = Math.atan2(b.y - c.y, b.x - c.x)
-  let interior = two - one
-  if (interior < 0.0) {
-    interior += 2.0 * Math.PI
-  }
-  return interior
+function interior(a, b, c) {
+  let angle = Math.atan2(b.y - a.y, b.x - a.x) - Math.atan2(b.y - c.y, b.x - c.x)
+  // let angle = Math.atan2(b.y - c.y, b.x - c.x) - Math.atan2(a.y - b.y, a.x - b.x)
+  if (angle < 0.0) angle += 2.0 * Math.PI
+  if (angle >= 2.0 * Math.PI) angle -= 2.0 * Math.PI
+
+  //  Math.atan2(b.x - c.x, b.y - c.y) - Math.atan2(a.x - b.x, a.y - b.y) + Math.PI
+  // if (interior < 0.0) interior += 2.0 * Math.PI
+  // if (interior >= 2.0 * Math.PI) interior -= 2.0 * Math.PI
+
+  // let interior = Math.atan2(b.y - a.y, b.x - a.x) - Math.atan2(b.y - c.y, b.x - c.x)
+
+  return angle
 }
 
 function validTriangle(vecs, a, b, c) {
-  if (interiorAngle(a, b, c) > Math.PI) {
+  if (interior(a, b, c) > Math.PI) {
     return false
   }
   let triangle = [a, b, c]
@@ -101,14 +106,18 @@ function validPolygon(polygons, a, b) {
 }
 
 function clip(sector, floor, scale, triangles, vecs) {
+  console.log('clip', vecs)
   let i = 0
   let size = vecs.length
+  let protect = 1000
   while (size > 3) {
+    if (--protect <= 0) throw 'Triangulate: Clip exception'
     let plus = i == size - 1 ? 0 : i + 1
     let minus = i == 0 ? size - 1 : i - 1
     let next = vecs[plus]
     let previous = vecs[minus]
     let current = vecs[i]
+    console.log(i, next, previous, current)
     if (validTriangle(vecs, previous, current, next)) {
       let triangle = null
       if (floor) {
@@ -134,6 +143,7 @@ function clip(sector, floor, scale, triangles, vecs) {
 }
 
 function clipAll(sector, floor, scale, monotone, triangles) {
+  console.log('clip all', monotone)
   let vecs = []
   for (const start of monotone) {
     let next = start.next[0]
@@ -142,22 +152,14 @@ function clipAll(sector, floor, scale, monotone, triangles) {
       let a = next.point
       let b = current.point
       vecs.push(b)
-      let angle = Number.MAX_VALUE
+      let best = Number.MAX_VALUE
       let previous = null
       for (const poly of current.previous) {
         let c = poly.point
-        let angleA = Math.atan2(a.x - b.x, a.y - b.y)
-        let angleB = Math.atan2(b.x - c.x, b.y - c.y)
-        let interior = angleB - angleA + Math.PI
-        if (interior < 0.0) {
-          interior += 2.0 * Math.PI
-        }
-        if (interior > 2.0 * Math.PI) {
-          interior -= 2.0 * Math.PI
-        }
-        if (interior < angle) {
+        let angle = interior(a, b, c)
+        if (angle < best) {
           previous = poly
-          angle = interior
+          best = angle
         }
       }
       polygonRemove(current.next, a)
@@ -181,7 +183,7 @@ function classify(polygons) {
     let point = current.point
     let previous = current.previous[0].point
     let next = current.next[0].point
-    let reflex = interiorAngle(previous, point, next) > Math.PI
+    let reflex = interior(previous, point, next) > Math.PI
     let above = previous.y < point.y && next.y <= point.y
     let below = previous.y >= point.y && next.y >= point.y
     let collinear = Float.eq(next.y, point.y)
@@ -235,26 +237,43 @@ function cullVectors(polygons) {
   let dead = new Set()
   let holding = new Set()
   let pending = new Set()
+  let DEBUG = 1000
   while (remaining.length > 0) {
+    if (--DEBUG <= 0) throw 'Uh oh! (A)'
     let start = remaining[0]
     let current = start
+    console.log('start', start.point.x, start.point.y)
     while (true) {
+      console.log('> current', current.point.x, current.point.y)
+      if (--DEBUG <= 0) throw 'Uh oh! (B)'
       current.perimeter = true
-      remaining.splice(remaining.indexOf(current), 1)
+      let remove = remaining.indexOf(current)
+      if (remove < 0) {
+        console.error('current', current)
+        console.error('remaining', remaining)
+        throw 'Did not find current point in remaining set'
+      }
+      remaining.splice(remove, 1)
       while (current.next.length != 1) {
+        if (--DEBUG <= 0) throw 'Uh oh! (C)'
         let next = current.next[1]
         pending.add(next)
         current.next.splice(1, 1)
       }
       while (current.previous.length != 1) {
+        if (--DEBUG <= 0) throw 'Uh oh! (D)'
         current.previous.splice(1, 1)
       }
+      if (current.previous[0].point.eq(current.next[0].point)) {
+        throw 'Current and previous points should not be the same'
+      }
       current = current.next[0]
-      if (current == start) {
+      if (current === start) {
         break
       }
     }
     while (pending.size > 0) {
+      if (--DEBUG <= 0) throw 'Uh oh! (E)'
       for (const polygon of pending) {
         dead.add(pending)
         for (const next of polygon.next) {
@@ -289,6 +308,7 @@ function polygonFind(polygons, point) {
 }
 
 function populateReferences(sector, polygons, clockwise) {
+  console.log('populate references', polygons)
   const len = sector.vecs.length
   for (let i = 0; i < len; i++) {
     let p = i == 0 ? len - 1 : i - 1
@@ -355,9 +375,8 @@ function populateVectors(sector, polygons) {
 }
 
 function skip(sector, floor) {
-  if (floor) {
-    return !sector.hasFloor()
-  }
+  if (floor === null) return false
+  if (floor) return !sector.hasFloor()
   return !sector.hasCeiling()
 }
 
@@ -384,16 +403,21 @@ function populate(sector, floor) {
   return polygons
 }
 
-function floorCeil(sector, floor, scale) {
+function floorCeil(sector, floor, scale, triangles) {
   if (skip(sector, floor)) {
     return
   }
   let polygons = populate(sector, floor)
   let monotone = classify(polygons)
-  clipAll(sector, floor, scale, monotone, sector.triangles)
+  clipAll(sector, floor, scale, monotone, triangles)
 }
 
 export function sectorTriangulate(sector, scale) {
-  floorCeil(sector, true, scale)
-  floorCeil(sector, false, scale)
+  floorCeil(sector, true, scale, sector.triangles)
+  floorCeil(sector, false, scale, sector.triangles)
+}
+
+export function sectorTriangulateForEditor(sector, scale) {
+  // sectorTriangulate(sector, scale)
+  floorCeil(sector, null, scale, sector.view)
 }

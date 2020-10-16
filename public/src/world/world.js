@@ -239,5 +239,6 @@ export class World {
     for (const sector of this.sectors) {
       this.buildLines(sector)
     }
+    console.log('done building world')
   }
 }
