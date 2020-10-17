@@ -607,6 +607,9 @@ export class Editor {
             input.in[button] = false
             if (option === DO_FLIP_LINE) {
               this.flipSelectedLine()
+              // FIXME THIS IS TEMPORARY FOR DEBUGGING {
+              computeSectors(this)
+              // }
             } else if (option === DO_DELETE_LINE) {
               this.deleteSelectedLine()
               computeSectors(this)

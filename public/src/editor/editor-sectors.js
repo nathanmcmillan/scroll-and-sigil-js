@@ -1,6 +1,5 @@
 import {WORLD_SCALE} from '/src/world/world.js'
 import {sectorInsideOutside} from '/src/map/sector.js'
-import {referenceLinesFromVec} from '/src/editor/editor-util.js'
 import {sectorTriangulateForEditor} from '/src/map/triangulate.js'
 import {SectorReference} from '/src/editor/editor-references.js'
 
@@ -175,35 +174,32 @@ export function computeSectors(editor) {
   editor.vecs.sort(vecCompare)
   editor.lines.sort(lineCompare)
 
-  // there can still be sectors composed entirely of previously used lines
-  // so we need to try every vector combination for valid sectors
-
   let sectors = []
-  for (const vec of editor.vecs) {
-    let references = referenceLinesFromVec(vec, editor.lines)
-    for (const line of references) {
-      let [vecs, lines] = construct(editor, sectors, line)
-      if (vecs === null || lines.length < 3) continue
-      if (duplicate(sectors, vecs)) continue
-      reorder(vecs)
-      console.log('sector:')
-      for (const vec of vecs) {
-        console.log(' ', vec.x, vec.y)
-      }
-      console.log('----------')
-      sectors.push(new SectorReference(0.0, 0.0, 5.0, 6.0, -1, -1, vecs, lines))
+  for (const line of editor.lines) {
+    // TODO prune lines if they are part of a sector and the line only has one connection line on each side (or maybe just to second vector?)
+    let [vecs, lines] = construct(editor, sectors, line)
+    if (vecs === null || lines.length < 3) continue
+    if (duplicate(sectors, vecs)) continue
+    reorder(vecs)
+    console.log('sector:')
+    for (const vec of vecs) {
+      console.log(' ', vec.x, vec.y)
     }
+    console.log('----------')
+    sectors.push(new SectorReference(0.0, 0.0, 5.0, 6.0, -1, -1, vecs, lines))
   }
 
   transfer(editor.sectors, sectors)
   sectorInsideOutside(sectors)
 
-  try {
-    for (const sector of sectors) {
+  console.log('==========')
+  for (const sector of sectors) {
+    try {
       sectorTriangulateForEditor(sector, WORLD_SCALE)
+    } catch (e) {
+      console.error(e)
     }
-  } catch {
-    console.error('triangulation failed')
+    console.log('----------')
   }
 
   editor.sectors = sectors

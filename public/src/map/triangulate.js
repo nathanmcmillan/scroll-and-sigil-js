@@ -2,11 +2,11 @@ import {Float} from '/src/math/vector.js'
 import {Triangle} from '/src/map/triangle.js'
 
 class PolygonTriangle {
-  constructor(point) {
+  constructor(vec) {
     this.index = -1
     this.merge = false
     this.perimeter = false
-    this.point = point
+    this.vec = vec
     this.previous = []
     this.next = []
   }
@@ -29,28 +29,10 @@ function triangleContains(triangle, point) {
   return odd
 }
 
-function polygonRemove(polygons, point) {
-  let i = polygons.length
-  while (i--) {
-    if (point.eq(polygons[i].point)) {
-      polygons.splice(i, 1)
-      return
-    }
-  }
-}
-
 function interior(a, b, c) {
   let angle = Math.atan2(b.y - a.y, b.x - a.x) - Math.atan2(b.y - c.y, b.x - c.x)
-  // let angle = Math.atan2(b.y - c.y, b.x - c.x) - Math.atan2(a.y - b.y, a.x - b.x)
   if (angle < 0.0) angle += 2.0 * Math.PI
   if (angle >= 2.0 * Math.PI) angle -= 2.0 * Math.PI
-
-  //  Math.atan2(b.x - c.x, b.y - c.y) - Math.atan2(a.x - b.x, a.y - b.y) + Math.PI
-  // if (interior < 0.0) interior += 2.0 * Math.PI
-  // if (interior >= 2.0 * Math.PI) interior -= 2.0 * Math.PI
-
-  // let interior = Math.atan2(b.y - a.y, b.x - a.x) - Math.atan2(b.y - c.y, b.x - c.x)
-
   return angle
 }
 
@@ -60,12 +42,8 @@ function validTriangle(vecs, a, b, c) {
   }
   let triangle = [a, b, c]
   for (const vec of vecs) {
-    if (vec.eq(a) || vec.eq(b) || vec.eq(c)) {
-      continue
-    }
-    if (triangleContains(triangle, vec)) {
-      return false
-    }
+    if (vec === a || vec === b || vec === c) continue
+    if (triangleContains(triangle, vec)) return false
   }
   return true
 }
@@ -96,9 +74,9 @@ function lineIntersect(a, b, c, d) {
 
 function validPolygon(polygons, a, b) {
   for (const polygon of polygons) {
-    let c = polygon.point
-    let d = polygon.previous[0].point
-    if (!a.eq(c) && !a.eq(d) && !b.eq(c) && !b.eq(d) && lineIntersect(a, b, c, d)) {
+    let c = polygon.vec
+    let d = polygon.previous[0].vec
+    if (a !== c && a !== d && b !== c && b !== d && lineIntersect(a, b, c, d)) {
       return false
     }
   }
@@ -112,19 +90,16 @@ function clip(sector, floor, scale, triangles, vecs) {
   let protect = 1000
   while (size > 3) {
     if (--protect <= 0) throw 'Triangulate: Clip exception'
-    let plus = i == size - 1 ? 0 : i + 1
+    let plus = i + 1 == size ? 0 : i + 1
     let minus = i == 0 ? size - 1 : i - 1
     let next = vecs[plus]
     let previous = vecs[minus]
     let current = vecs[i]
-    console.log(i, next, previous, current)
+    console.log('clip', next, previous, current)
     if (validTriangle(vecs, previous, current, next)) {
       let triangle = null
-      if (floor) {
-        triangle = new Triangle(sector.floor, sector.floor_texture, previous, current, next, floor, scale)
-      } else {
-        triangle = new Triangle(sector.ceiling, sector.ceiling_texture, next, current, previous, floor, scale)
-      }
+      if (floor) triangle = new Triangle(sector.floor, sector.floor_texture, previous, current, next, floor, scale)
+      else triangle = new Triangle(sector.ceiling, sector.ceiling_texture, next, current, previous, floor, scale)
       triangles.push(triangle)
       vecs.splice(i, 1)
       size--
@@ -134,39 +109,42 @@ function clip(sector, floor, scale, triangles, vecs) {
     if (i == size) i = 0
   }
   let triangle = null
-  if (floor) {
-    triangle = new Triangle(sector.floor, sector.floor_texture, vecs[0], vecs[1], vecs[2], floor, scale)
-  } else {
-    triangle = new Triangle(sector.ceiling, sector.ceiling_texture, vecs[2], vecs[1], vecs[0], floor, scale)
-  }
+  if (floor) triangle = new Triangle(sector.floor, sector.floor_texture, vecs[0], vecs[1], vecs[2], floor, scale)
+  else triangle = new Triangle(sector.ceiling, sector.ceiling_texture, vecs[2], vecs[1], vecs[0], floor, scale)
   triangles.push(triangle)
 }
 
 function clipAll(sector, floor, scale, monotone, triangles) {
   console.log('clip all', monotone)
+  for (const mono of monotone) {
+    if (mono.next.length === 0) throw '(clip all) mono.next.length === 0'
+  }
   let vecs = []
   for (const start of monotone) {
+    if (start.next.length === 0) throw '(clip all) start.next.length === 0'
     let next = start.next[0]
     let current = start
     while (true) {
-      let a = next.point
-      let b = current.point
+      if (!next) throw '(clip all) !next'
+      if (!current) throw '(clip all) !current'
+      let a = next.vec
+      let b = current.vec
       vecs.push(b)
       let best = Number.MAX_VALUE
       let previous = null
       for (const poly of current.previous) {
-        let c = poly.point
+        let c = poly.vec
         let angle = interior(a, b, c)
+        console.log('clip all interior', a, b, c, '=>', (180.0 * angle) / Math.PI)
         if (angle < best) {
           previous = poly
           best = angle
         }
       }
-      polygonRemove(current.next, a)
-      polygonRemove(current.previous, previous.point)
-      if (previous == start) {
-        break
-      }
+      if (!previous) throw '(clip all) !previous'
+      current.next.splice(current.next.indexOf(next), 1)
+      current.previous.splice(current.previous.indexOf(previous), 1)
+      if (previous === start) break
       next = current
       current = previous
     }
@@ -180,15 +158,16 @@ function classify(polygons) {
   let merge = []
   let split = []
   for (const current of polygons) {
-    let point = current.point
-    let previous = current.previous[0].point
-    let next = current.next[0].point
+    let point = current.vec
+    let previous = current.previous[0].vec
+    let next = current.next[0].vec
     let reflex = interior(previous, point, next) > Math.PI
     let above = previous.y < point.y && next.y <= point.y
     let below = previous.y >= point.y && next.y >= point.y
     let collinear = Float.eq(next.y, point.y)
     if (reflex) {
       if (above) {
+        if (current.next.length === 0) throw '(classify) current.next.length === 0'
         monotone.push(current)
       }
     } else if (!collinear) {
@@ -200,10 +179,10 @@ function classify(polygons) {
     }
   }
   for (const polygon of merge) {
-    let point = polygon.point
+    let point = polygon.vec
     for (let k = polygon.index + 1; k < polygons.length; k++) {
       let diagonal = polygons[k]
-      if (validPolygon(polygons, point, diagonal.point)) {
+      if (validPolygon(polygons, point, diagonal.vec)) {
         polygon.merge = true
         polygon.next.push(diagonal)
         polygon.previous.push(diagonal)
@@ -214,16 +193,17 @@ function classify(polygons) {
     }
   }
   for (const polygon of split) {
-    let point = polygon.point
+    let point = polygon.vec
     for (let k = polygon.index - 1; k >= 0; k--) {
       let diagonal = polygons[k]
-      if (validPolygon(polygons, point, diagonal.point)) {
+      if (validPolygon(polygons, point, diagonal.vec)) {
         if (!polygon.merge) {
-          monotone.push(diagonal)
-          polygon.next.push(diagonal)
-          polygon.previous.push(diagonal)
           diagonal.next.push(polygon)
           diagonal.previous.push(polygon)
+          polygon.next.push(diagonal)
+          polygon.previous.push(diagonal)
+          if (diagonal.next.length === 0) throw '(classify) diagonal.next.length === 0'
+          monotone.push(diagonal)
         }
         break
       }
@@ -242,9 +222,9 @@ function cullVectors(polygons) {
     if (--DEBUG <= 0) throw 'Uh oh! (A)'
     let start = remaining[0]
     let current = start
-    console.log('start', start.point.x, start.point.y)
+    console.log('start', start.vec.x, start.vec.y)
     while (true) {
-      console.log('> current', current.point.x, current.point.y)
+      console.log('> current', current.vec.x, current.vec.y)
       if (--DEBUG <= 0) throw 'Uh oh! (B)'
       current.perimeter = true
       let remove = remaining.indexOf(current)
@@ -264,7 +244,7 @@ function cullVectors(polygons) {
         if (--DEBUG <= 0) throw 'Uh oh! (D)'
         current.previous.splice(1, 1)
       }
-      if (current.previous[0].point.eq(current.next[0].point)) {
+      if (current.previous[0].vec === current.next[0].vec) {
         throw 'Current and previous points should not be the same'
       }
       current = current.next[0]
@@ -300,7 +280,7 @@ function cullVectors(polygons) {
 
 function polygonFind(polygons, point) {
   for (const polygon of polygons) {
-    if (point.eq(polygon.point)) {
+    if (point === polygon.vec) {
       return polygon
     }
   }
@@ -324,18 +304,18 @@ function populateReferences(sector, polygons, clockwise) {
     if (original.previous.length == 0) {
       original.previous.push(previous)
     } else {
-      let point = original.point
-      let existing = original.previous[0].point
-      if (previous.point.angle(point) < existing.angle(point)) {
+      let point = original.vec
+      let existing = original.previous[0].vec
+      if (previous.vec.angle(point) < existing.angle(point)) {
         original.previous.unshift(previous)
       }
     }
     if (original.next.length == 0) {
       original.next.push(next)
     } else {
-      let point = original.point
-      let existing = original.next[0].point
-      if (next.point.angle(point) < existing.angle(point)) {
+      let point = original.vec
+      let existing = original.next[0].vec
+      if (next.vec.angle(point) < existing.angle(point)) {
         original.next.unshift(next)
       }
     }
@@ -350,7 +330,7 @@ function polygonInsert(polygons, point) {
   let polygon = new PolygonTriangle(point)
   let len = polygons.length
   for (let i = 0; i < len; i++) {
-    let vec = polygons[i].point
+    let vec = polygons[i].vec
     if (!pointCompare(point, vec)) {
       polygons.splice(i, 0, polygon)
       return
@@ -363,7 +343,7 @@ function populateVectors(sector, polygons) {
   for (const point of sector.vecs) {
     let exists = false
     for (const polygon of polygons) {
-      if (point.eq(polygon.point)) {
+      if (point === polygon.vec) {
         exists = true
         break
       }
