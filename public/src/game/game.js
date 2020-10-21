@@ -101,14 +101,14 @@ export class Game {
 
   async mapper() {
     let world = this.world
-    await grass(world)
-    house(world, 10, 10)
-    house(world, 40, 60)
-    world.buildSectors()
-    new Baron(world, entityByName('baron'), 8.0, 45.0)
-    new Tree(world, entityByName('tree'), 14.0, 42.0)
-    new Medkit(world, entityByName('medkit'), 18.0, 42.0)
-    this.camera.target = new Hero(world, entityByName('baron'), 10.0, 40.0, this.input)
+    // await grass(world)
+    // house(world, 10, 10)
+    // house(world, 40, 60)
+    // world.buildSectors()
+    // new Baron(world, entityByName('baron'), 8.0, 45.0)
+    // new Tree(world, entityByName('tree'), 14.0, 42.0)
+    // new Medkit(world, entityByName('medkit'), 18.0, 42.0)
+    // this.camera.target = new Hero(world, entityByName('baron'), 10.0, 40.0, this.input)
   }
 
   update() {

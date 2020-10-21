@@ -61,7 +61,7 @@ function duplicate(sectors, vecs) {
       }
     }
     if (duplicate) {
-      console.error('duplicate computed sector')
+      console.warn('duplicate computed sector')
       return true
     }
   }
@@ -72,7 +72,7 @@ function interior(a, b, c) {
   let angle = Math.atan2(b.y - a.y, b.x - a.x) - Math.atan2(b.y - c.y, b.x - c.x)
   angle = (180.0 * angle) / Math.PI
   if (angle < 0.0) angle += 360.0
-  if (angle >= 360.0) angle -= 360.0
+  else if (angle >= 360.0) angle -= 360.0
   return angle
 }
 
@@ -84,7 +84,7 @@ function reorder(vecs) {
     sum += (vecs[k].x - vecs[i].x) * (vecs[k].y + vecs[i].y)
   }
   if (sum >= 0.0) {
-    console.error('not re-ordering polygon vectors')
+    console.warn('not re-ordering polygon vectors')
     return
   }
   let temp = vecs[0]

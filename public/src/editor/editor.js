@@ -201,8 +201,8 @@ export class Editor {
     }
     this.defaultEntity = keys[0]
 
-    let ignore = true
-    if (ignore) return
+    // let ignore = true
+    // if (ignore) return
 
     // TODO replace all of this when map export is usable
     for (const sector of world.sectors) {
@@ -607,9 +607,6 @@ export class Editor {
             input.in[button] = false
             if (option === DO_FLIP_LINE) {
               this.flipSelectedLine()
-              // FIXME THIS IS TEMPORARY FOR DEBUGGING {
-              computeSectors(this)
-              // }
             } else if (option === DO_DELETE_LINE) {
               this.deleteSelectedLine()
               computeSectors(this)

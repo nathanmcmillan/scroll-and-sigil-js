@@ -29,9 +29,7 @@ export class Vector2 {
 
   angle(b) {
     let angle = Math.atan2(this.y - b.y, this.x - b.x)
-    if (angle < 0.0) {
-      angle += 2.0 * Math.PI
-    }
+    if (angle < 0.0) angle += 2.0 * Math.PI
     return angle
   }
 }
