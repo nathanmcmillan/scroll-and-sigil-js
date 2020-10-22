@@ -43,6 +43,7 @@ export class LineReference {
     this.middle = middle >= 0 ? new WallReference(this, middle) : null
     this.bottom = bottom >= 0 ? new WallReference(this, bottom) : null
     this.index = 0
+    this.done = false
   }
 
   has(vec) {

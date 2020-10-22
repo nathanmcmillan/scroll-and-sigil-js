@@ -1,22 +1,15 @@
 import {Float} from '/src/math/vector.js'
 import {Triangle} from '/src/map/triangle.js'
 
-function stringifyPoint(point) {
-  return JSON.stringify(point, (key, value) => {
-    if (key === 'next' || key === 'previous' || key == 'diagonal') {
-      if (value === null) return null
-      else return {index: value.index, point: value.point}
-    } else return value
-  })
-}
-
-function stringifyVert(vert) {
-  return JSON.stringify(vert, (key, value) => {
-    if (key === 'next') {
-      if (value === null) return null
-      else return {vec: value.vec}
-    } else return value
-  })
+class PolygonTriangle {
+  constructor(vec) {
+    this.index = -1
+    this.merge = false
+    this.vec = vec
+    this.previous = null
+    this.next = null
+    this.diagonal = null
+  }
 }
 
 function polygonSort(n, o) {
@@ -29,15 +22,13 @@ function polygonSort(n, o) {
   return 0
 }
 
-class PolygonTriangle {
-  constructor(vec) {
-    this.index = -1
-    this.merge = false
-    this.vec = vec
-    this.previous = null
-    this.next = null
-    this.diagonal = null
-  }
+function stringifyPoint(point) {
+  return JSON.stringify(point, (key, value) => {
+    if (key === 'next' || key === 'previous' || key == 'diagonal') {
+      if (value === null) return null
+      else return {index: value.index, point: value.point}
+    } else return value
+  })
 }
 
 class Vertex {
@@ -45,6 +36,15 @@ class Vertex {
     this.vec = vec
     this.next = null
   }
+}
+
+function stringifyVert(vert) {
+  return JSON.stringify(vert, (key, value) => {
+    if (key === 'next') {
+      if (value === null) return null
+      else return {vec: value.vec}
+    } else return value
+  })
 }
 
 function interiorCounter(a, b, c) {
@@ -66,7 +66,7 @@ function interiorClip(a, b, c) {
   return interiorCounter(a, b, c)
 }
 
-function interior2(a, b, c) {
+function interior(a, b, c) {
   let angle = Math.atan2(b.y - c.y, b.x - c.x) - Math.atan2(a.y - b.y, a.x - b.x)
   if (angle < 0.0) angle += 2.0 * Math.PI
   else if (angle >= 2.0 * Math.PI) angle -= 2.0 * Math.PI
@@ -172,33 +172,48 @@ function clip(sector, floor, scale, triangles, verts) {
   }
 }
 
-function triangulate(sector, floor, scale, monotone, triangles) {
+function clock(center, a, b) {
+  if (a.x < center.x && b.x < center.x) {
+    return a.y < b.y
+  } else if (a.x > center.x && b.x > center.x) {
+    return a.y > b.y
+  }
+  return a.x > b.x
+}
+
+function monotone(sector, floor, scale, starting, triangles) {
   console.log('monotone')
-  for (const mono of monotone) {
-    console.log(' ', stringifyPoint(mono))
+  for (const start of starting) {
+    console.log(' ', stringifyPoint(start))
   }
   let verts = []
-  for (const start of monotone) {
+  for (const start of starting) {
+    let previous = null
     let current = start
     let protect = 100
-    let diagonal = true
     while (true) {
+      let vec = current.vec
+      let next = current.next
       if (--protect <= 0) throw 'Too many triangulation iterations'
-      if (current === null) {
-        console.error(start)
-        throw 'Current triangulation point should not be null'
-      }
       verts.push(new Vertex(current.vec))
-      if (diagonal) {
-        diagonal = false
-        current = current.next
+      if (current.diagonal) {
+        let diagonal = current.diagonal
+        if (previous === null) {
+          if (clock(vec, next.vec, diagonal.vec)) current = next
+          else current = diagonal
+        } else if (previous === diagonal.vec) {
+          current = next
+        } else {
+          let original = interior(previous, vec, next.vec)
+          let other = interior(previous, vec, diagonal.vec)
+          console.log('choose', JSON.stringify(previous), JSON.stringify(vec), JSON.stringify(next.vec), JSON.stringify(diagonal.vec), original, other)
+          current = original < other ? next : diagonal
+        }
       } else {
-        if (current.diagonal) {
-          current = current.diagonal
-          diagonal = true
-        } else current = current.next
+        current = next
       }
       if (current === start) break
+      previous = vec
     }
     clip(sector, floor, scale, triangles, verts)
     verts.length = 0
@@ -211,38 +226,34 @@ function classify(points) {
   let merge = []
   let split = []
   for (const current of points) {
-    console.log(' ', stringifyPoint(current))
     let vec = current.vec
     let previous = current.previous.vec
     let next = current.next.vec
-    let reflex = interior2(previous, vec, next) > Math.PI
-    let above = previous.y < vec.y && next.y <= vec.y
-    let below = previous.y >= vec.y && next.y >= vec.y
-    let collinear = Float.eq(next.y, vec.y)
+    let reflex = interior(previous, vec, next) > Math.PI
+    let above = previous.y <= vec.y && next.y < vec.y
+    let below = previous.y >= vec.y && next.y > vec.y
+    console.log(' ', stringifyPoint(current), 'reflex', reflex, 'above', above, 'below', below)
     if (reflex) {
-      if (above) {
-        monotone.push(current)
-      }
-    } else if (!collinear) {
-      if (above) {
-        split.push(current)
-      } else if (below) {
-        merge.push(current)
-      }
+      if (above) monotone.push(current)
+    } else if (above) {
+      split.push(current)
+    } else if (below) {
+      merge.push(current)
     }
   }
+  for (const mono of monotone) console.log('start', JSON.stringify(mono.vec))
   for (const point of merge) {
     let vec = point.vec
     for (let k = point.index + 1; k < points.length; k++) {
       let diagonal = points[k]
-      if (Float.eq(vec.y, diagonal.vec.y)) continue
       if (!safeDiagonal(points, vec, diagonal.vec)) continue
       if (point.diagonal !== null) throw 'Merge point diagonal already exists'
       if (diagonal.diagonal !== null) throw 'Merge diagonal diagonal already exists'
       point.merge = true
       point.diagonal = diagonal
       diagonal.diagonal = point
-      console.log('merge', stringifyPoint(point), 'diagonal', stringifyPoint(diagonal))
+      console.log('merge', stringifyPoint(point))
+      monotone.push(diagonal) // IDK...
       break
     }
   }
@@ -250,15 +261,14 @@ function classify(points) {
     let vec = point.vec
     for (let k = point.index - 1; k >= 0; k--) {
       let diagonal = points[k]
-      if (Float.eq(vec.y, diagonal.vec.y)) continue
       if (!safeDiagonal(points, vec, diagonal.vec)) continue
       if (point.diagonal !== null) throw 'Merge point diagonal already exists'
       if (diagonal.diagonal !== null) throw 'Merge diagonal diagonal already exists'
       if (diagonal.merge) break
       point.diagonal = diagonal
       diagonal.diagonal = point
-      console.log('split', stringifyPoint(point), 'diagonal', stringifyPoint(diagonal))
-      monotone.push(diagonal)
+      console.log('split', stringifyPoint(point))
+      monotone.push(point)
       break
     }
   }
@@ -353,8 +363,8 @@ function populate(sector, floor) {
 function floorCeil(sector, floor, scale, triangles) {
   if (skip(sector, floor)) return
   let polygons = populate(sector, floor)
-  let monotone = classify(polygons)
-  triangulate(sector, floor, scale, monotone, triangles)
+  let starting = classify(polygons)
+  monotone(sector, floor, scale, starting, triangles)
 }
 
 export function sectorTriangulate(sector, scale) {

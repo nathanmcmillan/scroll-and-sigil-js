@@ -11,14 +11,6 @@ function vecCompare(a, b) {
   return 0
 }
 
-function lineCompare(i, k) {
-  if (i.a.y > k.a.y) return -1
-  if (i.a.y < k.a.y) return 1
-  if (i.a.x > k.a.x) return 1
-  if (i.a.x < k.a.x) return -1
-  return 0
-}
-
 function copy(src, dest) {
   dest.bottom = src.bottom
   dest.floor = src.floor
@@ -74,6 +66,18 @@ function interior(a, b, c) {
   if (angle < 0.0) angle += 360.0
   else if (angle >= 360.0) angle -= 360.0
   return angle
+}
+
+function mark(lines, all) {
+  for (const line of lines) {
+    let b = line.b
+    let count = 0
+    for (const other of all) {
+      if (other === line) continue
+      if (other.has(b)) count++
+    }
+    if (count === 1) line.done = true
+  }
 }
 
 function reorder(vecs) {
@@ -172,15 +176,16 @@ export function computeSectors(editor) {
   console.log('--- begin compute sectors ---')
 
   editor.vecs.sort(vecCompare)
-  editor.lines.sort(lineCompare)
+  for (const line of editor.lines) line.done = false
 
   let sectors = []
   for (const line of editor.lines) {
-    // TODO prune lines if they are part of a sector and the line only has one connection line on each side (or maybe just to second vector?)
+    if (line.done) continue
     let [vecs, lines] = construct(editor, sectors, line)
     if (vecs === null || lines.length < 3) continue
     if (duplicate(sectors, vecs)) continue
     reorder(vecs)
+    mark(lines, editor.lines)
     console.log('sector:')
     for (const vec of vecs) {
       console.log(' ', vec.x, vec.y)
