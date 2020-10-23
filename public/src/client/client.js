@@ -233,7 +233,7 @@ export class Client {
     if (main.get('open') === 'game') this.state = new GameState(this)
     else this.state = new EditorState(this)
 
-    this.state.initialize()
+    await this.state.initialize()
   }
 
   update() {

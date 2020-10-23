@@ -52,7 +52,7 @@ export class GameState {
     }
   }
 
-  initialize() {
+  async initialize() {
     playMusic('vampire-killer')
   }
 

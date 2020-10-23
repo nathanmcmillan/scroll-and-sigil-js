@@ -1,6 +1,6 @@
+import {fetchText} from '/src/client/net.js'
 import {Camera} from '/src/game/camera.js'
-import {Vector2} from '/src/math/vector.js'
-import {VectorReference, LineReference, ThingReference, SectorReference} from '/src/editor/editor-references.js'
+import {VectorReference, LineReference, ThingReference} from '/src/editor/editor-references.js'
 import {tileList, entityList, textureIndexForName, entityByName} from '/src/assets/assets.js'
 import {WORLD_SCALE} from '/src/world/world.js'
 import {referenceLinesFromVec} from '/src/editor/editor-util.js'
@@ -158,7 +158,7 @@ export class Editor {
     this.tool = DRAW_TOOL
     this.action = OPTION_DRAW_MODE_DEFAULT
     this.zoom = 10.0
-    this.cursor = new Vector2(0.5 * width, 0.5 * height)
+    this.cursor = new VectorReference(0.5 * width, 0.5 * height)
     this.vecs = []
     this.lines = []
     this.sectors = []
@@ -188,7 +188,7 @@ export class Editor {
     this.height = height
   }
 
-  load(world) {
+  async load(world) {
     let keys = tileList().sort()
     for (let name of keys) {
       this.tileSet.add(name)
@@ -201,36 +201,42 @@ export class Editor {
     }
     this.defaultEntity = keys[0]
 
-    // let ignore = true
-    // if (ignore) return
+    let map = (await fetchText('/maps/triangle.map')).split('\n')
+    console.info(map)
+    console.warn(map[0])
 
-    // TODO replace all of this when map export is usable
-    for (const sector of world.sectors) {
-      let vecs = []
-      for (const vec of sector.vecs) {
-        let ref = VectorReference.copy(vec)
-        this.vecs.push(ref)
-        vecs.push(ref)
-      }
-      let lines = []
-      for (const line of sector.lines) {
-        let a = null
-        let b = null
-        for (const vec of this.vecs) {
-          if (vec.eq(line.a)) a = vec
-          else if (vec.eq(line.b)) b = vec
-        }
-        let ref = LineReference.copy(line)
-        ref.a = a
-        ref.b = b
-        this.lines.push(ref)
-        lines.push(ref)
-      }
-      let ref = SectorReference.copy(sector)
-      ref.vecs = vecs
-      ref.lines = lines
-      this.sectors.push(ref)
+    let vectors = parseInt(map[0].split(' ')[1])
+    for (let i = 1; i <= vectors; i++) {
+      let vec = map[i].split(' ')
+      console.log(vec[0], '-', vec[1])
     }
+
+    // for (const sector of world.sectors) {
+    //   let vecs = []
+    //   for (const vec of sector.vecs) {
+    //     let ref = VectorReference.copy(vec)
+    //     this.vecs.push(ref)
+    //     vecs.push(ref)
+    //   }
+    //   let lines = []
+    //   for (const line of sector.lines) {
+    //     let a = null
+    //     let b = null
+    //     for (const vec of this.vecs) {
+    //       if (vec.eq(line.a)) a = vec
+    //       else if (vec.eq(line.b)) b = vec
+    //     }
+    //     let ref = LineReference.copy(line)
+    //     ref.a = a
+    //     ref.b = b
+    //     this.lines.push(ref)
+    //     lines.push(ref)
+    //   }
+    //   let ref = SectorReference.copy(sector)
+    //   ref.vecs = vecs
+    //   ref.lines = lines
+    //   this.sectors.push(ref)
+    // }
 
     let index = 0
     for (const sector of this.sectors) {
@@ -291,7 +297,7 @@ export class Editor {
   placeVectorAtCursor() {
     let x = this.camera.x + this.cursor.x / this.zoom
     let y = this.camera.z + this.cursor.y / this.zoom
-    let vec = new Vector2(x, y)
+    let vec = new VectorReference(x, y)
     this.vecs.push(vec)
     return vec
   }
@@ -337,7 +343,7 @@ export class Editor {
     let line = this.selectedLine
     let x = 0.5 * (line.a.x + line.b.x)
     let y = 0.5 * (line.a.y + line.b.y)
-    let vec = new Vector2(x, y)
+    let vec = new VectorReference(x, y)
     this.vecs.push(vec)
 
     let split = LineReference.copy(line)

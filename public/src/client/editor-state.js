@@ -81,8 +81,8 @@ export class EditorState {
     }
   }
 
-  initialize() {
-    this.editor.load(this.client.game.world)
+  async initialize() {
+    await this.editor.load(this.client.game.world)
   }
 
   switchMode() {

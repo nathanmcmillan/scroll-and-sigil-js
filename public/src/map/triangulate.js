@@ -172,15 +172,6 @@ function clip(sector, floor, scale, triangles, verts) {
   }
 }
 
-function clock(center, a, b) {
-  if (a.x < center.x && b.x < center.x) {
-    return a.y < b.y
-  } else if (a.x > center.x && b.x > center.x) {
-    return a.y > b.y
-  }
-  return a.x > b.x
-}
-
 function monotone(sector, floor, scale, starting, triangles) {
   console.log('monotone')
   for (const start of starting) {
@@ -199,14 +190,21 @@ function monotone(sector, floor, scale, starting, triangles) {
       if (current.diagonal) {
         let diagonal = current.diagonal
         if (previous === null) {
-          if (clock(vec, next.vec, diagonal.vec)) current = next
+          let sort = polygonSort(next, diagonal)
+          console.log('sort (A)', JSON.stringify(vec), JSON.stringify(next.vec), JSON.stringify(diagonal.vec), '=>', sort)
+          if (sort >= 0) current = next
           else current = diagonal
+          // console.log('angle (A)', JSON.stringify(vec), JSON.stringify(next.vec), JSON.stringify(diagonal.vec), vec.angle(next.vec), vec.angle(diagonal.vec))
+          // if (vec.angle(next.vec) < vec.angle(diagonal.vec)) current = next
+          // else current = diagonal
         } else if (previous === diagonal.vec) {
+          console.warn('Monotone previous === diagonal.vec')
           current = next
         } else {
-          let original = interior(previous, vec, next.vec)
-          let other = interior(previous, vec, diagonal.vec)
-          console.log('choose', JSON.stringify(previous), JSON.stringify(vec), JSON.stringify(next.vec), JSON.stringify(diagonal.vec), original, other)
+          let original = interiorClock(previous, vec, next.vec)
+          let other = interiorClock(previous, vec, diagonal.vec)
+          console.log('interior (B)', JSON.stringify(previous), JSON.stringify(vec), JSON.stringify(next.vec), original)
+          console.log('interior (B)', JSON.stringify(previous), JSON.stringify(vec), JSON.stringify(diagonal.vec), other)
           current = original < other ? next : diagonal
         }
       } else {
@@ -216,6 +214,7 @@ function monotone(sector, floor, scale, starting, triangles) {
       previous = vec
     }
     clip(sector, floor, scale, triangles, verts)
+    console.log('##########')
     verts.length = 0
   }
 }
@@ -230,15 +229,21 @@ function classify(points) {
     let previous = current.previous.vec
     let next = current.next.vec
     let reflex = interior(previous, vec, next) > Math.PI
-    let above = previous.y <= vec.y && next.y < vec.y
-    let below = previous.y >= vec.y && next.y > vec.y
-    console.log(' ', stringifyPoint(current), 'reflex', reflex, 'above', above, 'below', below)
     if (reflex) {
+      // for a colinear top we need   (previous.y <= vec.y && next.y < vec.y)
+      // but for an 'L' shape we need (previous.y < vec.y && next.y < vec.y)
+      let above = previous.y < vec.y && next.y <= vec.y
+      console.log(' ', stringifyPoint(current), 'reflex', reflex, 'above', above)
       if (above) monotone.push(current)
-    } else if (above) {
-      split.push(current)
-    } else if (below) {
-      merge.push(current)
+    } else {
+      let above = previous.y <= vec.y && next.y < vec.y
+      let below = previous.y >= vec.y && next.y > vec.y
+      console.log(' ', stringifyPoint(current), 'reflex', reflex, 'above', above, 'below', below)
+      if (above) {
+        split.push(current)
+      } else if (below) {
+        merge.push(current)
+      }
     }
   }
   for (const mono of monotone) console.log('start', JSON.stringify(mono.vec))
@@ -253,7 +258,7 @@ function classify(points) {
       point.diagonal = diagonal
       diagonal.diagonal = point
       console.log('merge', stringifyPoint(point))
-      monotone.push(diagonal) // IDK...
+      // monotone.push(point) // Only needed for collinear, should actually be a split in that case?
       break
     }
   }
@@ -268,7 +273,7 @@ function classify(points) {
       point.diagonal = diagonal
       diagonal.diagonal = point
       console.log('split', stringifyPoint(point))
-      monotone.push(point)
+      monotone.push(diagonal)
       break
     }
   }
