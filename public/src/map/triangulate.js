@@ -47,6 +47,14 @@ function stringifyVert(vert) {
   })
 }
 
+function clockwiseReflex(a, b, c) {
+  return (b.x - c.x) * (a.y - b.y) - (a.x - b.x) * (b.y - c.y) > 0.0
+}
+
+function counterClockwiseReflex(a, b, c) {
+  return (b.x - a.x) * (c.y - b.y) - (c.x - b.x) * (b.y - a.y) > 0.0
+}
+
 function interiorCounter(a, b, c) {
   let angle = Math.atan2(b.y - a.y, b.x - a.x) - Math.atan2(b.y - c.y, b.x - c.x)
   if (angle < 0.0) angle += 2.0 * Math.PI
@@ -54,16 +62,11 @@ function interiorCounter(a, b, c) {
   return angle
 }
 
-function interiorClock(a, b, c) {
+function clockwiseInterior(a, b, c) {
   let angle = Math.atan2(b.y - c.y, b.x - c.x) - Math.atan2(b.y - a.y, b.x - a.x)
   if (angle < 0.0) angle += 2.0 * Math.PI
   else if (angle >= 2.0 * Math.PI) angle -= 2.0 * Math.PI
   return angle
-}
-
-function interiorClip(a, b, c) {
-  if (a.x < b.x) return interiorClock(a, b, c)
-  return interiorCounter(a, b, c)
 }
 
 function interior(a, b, c) {
@@ -139,17 +142,53 @@ function clip(sector, floor, scale, triangles, verts) {
     console.log('adjacent', JSON.stringify(v.vec), JSON.stringify(t.vec), '---', adjacent(v, t))
     if (adjacent(v, t)) {
       let p = stack[stack.length - 1]
-      console.log('interior', JSON.stringify(p.vec), JSON.stringify(t.vec), JSON.stringify(v.vec), '---', interiorClip(p.vec, t.vec, v.vec))
-      if (interiorClip(p.vec, t.vec, v.vec) >= Math.PI) {
+      console.log('continuing with adjacent...', JSON.stringify(p.vec), JSON.stringify(t.vec), JSON.stringify(v.vec))
+      let a, c
+      let b = t.vec
+      if (v.next === t) {
+        a = v.vec
+        c = p.vec
+        console.log('v ---> t')
+      } else {
+        a = p.vec
+        c = v.vec
+        console.log('t ---> v')
+      }
+      console.log('reflex', JSON.stringify(a), JSON.stringify(b), JSON.stringify(c), '---', clockwiseReflex(a, b, c))
+      if (!clockwiseReflex(a, b, c)) {
         stack.push(t)
       } else {
         do {
-          add(sector, floor, scale, triangles, p.vec, t.vec, v.vec)
-          console.log('add (X)', JSON.stringify(p.vec), JSON.stringify(t.vec), JSON.stringify(v.vec))
+          add(sector, floor, scale, triangles, a, b, c)
+          console.log('add (X)', JSON.stringify(a), JSON.stringify(b), JSON.stringify(c))
           t = stack.pop()
           if (stack.length === 0) break
           p = stack[stack.length - 1]
-        } while (interiorClip(p.vec, t.vec, v.vec) < Math.PI)
+          console.log('continuing with adjacent (2)...', JSON.stringify(p.vec), JSON.stringify(t.vec), JSON.stringify(v.vec))
+          b = t.vec
+          if (v.next === t) {
+            a = v.vec
+            c = p.vec
+            console.log('v ---> t')
+          } else if (t.next === v) {
+            a = p.vec
+            c = v.vec
+            console.log('t ---> v')
+          } else if (p.next === v) {
+            a = v.vec
+            c = p.vec
+            console.log('p ---> v')
+          } else if (t.next === p) {
+            a = p.vec
+            c = v.vec
+            console.log('t ---> p')
+          } else {
+            console.log('Unexpected adjacency case')
+            a = p.vec
+            c = v.vec
+          }
+          console.log('reflex (2)', JSON.stringify(a), JSON.stringify(b), JSON.stringify(c), '---', clockwiseReflex(a, b, c))
+        } while (clockwiseReflex(a, b, c))
         stack.push(t)
       }
     } else {
@@ -201,8 +240,8 @@ function monotone(sector, floor, scale, starting, triangles) {
           console.warn('Monotone previous === diagonal.vec')
           current = next
         } else {
-          let original = interiorClock(previous, vec, next.vec)
-          let other = interiorClock(previous, vec, diagonal.vec)
+          let original = clockwiseInterior(previous, vec, next.vec)
+          let other = clockwiseInterior(previous, vec, diagonal.vec)
           console.log('interior (B)', JSON.stringify(previous), JSON.stringify(vec), JSON.stringify(next.vec), original)
           console.log('interior (B)', JSON.stringify(previous), JSON.stringify(vec), JSON.stringify(diagonal.vec), other)
           current = original < other ? next : diagonal
@@ -228,7 +267,7 @@ function classify(points) {
     let vec = current.vec
     let previous = current.previous.vec
     let next = current.next.vec
-    let reflex = interior(previous, vec, next) > Math.PI
+    let reflex = clockwiseReflex(previous, vec, next)
     if (reflex) {
       // for a colinear top we need   (previous.y <= vec.y && next.y < vec.y)
       // but for an 'L' shape we need (previous.y < vec.y && next.y < vec.y)
