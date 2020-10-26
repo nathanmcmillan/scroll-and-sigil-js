@@ -1,6 +1,6 @@
 import {fetchText} from '/src/client/net.js'
 import {Camera} from '/src/game/camera.js'
-import {VectorReference, LineReference, ThingReference} from '/src/editor/editor-references.js'
+import {VectorReference, LineReference, SectorReference, ThingReference} from '/src/editor/editor-references.js'
 import {tileList, entityList, textureIndexForName, entityByName} from '/src/assets/assets.js'
 import {WORLD_SCALE} from '/src/world/world.js'
 import {referenceLinesFromVec} from '/src/editor/editor-util.js'
@@ -139,6 +139,11 @@ DESCRIBE_OPTIONS[OPTION_SECTOR_MODE_DEFAULT] = SECTOR_MODE_OPTIONS
 
 export const DESCRIBE_MENU = ['Open', 'Save', 'Quit']
 
+function texture(name) {
+  if (name === 'none') return -1
+  return textureIndexForName(name)
+}
+
 export function vectorSize(zoom) {
   return Math.ceil(1.0 + 0.05 * zoom)
 }
@@ -188,7 +193,7 @@ export class Editor {
     this.height = height
   }
 
-  async load(world) {
+  async load(file) {
     let keys = tileList().sort()
     for (let name of keys) {
       this.tileSet.add(name)
@@ -201,46 +206,58 @@ export class Editor {
     }
     this.defaultEntity = keys[0]
 
-    let map = (await fetchText('/maps/triangle.map')).split('\n')
-    console.info(map)
-    console.warn(map[0])
+    let map = (await fetchText(file)).split('\n')
+    let index = 0
 
-    let vectors = parseInt(map[0].split(' ')[1])
-    for (let i = 1; i <= vectors; i++) {
-      let vec = map[i].split(' ')
-      console.log(vec[0], '-', vec[1])
+    let vectors = parseInt(map[index].split(' ')[1])
+    index++
+    for (; index <= vectors; index++) {
+      let vec = map[index].split(' ')
+      this.vecs.push(new VectorReference(parseFloat(vec[0]), parseFloat(vec[1])))
     }
 
-    // for (const sector of world.sectors) {
-    //   let vecs = []
-    //   for (const vec of sector.vecs) {
-    //     let ref = VectorReference.copy(vec)
-    //     this.vecs.push(ref)
-    //     vecs.push(ref)
-    //   }
-    //   let lines = []
-    //   for (const line of sector.lines) {
-    //     let a = null
-    //     let b = null
-    //     for (const vec of this.vecs) {
-    //       if (vec.eq(line.a)) a = vec
-    //       else if (vec.eq(line.b)) b = vec
-    //     }
-    //     let ref = LineReference.copy(line)
-    //     ref.a = a
-    //     ref.b = b
-    //     this.lines.push(ref)
-    //     lines.push(ref)
-    //   }
-    //   let ref = SectorReference.copy(sector)
-    //   ref.vecs = vecs
-    //   ref.lines = lines
-    //   this.sectors.push(ref)
-    // }
+    let lines = index + parseInt(map[index].split(' ')[1])
+    index++
+    for (; index <= lines; index++) {
+      let line = map[index].split(' ')
+      let a = this.vecs[parseInt(line[0])]
+      let b = this.vecs[parseInt(line[1])]
+      let top = texture(line[2])
+      let middle = texture(line[3])
+      let bottom = texture(line[4])
+      this.lines.push(new LineReference(top, middle, bottom, a, b))
+    }
 
-    let index = 0
+    let sectors = index + parseInt(map[index].split(' ')[1])
+    index++
+    for (; index <= sectors; index++) {
+      let sector = map[index].split(' ')
+      let bottom = parseFloat(sector[0])
+      let floor = parseFloat(sector[1])
+      let ceiling = parseFloat(sector[2])
+      let top = parseFloat(sector[3])
+      let floorTexture = texture(sector[4])
+      let ceilingTexture = texture(sector[5])
+      let count = parseInt(sector[6])
+      let i = 7
+      let end = i + count
+      let vecs = []
+      for (; i < end; i++) {
+        vecs.push(this.vecs[parseInt(sector[i])])
+      }
+      count = parseInt(sector[i])
+      i++
+      end = i + count
+      let lines = []
+      for (; i < end; i++) {
+        lines.push(this.lines[parseInt(sector[i])])
+      }
+      this.sectors.push(new SectorReference(bottom, floor, ceiling, top, floorTexture, ceilingTexture, vecs, lines))
+    }
+
+    let i = 0
     for (const sector of this.sectors) {
-      sector.index = index++
+      sector.index = i++
     }
 
     sectorInsideOutside(this.sectors)
@@ -248,9 +265,14 @@ export class Editor {
       sectorTriangulateForEditor(sector, WORLD_SCALE)
     }
 
-    for (const thing of world.things) {
-      if (thing == null) break
-      this.things.push(ThingReference.copy(thing))
+    let things = index + parseInt(map[index].split(' ')[1])
+    index++
+    for (; index <= things; index++) {
+      let thing = map[index].split(' ')
+      let x = parseFloat(thing[0])
+      let z = parseFloat(thing[1])
+      let entity = entityByName(thing[2])
+      this.things.push(new ThingReference(entity, x, z))
     }
   }
 

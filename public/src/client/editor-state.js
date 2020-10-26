@@ -82,7 +82,7 @@ export class EditorState {
   }
 
   async initialize() {
-    await this.editor.load(this.client.game.world)
+    await this.editor.load('/maps/bad_2.map')
   }
 
   switchMode() {

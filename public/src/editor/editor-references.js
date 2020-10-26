@@ -29,10 +29,6 @@ export class VectorReference {
   export() {
     return `${this.x} ${this.y}`
   }
-
-  static copy(vec) {
-    return new VectorReference(vec.x, vec.y)
-  }
 }
 
 export class LineReference {
@@ -107,43 +103,14 @@ export class WallReference {
   }
 }
 
-export class ThingReference {
-  constructor(entity, x, z) {
-    this.x = x
-    this.y = 0.0
-    this.z = z
-    this.box = parseFloat(entity.get('box'))
-    this.height = parseFloat(entity.get('height'))
-    this.texture = textureIndexForName(entity.get('sprite'))
-    this.animations = animationMap(entity)
-    if (Array.isArray(this.animations)) {
-      this.sprite = this.animations[0]
-    } else if (this.animations instanceof Map) {
-      this.animation = this.animations.values().next().value
-      this.sprite = this.animation[0]
-    } else {
-      this.sprite = this.animations
-    }
-    this.entity = entity
-  }
-
-  export() {
-    return `${this.x} ${this.z} ${this.entity.get('name')}`
-  }
-
-  static copy(thing) {
-    return new ThingReference(thing.entity, thing.x, thing.z)
-  }
-}
-
 export class SectorReference {
-  constructor(bottom, floor, ceiling, top, floor_texture, ceiling_texture, vecs, lines) {
+  constructor(bottom, floor, ceiling, top, floorTexture, ceilingTexture, vecs, lines) {
     this.bottom = bottom
     this.floor = floor
     this.ceiling = ceiling
     this.top = top
-    this.floor_texture = floor_texture
-    this.ceiling_texture = ceiling_texture
+    this.floor_texture = floorTexture
+    this.ceiling_texture = ceilingTexture
     this.vecs = vecs
     this.lines = lines
     this.triangles = []
@@ -204,8 +171,29 @@ export class SectorReference {
     }
     return content
   }
+}
 
-  static copy(sector) {
-    return new SectorReference(sector.bottom, sector.floor, sector.ceiling, sector.top, sector.floor_texture, sector.ceiling_texture, sector.vecs, sector.lines)
+export class ThingReference {
+  constructor(entity, x, z) {
+    this.x = x
+    this.y = 0.0
+    this.z = z
+    this.box = parseFloat(entity.get('box'))
+    this.height = parseFloat(entity.get('height'))
+    this.texture = textureIndexForName(entity.get('sprite'))
+    this.animations = animationMap(entity)
+    if (Array.isArray(this.animations)) {
+      this.sprite = this.animations[0]
+    } else if (this.animations instanceof Map) {
+      this.animation = this.animations.values().next().value
+      this.sprite = this.animation[0]
+    } else {
+      this.sprite = this.animations
+    }
+    this.entity = entity
+  }
+
+  export() {
+    return `${this.x} ${this.z} ${this.entity.get('name')}`
   }
 }
