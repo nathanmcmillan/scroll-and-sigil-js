@@ -1,4 +1,3 @@
-import {Game} from '/src/game/game.js'
 import {fetchText, fetchImage} from '/src/client/net.js'
 import {Buffer} from '/src/webgl/buffer.js'
 import {createTexture, compileProgram} from '/src/webgl/webgl.js'
@@ -22,7 +21,6 @@ export class Client {
     this.mouseRight = false
     this.mouseX = 0
     this.mouseY = 0
-    this.game = new Game()
     this.orthographic = new Array(16)
     this.perspective = new Array(16)
     this.rendering = null
@@ -201,8 +199,6 @@ export class Client {
       saveTexture(texture.name, createTexture(gl, texture.image, gl.NEAREST, wrap))
     }
 
-    await this.game.mapper()
-
     this.rendering = new Renderer(gl)
     this.bufferGUI = new Buffer(2, 4, 2, 0, 4 * 800, 36 * 800)
     this.bufferColor = new Buffer(2, 4, 0, 0, 4 * 1600, 36 * 1600)
@@ -216,16 +212,6 @@ export class Client {
     rendering.insertProgram(0, compileProgram(gl, color2d))
     rendering.insertProgram(1, compileProgram(gl, texture2d))
     rendering.insertProgram(2, compileProgram(gl, texture3d))
-
-    let world = this.game.world
-
-    for (const sector of world.sectors) {
-      this.sectorRender(sector)
-    }
-
-    for (const buffer of this.sectorBuffers.values()) {
-      rendering.updateVAO(buffer, gl.STATIC_DRAW)
-    }
 
     rendering.makeVAO(this.bufferGUI)
     rendering.makeVAO(this.bufferColor)

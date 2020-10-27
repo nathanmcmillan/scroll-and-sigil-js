@@ -1,3 +1,4 @@
+import {Game} from '/src/game/game.js'
 import {drawDecal} from '/src/client/render-sector.js'
 import {drawImage, drawSprite, drawText} from '/src/render/render.js'
 import {identity, multiply, rotateX, rotateY, translate} from '/src/math/matrix.js'
@@ -7,10 +8,13 @@ import {playMusic} from '/src/assets/sounds.js'
 export class GameState {
   constructor(client) {
     this.client = client
+    this.game = new Game()
   }
 
+  resize() {}
+
   keyEvent(code, down) {
-    let input = this.client.game.input
+    let input = this.game.input
     switch (code) {
       case 'KeyW':
         input.moveForward = down
@@ -54,13 +58,27 @@ export class GameState {
 
   async initialize() {
     playMusic('vampire-killer')
+
+    await this.game.mapper('/maps/base.map')
+
+    let world = this.game.world
+
+    for (const sector of world.sectors) {
+      this.client.sectorRender(sector)
+    }
+
+    for (const buffer of this.sectorBuffers.values()) {
+      this.client.rendering.updateVAO(buffer, this.client.gl.STATIC_DRAW)
+    }
   }
 
   update() {
-    this.client.game.update()
+    this.game.update()
   }
 
   render() {
+    const game = this.game
+    const world = game.world
     const client = this.client
     const gl = client.gl
     const rendering = client.rendering
@@ -71,7 +89,7 @@ export class GameState {
     let view = new Array(16)
     let projection = new Array(16)
 
-    let camera = client.game.camera
+    let camera = game.camera
 
     rendering.setProgram(1)
     rendering.setView(0, 0, client.width, client.height)
@@ -119,7 +137,6 @@ export class GameState {
 
     let sine = Math.sin(-camera.ry)
     let cosine = Math.cos(-camera.ry)
-    let world = client.game.world
 
     let things = world.things
     let t = world.thingCount

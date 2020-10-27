@@ -8,8 +8,8 @@ function copy(src, dest) {
   dest.floor = src.floor
   dest.ceiling = src.ceiling
   dest.top = src.top
-  dest.floor_texture = src.floor_texture
-  dest.ceiling_texture = src.ceiling_texture
+  dest.floorTexture = src.floorTexture
+  dest.ceilingTexture = src.ceilingTexture
 }
 
 function match(src, dest) {

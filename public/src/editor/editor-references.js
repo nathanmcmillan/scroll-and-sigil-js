@@ -108,8 +108,8 @@ export class SectorReference {
     this.floor = floor
     this.ceiling = ceiling
     this.top = top
-    this.floor_texture = floorTexture
-    this.ceiling_texture = ceilingTexture
+    this.floorTexture = floorTexture
+    this.ceilingTexture = ceilingTexture
     this.vecs = vecs
     this.lines = lines
     this.triangles = []
@@ -120,11 +120,11 @@ export class SectorReference {
   }
 
   hasFloor() {
-    return this.floor_texture >= 0
+    return this.floorTexture >= 0
   }
 
   hasCeiling() {
-    return this.ceiling_texture >= 0
+    return this.ceilingTexture >= 0
   }
 
   contains(x, z) {
@@ -158,8 +158,8 @@ export class SectorReference {
 
   export() {
     let content = `${this.bottom} ${this.floor} ${this.ceiling} ${this.top}`
-    content += ` ${this.hasFloor() ? textureNameFromIndex(this.floor_texture) : 'none'}`
-    content += ` ${this.hasCeiling() ? textureNameFromIndex(this.ceiling_texture) : 'none'}`
+    content += ` ${this.hasFloor() ? textureNameFromIndex(this.floorTexture) : 'none'}`
+    content += ` ${this.hasCeiling() ? textureNameFromIndex(this.ceilingTexture) : 'none'}`
     content += ` ${this.vecs.length}`
     for (const vec of this.vecs) {
       content += ` ${vec.index}`

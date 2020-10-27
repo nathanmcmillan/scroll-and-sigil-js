@@ -2,6 +2,7 @@ music [
   vampire-killer
 ]
 entities [
+  hero
   baron
   tree
   plasma

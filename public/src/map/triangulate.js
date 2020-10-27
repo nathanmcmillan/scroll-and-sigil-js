@@ -114,8 +114,8 @@ function safeDiagonal(polygon, a, b) {
 
 function add(sector, floor, scale, triangles, a, b, c) {
   let triangle = null
-  if (floor) triangle = new Triangle(sector.floor, sector.floor_texture, a, b, c, floor, scale)
-  else triangle = new Triangle(sector.ceiling, sector.ceiling_texture, c, b, a, floor, scale)
+  if (floor) triangle = new Triangle(sector.floor, sector.floorTexture, a, b, c, floor, scale)
+  else triangle = new Triangle(sector.ceiling, sector.ceilingTexture, c, b, a, floor, scale)
   triangles.push(triangle)
 }
 
@@ -351,6 +351,7 @@ function populateReferences(sector, points, clockwise) {
       if (previous.vec.angle(point) < angle) {
         original.previous = previous
       }
+      console.warn('Double previous reference')
     }
     if (original.next === null) {
       original.next = next
@@ -360,6 +361,7 @@ function populateReferences(sector, points, clockwise) {
       if (next.vec.angle(point) < angle) {
         original.next = next
       }
+      console.warn('Double next reference')
     }
   }
 }
@@ -387,15 +389,11 @@ function skip(sector, floor) {
 function populate(sector, floor) {
   let polygons = []
   for (let inner of sector.inside) {
-    if (skip(inner, floor)) {
-      continue
-    }
+    if (skip(inner, floor)) continue
     populateVectors(inner, polygons)
   }
   for (let inner of sector.inside) {
-    if (skip(inner, floor)) {
-      continue
-    }
+    if (skip(inner, floor)) continue
     populateReferences(inner, polygons, false)
   }
   populateVectors(sector, polygons)

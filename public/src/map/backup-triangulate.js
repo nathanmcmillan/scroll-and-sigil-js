@@ -118,8 +118,8 @@ function clip(sector, floor, scale, triangles, vecs) {
     console.log('clip', next, previous, current)
     if (validTriangle(vecs, previous, current, next)) {
       let triangle = null
-      if (floor) triangle = new Triangle(sector.floor, sector.floor_texture, previous, current, next, floor, scale)
-      else triangle = new Triangle(sector.ceiling, sector.ceiling_texture, next, current, previous, floor, scale)
+      if (floor) triangle = new Triangle(sector.floor, sector.floorTexture, previous, current, next, floor, scale)
+      else triangle = new Triangle(sector.ceiling, sector.ceilingTexture, next, current, previous, floor, scale)
       triangles.push(triangle)
       vecs.splice(i, 1)
       size--
@@ -129,8 +129,8 @@ function clip(sector, floor, scale, triangles, vecs) {
     if (i == size) i = 0
   }
   let triangle = null
-  if (floor) triangle = new Triangle(sector.floor, sector.floor_texture, vecs[0], vecs[1], vecs[2], floor, scale)
-  else triangle = new Triangle(sector.ceiling, sector.ceiling_texture, vecs[2], vecs[1], vecs[0], floor, scale)
+  if (floor) triangle = new Triangle(sector.floor, sector.floorTexture, vecs[0], vecs[1], vecs[2], floor, scale)
+  else triangle = new Triangle(sector.ceiling, sector.ceilingTexture, vecs[2], vecs[1], vecs[0], floor, scale)
   triangles.push(triangle)
 }
 

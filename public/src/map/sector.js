@@ -1,11 +1,11 @@
 export class Sector {
-  constructor(bottom, floor, ceiling, top, floor_texture, ceiling_texture, vecs, lines) {
+  constructor(bottom, floor, ceiling, top, floorTexture, ceilingTexture, vecs, lines) {
     this.bottom = bottom
     this.floor = floor
     this.ceiling = ceiling
     this.top = top
-    this.floor_texture = floor_texture
-    this.ceiling_texture = ceiling_texture
+    this.floorTexture = floorTexture
+    this.ceilingTexture = ceilingTexture
     this.vecs = vecs
     this.lines = lines
     this.triangles = []
@@ -14,11 +14,11 @@ export class Sector {
   }
 
   hasFloor() {
-    return this.floor_texture >= 0
+    return this.floorTexture >= 0
   }
 
   hasCeiling() {
-    return this.ceiling_texture >= 0
+    return this.ceilingTexture >= 0
   }
 
   contains(x, z) {

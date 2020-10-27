@@ -1,0 +1,47 @@
+sprite: baron
+box: 0.4
+height: 0.8
+health: 1
+speed: 0.05
+think: baron-update
+sight: 5.0
+stamina: 0
+energy: 0
+attributes {
+  strength: 0
+  dexterity: 0
+  vitality: 0
+  intelligence: 0
+}
+resist {
+  slash: 0
+  crush: 0
+  pierce: 0
+  bleed: 0
+  poison: 0
+  fire: 0
+  frost: 0
+  lightning: 0
+}
+attack {
+  melee {
+    range: 0.8
+    animation: melee
+    sound: baron-melee
+    damage [1, 10]
+  }
+  missile {
+    range: 5.0
+    animation: missile
+    sound: baron-missile
+    projectile: plasma
+    damage [2, 6]
+  }
+}
+animations {
+    idle [walk-1]
+    move [walk-2, walk-3, walk-0, walk-1]
+    melee [melee-0, melee-1]
+    missile [missile-0, missile-1]
+    death [death-0, death-1]
+}
