@@ -3,14 +3,6 @@ import {sectorInsideOutside} from '/src/map/sector.js'
 import {sectorTriangulateForEditor} from '/src/map/triangulate.js'
 import {SectorReference} from '/src/editor/editor-references.js'
 
-function vecCompare(a, b) {
-  if (a.y > b.y) return -1
-  if (a.y < b.y) return 1
-  if (a.x > b.x) return 1
-  if (a.x < b.x) return -1
-  return 0
-}
-
 function copy(src, dest) {
   dest.bottom = src.bottom
   dest.floor = src.floor
@@ -42,6 +34,14 @@ function transfer(previous, sectors) {
   }
 }
 
+function vecCompare(a, b) {
+  if (a.y > b.y) return -1
+  if (a.y < b.y) return 1
+  if (a.x > b.x) return 1
+  if (a.x < b.x) return -1
+  return 0
+}
+
 function duplicate(sectors, vecs) {
   for (const sector of sectors) {
     if (vecs.length !== sector.vecs.length) continue
@@ -60,37 +60,26 @@ function duplicate(sectors, vecs) {
   return false
 }
 
-function interior(a, b, c) {
-  let angle = Math.atan2(b.y - a.y, b.x - a.x) - Math.atan2(b.y - c.y, b.x - c.x)
-  angle = (180.0 * angle) / Math.PI
-  if (angle < 0.0) angle += 360.0
-  else if (angle >= 360.0) angle -= 360.0
+function clockwiseReflex(a, b, c) {
+  return (b.x - c.x) * (a.y - b.y) - (a.x - b.x) * (b.y - c.y) > 0.0
+}
+
+function clockwiseInterior(a, b, c) {
+  let angle = Math.atan2(b.y - c.y, b.x - c.x) - Math.atan2(b.y - a.y, b.x - a.x)
+  if (angle < 0.0) angle += 2.0 * Math.PI
+  else if (angle >= 2.0 * Math.PI) angle -= 2.0 * Math.PI
   return angle
 }
 
-function mark(lines, all) {
-  for (const line of lines) {
-    let b = line.b
-    let count = 0
-    for (const other of all) {
-      if (other === line) continue
-      if (other.has(b)) count++
-    }
-    if (count === 1) line.done = true
-  }
-}
-
-function reorder(vecs) {
+function clockwise(vecs) {
   let sum = 0.0
   let len = vecs.length
   for (let i = 0; i < len; i++) {
     let k = i + 1 == len ? 0 : i + 1
     sum += (vecs[k].x - vecs[i].x) * (vecs[k].y + vecs[i].y)
   }
-  if (sum >= 0.0) {
-    console.warn('not re-ordering polygon vectors')
-    return
-  }
+  if (sum >= 0.0) return true
+  console.warn('re-ordering polygon to turn clockwise')
   let temp = vecs[0]
   vecs[0] = vecs[1]
   vecs[1] = temp
@@ -101,11 +90,24 @@ function reorder(vecs) {
     vecs[len - i + 1] = temp
     i++
   }
+  return false
+}
+
+function topVec(previous, vec) {
+  return previous.y < vec.y
+}
+
+function topOfSector(previous, vec, next) {
+  return next.y <= vec.y && clockwiseReflex(previous, vec, next)
 }
 
 function construct(editor, sectors, start) {
   let a = start.a
   let b = start.b
+  if (!topVec(a, b)) {
+    a = start.b
+    b = start.a
+  }
   let vecs = [a, b]
   let lines = [start]
   let origin = a
@@ -119,10 +121,12 @@ function construct(editor, sectors, start) {
       if (line === start) continue
       if (!line.has(b)) continue
       let c = line.other(b)
-      let angle = interior(a, b, c)
+      if (initial && !topOfSector(a, b, c)) continue
+      let angle = clockwiseInterior(a, b, c)
+      console.log('reflex', clockwiseReflex(a, b, c), angle)
       let wind = false
-      if (initial && angle >= 180.0) {
-        angle = interior(c, b, a)
+      if (initial && angle >= Math.PI) {
+        angle = clockwiseInterior(c, b, a)
         wind = true
         console.log('reversed interior', angle, 'of', a, b, c)
       } else {
@@ -173,19 +177,18 @@ function construct(editor, sectors, start) {
 }
 
 export function computeSectors(editor) {
+  console.log('>>> >>> >>> >>> >>> >>> >>>')
   console.log('--- begin compute sectors ---')
 
   editor.vecs.sort(vecCompare)
-  for (const line of editor.lines) line.done = false
 
   let sectors = []
   for (const line of editor.lines) {
-    if (line.done) continue
+    console.log('==========')
     let [vecs, lines] = construct(editor, sectors, line)
     if (vecs === null || lines.length < 3) continue
     if (duplicate(sectors, vecs)) continue
-    reorder(vecs)
-    mark(lines, editor.lines)
+    if (!clockwise(vecs)) continue
     console.log('sector:')
     for (const vec of vecs) {
       console.log(' ', vec.x, vec.y)
@@ -198,6 +201,7 @@ export function computeSectors(editor) {
   sectorInsideOutside(sectors)
 
   console.log('==========')
+  console.log('--- begin compute triangles ---')
   for (const sector of sectors) {
     try {
       sectorTriangulateForEditor(sector, WORLD_SCALE)
@@ -208,5 +212,5 @@ export function computeSectors(editor) {
   }
 
   editor.sectors = sectors
-  console.log('--- end compute sectors', sectors.length, '---')
+  console.log('--- end compute sectors and triangles', sectors.length, '---')
 }

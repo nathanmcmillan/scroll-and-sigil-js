@@ -62,22 +62,6 @@ export function drawLine(b, x1, y1, x2, y2, thickness, red, green, blue, alpha) 
   x /= magnitude
   y /= magnitude
 
-  // if (x1 < x2) {
-  //   x1 = Math.floor(x1 - x * thickness)
-  //   x2 = Math.ceil(x2 + x * thickness)
-  // } else {
-  //   x1 = Math.ceil(x1 + x * thickness)
-  //   x2 = Math.floor(x2 - x * thickness)
-  // }
-
-  // if (y1 < y2) {
-  //   y1 = Math.floor(y1 - y * thickness)
-  //   y2 = Math.ceil(y2 + y * thickness)
-  // } else {
-  //   y1 = Math.ceil(y1 + y * thickness)
-  //   y2 = Math.floor(y2 - y * thickness)
-  // }
-
   vertices[pos] = x1 - x * thickness
   vertices[pos + 1] = y1 - y * thickness
   vertices[pos + 2] = red

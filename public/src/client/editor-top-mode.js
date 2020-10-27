@@ -16,8 +16,8 @@ function drawLineWithNormal(b, x1, y1, x2, y2, thickness, red, green, blue, alph
   if (!normal) return
   let midX = 0.5 * (x1 + x2)
   let midY = 0.5 * (y1 + y2)
-  let normX = y1 - y2
-  let normY = -(x1 - x2)
+  let normX = -(y1 - y2)
+  let normY = x1 - x2
   let magnitude = Math.sqrt(normX * normX + normY * normY)
   normX /= magnitude
   normY /= magnitude

@@ -24,7 +24,9 @@ function polygonSort(n, o) {
 
 function stringifyPoint(point) {
   return JSON.stringify(point, (key, value) => {
-    if (key === 'next' || key === 'previous' || key == 'diagonal') {
+    if (key === 'previous' || key === 'merge') return
+    if (key === 'vec') return {x: value.x, y: value.y}
+    if (key === 'next' || key == 'diagonal') {
       if (value === null) return null
       else return {index: value.index, point: value.point}
     } else return value
@@ -183,7 +185,7 @@ function clip(sector, floor, scale, triangles, verts) {
             c = v.vec
             console.log('t ---> p')
           } else {
-            console.log('Unexpected adjacency case')
+            console.warn('Unexpected adjacency case')
             a = p.vec
             c = v.vec
           }
@@ -291,8 +293,8 @@ function classify(points) {
     for (let k = point.index + 1; k < points.length; k++) {
       let diagonal = points[k]
       if (!safeDiagonal(points, vec, diagonal.vec)) continue
-      if (point.diagonal !== null) throw 'Merge point diagonal already exists'
-      if (diagonal.diagonal !== null) throw 'Merge diagonal diagonal already exists'
+      if (point.diagonal !== null) console.error('Merge point diagonal already exists:', stringifyPoint(point.diagonal))
+      if (diagonal.diagonal !== null) console.error('Merge diagonal diagonal already exists:', stringifyPoint(diagonal.diagonal))
       point.merge = true
       point.diagonal = diagonal
       diagonal.diagonal = point
@@ -306,8 +308,8 @@ function classify(points) {
     for (let k = point.index - 1; k >= 0; k--) {
       let diagonal = points[k]
       if (!safeDiagonal(points, vec, diagonal.vec)) continue
-      if (point.diagonal !== null) throw 'Merge point diagonal already exists'
-      if (diagonal.diagonal !== null) throw 'Merge diagonal diagonal already exists'
+      if (point.diagonal !== null) console.error('Merge point diagonal already exists:', stringifyPoint(point.diagonal))
+      if (diagonal.diagonal !== null) console.error('Merge diagonal diagonal already exists:', stringifyPoint(diagonal.diagonal))
       if (diagonal.merge) break
       point.diagonal = diagonal
       diagonal.diagonal = point
