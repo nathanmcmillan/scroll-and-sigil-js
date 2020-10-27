@@ -82,7 +82,7 @@ export class EditorState {
   }
 
   async initialize() {
-    await this.editor.load('/maps/simple_nest_bad.map')
+    await this.editor.load('/maps/base.map')
   }
 
   switchMode() {

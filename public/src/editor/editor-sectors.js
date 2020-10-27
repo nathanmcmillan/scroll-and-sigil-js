@@ -177,14 +177,13 @@ function construct(editor, sectors, start) {
 }
 
 export function computeSectors(editor) {
-  console.log('>>> >>> >>> >>> >>> >>> >>>')
   console.log('--- begin compute sectors ---')
 
   editor.vecs.sort(vecCompare)
 
   let sectors = []
   for (const line of editor.lines) {
-    console.log('==========')
+    console.log('=== begin construct ===')
     let [vecs, lines] = construct(editor, sectors, line)
     if (vecs === null || lines.length < 3) continue
     if (duplicate(sectors, vecs)) continue
@@ -200,17 +199,23 @@ export function computeSectors(editor) {
   transfer(editor.sectors, sectors)
   sectorInsideOutside(sectors)
 
-  console.log('==========')
-  console.log('--- begin compute triangles ---')
+  sectors.sort((a, b) => {
+    // just for debugging
+    if (a.otherIsInside(b)) return 1
+    if (b.otherIsInside(a)) return -1
+    if (a.vecs.length < b.vecs.length) return 1
+    if (b.vecs.length > b.vecs.length) return -1
+    return 0
+  })
+
   for (const sector of sectors) {
     try {
       sectorTriangulateForEditor(sector, WORLD_SCALE)
     } catch (e) {
       console.error(e)
     }
-    console.log('----------')
   }
 
   editor.sectors = sectors
-  console.log('--- end compute sectors and triangles', sectors.length, '---')
+  console.log('--- end compute sectors and triangles ', sectors.length, '---')
 }

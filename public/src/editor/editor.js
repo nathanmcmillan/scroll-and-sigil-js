@@ -261,8 +261,20 @@ export class Editor {
     }
 
     sectorInsideOutside(this.sectors)
+    this.sectors.sort((a, b) => {
+      // just for debugging
+      if (a.otherIsInside(b)) return 1
+      if (b.otherIsInside(a)) return -1
+      if (a.vecs.length < b.vecs.length) return 1
+      if (b.vecs.length > b.vecs.length) return -1
+      return 0
+    })
     for (const sector of this.sectors) {
-      sectorTriangulateForEditor(sector, WORLD_SCALE)
+      try {
+        sectorTriangulateForEditor(sector, WORLD_SCALE)
+      } catch (e) {
+        console.error(e)
+      }
     }
 
     let things = index + parseInt(map[index].split(' ')[1])

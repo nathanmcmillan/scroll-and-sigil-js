@@ -156,6 +156,13 @@ export class SectorReference {
     return this
   }
 
+  otherIsInside(sector) {
+    for (const inside of this.inside) {
+      if (inside === sector) return true
+      if (inside.otherIsInside(sector)) return true
+    }
+  }
+
   export() {
     let content = `${this.bottom} ${this.floor} ${this.ceiling} ${this.top}`
     content += ` ${this.hasFloor() ? textureNameFromIndex(this.floorTexture) : 'none'}`

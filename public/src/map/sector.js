@@ -49,6 +49,14 @@ export class Sector {
     }
     return this
   }
+
+  otherIsInside(sector) {
+    // for debugging
+    for (const inside of this.inside) {
+      if (inside === sector) return true
+      if (inside.otherIsInside(sector)) return true
+    }
+  }
 }
 
 function deleteNestedInside(set, inside) {
