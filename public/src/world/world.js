@@ -1,5 +1,5 @@
 import {Cell} from '/src/world/cell.js'
-import {sectorInsideOutside} from '/src/map/sector.js'
+import {sectorUpdateLines, sectorInsideOutside} from '/src/map/sector.js'
 import {sectorTriangulate} from '/src/map/triangulate.js'
 
 export const WORLD_SCALE = 0.25
@@ -180,42 +180,6 @@ export class World {
     }
   }
 
-  buildLines(sector) {
-    if (sector.lines.length == 0) {
-      return
-    }
-    let plus = null
-    let minus = null
-    if (sector.outside == null) {
-      minus = sector
-    } else {
-      plus = sector
-      minus = sector.outside
-    }
-    let bottom = sector.bottom
-    let floor = sector.floor
-    let ceil = sector.ceiling
-    let top = sector.top
-    let uv = 0.0
-    for (const line of sector.lines) {
-      this.buildCellLines(line)
-      line.updateSectors(plus, minus)
-      let x = line.a.x - line.b.x
-      let y = line.a.y - line.b.y
-      let st = uv + Math.sqrt(x * x + y * y) * WORLD_SCALE
-      if (line.top != null) {
-        line.top.update(ceil, top, uv, ceil * WORLD_SCALE, st, top * WORLD_SCALE)
-      }
-      if (line.middle != null) {
-        line.middle.update(floor, ceil, uv, floor * WORLD_SCALE, st, ceil * WORLD_SCALE)
-      }
-      if (line.bottom != null) {
-        line.bottom.update(bottom, floor, uv, bottom * WORLD_SCALE, st, floor * WORLD_SCALE)
-      }
-      uv = st
-    }
-  }
-
   buildSectors() {
     let top = 0.0
     let right = 0.0
@@ -229,15 +193,12 @@ export class World {
     this.rows = Math.ceil(top / size)
     this.columns = Math.ceil(right / size)
     this.cells = new Array(this.rows * this.columns)
-    for (let i = 0; i < this.cells.length; i++) {
-      this.cells[i] = new Cell()
-    }
+    for (let i = 0; i < this.cells.length; i++) this.cells[i] = new Cell()
     sectorInsideOutside(this.sectors)
+    for (const sector of this.sectors) sectorTriangulate(sector, WORLD_SCALE)
     for (const sector of this.sectors) {
-      sectorTriangulate(sector, WORLD_SCALE)
-    }
-    for (const sector of this.sectors) {
-      this.buildLines(sector)
+      sectorUpdateLines(sector, WORLD_SCALE)
+      for (const line of sector.lines) this.buildCellLines(line)
     }
   }
 }

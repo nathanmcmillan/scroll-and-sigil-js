@@ -15,5 +15,6 @@ export class Input {
     this.attackLight = false
     this.attackHeavy = false
     this.pickupItem = false
+    this.interact = false
   }
 }

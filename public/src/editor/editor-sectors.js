@@ -1,5 +1,5 @@
 import {WORLD_SCALE} from '/src/world/world.js'
-import {sectorInsideOutside} from '/src/map/sector.js'
+import {sectorUpdateLines, sectorInsideOutside} from '/src/map/sector.js'
 import {sectorTriangulateForEditor} from '/src/map/triangulate.js'
 import {SectorReference} from '/src/editor/editor-references.js'
 
@@ -215,6 +215,8 @@ export function computeSectors(editor) {
       console.error(e)
     }
   }
+
+  for (const sector of sectors) sectorUpdateLines(sector, WORLD_SCALE)
 
   editor.sectors = sectors
   console.log('--- end compute sectors and triangles ', sectors.length, '---')

@@ -16,7 +16,7 @@ const STATUS_DEAD = 4
 
 export class Baron extends Thing {
   constructor(world, entity, x, z) {
-    super(world, entity, x, z, 0.0, 0.4, 1.0)
+    super(world, x, z, 0.0, 0.4, 1.0)
     this.texture = textureIndexForName(entity.get('sprite'))
     this.animations = animationMap(entity)
     this.animation = this.animations.get('idle')
@@ -29,6 +29,7 @@ export class Baron extends Thing {
     this.missileRange = 10.0
     this.status = STATUS_LOOK
     this.reaction = 0
+    this.group = 'demon'
   }
 
   tryOverlap(x, z, thing) {
@@ -147,7 +148,7 @@ export class Baron extends Thing {
     while (i--) {
       let thing = things[i]
       if (this === thing) continue
-      if (thing.health > 0) {
+      if (thing.group === 'human' && thing.health > 0) {
         this.target = thing
         this.status = STATUS_CHASE
         if (Math.random() < 0.2) playSound('baron-scream')

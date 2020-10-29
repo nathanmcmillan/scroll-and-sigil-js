@@ -8,8 +8,10 @@ import {Input} from '/src/game/input.js'
 import {Hero} from '/src/thing/hero.js'
 import {Baron} from '/src/thing/baron.js'
 import {Tree} from '/src/thing/tree.js'
+import {Merchant} from '/src/thing/merchant.js'
 import {Medkit} from '/src/thing/medkit.js'
 import {textureIndexForName, entityByName} from '/src/assets/assets.js'
+import {playMusic} from '/src/assets/sounds.js'
 
 function texture(name) {
   if (name === 'none') return -1
@@ -23,7 +25,7 @@ export class Game {
     this.camera = new Camera(0.0, 0.0, 0.0, 0.0, 0.0, 8.0, null)
   }
 
-  async mapper(file) {
+  async load(file) {
     let world = this.world
 
     let vecs = []
@@ -32,7 +34,16 @@ export class Game {
     let map = (await fetchText(file)).split('\n')
     let index = 0
 
-    let vectors = parseInt(map[index].split(' ')[1])
+    let info = parseInt(map[index].split(' ')[1])
+    index++
+    for (; index <= info; index++) {
+      let content = map[index].split(' ')
+      if (content[0] === 'music') {
+        playMusic(content[1])
+      }
+    }
+
+    let vectors = index + parseInt(map[index].split(' ')[1])
     index++
     for (; index <= vectors; index++) {
       let vec = map[index].split(' ')
@@ -98,10 +109,16 @@ export class Game {
         case 'medkit':
           new Medkit(world, entity, x, z)
           continue
+        case 'merchant':
+          new Merchant(world, entity, x, z)
+          continue
         case 'hero':
           this.camera.target = new Hero(world, entity, x, z, this.input)
+          continue
       }
     }
+
+    if (this.camera.target === null) throw 'map is missing a hero entity'
   }
 
   update() {

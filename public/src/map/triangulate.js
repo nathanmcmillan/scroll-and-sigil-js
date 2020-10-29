@@ -11,6 +11,7 @@ function stringifyVec(vec) {
 class PolygonTriangle {
   constructor(vec) {
     this.index = -1
+    this.start = false
     this.merge = false
     this.vec = vec
     this.previous = null
@@ -120,8 +121,8 @@ function safeDiagonal(polygon, a, b) {
 
 function add(sector, floor, scale, triangles, a, b, c) {
   let triangle = null
-  if (floor) triangle = new Triangle(sector.floor, sector.floorTexture, a, b, c, floor, scale)
-  else triangle = new Triangle(sector.ceiling, sector.ceilingTexture, c, b, a, floor, scale)
+  if (floor) triangle = new Triangle(sector.floor, sector.floorTexture, c, b, a, floor, scale)
+  else triangle = new Triangle(sector.ceiling, sector.ceilingTexture, a, b, c, floor, scale)
   triangles.push(triangle)
 }
 
@@ -249,18 +250,8 @@ function monotone(sector, floor, scale, starting, triangles) {
           }
         }
         current = best
-
-        // let diagonal = current.diagonal
-        // if (previous === diagonal.vec) {
-        //   current = next
-        // } else {
-        //   let original = clockwiseInterior(previous, vec, next.vec)
-        //   let other = clockwiseInterior(previous, vec, diagonal.vec)
-        //   console.log('interior (O)', stringifyVec(previous), stringifyVec(vec), stringifyVec(next.vec), original)
-        //   console.log('interior (D)', stringifyVec(previous), stringifyVec(vec), stringifyVec(diagonal.vec), other)
-        //   current = original < other ? next : diagonal
-        // }
       } else {
+        console.log('next (N)')
         current = next
       }
       if (current === initial) break
@@ -283,11 +274,12 @@ function classify(points) {
     let next = current.next.vec
     let reflex = clockwiseReflex(previous, vec, next)
     if (reflex) {
-      // for a colinear top we need   (previous.y <= vec.y && next.y < vec.y)
-      // but for an 'L' shape we need (previous.y < vec.y && next.y < vec.y)
       let above = previous.y < vec.y && next.y <= vec.y
       console.log(' ', stringifyPoint(current), 'reflex', reflex, 'above', above)
-      if (above) monotone.push(new Start(current, current.next))
+      if (above) {
+        current.start = true
+        monotone.push(new Start(current, current.next))
+      }
     } else {
       let above = previous.y <= vec.y && next.y < vec.y
       let below = previous.y >= vec.y && next.y > vec.y
@@ -309,7 +301,6 @@ function classify(points) {
       point.diagonals.push(diagonal)
       diagonal.diagonals.push(point)
       console.log('merge', stringifyVec(point.vec), 'with', stringifyVec(diagonal.vec))
-      // monotone.push(point) // Only needed for collinear, should actually be a split in that case?
       break
     }
   }
@@ -322,7 +313,12 @@ function classify(points) {
       point.diagonals.push(diagonal)
       diagonal.diagonals.push(point)
       console.log('split', stringifyVec(point.vec), 'with', stringifyVec(diagonal.vec))
-      monotone.push(new Start(diagonal, point))
+      if (diagonal.start) {
+        monotone.push(new Start(diagonal, point))
+      } else {
+        if (diagonal.vec.x > vec.x) monotone.push(new Start(point, diagonal))
+        else monotone.push(new Start(diagonal, point))
+      }
       break
     }
   }
@@ -426,6 +422,6 @@ export function sectorTriangulate(sector, scale) {
 
 export function sectorTriangulateForEditor(sector, scale) {
   console.log('--- begin compute triangles ---------------------------------------------------')
-  // sectorTriangulate(sector, scale)
+  sectorTriangulate(sector, scale)
   floorCeil(sector, null, scale, sector.view)
 }

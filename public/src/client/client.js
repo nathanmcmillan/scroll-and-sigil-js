@@ -219,7 +219,9 @@ export class Client {
     if (main.get('open') === 'game') this.state = new GameState(this)
     else this.state = new EditorState(this)
 
-    await this.state.initialize()
+    let file = '/maps/' + main.get('map') + '.map'
+
+    await this.state.initialize(file)
   }
 
   update() {

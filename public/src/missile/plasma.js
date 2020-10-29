@@ -5,7 +5,7 @@ import {textureIndexForName, spritesByName, entityByName} from '/src/assets/asse
 
 export class Plasma extends Missile {
   constructor(world, entity, x, y, z, dx, dy, dz, damage) {
-    super(world, entity, x, y, z, dx, dy, dz, 0.2, 0.2, damage)
+    super(world, x, y, z, dx, dy, dz, 0.2, 0.2, damage)
     this.texture = textureIndexForName(entity.get('sprite'))
     this.sprite = spritesByName(entity.get('sprite')).get(entity.get('animation'))
   }

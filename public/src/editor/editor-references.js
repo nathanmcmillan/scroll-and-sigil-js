@@ -33,12 +33,19 @@ export class VectorReference {
 
 export class LineReference {
   constructor(top, middle, bottom, a, b) {
+    this.plus = null
+    this.minus = null
     this.a = a
     this.b = b
     this.top = top >= 0 ? new WallReference(this, top) : null
     this.middle = middle >= 0 ? new WallReference(this, middle) : null
     this.bottom = bottom >= 0 ? new WallReference(this, bottom) : null
     this.index = 0
+  }
+
+  updateSectors(plus, minus) {
+    this.plus = plus
+    this.minus = minus
   }
 
   has(vec) {

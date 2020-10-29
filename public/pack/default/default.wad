@@ -4,6 +4,7 @@ music [
 entities [
   hero
   baron
+  merchant
   tree
   plasma
   blood

@@ -3,7 +3,6 @@ import {drawDecal} from '/src/client/render-sector.js'
 import {drawImage, drawSprite, drawText} from '/src/render/render.js'
 import {identity, multiply, rotateX, rotateY, translate} from '/src/math/matrix.js'
 import {textureByName, textureByIndex} from '/src/assets/assets.js'
-import {playMusic} from '/src/assets/sounds.js'
 
 export class GameState {
   constructor(client) {
@@ -53,23 +52,19 @@ export class GameState {
       case 'KeyP':
         input.pickupItem = down
         break
+      case 'KeyG':
+        input.interact = down
+        break
     }
   }
 
-  async initialize() {
-    playMusic('vampire-killer')
-
-    await this.game.mapper('/maps/base.map')
+  async initialize(file) {
+    await this.game.load(file)
 
     let world = this.game.world
-
-    for (const sector of world.sectors) {
-      this.client.sectorRender(sector)
-    }
-
-    for (const buffer of this.sectorBuffers.values()) {
-      this.client.rendering.updateVAO(buffer, this.client.gl.STATIC_DRAW)
-    }
+    let client = this.client
+    for (const sector of world.sectors) client.sectorRender(sector)
+    for (const buffer of client.sectorBuffers.values()) client.rendering.updateVAO(buffer, client.gl.STATIC_DRAW)
   }
 
   update() {

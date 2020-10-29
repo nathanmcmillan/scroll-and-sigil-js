@@ -5,7 +5,7 @@ import {tileList, entityList, textureIndexForName, entityByName} from '/src/asse
 import {WORLD_SCALE} from '/src/world/world.js'
 import {referenceLinesFromVec} from '/src/editor/editor-util.js'
 import {computeSectors} from '/src/editor/editor-sectors.js'
-import {sectorInsideOutside} from '/src/map/sector.js'
+import {sectorUpdateLines, sectorInsideOutside} from '/src/map/sector.js'
 import {sectorTriangulateForEditor} from '/src/map/triangulate.js'
 import * as In from '/src/editor/editor-input.js'
 
@@ -209,7 +209,10 @@ export class Editor {
     let map = (await fetchText(file)).split('\n')
     let index = 0
 
-    let vectors = parseInt(map[index].split(' ')[1])
+    let info = parseInt(map[index].split(' ')[1])
+    index += info
+
+    let vectors = index + parseInt(map[index].split(' ')[1])
     index++
     for (; index <= vectors; index++) {
       let vec = map[index].split(' ')
@@ -276,6 +279,8 @@ export class Editor {
         console.error(e)
       }
     }
+
+    for (const sector of this.sectors) sectorUpdateLines(sector, WORLD_SCALE)
 
     let things = index + parseInt(map[index].split(' ')[1])
     index++

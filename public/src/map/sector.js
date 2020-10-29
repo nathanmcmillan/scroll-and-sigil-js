@@ -66,6 +66,35 @@ function deleteNestedInside(set, inside) {
   }
 }
 
+export function sectorUpdateLines(sector, scale) {
+  if (sector.lines.length === 0) {
+    return
+  }
+  let plus = null
+  let minus = null
+  if (sector.outside === null) {
+    minus = sector
+  } else {
+    plus = sector
+    minus = sector.outside
+  }
+  let bottom = sector.bottom
+  let floor = sector.floor
+  let ceil = sector.ceiling
+  let top = sector.top
+  let uv = 0.0
+  for (const line of sector.lines) {
+    line.updateSectors(plus, minus)
+    let x = line.a.x - line.b.x
+    let y = line.a.y - line.b.y
+    let st = uv + Math.sqrt(x * x + y * y) * scale
+    if (line.top !== null) line.top.update(ceil, top, uv, ceil * scale, st, top * scale)
+    if (line.middle !== null) line.middle.update(floor, ceil, uv, floor * scale, st, ceil * scale)
+    if (line.bottom !== null) line.bottom.update(bottom, floor, uv, bottom * scale, st, floor * scale)
+    uv = st
+  }
+}
+
 export function sectorInsideOutside(sectors) {
   for (const sector of sectors) {
     for (const other of sectors) {

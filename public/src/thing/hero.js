@@ -14,7 +14,7 @@ const STATUS_DEAD = 3
 
 export class Hero extends Thing {
   constructor(world, entity, x, z, input) {
-    super(world, entity, x, z, 0.0, 0.75, 2.0)
+    super(world, x, z, 0.0, 0.75, 2.0)
     this.input = input
     this.texture = textureIndexForName(entity.get('sprite'))
     this.animations = animationMap(entity)
@@ -24,6 +24,7 @@ export class Hero extends Thing {
     this.health = 10
     this.status = STATUS_IDLE
     this.reaction = 0
+    this.group = 'human'
     this.inventory = []
   }
 
@@ -58,6 +59,23 @@ export class Hero extends Thing {
           if (thing.isItem && !thing.pickedUp && this.collision(thing)) {
             this.inventory.push(thing)
             thing.pickedUp = true
+          }
+        }
+      }
+    }
+  }
+
+  interact() {
+    console.log('interact?')
+    let world = this.world
+    for (let r = this.minR; r <= this.maxR; r++) {
+      for (let c = this.minC; c <= this.maxC; c++) {
+        let cell = world.cells[c + r * world.columns]
+        let i = cell.thingCount
+        while (i--) {
+          let thing = cell.things[i]
+          if (thing.interactions && this.collision(thing)) {
+            console.log('interacting with', thing)
           }
         }
       }
@@ -105,6 +123,9 @@ export class Hero extends Thing {
     } else if (this.input.pickupItem) {
       this.input.pickupItem = false
       this.pickup()
+    } else if (this.input.interact) {
+      this.input.interact = false
+      this.interact()
     }
     let direction = null
     let rotation = null

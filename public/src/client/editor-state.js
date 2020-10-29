@@ -81,8 +81,8 @@ export class EditorState {
     }
   }
 
-  async initialize() {
-    await this.editor.load('/maps/base.map')
+  async initialize(file) {
+    await this.editor.load(file)
   }
 
   switchMode() {

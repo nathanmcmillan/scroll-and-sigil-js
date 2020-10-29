@@ -1,0 +1,24 @@
+sprite: baron
+box: 0.4
+height: 0.8
+health: 1
+think: baron-update
+animations {
+  idle [walk-1]
+  move [walk-2, walk-3, walk-0, walk-1]
+  melee [melee-0, melee-1]
+  missile [missile-0, missile-1]
+  death [death-0, death-1]
+}
+interact {
+  talk {
+    chat [
+      'hello how are you'
+      'heard any news recently'
+    ]
+  }
+  sell [
+    scroll
+    sigil
+  ]
+}
