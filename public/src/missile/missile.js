@@ -78,13 +78,12 @@ export class Missile {
     let px = line.a.x + vx * t - this.x
     let pz = line.a.y + vz * t - this.z
     if (px * px + pz * pz > box * box) return false
-    return line.middle != null || this.y < line.plus.floor || this.y + this.height > line.plus.ceiling
+    if (!line.plus) return false
+    return line.middle || this.y < line.plus.floor || this.y + this.height > line.plus.ceiling
   }
 
   hit(thing) {
-    if (thing !== null) {
-      thing.damage(this.damage)
-    }
+    if (thing) thing.damage(this.damage)
   }
 
   check() {
@@ -101,7 +100,7 @@ export class Missile {
         while (i--) {
           let thing = cell.things[i]
           if (this == thing) continue
-          if (this.overlap(thing)) {
+          if (thing.isPhysical && this.overlap(thing)) {
             this.hit(thing)
             return true
           }

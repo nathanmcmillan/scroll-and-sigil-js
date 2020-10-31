@@ -6,12 +6,9 @@ export class Thing {
     let sector = world.findSector(x, z)
     this.world = world
     this.sector = sector
-    this.x = x
-    this.y = sector.floor
-    this.z = z
-    this.previousX = x
-    this.previousY = sector.floor
-    this.previousZ = z
+    this.x = this.previousX = x
+    this.y = this.previousY = sector.floor
+    this.z = this.previousZ = z
     this.deltaX = 0.0
     this.deltaY = 0.0
     this.deltaZ = 0.0
@@ -145,10 +142,10 @@ export class Thing {
 
     if (px * px + pz * pz > box * box) return
 
-    let collision = line.middle != null || this.y + 1.0 < line.plus.floor || this.y + this.height > line.plus.ceiling
+    let collision = line.middle || !line.plus || this.y + 1.0 < line.plus.floor || this.y + this.height > line.plus.ceiling
 
     if (collision) {
-      if (this.sec == line.plus) return
+      if (this.sec === line.plus) return
 
       if (endpoint) {
         let ex = -px
@@ -235,7 +232,7 @@ export class Thing {
       this.pushToCells()
     }
 
-    if (this.ground == false || !Float.zero(this.deltaY)) {
+    if (this.ground === false || !Float.zero(this.deltaY)) {
       this.deltaY -= GRAVITY
       this.y += this.deltaY
       if (this.y < this.sector.floor) {
@@ -246,5 +243,15 @@ export class Thing {
         this.ground = false
       }
     }
+  }
+
+  teleport(x, z) {
+    console.log('teleport!')
+    this.sector = this.world.findSector(x, z)
+    this.x = this.previousX = x
+    this.y = this.previousY = this.sector.floor
+    this.z = this.previousZ = z
+    this.removeFromCells()
+    this.pushToCells()
   }
 }

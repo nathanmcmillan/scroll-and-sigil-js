@@ -1,12 +1,14 @@
 export class Camera {
-  constructor(x, y, z, rx, ry, radius, target) {
+  constructor(x, y, z, rx, ry, radius, ox, oy) {
     this.x = x
     this.y = y
     this.z = z
     this.rx = rx
     this.ry = ry
     this.radius = radius
-    this.target = target
+    this.ox = ox
+    this.oy = oy
+    this.target = null
   }
 
   updateOrbit() {

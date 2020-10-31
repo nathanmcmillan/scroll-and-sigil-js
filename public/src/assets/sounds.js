@@ -1,7 +1,11 @@
-const MUSIC = new Map()
-const SOUNDS = new Map()
+import {fetchText} from '/src/client/net.js'
+import {MusicNode} from '/src/audio/music.js'
+import * as Music from '/src/audio/music.js'
 
-let CURRENT = null
+const SOUNDS = new Map()
+const MUSIC_TABLE = new Map()
+
+let MUSIC = null
 
 export function saveSound(name, path) {
   if (SOUNDS.has(name)) return
@@ -19,30 +23,43 @@ export function playSound(name) {
   }
 }
 
-export function saveMusic(name, path) {
-  if (MUSIC.has(name)) return
-  MUSIC.set(name, new Audio(path))
+export async function saveMusic(name, path) {
+  if (MUSIC_TABLE.has(name)) return
+  let dot = path.lastIndexOf('.')
+  if (dot === -1) throw 'Extension missing: ' + path
+  let extension = path.substring(dot + 1)
+  if (extension === 'zzfxm') {
+    let contents = Music.parse(await fetchText(path))
+    MUSIC_TABLE.set(name, new MusicNode(contents))
+  } else {
+    MUSIC_TABLE.set(name, new Audio(path))
+  }
 }
 
 export function playMusic(name) {
-  let music = MUSIC.get(name)
-  music.pause()
-  music.loop = true
-  music.volume = 0.25
-  music.currentTime = 0
-  let promise = music.play()
-  if (promise) {
-    promise.then(() => {}).catch(() => {})
+  let music = MUSIC_TABLE.get(name)
+  if (!music) {
+    console.error('Music not loaded yet:', name)
+    return
   }
-  CURRENT = music
+  if (music.constructor === MusicNode) {
+    music.play()
+  } else {
+    music.loop = true
+    music.volume = 0.25
+    music.currentTime = 0
+    let promise = music.play()
+    if (promise) promise.then(() => {}).catch(() => {})
+  }
+  MUSIC = music
 }
 
 export function resumeMusic() {
-  if (CURRENT === null) return
-  CURRENT.play()
+  if (!MUSIC) return
+  MUSIC.play()
 }
 
 export function pauseMusic() {
-  if (CURRENT === null) return
-  CURRENT.pause()
+  if (!MUSIC) return
+  MUSIC.pause()
 }

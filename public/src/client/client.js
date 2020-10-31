@@ -8,6 +8,7 @@ import {saveSound, saveMusic, pauseMusic, resumeMusic} from '/src/assets/sounds.
 import {saveEntity, saveTile, saveTexture, waitForResources, createNewTexturesAndSpriteSheets} from '/src/assets/assets.js'
 import {EditorState} from '/src/client/editor-state.js'
 import {GameState} from '/src/client/game-state.js'
+import {MainMenuState} from '/src/client/main-menu-state.js'
 import * as Wad from '/src/wad/wad.js'
 
 export class Client {
@@ -111,17 +112,17 @@ export class Client {
   sectorRender(sector) {
     for (const line of sector.lines) {
       let wall = line.top
-      if (wall != null) {
+      if (wall) {
         let buffer = this.getSectorBuffer(wall.texture)
         drawWall(buffer, wall)
       }
       wall = line.middle
-      if (wall != null) {
+      if (wall) {
         let buffer = this.getSectorBuffer(wall.texture)
         drawWall(buffer, wall)
       }
       wall = line.bottom
-      if (wall != null) {
+      if (wall) {
         let buffer = this.getSectorBuffer(wall.texture)
         drawWall(buffer, wall)
       }
@@ -150,12 +151,13 @@ export class Client {
     gl.disable(gl.BLEND)
 
     for (const music of contents.get('music')) {
-      saveMusic(music, directory + '/music/' + music + '.wav')
+      let dot = music.lastIndexOf('.')
+      if (dot === -1) throw 'Extension missing: ' + music
+      let name = music.substring(0, dot)
+      saveMusic(name, directory + '/music/' + music)
     }
 
-    for (const sound of contents.get('sounds')) {
-      saveSound(sound, directory + '/sounds/' + sound + '.wav')
-    }
+    for (const sound of contents.get('sounds')) saveSound(sound, directory + '/sounds/' + sound + '.wav')
 
     let color2d = fetchText('/shaders/color2d.glsl')
     let texture2d = fetchText('/shaders/texture2d.glsl')
@@ -216,10 +218,19 @@ export class Client {
     rendering.makeVAO(this.bufferGUI)
     rendering.makeVAO(this.bufferColor)
 
-    if (main.get('open') === 'game') this.state = new GameState(this)
-    else this.state = new EditorState(this)
+    switch (main.get('open')) {
+      case 'game':
+        this.state = new GameState(this)
+        break
+      case 'editor':
+        this.state = new EditorState(this)
+        break
+      default:
+        this.state = new MainMenuState(this)
+    }
 
-    let file = '/maps/' + main.get('map') + '.map'
+    let file = null
+    if (main.has('map')) file = '/maps/' + main.get('map') + '.map'
 
     await this.state.initialize(file)
   }

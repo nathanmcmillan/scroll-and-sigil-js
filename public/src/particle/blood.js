@@ -112,7 +112,7 @@ export class Blood extends Particle {
     let px = line.a.x + vx * t - this.x
     let pz = line.a.y + vz * t - this.z
     if (px * px + pz * pz > box * box) return false
-    if (line.middle != null || this.y < line.plus.floor || this.y + this.height > line.plus.ceiling) {
+    if (line.middle || !line.plus || this.y < line.plus.floor || this.y + this.height > line.plus.ceiling) {
       let decal = new Decal(this.world, this.texture)
 
       let x = px + this.x

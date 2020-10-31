@@ -5,17 +5,17 @@ import {drawReferenceWall, drawFloorCeil} from '/src/client/render-sector.js'
 
 function lineRender(client, line) {
   let wall = line.top
-  if (wall != null) {
+  if (wall) {
     let buffer = client.getSectorBuffer(wall.texture)
     drawReferenceWall(buffer, wall)
   }
   wall = line.middle
-  if (wall != null) {
+  if (wall) {
     let buffer = client.getSectorBuffer(wall.texture)
     drawReferenceWall(buffer, wall)
   }
   wall = line.bottom
-  if (wall != null) {
+  if (wall) {
     let buffer = client.getSectorBuffer(wall.texture)
     drawReferenceWall(buffer, wall)
   }
@@ -33,21 +33,10 @@ export function updateEditorViewSectorBuffer(state) {
   const client = state.client
   const gl = client.gl
 
-  for (const buffer of client.sectorBuffers.values()) {
-    buffer.zero()
-  }
-
-  for (const line of editor.lines) {
-    lineRender(client, line)
-  }
-
-  for (const sector of editor.sectors) {
-    floorCeilRender(client, sector)
-  }
-
-  for (const buffer of client.sectorBuffers.values()) {
-    client.rendering.updateVAO(buffer, gl.STATIC_DRAW)
-  }
+  for (const buffer of client.sectorBuffers.values()) buffer.zero()
+  for (const line of editor.lines) lineRender(client, line)
+  for (const sector of editor.sectors) floorCeilRender(client, sector)
+  for (const buffer of client.sectorBuffers.values()) client.rendering.updateVAO(buffer, gl.STATIC_DRAW)
 }
 
 export function renderEditorViewMode(state) {

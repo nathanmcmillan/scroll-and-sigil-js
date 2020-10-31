@@ -21,7 +21,7 @@ export class Merchant extends Thing {
     this.moveCount = 0
     this.status = STATUS_STAND
     this.reaction = 0
-    this.group = 'human'
+    this.group = 'human|merchant'
     this.interactions = entity.get('interact')
   }
 

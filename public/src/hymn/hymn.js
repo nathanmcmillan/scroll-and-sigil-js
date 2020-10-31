@@ -244,11 +244,9 @@ class Parser {
         return this.eat(new OpCode(OP_MINUS))
     }
     let num = this.num()
-    if (num !== null) {
-      return this.push(num)
-    }
+    if (num) return this.push(num)
     let word = this.word()
-    if (word !== null) {
+    if (word) {
       let key = OP_WORD_MAP.get(word)
       if (key === undefined) return this.push(new OpCode(OP_ID, word))
       return this.push(new OpCode(key, word))

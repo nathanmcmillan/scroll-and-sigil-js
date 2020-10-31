@@ -1,5 +1,7 @@
 music [
-  vampire-killer
+  vampire-killer.wav
+  depp.zzfxm
+  sanxion.zzfxm
 ]
 entities [
   hero
@@ -10,6 +12,7 @@ entities [
   blood
   plasma-explosion
   medkit
+  armor
 ]
 tiles [
   grass

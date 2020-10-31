@@ -1,77 +1,99 @@
+import {TwoWayMap} from '/src/util/collections.js'
 import {Game} from '/src/game/game.js'
 import {drawDecal} from '/src/client/render-sector.js'
 import {drawImage, drawSprite, drawText} from '/src/render/render.js'
 import {identity, multiply, rotateX, rotateY, translate} from '/src/math/matrix.js'
 import {textureByName, textureByIndex} from '/src/assets/assets.js'
+import * as In from '/src/game/input.js'
 
 export class GameState {
   constructor(client) {
     this.client = client
-    this.game = new Game()
+    this.game = new Game(this)
+    this.events = []
+    this.loading = true
+
+    let keys = new TwoWayMap()
+    keys.set('Enter', In.BUTTON_START)
+    keys.set('Backslash', In.BUTTON_SELECT)
+    keys.set('KeyW', In.LEFT_STICK_UP)
+    keys.set('KeyS', In.LEFT_STICK_DOWN)
+    keys.set('KeyA', In.LEFT_STICK_LEFT)
+    keys.set('KeyD', In.LEFT_STICK_RIGHT)
+    keys.set('KeyI', In.RIGHT_STICK_UP)
+    keys.set('KeyK', In.RIGHT_STICK_DOWN)
+    keys.set('KeyJ', In.RIGHT_STICK_LEFT)
+    keys.set('KeyL', In.RIGHT_STICK_RIGHT)
+    keys.set('ArrowUp', In.RIGHT_STICK_UP)
+    keys.set('ArrowDown', In.RIGHT_STICK_DOWN)
+    keys.set('ArrowLeft', In.RIGHT_STICK_LEFT)
+    keys.set('ArrowRight', In.RIGHT_STICK_RIGHT)
+    keys.set('Key0', In.DPAD_UP)
+    keys.set('Key1', In.DPAD_DOWN)
+    keys.set('Key2', In.DPAD_LEFT)
+    keys.set('Key3', In.DPAD_RIGHT)
+    keys.set('KeyH', In.BUTTON_A)
+    keys.set('KeyU', In.BUTTON_B)
+    keys.set('KeyO', In.BUTTON_X)
+    keys.set('KeyP', In.BUTTON_Y)
+    keys.set('KeyQ', In.LEFT_STICK_CLICK)
+    keys.set('KeyE', In.RIGHT_STICK_CLICK)
+    keys.set('KeyZ', In.LEFT_TRIGGER)
+    keys.set('KeyM', In.RIGHT_TRIGGER)
+    keys.set('KeyX', In.LEFT_BUMPER)
+    keys.set('KeyN', In.RIGHT_BUMPER)
+
+    this.keys = keys
   }
 
   resize() {}
 
   keyEvent(code, down) {
-    let input = this.game.input
-    switch (code) {
-      case 'KeyW':
-        input.moveForward = down
-        break
-      case 'KeyA':
-        input.moveLeft = down
-        break
-      case 'KeyS':
-        input.moveBackward = down
-        break
-      case 'KeyD':
-        input.moveRight = down
-        break
-      case 'KeyJ':
-      case 'ArrowLeft':
-        input.lookLeft = down
-        break
-      case 'KeyL':
-      case 'ArrowRight':
-        input.lookRight = down
-        break
-      case 'KeyI':
-      case 'ArrowUp':
-        input.lookUp = down
-        break
-      case 'KeyK':
-      case 'ArrowDown':
-        input.lookDown = down
-        break
-      case 'KeyH':
-        input.attackLight = down
-        break
-      case 'KeyU':
-        input.attackHeavy = down
-        break
-      case 'KeyP':
-        input.pickupItem = down
-        break
-      case 'KeyG':
-        input.interact = down
-        break
+    if (this.keys.has(code)) {
+      this.game.input.set(this.keys.get(code), down)
     }
   }
 
   async initialize(file) {
+    await this.load(file)
+  }
+
+  async load(file) {
+    console.log('loading:', file)
     await this.game.load(file)
 
-    let world = this.game.world
-    let client = this.client
+    const world = this.game.world
+    const client = this.client
+    const gl = client.gl
+
+    for (const buffer of client.sectorBuffers.values()) buffer.zero()
     for (const sector of world.sectors) client.sectorRender(sector)
-    for (const buffer of client.sectorBuffers.values()) client.rendering.updateVAO(buffer, client.gl.STATIC_DRAW)
+    for (const buffer of client.sectorBuffers.values()) client.rendering.updateVAO(buffer, gl.STATIC_DRAW)
+
+    this.loading = false
+  }
+
+  handle(event) {
+    let trigger = event[0]
+    let params = event[1]
+    switch (trigger) {
+      case 'hero-goto-map':
+        this.loading = true
+        this.load('/maps/' + params + '.map')
+        return
+    }
   }
 
   update() {
+    if (this.loading) return
     this.game.update()
+    for (const event of this.events) this.handle(event)
+    this.events.length = 0
   }
 
   render() {
+    if (this.loading) return
+
     const game = this.game
     const world = game.world
     const client = this.client
@@ -205,5 +227,16 @@ export class GameState {
     drawText(client.bufferGUI, 10.0, 10.0, 'Scroll and Sigil', 2.0, 1.0, 0.0, 0.0, 1.0)
     rendering.bindTexture(gl.TEXTURE0, textureByName('font').texture)
     rendering.updateAndDraw(client.bufferGUI)
+  }
+
+  notify(trigger, params) {
+    switch (trigger) {
+      case 'hero-goto-map':
+        this.events.push([trigger, params])
+        return
+      case 'hero-dead-goto-menu':
+        return
+    }
+    console.warn('Unknown notification:', trigger, params)
   }
 }

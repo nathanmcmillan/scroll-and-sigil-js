@@ -174,7 +174,7 @@ export function renderEditorTopMode(state) {
     x += 2.0 * FONT_WIDTH * (text.length + 1)
   }
 
-  if (editor.selectedVec != null) {
+  if (editor.selectedVec) {
     let x = 10.0
     let y = editor.height - 2.0 * FONT_HEIGHT - 10.0
     let text = 'X:' + editor.selectedVec.x + ' Y:' + editor.selectedVec.y

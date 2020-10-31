@@ -1,6 +1,8 @@
 import {Float} from '/src/math/vector.js'
 import {Triangle} from '/src/map/triangle.js'
 
+const debug = false
+
 function stringifyVec(vec) {
   return JSON.stringify(vec, (key, value) => {
     if (key === 'index') return
@@ -91,21 +93,15 @@ function lineIntersect(a, b, c, d) {
   let c1 = b.x * a.y - a.x * b.y
   let r3 = a1 * c.x + b1 * c.y + c1
   let r4 = a1 * d.x + b1 * d.y + c1
-  if (!Float.zero(r3) && !Float.zero(r4) && r3 * r4 >= 0.0) {
-    return false
-  }
+  if (!Float.zero(r3) && !Float.zero(r4) && r3 * r4 >= 0.0) return false
   let a2 = d.y - c.y
   let b2 = c.x - d.x
   let c2 = d.x * c.y - c.x * d.y
   let r1 = a2 * a.x + b2 * a.y + c2
   let r2 = a2 * b.x + b2 * b.y + c2
-  if (!Float.zero(r1) && !Float.zero(r2) && r1 * r2 >= 0.0) {
-    return false
-  }
+  if (!Float.zero(r1) && !Float.zero(r2) && r1 * r2 >= 0.0) return false
   let denominator = a1 * b2 - a2 * b1
-  if (Float.zero(denominator)) {
-    return false
-  }
+  if (Float.zero(denominator)) return false
   return true
 }
 
@@ -133,71 +129,71 @@ function adjacent(a, b) {
 function clip(sector, floor, scale, triangles, verts) {
   let size = verts.length
   if (size === 3) {
-    console.log('no clip')
+    if (debug) console.log('no clip')
     add(sector, floor, scale, triangles, verts[0].vec, verts[1].vec, verts[2].vec)
     return
   }
-  console.log('clip')
+  if (debug) console.log('clip')
   for (let i = 0; i < size; i++) {
     let vert = verts[i]
     if (i + 1 == size) vert.next = verts[0]
     else vert.next = verts[i + 1]
-    console.log(' ', stringifyVert(vert))
+    if (debug) console.log(' ', stringifyVert(vert))
   }
   verts.sort(polygonSort)
   let stack = [verts[0], verts[1]]
   for (let k = 2; k < size; k++) {
     let t = stack.pop()
     let v = verts[k]
-    console.log('adjacent', stringifyVec(v.vec), stringifyVec(t.vec), '---', adjacent(v, t))
+    if (debug) console.log('adjacent', stringifyVec(v.vec), stringifyVec(t.vec), '---', adjacent(v, t))
     if (adjacent(v, t)) {
       let p = stack[stack.length - 1]
-      console.log('continuing with adjacent...', stringifyVec(p.vec), stringifyVec(t.vec), stringifyVec(v.vec))
+      if (debug) console.log('continuing with adjacent...', stringifyVec(p.vec), stringifyVec(t.vec), stringifyVec(v.vec))
       let a, c
       let b = t.vec
       if (v.next === t) {
         a = v.vec
         c = p.vec
-        console.log('v ---> t')
+        if (debug) console.log('v ---> t')
       } else {
         a = p.vec
         c = v.vec
-        console.log('t ---> v')
+        if (debug) console.log('t ---> v')
       }
-      console.log('reflex', stringifyVec(a), stringifyVec(b), stringifyVec(c), '---', clockwiseReflex(a, b, c))
+      if (debug) console.log('reflex', stringifyVec(a), stringifyVec(b), stringifyVec(c), '---', clockwiseReflex(a, b, c))
       if (!clockwiseReflex(a, b, c)) {
         stack.push(t)
       } else {
         do {
           add(sector, floor, scale, triangles, a, b, c)
-          console.log('add (X)', stringifyVec(a), stringifyVec(b), stringifyVec(c))
+          if (debug) console.log('add (X)', stringifyVec(a), stringifyVec(b), stringifyVec(c))
           t = stack.pop()
           if (stack.length === 0) break
           p = stack[stack.length - 1]
-          console.log('continuing with adjacent (2)...', stringifyVec(p.vec), stringifyVec(t.vec), stringifyVec(v.vec))
+          if (debug) console.log('continuing with adjacent (2)...', stringifyVec(p.vec), stringifyVec(t.vec), stringifyVec(v.vec))
           b = t.vec
           if (v.next === t) {
             a = v.vec
             c = p.vec
-            console.log('v ---> t')
+            if (debug) console.log('v ---> t')
           } else if (t.next === v) {
             a = p.vec
             c = v.vec
-            console.log('t ---> v')
+            if (debug) console.log('t ---> v')
           } else if (p.next === v) {
             a = v.vec
             c = p.vec
-            console.log('p ---> v')
+            if (debug) console.log('p ---> v')
           } else if (t.next === p) {
             a = p.vec
             c = v.vec
-            console.log('t ---> p')
+            if (debug) console.log('t ---> p')
           } else {
-            console.warn('Unexpected adjacency case')
+            if (debug) console.warn('Unexpected adjacency case')
             a = p.vec
             c = v.vec
           }
-          console.log('reflex (2)', stringifyVec(a), stringifyVec(b), stringifyVec(c), '---', clockwiseReflex(a, b, c))
+          if (debug) console.log('reflex (2)', stringifyVec(a), stringifyVec(b), stringifyVec(c), '---', clockwiseReflex(a, b, c))
         } while (clockwiseReflex(a, b, c))
         stack.push(t)
       }
@@ -206,7 +202,7 @@ function clip(sector, floor, scale, triangles, verts) {
       let p = stack[stack.length - 1]
       while (stack.length > 0) {
         add(sector, floor, scale, triangles, p.vec, t.vec, v.vec)
-        console.log('add (Y)', stringifyVec(p.vec), stringifyVec(t.vec), stringifyVec(v.vec))
+        if (debug) console.log('add (Y)', stringifyVec(p.vec), stringifyVec(t.vec), stringifyVec(v.vec))
         t = stack.pop()
         if (stack.length === 0) break
         p = stack[stack.length - 1]
@@ -214,18 +210,18 @@ function clip(sector, floor, scale, triangles, verts) {
       stack.push(o)
     }
     stack.push(v)
-    console.log('k is', k, 'len is', size, 'stack is')
+    if (debug) console.log('k is', k, 'len is', size, 'stack is')
     for (const vert of stack) {
-      console.log(' ', stringifyVec(vert.vec))
+      if (debug) console.log(' ', stringifyVec(vert.vec))
     }
   }
 }
 
 function monotone(sector, floor, scale, starting, triangles) {
-  console.log('monotone')
+  if (debug) console.log('monotone')
   let verts = []
   for (const start of starting) {
-    console.log('begin monotone polygon starting with', stringifyStart(start))
+    if (debug) console.log('begin monotone polygon starting with', stringifyStart(start))
     let initial = start.a
     let current = start.b
     let previous = initial.vec
@@ -239,11 +235,11 @@ function monotone(sector, floor, scale, starting, triangles) {
       if (current.diagonals.length > 0) {
         let best = next
         let angle = clockwiseInterior(previous, vec, next.vec)
-        console.log('interior (O)', stringifyVec(previous), stringifyVec(vec), stringifyVec(next.vec), angle)
+        if (debug) console.log('interior (O)', stringifyVec(previous), stringifyVec(vec), stringifyVec(next.vec), angle)
         for (const diagonal of current.diagonals) {
           if (previous === diagonal.vec) continue
           let other = clockwiseInterior(previous, vec, diagonal.vec)
-          console.log('interior (D)', stringifyVec(previous), stringifyVec(vec), stringifyVec(diagonal.vec), other)
+          if (debug) console.log('interior (D)', stringifyVec(previous), stringifyVec(vec), stringifyVec(diagonal.vec), other)
           if (other < angle) {
             best = diagonal
             angle = other
@@ -251,20 +247,20 @@ function monotone(sector, floor, scale, starting, triangles) {
         }
         current = best
       } else {
-        console.log('next (N)')
+        if (debug) console.log('next (N)')
         current = next
       }
       if (current === initial) break
       previous = vec
     }
     clip(sector, floor, scale, triangles, verts)
-    console.log('end monotone')
+    if (debug) console.log('end monotone')
     verts.length = 0
   }
 }
 
 function classify(points) {
-  console.log('classify')
+  if (debug) console.log('classify')
   let monotone = []
   let merge = []
   let split = []
@@ -275,7 +271,7 @@ function classify(points) {
     let reflex = clockwiseReflex(previous, vec, next)
     if (reflex) {
       let above = previous.y < vec.y && next.y <= vec.y
-      console.log(' ', stringifyPoint(current), 'reflex', reflex, 'above', above)
+      if (debug) console.log(' ', stringifyPoint(current), 'reflex', reflex, 'above', above)
       if (above) {
         current.start = true
         monotone.push(new Start(current, current.next))
@@ -283,7 +279,7 @@ function classify(points) {
     } else {
       let above = previous.y <= vec.y && next.y < vec.y
       let below = previous.y >= vec.y && next.y > vec.y
-      console.log(' ', stringifyPoint(current), 'reflex', reflex, 'above', above, 'below', below)
+      if (debug) console.log(' ', stringifyPoint(current), 'reflex', reflex, 'above', above, 'below', below)
       if (above) {
         split.push(current)
       } else if (below) {
@@ -291,7 +287,7 @@ function classify(points) {
       }
     }
   }
-  for (const mono of monotone) console.log('start', stringifyStart(mono))
+  for (const mono of monotone) if (debug) console.log('start', stringifyStart(mono))
   for (const point of merge) {
     let vec = point.vec
     for (let k = point.index + 1; k < points.length; k++) {
@@ -300,7 +296,7 @@ function classify(points) {
       point.merge = true
       point.diagonals.push(diagonal)
       diagonal.diagonals.push(point)
-      console.log('merge', stringifyVec(point.vec), 'with', stringifyVec(diagonal.vec))
+      if (debug) console.log('merge', stringifyVec(point.vec), 'with', stringifyVec(diagonal.vec))
       break
     }
   }
@@ -312,7 +308,7 @@ function classify(points) {
       if (diagonal.merge) break
       point.diagonals.push(diagonal)
       diagonal.diagonals.push(point)
-      console.log('split', stringifyVec(point.vec), 'with', stringifyVec(diagonal.vec))
+      if (debug) console.log('split', stringifyVec(point.vec), 'with', stringifyVec(diagonal.vec))
       if (diagonal.start) {
         monotone.push(new Start(diagonal, point))
       } else {
@@ -355,7 +351,7 @@ function populateReferences(sector, points, clockwise) {
       if (previous.vec.angle(point) < angle) {
         original.previous = previous
       }
-      console.warn('Double previous reference')
+      if (debug) console.warn('Double previous reference')
     }
     if (original.next === null) {
       original.next = next
@@ -365,7 +361,7 @@ function populateReferences(sector, points, clockwise) {
       if (next.vec.angle(point) < angle) {
         original.next = next
       }
-      console.warn('Double next reference')
+      if (debug) console.warn('Double next reference')
     }
   }
 }
@@ -421,7 +417,7 @@ export function sectorTriangulate(sector, scale) {
 }
 
 export function sectorTriangulateForEditor(sector, scale) {
-  console.log('--- begin compute triangles ---------------------------------------------------')
+  if (debug) console.log('--- begin compute triangles ---------------------------------------------------')
   sectorTriangulate(sector, scale)
   floorCeil(sector, null, scale, sector.view)
 }

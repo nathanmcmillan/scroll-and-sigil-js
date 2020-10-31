@@ -57,3 +57,21 @@ export class Vector3 {
     return new Vector3(this.y * b.z - this.z * b.y, this.z * b.x - this.x * b.z, this.x * b.y - this.y * b.x)
   }
 }
+
+export function lineIntersect(ax, ay, bx, by, cx, cy, dx, dy) {
+  let a1 = by - ay
+  let b1 = ax - bx
+  let c1 = bx * ay - ax * by
+  let r3 = a1 * cx + b1 * cy + c1
+  let r4 = a1 * dx + b1 * dy + c1
+  if (!Float.zero(r3) && !Float.zero(r4) && r3 * r4 >= 0.0) return false
+  let a2 = dy - cy
+  let b2 = cx - dx
+  let c2 = dx * cy - cx * dy
+  let r1 = a2 * ax + b2 * ay + c2
+  let r2 = a2 * bx + b2 * by + c2
+  if (!Float.zero(r1) && !Float.zero(r2) && r1 * r2 >= 0.0) return false
+  let denominator = a1 * b2 - a2 * b1
+  if (Float.zero(denominator)) return false
+  return true
+}

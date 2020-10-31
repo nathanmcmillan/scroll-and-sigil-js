@@ -14,7 +14,8 @@ export const ANIMATION_ALMOST_DONE = 1
 export const ANIMATION_DONE = 2
 
 export class World {
-  constructor() {
+  constructor(game) {
+    this.game = game
     this.sectors = []
     this.cells = null
     this.columns = 0
@@ -27,6 +28,55 @@ export class World {
     this.particleCount = 0
     this.decals = []
     this.decalCount = 0
+    this.triggers = new Map()
+  }
+
+  clear() {
+    // remove from cells and map
+
+    // const things = this.things
+    // let i = this.thingCount
+    // while (i--) {
+    //   if (things[i].update()) {
+    //     this.thingCount--
+    //     things[i] = things[this.thingCount]
+    //     things[this.thingCount] = null
+    //   }
+    // }
+
+    // const missiles = this.missiles
+    // i = this.missileCount
+    // while (i--) {
+    //   if (missiles[i].update()) {
+    //     this.missileCount--
+    //     missiles[i] = missiles[this.missileCount]
+    //     missiles[this.missileCount] = null
+    //   }
+    // }
+
+    // const particles = this.particles
+    // i = this.particleCount
+    // while (i--) {
+    //   if (particles[i].update()) {
+    //     this.particleCount--
+    //     particles[i] = particles[this.particleCount]
+    //     particles[this.particleCount] = null
+    //   }
+    // }
+
+    this.sectors.length = 0
+    this.cells = null
+    this.columns = 0
+    this.rows = 0
+    this.things.length = 0
+    this.thingCount = 0
+    this.missiles.length = 0
+    this.missileCount = 0
+    this.particles.length = 0
+    this.particleCount = 0
+    this.decals.length = 0
+    this.decalCount = 0
+    this.triggers.clear()
   }
 
   pushThing(thing) {
@@ -117,7 +167,7 @@ export class World {
     let i = this.sectors.length
     while (i--) {
       let sector = this.sectors[i]
-      if (sector.outside != null) {
+      if (sector.outside) {
         continue
       } else if (sector.contains(x, z)) {
         return sector.find(x, z)
@@ -199,6 +249,26 @@ export class World {
     for (const sector of this.sectors) {
       sectorUpdateLines(sector, WORLD_SCALE)
       for (const line of sector.lines) this.buildCellLines(line)
+    }
+  }
+
+  trigger(type, trigger, conditions, events) {
+    let list = this.triggets.get(type)
+    if (!list) {
+      list = []
+      this.triggers.set(type, list)
+    }
+    list.push(events)
+  }
+
+  notify(trigger, params) {
+    let list = this.triggers.get(trigger)
+    if (!list) {
+      this.game.notify(trigger, params)
+      return
+    }
+    for (const entry of list) {
+      entry.process()
     }
   }
 }

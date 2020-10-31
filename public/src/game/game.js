@@ -10,6 +10,7 @@ import {Baron} from '/src/thing/baron.js'
 import {Tree} from '/src/thing/tree.js'
 import {Merchant} from '/src/thing/merchant.js'
 import {Medkit} from '/src/thing/medkit.js'
+import {Armor} from '/src/thing/armor.js'
 import {textureIndexForName, entityByName} from '/src/assets/assets.js'
 import {playMusic} from '/src/assets/sounds.js'
 
@@ -19,14 +20,17 @@ function texture(name) {
 }
 
 export class Game {
-  constructor() {
-    this.world = new World()
+  constructor(parent) {
+    this.parent = parent
+    this.world = new World(this)
     this.input = new Input()
-    this.camera = new Camera(0.0, 0.0, 0.0, 0.0, 0.0, 8.0, null)
+    this.hero = null
+    this.camera = new Camera(0.0, 0.0, 0.0, 0.0, 0.0, 8.0, 0.0, 0.0)
   }
 
   async load(file) {
     let world = this.world
+    world.clear()
 
     let vecs = []
     let lines = []
@@ -109,11 +113,20 @@ export class Game {
         case 'medkit':
           new Medkit(world, entity, x, z)
           continue
+        case 'armor':
+          new Armor(world, entity, x, z)
+          continue
         case 'merchant':
           new Merchant(world, entity, x, z)
           continue
         case 'hero':
-          this.camera.target = new Hero(world, entity, x, z, this.input)
+          if (this.hero) {
+            this.hero.teleport(x, z)
+            world.pushThing(this.hero)
+          } else {
+            this.hero = new Hero(world, entity, x, z, this.input)
+          }
+          this.camera.target = this.hero
           continue
       }
     }
@@ -125,22 +138,22 @@ export class Game {
     let input = this.input
     let camera = this.camera
 
-    if (input.lookLeft) {
+    if (input.rightLeft()) {
       camera.ry -= 0.05
       if (camera.ry < 0.0) camera.ry += 2.0 * Math.PI
     }
 
-    if (input.lookRight) {
+    if (input.rightRight()) {
       camera.ry += 0.05
       if (camera.ry >= 2.0 * Math.PI) camera.ry -= 2.0 * Math.PI
     }
 
-    if (input.lookUp) {
+    if (input.rightUp()) {
       camera.rx -= 0.05
       if (camera.rx < 0.0) camera.rx += 2.0 * Math.PI
     }
 
-    if (input.lookDown) {
+    if (input.rightDown()) {
       camera.rx += 0.05
       if (camera.rx >= 2.0 * Math.PI) camera.rx -= 2.0 * Math.PI
     }
@@ -149,5 +162,9 @@ export class Game {
     camera.target.rotation = camera.ry
 
     this.world.update()
+  }
+
+  notify(trigger, params) {
+    this.parent.notify(trigger, params)
   }
 }

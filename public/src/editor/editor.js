@@ -158,7 +158,7 @@ export class Editor {
     this.height = height
     this.callbacks = callbacks
     this.input = new In.EditorInput()
-    this.camera = new Camera(0.0, 1.0, 0.0, 0.0, 0.0, null)
+    this.camera = new Camera(0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0)
     this.mode = TOP_MODE
     this.tool = DRAW_TOOL
     this.action = OPTION_DRAW_MODE_DEFAULT
@@ -607,19 +607,19 @@ export class Editor {
       if (this.action == OPTION_DRAW_MODE_DEFAULT || this.action == OPTION_VECTOR_UNDER_CURSOR || this.action == OPTION_LINE_UNDER_CURSOR) {
         this.action = OPTION_DRAW_MODE_DEFAULT
         this.selectedVec = this.vectorUnderCursor()
-        if (this.selectedVec !== null) {
+        if (this.selectedVec) {
           this.selectedLine = null
           this.action = OPTION_VECTOR_UNDER_CURSOR
         } else {
           this.selectedLine = this.lineUnderCursor()
-          if (this.selectedLine !== null) {
+          if (this.selectedLine) {
             this.action = OPTION_LINE_UNDER_CURSOR
           }
         }
       } else if (this.action == OPTION_END_LINE || this.action == OPTION_END_LINE_NEW_VECTOR) {
         this.action = OPTION_END_LINE_NEW_VECTOR
         this.selectedSecondVec = this.vectorUnderCursor()
-        if (this.selectedSecondVec !== null) {
+        if (this.selectedSecondVec) {
           this.action = OPTION_END_LINE
         }
       } else if (this.action == OPTION_MOVE_VECTOR || this.action == OPTION_VECTOR_OVERLAP) {
@@ -629,7 +629,7 @@ export class Editor {
         this.selectedVec.x = x
         this.selectedVec.y = y
         this.selectedSecondVec = this.vectorUnderCursor(this.selectedVec)
-        if (this.selectedSecondVec !== null) {
+        if (this.selectedSecondVec) {
           this.action = OPTION_VECTOR_OVERLAP
         }
       }
@@ -761,7 +761,7 @@ export class Editor {
       if (this.action == OPTION_THING_MODE_DEFAULT || this.action == OPTION_THING_UNDER_CURSOR) {
         this.action = OPTION_THING_MODE_DEFAULT
         this.selectedThing = this.thingUnderCursor()
-        if (this.selectedThing !== null) {
+        if (this.selectedThing) {
           this.action = OPTION_THING_UNDER_CURSOR
         }
       } else if (this.action == OPTION_MOVE_THING) {
@@ -900,7 +900,7 @@ export class Editor {
       }
     }
 
-    if (rotation !== null) {
+    if (rotation) {
       camera.x += Math.sin(rotation) * speed
       camera.z -= Math.cos(rotation) * speed
     }

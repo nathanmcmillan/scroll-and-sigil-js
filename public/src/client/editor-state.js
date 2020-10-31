@@ -1,31 +1,8 @@
+import {TwoWayMap} from '/src/util/collections.js'
 import {renderEditorTopMode} from '/src/client/editor-top-mode.js'
 import {renderEditorViewMode, updateEditorViewSectorBuffer} from '/src/client/editor-view-mode.js'
 import {Editor, TOP_MODE, VIEW_MODE, SWITCH_MODE_CALLBACK} from '/src/editor/editor.js'
 import * as In from '/src/editor/editor-input.js'
-
-class TwoWayMap {
-  constructor() {
-    this.map = new Map()
-    this.reverse = new Map()
-  }
-
-  set(a, b) {
-    this.map.set(a, b)
-    this.reverse.set(b, a)
-  }
-
-  get(k) {
-    return this.map.get(k)
-  }
-
-  has(k) {
-    return this.map.has(k)
-  }
-
-  reversed(k) {
-    return this.reverse.get(k)
-  }
-}
 
 export class EditorState {
   constructor(client) {

@@ -1,5 +1,5 @@
 info 4
-music vampire-killer
+music sanxion
 background night-sky
 new-game 10 40
 entrance-x 100 60
@@ -88,7 +88,7 @@ sectors 5
 things 5
 8 45 baron
 14 42 tree
-18 42 medkit
-10 40 hero
+110 42 medkit
+100 40 hero
 30 40 merchant
 60 42 armor
