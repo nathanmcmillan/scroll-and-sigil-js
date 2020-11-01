@@ -246,7 +246,6 @@ export class Thing {
   }
 
   teleport(x, z) {
-    console.log('teleport!')
     this.sector = this.world.findSector(x, z)
     this.x = this.previousX = x
     this.y = this.previousY = this.sector.floor

@@ -57,6 +57,12 @@ export class MusicNode {
   }
 
   play() {
+    this.start = 0
+    this.paused = 0
+    this.resume()
+  }
+
+  resume() {
     if (!this.music) this.music = zzfxm(...this.contents)
     let audio = this.audio
     if (audio) {

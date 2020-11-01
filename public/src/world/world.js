@@ -1,3 +1,4 @@
+import {Float} from '/src/math/vector.js'
 import {Cell} from '/src/world/cell.js'
 import {sectorUpdateLines, sectorInsideOutside} from '/src/map/sector.js'
 import {sectorTriangulate} from '/src/map/triangulate.js'
@@ -13,9 +14,18 @@ export const ANIMATION_NOT_DONE = 0
 export const ANIMATION_ALMOST_DONE = 1
 export const ANIMATION_DONE = 2
 
+function toCell(f) {
+  return Math.floor(f) >> WORLD_CELL_SHIFT
+}
+
+function toFloatCell(f) {
+  return f / (1 << WORLD_CELL_SHIFT)
+}
+
 export class World {
   constructor(game) {
     this.game = game
+    this.lines = null
     this.sectors = []
     this.cells = null
     this.columns = 0
@@ -32,38 +42,11 @@ export class World {
   }
 
   clear() {
-    // remove from cells and map
-
-    // const things = this.things
-    // let i = this.thingCount
-    // while (i--) {
-    //   if (things[i].update()) {
-    //     this.thingCount--
-    //     things[i] = things[this.thingCount]
-    //     things[this.thingCount] = null
-    //   }
-    // }
-
-    // const missiles = this.missiles
-    // i = this.missileCount
-    // while (i--) {
-    //   if (missiles[i].update()) {
-    //     this.missileCount--
-    //     missiles[i] = missiles[this.missileCount]
-    //     missiles[this.missileCount] = null
-    //   }
-    // }
-
-    // const particles = this.particles
-    // i = this.particleCount
-    // while (i--) {
-    //   if (particles[i].update()) {
-    //     this.particleCount--
-    //     particles[i] = particles[this.particleCount]
-    //     particles[this.particleCount] = null
-    //   }
-    // }
-
+    for (let i = 0; i < this.thingCount; i++) this.things[i] = null
+    for (let i = 0; i < this.missileCount; i++) this.missiles[i] = null
+    for (let i = 0; i < this.particleCount; i++) this.particles[i] = null
+    if (this.cells) for (let i = 0; i < this.cells.length; i++) this.cells[i].clear()
+    this.lines = null
     this.sectors.length = 0
     this.cells = null
     this.columns = 0
@@ -177,47 +160,52 @@ export class World {
   }
 
   buildCellLines(line) {
-    let dx = Math.abs(line.b.x - line.a.x)
-    let dy = Math.abs(line.b.y - line.a.y)
+    let xf = toFloatCell(line.a.x)
+    let yf = toFloatCell(line.a.y)
 
-    let x = Math.floor(line.a.x)
-    let y = Math.floor(line.a.y)
+    let dx = Math.abs(toFloatCell(line.b.x) - xf)
+    let dy = Math.abs(toFloatCell(line.b.y) - yf)
+
+    let x = toCell(line.a.x)
+    let y = toCell(line.a.y)
+
+    let xb = toCell(line.b.x)
+    let yb = toCell(line.b.y)
 
     let n = 1
     let error = 0.0
     let incrementX = 0
     let incrementY = 0
 
-    if (dx == 0.0) {
+    if (Float.zero(dx)) {
       incrementX = 0
       error = Number.MAX_VALUE
     } else if (line.b.x > line.a.x) {
       incrementX = 1
-      n += Math.floor(line.b.x) - x
-      error = (Math.floor(line.a.x) + 1.0 - line.a.x) * dy
+      n += xb - x
+      error = (x + 1.0 - xf) * dy
     } else {
       incrementX = -1
-      n += x - Math.floor(line.b.x)
-      error = (line.a.x - Math.floor(line.a.x)) * dy
+      n += x - xb
+      error = (xf - x) * dy
     }
 
-    if (dy == 0.0) {
+    if (Float.zero(dy)) {
       incrementY = 0
-      error = Number.MIN_VALUE
+      error = -Number.MAX_VALUE
     } else if (line.b.y > line.a.y) {
       incrementY = 1
-      n += Math.floor(line.b.y) - y
-      error -= (Math.floor(line.a.y) + 1.0 - line.a.y) * dx
+      n += yb - y
+      error -= (y + 1.0 - yf) * dx
     } else {
       incrementY = -1
-      n += y - Math.floor(line.b.y)
-      error -= (line.a.y - Math.floor(line.a.y)) * dx
+      n += y - yb
+      error -= (yf - y) * dx
     }
 
-    while (n > 0) {
-      let cell = this.cells[(x >> WORLD_CELL_SHIFT) + (y >> WORLD_CELL_SHIFT) * this.columns]
+    for (; n > 0; n--) {
+      let cell = this.cells[x + y * this.columns]
       cell.lines.push(line)
-
       if (error > 0.0) {
         y += incrementY
         error -= dx
@@ -225,12 +213,14 @@ export class World {
         x += incrementX
         error += dy
       }
-
-      n -= 1
     }
   }
 
-  buildSectors() {
+  setLines(lines) {
+    this.lines = lines
+  }
+
+  build() {
     let top = 0.0
     let right = 0.0
     for (const sector of this.sectors) {
@@ -246,10 +236,8 @@ export class World {
     for (let i = 0; i < this.cells.length; i++) this.cells[i] = new Cell()
     sectorInsideOutside(this.sectors)
     for (const sector of this.sectors) sectorTriangulate(sector, WORLD_SCALE)
-    for (const sector of this.sectors) {
-      sectorUpdateLines(sector, WORLD_SCALE)
-      for (const line of sector.lines) this.buildCellLines(line)
-    }
+    for (const sector of this.sectors) sectorUpdateLines(sector, WORLD_SCALE)
+    for (const line of this.lines) this.buildCellLines(line)
   }
 
   trigger(type, trigger, conditions, events) {
@@ -267,8 +255,6 @@ export class World {
       this.game.notify(trigger, params)
       return
     }
-    for (const entry of list) {
-      entry.process()
-    }
+    for (const entry of list) entry.process()
   }
 }

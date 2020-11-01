@@ -287,4 +287,13 @@ export class Hero extends Thing {
     this.integrate()
     return false
   }
+
+  set(x, z) {
+    this.sector = this.world.findSector(x, z)
+    this.x = this.previousX = x
+    this.y = this.previousY = this.sector.floor
+    this.z = this.previousZ = z
+    this.pushToCells()
+    this.world.pushThing(this)
+  }
 }

@@ -1,6 +1,8 @@
 # Scroll & Sigil
 
-[website](https://scrollandsigil.com)
+A 3D adventure game with a strong focus on modding and user crafted content.
+
+[Visit the website here.](https://scrollandsigil.com)
 
 # Goals
 
@@ -52,6 +54,10 @@
   - Selling
   - Talking
   - Quests
+- First person camera support
+- Top down camera support
+- Cinema camera (floating, de-attached from a target)
+- Terrain slopes
 - Doors
   - Keys
 
@@ -63,10 +69,13 @@
 
 # Bundling Sprite Sheets
 
-- `$ bundle.sh`
-- Collects sprite images and generates sprite sheets
+`$ bundle.sh`
+
+Collects sprite images and generates sprite sheets.
 
 # Packages
+
+Defines the images, sound files, and entity descriptions.
 
 ## Resource Pack
 
@@ -85,6 +94,8 @@
 - List of connected maps
 
 # Map Editor
+
+A map design tool with a top down view for sector editing and a 3D view paint mode.
 
 ## Modes
 

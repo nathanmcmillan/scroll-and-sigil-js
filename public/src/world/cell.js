@@ -9,6 +9,16 @@ export class Cell {
     this.particleCount = 0
   }
 
+  clear() {
+    this.lines.length = 0
+    this.things.length = 0
+    this.thingCount = 0
+    this.missiles.length = 0
+    this.missileCount = 0
+    this.particles.length = 0
+    this.particleCount = 0
+  }
+
   pushThing(thing) {
     let things = this.things
     if (things.length === this.thingCount) {

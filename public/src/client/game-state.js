@@ -59,7 +59,6 @@ export class GameState {
   }
 
   async load(file) {
-    console.log('loading:', file)
     await this.game.load(file)
 
     const world = this.game.world
@@ -91,8 +90,40 @@ export class GameState {
     this.events.length = 0
   }
 
+  renderLoadInProgress() {
+    const client = this.client
+    const gl = client.gl
+    const rendering = client.rendering
+
+    gl.clear(gl.COLOR_BUFFER_BIT)
+    gl.clear(gl.DEPTH_BUFFER_BIT)
+
+    let view = new Array(16)
+    let projection = new Array(16)
+
+    rendering.setProgram(1)
+    rendering.setView(0, 0, client.width, client.height)
+
+    gl.disable(gl.CULL_FACE)
+    gl.disable(gl.DEPTH_TEST)
+
+    identity(view)
+    multiply(projection, client.orthographic, view)
+    rendering.updateUniformMatrix('u_mvp', projection)
+
+    client.bufferGUI.zero()
+    let text = 'Loading. Please wait...'
+    drawText(client.bufferGUI, 12.0, 8.0, text, 2.0, 0.0, 0.0, 0.0, 1.0)
+    drawText(client.bufferGUI, 10.0, 10.0, text, 2.0, 1.0, 0.0, 0.0, 1.0)
+    rendering.bindTexture(gl.TEXTURE0, textureByName('font').texture)
+    rendering.updateAndDraw(client.bufferGUI)
+  }
+
   render() {
-    if (this.loading) return
+    if (this.loading) {
+      this.renderLoadInProgress()
+      return
+    }
 
     const game = this.game
     const world = game.world

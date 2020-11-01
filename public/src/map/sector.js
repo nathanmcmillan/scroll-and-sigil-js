@@ -67,15 +67,13 @@ function deleteNestedInside(set, inside) {
 }
 
 export function sectorUpdateLines(sector, scale) {
-  if (sector.lines.length === 0) {
-    return
-  }
-  let plus = null
-  let minus = null
+  if (sector.lines.length === 0) return
+  let plus, minus
   if (sector.outside) {
     plus = sector
     minus = sector.outside
   } else {
+    plus = null
     minus = sector
   }
   let bottom = sector.bottom
@@ -84,6 +82,7 @@ export function sectorUpdateLines(sector, scale) {
   let top = sector.top
   let uv = 0.0
   for (const line of sector.lines) {
+    if (line.plus !== null && line.minus !== null) console.error('Line already linked to sectors')
     line.updateSectors(plus, minus)
     let x = line.a.x - line.b.x
     let y = line.a.y - line.b.y

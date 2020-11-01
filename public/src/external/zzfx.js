@@ -1,6 +1,6 @@
 // ZzFX - Zuper Zmall Zound Zynth | MIT License - Copyright 2019 Frank Force | https://github.com/KilledByAPixel/ZzFX
 
-export const zzfxv = 0.2
+export const zzfxv = 0.1
 export const zzfxr = 44100
 
 const context = new AudioContext()

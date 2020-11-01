@@ -87,13 +87,12 @@ export class Game {
       i++
       end = i + count
       let sectorLines = []
-      for (; i < end; i++) {
-        sectorLines.push(lines[parseInt(sector[i])])
-      }
+      for (; i < end; i++) sectorLines.push(lines[parseInt(sector[i])])
       world.pushSector(new Sector(bottom, floor, ceiling, top, floorTexture, ceilingTexture, sectorVecs, sectorLines))
     }
 
-    world.buildSectors()
+    world.setLines(lines)
+    world.build()
 
     let things = index + parseInt(map[index].split(' ')[1])
     index++
@@ -121,8 +120,7 @@ export class Game {
           continue
         case 'hero':
           if (this.hero) {
-            this.hero.teleport(x, z)
-            world.pushThing(this.hero)
+            this.hero.set(x, z)
           } else {
             this.hero = new Hero(world, entity, x, z, this.input)
           }

@@ -389,11 +389,11 @@ function skip(sector, floor) {
 function populate(sector, floor) {
   let polygons = []
   for (let inner of sector.inside) {
-    if (skip(inner, floor)) continue
+    if (skip(inner, floor)) continue // this should be removed? there's overdrawing
     populateVectors(inner, polygons)
   }
   for (let inner of sector.inside) {
-    if (skip(inner, floor)) continue
+    if (skip(inner, floor)) continue // this should be removed? there's overdrawing
     populateReferences(inner, polygons, false)
   }
   populateVectors(sector, polygons)

@@ -18,9 +18,7 @@ export function playSound(name) {
   sound.volume = 0.25
   sound.currentTime = 0
   let promise = sound.play()
-  if (promise) {
-    promise.then(() => {}).catch(() => {})
-  }
+  if (promise) promise.then(() => {}).catch(() => {})
 }
 
 export async function saveMusic(name, path) {
@@ -42,6 +40,8 @@ export function playMusic(name) {
     console.error('Music not loaded yet:', name)
     return
   }
+  pauseMusic()
+  MUSIC = music
   if (music.constructor === MusicNode) {
     music.play()
   } else {
@@ -51,12 +51,12 @@ export function playMusic(name) {
     let promise = music.play()
     if (promise) promise.then(() => {}).catch(() => {})
   }
-  MUSIC = music
 }
 
 export function resumeMusic() {
   if (!MUSIC) return
-  MUSIC.play()
+  if (MUSIC.constructor === MusicNode) MUSIC.resume()
+  else MUSIC.play()
 }
 
 export function pauseMusic() {
