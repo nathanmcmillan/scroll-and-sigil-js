@@ -254,10 +254,27 @@ export class GameState {
     rendering.updateUniformMatrix('u_mvp', projection)
 
     client.bufferGUI.zero()
-    drawText(client.bufferGUI, 12.0, 8.0, 'Scroll and Sigil', 2.0, 0.0, 0.0, 0.0, 1.0)
-    drawText(client.bufferGUI, 10.0, 10.0, 'Scroll and Sigil', 2.0, 1.0, 0.0, 0.0, 1.0)
-    rendering.bindTexture(gl.TEXTURE0, textureByName('font').texture)
-    rendering.updateAndDraw(client.bufferGUI)
+
+    const hero = game.hero
+    if (hero.menu) {
+      let text = 'Inventory'
+      drawText(client.bufferGUI, 12.0, 8.0, text, 2.0, 0.0, 0.0, 0.0, 1.0)
+      drawText(client.bufferGUI, 10.0, 10.0, text, 2.0, 1.0, 0.0, 0.0, 1.0)
+      rendering.bindTexture(gl.TEXTURE0, textureByName('font').texture)
+      rendering.updateAndDraw(client.bufferGUI)
+    } else if (hero.interaction) {
+      let text = 'Shop'
+      drawText(client.bufferGUI, 12.0, 8.0, text, 2.0, 0.0, 0.0, 0.0, 1.0)
+      drawText(client.bufferGUI, 10.0, 10.0, text, 2.0, 1.0, 0.0, 0.0, 1.0)
+      rendering.bindTexture(gl.TEXTURE0, textureByName('font').texture)
+      rendering.updateAndDraw(client.bufferGUI)
+    } else {
+      let text = 'Scroll and Sigil'
+      drawText(client.bufferGUI, 12.0, 8.0, text, 2.0, 0.0, 0.0, 0.0, 1.0)
+      drawText(client.bufferGUI, 10.0, 10.0, text, 2.0, 1.0, 0.0, 0.0, 1.0)
+      rendering.bindTexture(gl.TEXTURE0, textureByName('font').texture)
+      rendering.updateAndDraw(client.bufferGUI)
+    }
   }
 
   notify(trigger, params) {

@@ -3,7 +3,7 @@ import {Line} from '/src/map/line.js'
 import {Vector2} from '/src/math/vector.js'
 import {Sector} from '/src/map/sector.js'
 import {World} from '/src/world/world.js'
-import {Camera} from '/src/game/camera.js'
+import {CameraCinema} from '/src/game/camera.js'
 import {Input} from '/src/game/input.js'
 import {Hero} from '/src/thing/hero.js'
 import {Baron} from '/src/thing/baron.js'
@@ -25,7 +25,7 @@ export class Game {
     this.world = new World(this)
     this.input = new Input()
     this.hero = null
-    this.camera = new Camera(0.0, 0.0, 0.0, 0.0, 0.0, 8.0, 0.0, 0.0)
+    this.camera = new CameraCinema(0.0, 0.0, 0.0, 0.0, 0.0, 8.0, 0.0, 0.0)
   }
 
   async load(file) {
@@ -119,11 +119,8 @@ export class Game {
           new Merchant(world, entity, x, z)
           continue
         case 'hero':
-          if (this.hero) {
-            this.hero.set(x, z)
-          } else {
-            this.hero = new Hero(world, entity, x, z, this.input)
-          }
+          if (this.hero) this.hero.set(x, z)
+          else this.hero = new Hero(world, entity, x, z, this.input)
           this.camera.target = this.hero
           continue
       }

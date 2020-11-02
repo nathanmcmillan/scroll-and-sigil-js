@@ -1,6 +1,6 @@
+import {WORLD_CELL_SHIFT} from '/src/world/world.js'
 import {Particle} from '/src/particle/particle.js'
 import {Decal} from '/src/world/decal.js'
-import {WORLD_CELL_SHIFT} from '/src/world/world.js'
 import {textureIndexForName, spritesByName} from '/src/assets/assets.js'
 import {randomInt} from '/src/math/random.js'
 
@@ -211,9 +211,9 @@ export class Blood extends Particle {
   }
 
   update() {
-    this.deltaX *= 0.95
-    this.deltaY -= 0.01
-    this.deltaZ *= 0.95
+    this.deltaX *= 0.97
+    this.deltaY -= 0.015
+    this.deltaZ *= 0.97
     this.x += this.deltaX
     this.y += this.deltaY
     this.z += this.deltaZ

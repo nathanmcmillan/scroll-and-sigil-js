@@ -29,6 +29,7 @@ export class Thing {
     this.animation = null
     this.isPhysical = true
     this.isItem = false
+    this.name = null
     this.group = null
     this.interactions = null
 

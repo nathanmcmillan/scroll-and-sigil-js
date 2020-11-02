@@ -30,6 +30,7 @@ export class Baron extends Thing {
     this.missileRange = 50.0
     this.status = STATUS_LOOK
     this.reaction = 0
+    this.name = 'Demon'
     this.group = 'demon'
   }
 
@@ -123,14 +124,16 @@ export class Baron extends Thing {
     } else {
       playSound('baron-pain')
     }
+    const spread = 0.2
+    const tau = 2.0 * Math.PI
     for (let i = 0; i < 20; i++) {
-      let x = this.x + this.box * (1.0 - 2.0 * Math.random())
+      let theta = tau * Math.random()
+      let x = this.x + this.box * Math.sin(theta)
+      let z = this.z + this.box * Math.cos(theta)
       let y = this.y + this.height * Math.random()
-      let z = this.z + this.box * (1.0 - 2.0 * Math.random())
-      const spread = 0.2
-      let dx = spread * (1.0 - Math.random() * 2.0)
+      let dx = spread * Math.sin(theta)
+      let dz = spread * Math.cos(theta)
       let dy = spread * Math.random()
-      let dz = spread * (1.0 - Math.random() * 2.0)
       new Blood(this.world, entityByName('blood'), x, y, z, dx, dy, dz)
     }
   }

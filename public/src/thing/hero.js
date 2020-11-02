@@ -3,7 +3,7 @@ import {Blood} from '/src/particle/blood.js'
 import {playSound} from '/src/assets/sounds.js'
 import {textureIndexForName, entityByName} from '/src/assets/assets.js'
 import {animationMap} from '/src/entity/entity.js'
-import {ANIMATION_ALMOST_DONE, ANIMATION_DONE} from '/src/world/world.js'
+import {WORLD_CELL_SHIFT, ANIMATION_ALMOST_DONE, ANIMATION_DONE} from '/src/world/world.js'
 import {Plasma} from '/src/missile/plasma.js'
 import {randomInt} from '/src/math/random.js'
 import {lineIntersect} from '/src/math/vector.js'
@@ -14,6 +14,7 @@ const STATUS_MOVE = 1
 const STATUS_MELEE = 2
 const STATUS_MISSILE = 3
 const STATUS_DEAD = 4
+const STATUS_BUSY = 5
 
 export class Hero extends Thing {
   constructor(world, entity, x, z, input) {
@@ -29,9 +30,15 @@ export class Hero extends Thing {
     this.reaction = 0
     this.group = 'human'
     this.inventory = []
+    this.menu = null
+    this.interaction = null
   }
 
   damage(health) {
+    if (this.status === STATUS_BUSY) {
+      this.status = STATUS_IDLE
+      this.interaction = null
+    }
     this.health -= health
     if (this.health <= 0) {
       this.health = 0
@@ -43,14 +50,16 @@ export class Hero extends Thing {
     } else {
       playSound('baron-pain')
     }
+    const spread = 0.2
+    const tau = 2.0 * Math.PI
     for (let i = 0; i < 20; i++) {
-      let x = this.x + this.box * (1.0 - 2.0 * Math.random())
+      let theta = tau * Math.random()
+      let x = this.x + this.box * Math.sin(theta)
+      let z = this.z + this.box * Math.cos(theta)
       let y = this.y + this.height * Math.random()
-      let z = this.z + this.box * (1.0 - 2.0 * Math.random())
-      const spread = 0.2
-      let dx = spread * (1.0 - Math.random() * 2.0)
+      let dx = spread * Math.sin(theta)
+      let dz = spread * Math.cos(theta)
       let dy = spread * Math.random()
-      let dz = spread * (1.0 - Math.random() * 2.0)
       new Blood(this.world, entityByName('blood'), x, y, z, dx, dy, dz)
     }
   }
@@ -72,9 +81,7 @@ export class Hero extends Thing {
     }
   }
 
-  closeToThing(thing, distance) {
-    let x = this.x + distance * Math.sin(this.rotation)
-    let z = this.z - distance * Math.cos(this.rotation)
+  closeToThing(x, z, thing) {
     let box = thing.box
     let vx = x - this.x
     let vz = z - this.z
@@ -89,40 +96,71 @@ export class Hero extends Thing {
     return true
   }
 
-  closeToLine(line, distance) {
-    let x = this.x + distance * Math.sin(this.rotation)
-    let z = this.z - distance * Math.cos(this.rotation)
+  closeToLine(x, z, line) {
     return lineIntersect(this.x, this.z, x, z, line.a.x, line.a.y, line.b.x, line.b.y)
   }
 
   interact() {
+    let distance = this.box + 3.0
+    let x = this.x + distance * Math.sin(this.rotation)
+    let z = this.z - distance * Math.cos(this.rotation)
+
+    let minC = Math.floor(this.x) >> WORLD_CELL_SHIFT
+    let maxC = Math.floor(x) >> WORLD_CELL_SHIFT
+    let minR = Math.floor(this.z) >> WORLD_CELL_SHIFT
+    let maxR = Math.floor(z) >> WORLD_CELL_SHIFT
+
+    if (maxC < minC) {
+      let temp = minC
+      minC = maxC
+      maxC = temp
+    }
+
+    if (maxR < minR) {
+      let temp = minR
+      minR = maxR
+      maxR = temp
+    }
+
     let world = this.world
-    // todo: line extending from hero can be outside of min/max cells
-    for (let r = this.minR; r <= this.maxR; r++) {
-      for (let c = this.minC; c <= this.maxC; c++) {
-        let cell = world.cells[c + r * world.columns]
+    let columns = world.columns
+
+    if (minC < 0) minC = 0
+    if (minR < 0) minR = 0
+    if (maxC > columns) maxC = columns
+    if (maxR > world.rows) maxR = world.rows
+
+    for (let r = minR; r <= maxR; r++) {
+      for (let c = minC; c <= maxC; c++) {
+        let cell = world.cells[c + r * columns]
         let i = cell.thingCount
         while (i--) {
           let thing = cell.things[i]
           if (this === thing) continue
-          if (thing.interactions && this.closeToThing(thing, 2.0)) {
-            console.log('interacting with thing', thing)
+          if (thing.interactions && this.closeToThing(x, z, thing)) {
+            this.status = STATUS_BUSY
+            this.animationFrame = 0
+            this.animation = this.animations.get('move')
+            this.updateSprite()
+            this.interaction = {thing: thing, list: thing.interactions}
             this.world.notify('interact', [this, thing])
-            return
+            return true
           }
         }
         i = cell.lines.length
         while (i--) {
           let line = cell.lines[i]
-          if (this.closeToLine(line, 2.0)) {
+          if (this.closeToLine(x, z, line)) {
             console.log('interacting with line', line)
             this.world.notify('interact-line', [this, line])
             this.world.notify('hero-goto-map', 'base_copy')
-            return
+            return true
           }
         }
       }
     }
+
+    return false
   }
 
   dead() {
@@ -137,20 +175,58 @@ export class Hero extends Thing {
     this.updateSprite()
   }
 
+  busy() {
+    if (this.interaction) {
+      if (this.input.rightTrigger()) {
+        this.input.off(In.RIGHT_TRIGGER)
+        this.status = STATUS_IDLE
+        this.interaction = null
+      }
+    }
+  }
+
   melee() {
     let frame = this.updateAnimation()
     if (frame === ANIMATION_ALMOST_DONE) {
       this.reaction = 40
+
+      let distance = this.box + 3.0
+      let x = this.x + distance * Math.sin(this.rotation)
+      let z = this.z - distance * Math.cos(this.rotation)
+
+      let minC = Math.floor(this.x) >> WORLD_CELL_SHIFT
+      let maxC = Math.floor(x) >> WORLD_CELL_SHIFT
+      let minR = Math.floor(this.z) >> WORLD_CELL_SHIFT
+      let maxR = Math.floor(z) >> WORLD_CELL_SHIFT
+
+      if (maxC < minC) {
+        let temp = minC
+        minC = maxC
+        maxC = temp
+      }
+
+      if (maxR < minR) {
+        let temp = minR
+        minR = maxR
+        maxR = temp
+      }
+
       let world = this.world
-      // todo: line extending from hero can be outside of min/max cells
-      iter: for (let r = this.minR; r <= this.maxR; r++) {
-        for (let c = this.minC; c <= this.maxC; c++) {
-          let cell = world.cells[c + r * world.columns]
+      let columns = world.columns
+
+      if (minC < 0) minC = 0
+      if (minR < 0) minR = 0
+      if (maxC > columns) maxC = columns
+      if (maxR > world.rows) maxR = world.rows
+
+      iter: for (let r = minR; r <= maxR; r++) {
+        for (let c = minC; c <= maxC; c++) {
+          let cell = world.cells[c + r * columns]
           let i = cell.thingCount
           while (i--) {
             let thing = cell.things[i]
             if (this === thing) continue
-            if (this.closeToThing(thing, 2.0)) {
+            if (this.closeToThing(x, z, thing)) {
               thing.damage(1 + randomInt(3))
               break iter
             }
@@ -202,13 +278,13 @@ export class Hero extends Thing {
       this.updateSprite()
       playSound('baron-melee')
       return
+    } else if (this.input.rightTrigger()) {
+      this.input.off(In.RIGHT_TRIGGER)
+      if (this.interact()) return
     }
     if (this.input.leftTrigger()) {
       this.input.off(In.LEFT_TRIGGER)
       this.pickup()
-    } else if (this.input.rightTrigger()) {
-      this.input.off(In.RIGHT_TRIGGER)
-      this.interact()
     }
     if (this.ground) {
       if (this.input.rightClick()) {
@@ -282,6 +358,9 @@ export class Hero extends Thing {
         break
       case STATUS_DEAD:
         this.dead()
+        break
+      case STATUS_BUSY:
+        this.busy()
         break
     }
     this.integrate()
