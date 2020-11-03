@@ -25,10 +25,17 @@ export class Hero extends Thing {
     this.animation = this.animations.get('move')
     this.sprite = this.animation[0]
     this.speed = 0.025
-    this.health = 10
+    this.maxHealth = 10
+    this.health = this.maxHealth
+    this.maxStamina = 10
+    this.stamina = this.maxStamina
     this.status = STATUS_IDLE
     this.reaction = 0
     this.group = 'human'
+    this.rank = 1
+    this.experience = 0
+    this.experienceNeeded = 20
+    this.techniquePoints = 0
     this.inventory = []
     this.menu = null
     this.interaction = null
@@ -37,6 +44,7 @@ export class Hero extends Thing {
   damage(health) {
     if (this.status === STATUS_BUSY) {
       this.status = STATUS_IDLE
+      this.menu = null
       this.interaction = null
     }
     this.health -= health
@@ -142,7 +150,7 @@ export class Hero extends Thing {
             this.animationFrame = 0
             this.animation = this.animations.get('move')
             this.updateSprite()
-            this.interaction = {thing: thing, list: thing.interactions}
+            this.interaction = {thing: thing, options: thing.interactions}
             this.world.notify('interact', [this, thing])
             return true
           }
@@ -167,7 +175,7 @@ export class Hero extends Thing {
     if (this.animationFrame === this.animation.length - 1) {
       if (this.input.a()) {
         this.input.off(In.BUTTON_A)
-        this.world.notify('hero-dead-goto-menu')
+        this.world.notify('hero-dead-menu')
       }
       return
     }
@@ -175,13 +183,29 @@ export class Hero extends Thing {
     this.updateSprite()
   }
 
+  openMenu() {
+    this.status = STATUS_BUSY
+    this.animationFrame = 0
+    this.animation = this.animations.get('move')
+    this.updateSprite()
+    this.menu = {page: 'inventory'}
+  }
+
   busy() {
-    if (this.interaction) {
-      if (this.input.rightTrigger()) {
-        this.input.off(In.RIGHT_TRIGGER)
-        this.status = STATUS_IDLE
-        this.interaction = null
-      }
+    if (this.input.rightTrigger()) {
+      this.input.off(In.RIGHT_TRIGGER)
+      this.status = STATUS_IDLE
+      if (this.menu) this.menu = null
+      if (this.interaction) this.interaction = null
+    }
+  }
+
+  takeExperience(value) {
+    this.experience += value
+    if (this.experience > this.experienceNeeded) {
+      this.experience -= this.experienceNeeded
+      this.experienceNeeded = Math.floor(1 + 1.8 * this.experienceNeeded)
+      this.techniquePoints++
     }
   }
 
@@ -228,6 +252,7 @@ export class Hero extends Thing {
             if (this === thing) continue
             if (this.closeToThing(x, z, thing)) {
               thing.damage(1 + randomInt(3))
+              if (thing.health <= 0) this.takeExperience(thing.experience)
               break iter
             }
           }
@@ -285,6 +310,9 @@ export class Hero extends Thing {
     if (this.input.leftTrigger()) {
       this.input.off(In.LEFT_TRIGGER)
       this.pickup()
+    } else if (this.input.rightBumper()) {
+      this.input.off(In.RIGHT_BUMPER)
+      this.openMenu()
     }
     if (this.ground) {
       if (this.input.rightClick()) {

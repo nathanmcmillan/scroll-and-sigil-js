@@ -1,5 +1,5 @@
 export class Camera {
-  constructor(x, y, z, rx, ry, radius, ox, oy) {
+  constructor(x, y, z, rx, ry, radius, ox = 0.0, oy = 0.0) {
     this.x = x
     this.y = y
     this.z = z
@@ -21,22 +21,8 @@ export class Camera {
     this.y = target.y + this.radius * sinX + target.height
     this.z = target.z + this.radius * cosX * cosY
   }
-}
 
-export class CameraCinema {
-  constructor(x, y, z, rx, ry, radius, ox, oy) {
-    this.x = x
-    this.y = y
-    this.z = z
-    this.rx = rx
-    this.ry = ry
-    this.radius = radius
-    this.ox = ox
-    this.oy = oy
-    this.target = null
-  }
-
-  updateOrbit() {
+  updateCinema() {
     let target = this.target
     const offset = Math.PI / 16.0
     let sinX = Math.sin(this.rx)

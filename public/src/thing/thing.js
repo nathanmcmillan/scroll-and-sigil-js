@@ -32,6 +32,7 @@ export class Thing {
     this.name = null
     this.group = null
     this.interactions = null
+    this.experience = 1
 
     this.pushToCells()
     world.pushThing(this)

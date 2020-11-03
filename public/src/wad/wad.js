@@ -100,8 +100,18 @@ export function parse(str) {
       pc = c
       key += c
     } else {
+      if (c === "'") {
+        i++
+        c = str[i]
+        while (c !== "'" && i < len) {
+          value += c
+          i++
+          c = str[i]
+        }
+      } else {
+        value += c
+      }
       pc = c
-      value += c
     }
   }
   if (pc !== ',' && pc !== ']' && pc !== '}' && pc !== '\n') stack[0].set(key.trim(), value)

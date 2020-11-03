@@ -1,10 +1,15 @@
 import {TwoWayMap} from '/src/util/collections.js'
 import {Game} from '/src/game/game.js'
 import {drawDecal} from '/src/client/render-sector.js'
-import {drawImage, drawSprite, drawText} from '/src/render/render.js'
+import {drawImage, drawSprite, drawText, FONT_WIDTH, FONT_HEIGHT} from '/src/render/render.js'
 import {identity, multiply, rotateX, rotateY, translate} from '/src/math/matrix.js'
 import {textureByName, textureByIndex} from '/src/assets/assets.js'
 import * as In from '/src/game/input.js'
+
+function drawTextSpecial(b, x, y, text, scale, red, green, blue) {
+  drawText(b, x + scale, y - scale, text, scale, 0.0, 0.0, 0.0, 1.0)
+  drawText(b, x, y, text, scale, red, green, blue, 1.0)
+}
 
 export class GameState {
   constructor(client) {
@@ -255,23 +260,52 @@ export class GameState {
 
     client.bufferGUI.zero()
 
+    const pad = 10.0
+    const scale = 2.0
+    const fontWidth = scale * FONT_WIDTH
+    const fontHeight = scale * FONT_HEIGHT
     const hero = game.hero
     if (hero.menu) {
-      let text = 'Inventory'
-      drawText(client.bufferGUI, 12.0, 8.0, text, 2.0, 0.0, 0.0, 0.0, 1.0)
-      drawText(client.bufferGUI, 10.0, 10.0, text, 2.0, 1.0, 0.0, 0.0, 1.0)
-      rendering.bindTexture(gl.TEXTURE0, textureByName('font').texture)
-      rendering.updateAndDraw(client.bufferGUI)
+      let menu = hero.menu
+      let page = menu.page
+      if (page === 'inventory') {
+        drawTextSpecial(client.bufferGUI, pad, client.height - pad - fontHeight, 'Inventory', scale, 1.0, 0.0, 0.0, 1.0)
+        let y = Math.floor(0.5 * client.height)
+        y += fontHeight
+        drawTextSpecial(client.bufferGUI, pad, y, 'Weapons', scale, 1.0, 0.0, 0.0, 1.0)
+        y += fontHeight
+        drawTextSpecial(client.bufferGUI, pad, y, 'Outfits', scale, 1.0, 0.0, 0.0, 1.0)
+        y += fontHeight
+        drawTextSpecial(client.bufferGUI, pad, y, 'Scrolls', scale, 1.0, 0.0, 0.0, 1.0)
+        y += fontHeight
+        drawTextSpecial(client.bufferGUI, pad, y, 'Materials', scale, 1.0, 0.0, 0.0, 1.0)
+        y += fontHeight
+        drawTextSpecial(client.bufferGUI, pad, y, 'Food', scale, 1.0, 0.0, 0.0, 1.0)
+        rendering.bindTexture(gl.TEXTURE0, textureByName('font').texture)
+        rendering.updateAndDraw(client.bufferGUI)
+      }
     } else if (hero.interaction) {
-      let text = 'Shop'
-      drawText(client.bufferGUI, 12.0, 8.0, text, 2.0, 0.0, 0.0, 0.0, 1.0)
-      drawText(client.bufferGUI, 10.0, 10.0, text, 2.0, 1.0, 0.0, 0.0, 1.0)
+      let interaction = hero.interaction
+      let thing = interaction.thing
+      let options = interaction.options
+      drawTextSpecial(client.bufferGUI, pad, client.height - pad - fontHeight, thing.name, scale, 1.0, 0.0, 0.0, 1.0)
+      let y = Math.floor(0.5 * client.height)
+      for (const option of options.keys()) {
+        drawTextSpecial(client.bufferGUI, pad, y, option, scale, 1.0, 0.0, 0.0, 1.0)
+        y += fontHeight
+      }
       rendering.bindTexture(gl.TEXTURE0, textureByName('font').texture)
       rendering.updateAndDraw(client.bufferGUI)
     } else {
-      let text = 'Scroll and Sigil'
-      drawText(client.bufferGUI, 12.0, 8.0, text, 2.0, 0.0, 0.0, 0.0, 1.0)
-      drawText(client.bufferGUI, 10.0, 10.0, text, 2.0, 1.0, 0.0, 0.0, 1.0)
+      let text = ''
+      let health = Math.floor((hero.health / hero.maxHealth) * 20)
+      let stamina = Math.floor((hero.stamina / hero.maxStamina) * 20)
+      for (let i = 0; i < health; i++) text += 'x'
+      let x = pad
+      drawTextSpecial(client.bufferGUI, x, pad, text, scale, 1.0, 0.0, 0.0, 1.0)
+      x += (text.length + 1) * fontWidth
+      for (let i = 0; i < stamina; i++) text += 'x'
+      drawTextSpecial(client.bufferGUI, x, pad, text, scale, 0.0, 1.0, 0.0, 1.0)
       rendering.bindTexture(gl.TEXTURE0, textureByName('font').texture)
       rendering.updateAndDraw(client.bufferGUI)
     }
@@ -282,9 +316,8 @@ export class GameState {
       case 'hero-goto-map':
         this.events.push([trigger, params])
         return
-      case 'hero-dead-goto-menu':
+      case 'hero-dead-menu':
         return
     }
-    console.warn('Unknown notification:', trigger, params)
   }
 }

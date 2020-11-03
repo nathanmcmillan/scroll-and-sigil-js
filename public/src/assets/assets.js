@@ -76,7 +76,7 @@ async function promiseEntity(name, directory, path) {
   let text = await fetchText(directory + path)
 
   let wad = Wad.parse(text)
-  wad.set('name', name)
+  wad.set('_wad', name)
 
   let sprite = wad.get('sprite')
 

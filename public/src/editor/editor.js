@@ -158,7 +158,7 @@ export class Editor {
     this.height = height
     this.callbacks = callbacks
     this.input = new In.EditorInput()
-    this.camera = new Camera(0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+    this.camera = new Camera(0.0, 1.0, 0.0, 0.0, 0.0)
     this.mode = TOP_MODE
     this.tool = DRAW_TOOL
     this.action = OPTION_DRAW_MODE_DEFAULT

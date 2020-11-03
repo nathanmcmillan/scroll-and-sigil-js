@@ -33,6 +33,7 @@ A 3D adventure game with a strong focus on modding and user crafted content.
     - Spawn entity
     - Wake up entity
     - Move towards point
+    - Follow target
     - Quest Complete
     - Sound effect
     - Set target to

@@ -207,6 +207,6 @@ export class ThingReference {
   }
 
   export() {
-    return `${this.x} ${this.z} ${this.entity.get('name')}`
+    return `${this.x} ${this.z} ${this.entity.get('_wad')}`
   }
 }

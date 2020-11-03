@@ -6,7 +6,6 @@ speed: 0.05
 think: baron-update
 sight: 5.0
 stamina: 0
-energy: 0
 attributes {
   strength: 0
   dexterity: 0

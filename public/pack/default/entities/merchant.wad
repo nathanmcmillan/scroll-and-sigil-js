@@ -2,6 +2,7 @@ sprite: baron
 box: 0.4
 height: 0.8
 health: 1
+name: 'Traveling Merchant'
 think: baron-update
 animations {
   idle [walk-1]
@@ -13,8 +14,8 @@ animations {
 interact {
   talk {
     chat [
-      'hello how are you'
-      'heard any news recently'
+      'Hello how are you'
+      'Heard any news recently'
     ]
   }
   sell [
