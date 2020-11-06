@@ -14,6 +14,11 @@ A 3D adventure game with a strong focus on modding and user crafted content.
 
 # Development
 
+### High Priority
+
+- Equiptable Items
+- Cinema camera (floating, de-attached from a target)
+- Experience Points
 - Triggers
   - Events
     - On enter sector
@@ -37,30 +42,49 @@ A 3D adventure game with a strong focus on modding and user crafted content.
     - Quest Complete
     - Sound effect
     - Set target to
-- Experience Points
-- RPG Elements
-  - Stamina
-  - Energy:
-  - Strength
-  - Dexterity
-  - Vitality
-  - Intelligence
-- Equiptable Items
-- Consumable Items
-- Time based effects
-  - Extra strength
-  - Poisoned
 - NPC Interactions
   - Buying
   - Selling
   - Talking
   - Quests
+
+### Low Priority
+
+- Consumable Items
+- Time based effects
+  - Extra strength
+  - Poisoned
 - First person camera support
 - Top down camera support
-- Cinema camera (floating, de-attached from a target)
 - Terrain slopes
-- Doors
-  - Keys
+- Doors and keys
+
+## User Interface
+
+- Health as hearts bottom left. Only show when in combat
+- Stamina as circles above health hears
+- Do not show any UI unless holding down a button or during combat
+- Cutscenes with NPC
+  - Cinema black bars on top and bottom. Show text on bottom black bar
+  - Show response options to the lower right of NPC
+- Talking and buying from NPC
+  - Move character closer to NPC if needed
+  - Show options on left. Show merchant in world (no special screen) on the right.
+- Boss battles
+  - Boss health top middle of screen
+- Hero menu
+  - In world (no special screen)
+  - Inventory
+    - Head piece
+    - Outfit
+    - Weapon
+    - Side weapon
+    - Scrolls - Charms - Totems
+    - Show hero with selected outfit on the right
+  - Options
+    - Adjust audio and video
+    - Exit game to main menu
+- World map
 
 # Notes
 
@@ -78,18 +102,18 @@ Collects sprite images and generates sprite sheets.
 
 Defines the images, sound files, and entity descriptions.
 
-## Resource Pack
+### Resource Pack
 
 - Sprite sheets
 - Music
 - Sound effects
 
-## Entity Pack
+### Entity Pack
 
 - Depends on resource pack
 - Defines things
 
-## Map Pack
+### Map Pack
 
 - Depends on resource and entity packs
 - List of connected maps
@@ -97,8 +121,6 @@ Defines the images, sound files, and entity descriptions.
 # Map Editor
 
 A map design tool with a top down view for sector editing and a 3D view paint mode.
-
-## Modes
 
 ### Vertex Mode
 

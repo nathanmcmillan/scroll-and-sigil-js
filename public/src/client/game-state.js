@@ -1,7 +1,7 @@
 import {TwoWayMap} from '/src/util/collections.js'
 import {Game} from '/src/game/game.js'
 import {drawDecal} from '/src/client/render-sector.js'
-import {drawImage, drawSprite, drawText, FONT_WIDTH, FONT_HEIGHT} from '/src/render/render.js'
+import {drawRectangle, drawSprite, drawText, FONT_WIDTH, FONT_HEIGHT} from '/src/render/render.js'
 import {identity, multiply, rotateX, rotateY, translate} from '/src/math/matrix.js'
 import {textureByName, textureByIndex} from '/src/assets/assets.js'
 import * as In from '/src/game/input.js'
@@ -135,6 +135,7 @@ export class GameState {
     const client = this.client
     const gl = client.gl
     const rendering = client.rendering
+    const camera = game.camera
 
     gl.clear(gl.COLOR_BUFFER_BIT)
     gl.clear(gl.DEPTH_BUFFER_BIT)
@@ -142,31 +143,22 @@ export class GameState {
     let view = new Array(16)
     let projection = new Array(16)
 
-    let camera = game.camera
-
-    rendering.setProgram(1)
-    rendering.setView(0, 0, client.width, client.height)
-
-    identity(view)
-    multiply(projection, client.orthographic, view)
-    rendering.updateUniformMatrix('u_mvp', projection)
-
-    client.bufferGUI.zero()
-
-    let sky = textureByName('sky')
-    let turnX = client.width * 2.0
-    let skyX = (camera.ry / (2.0 * Math.PI)) * turnX
-    if (skyX >= turnX) skyX -= turnX
-    let skyHeight = 2.0 * sky.height
-    let skyY = client.height - skyHeight
-
-    drawImage(client.bufferGUI, -skyX, skyY, turnX * 2.0, skyHeight, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 2.0, 1.0)
-
-    rendering.bindTexture(gl.TEXTURE0, sky.texture)
-    rendering.updateAndDraw(client.bufferGUI)
-
     rendering.setProgram(2)
     rendering.setView(0, 0, client.width, client.height)
+
+    gl.disable(gl.CULL_FACE)
+    gl.disable(gl.DEPTH_TEST)
+
+    identity(view)
+    rotateX(view, Math.sin(camera.rx), Math.cos(camera.rx))
+    rotateY(view, Math.sin(camera.ry), Math.cos(camera.ry))
+    translate(view, 0.0, 0.0, 0.0)
+    multiply(projection, client.perspective, view)
+    rendering.updateUniformMatrix('u_mvp', projection)
+
+    let sky = textureByName('sky-box-up')
+    rendering.bindTexture(gl.TEXTURE0, sky.texture)
+    rendering.bindAndDraw(client.bufferSky)
 
     gl.enable(gl.CULL_FACE)
     gl.enable(gl.DEPTH_TEST)
@@ -264,11 +256,32 @@ export class GameState {
     const scale = 2.0
     const fontWidth = scale * FONT_WIDTH
     const fontHeight = scale * FONT_HEIGHT
+
     const hero = game.hero
-    if (hero.menu) {
+
+    if (game.cinema) {
+      const black = 60.0
+      rendering.setProgram(0)
+      rendering.setView(0, 0, client.width, client.height)
+      rendering.updateUniformMatrix('u_mvp', projection)
+      client.bufferColor.zero()
+      drawRectangle(client.bufferColor, 0.0, 0.0, client.width, black, 0.0, 0.0, 0.0, 1.0)
+      drawRectangle(client.bufferColor, 0.0, client.height - black, client.width, black, 0.0, 0.0, 0.0, 1.0)
+      rendering.updateAndDraw(client.bufferColor)
+    } else if (hero.menu) {
       let menu = hero.menu
       let page = menu.page
       if (page === 'inventory') {
+        let x = Math.floor(0.5 * client.width)
+        let text = 'Outfit'
+        drawTextSpecial(client.bufferGUI, x, client.height - pad - fontHeight, text, scale, 1.0, 0.0, 0.0, 1.0)
+        x += (text.length + 1) * fontWidth
+        text = 'Head Piece'
+        drawTextSpecial(client.bufferGUI, x, client.height - pad - fontHeight, text, scale, 1.0, 0.0, 0.0, 1.0)
+        x += (text.length + 1) * fontWidth
+        text = 'Weapon'
+        drawTextSpecial(client.bufferGUI, x, client.height - pad - fontHeight, text, scale, 1.0, 0.0, 0.0, 1.0)
+
         drawTextSpecial(client.bufferGUI, pad, client.height - pad - fontHeight, 'Inventory', scale, 1.0, 0.0, 0.0, 1.0)
         let y = Math.floor(0.5 * client.height)
         y += fontHeight
@@ -284,6 +297,19 @@ export class GameState {
         rendering.bindTexture(gl.TEXTURE0, textureByName('font').texture)
         rendering.updateAndDraw(client.bufferGUI)
       }
+    } else if (hero.combat) {
+      let text = ''
+      let health = Math.floor((hero.health / hero.maxHealth) * 20)
+      let stamina = Math.floor((hero.stamina / hero.maxStamina) * 20)
+      for (let i = 0; i < health; i++) text += 'x'
+      let x = pad
+      let y = pad
+      drawTextSpecial(client.bufferGUI, x, y, text, scale, 1.0, 0.0, 0.0, 1.0)
+      y += fontHeight
+      for (let i = 0; i < stamina; i++) text += 'x'
+      drawTextSpecial(client.bufferGUI, x, y, text, scale, 0.0, 1.0, 0.0, 1.0)
+      rendering.bindTexture(gl.TEXTURE0, textureByName('font').texture)
+      rendering.updateAndDraw(client.bufferGUI)
     } else if (hero.interaction) {
       let interaction = hero.interaction
       let thing = interaction.thing
@@ -294,18 +320,6 @@ export class GameState {
         drawTextSpecial(client.bufferGUI, pad, y, option, scale, 1.0, 0.0, 0.0, 1.0)
         y += fontHeight
       }
-      rendering.bindTexture(gl.TEXTURE0, textureByName('font').texture)
-      rendering.updateAndDraw(client.bufferGUI)
-    } else {
-      let text = ''
-      let health = Math.floor((hero.health / hero.maxHealth) * 20)
-      let stamina = Math.floor((hero.stamina / hero.maxStamina) * 20)
-      for (let i = 0; i < health; i++) text += 'x'
-      let x = pad
-      drawTextSpecial(client.bufferGUI, x, pad, text, scale, 1.0, 0.0, 0.0, 1.0)
-      x += (text.length + 1) * fontWidth
-      for (let i = 0; i < stamina; i++) text += 'x'
-      drawTextSpecial(client.bufferGUI, x, pad, text, scale, 0.0, 1.0, 0.0, 1.0)
       rendering.bindTexture(gl.TEXTURE0, textureByName('font').texture)
       rendering.updateAndDraw(client.bufferGUI)
     }

@@ -274,3 +274,172 @@ export function drawText(b, x, y, text, scale, red, green, blue, alpha) {
     currentX += fontWidth
   }
 }
+
+export function drawCubeSide(b, side, x, y, z, size) {
+  let pos = b.vertexPosition
+  let vertices = b.vertices
+
+  switch (side) {
+    case 0:
+      vertices[pos] = x + size
+      vertices[pos + 1] = y - size
+      vertices[pos + 2] = z - size
+      vertices[pos + 3] = 0.0
+      vertices[pos + 4] = 1.0
+
+      vertices[pos + 5] = x + size
+      vertices[pos + 6] = y + size
+      vertices[pos + 7] = z - size
+      vertices[pos + 8] = 0.0
+      vertices[pos + 9] = 0.0
+
+      vertices[pos + 10] = x + size
+      vertices[pos + 11] = y + size
+      vertices[pos + 12] = z + size
+      vertices[pos + 13] = 1.0
+      vertices[pos + 14] = 0.0
+
+      vertices[pos + 15] = x + size
+      vertices[pos + 16] = y - size
+      vertices[pos + 17] = z + size
+      vertices[pos + 18] = 1.0
+      vertices[pos + 19] = 1.0
+      break
+    case 1:
+      vertices[pos] = x - size
+      vertices[pos + 1] = y - size
+      vertices[pos + 2] = z - size
+      vertices[pos + 3] = 1.0
+      vertices[pos + 4] = 1.0
+
+      vertices[pos + 5] = x - size
+      vertices[pos + 6] = y - size
+      vertices[pos + 7] = z + size
+      vertices[pos + 8] = 0.0
+      vertices[pos + 9] = 1.0
+
+      vertices[pos + 10] = x - size
+      vertices[pos + 11] = y + size
+      vertices[pos + 12] = z + size
+      vertices[pos + 13] = 0.0
+      vertices[pos + 14] = 0.0
+
+      vertices[pos + 15] = x - size
+      vertices[pos + 16] = y + size
+      vertices[pos + 17] = z - size
+      vertices[pos + 18] = 1.0
+      vertices[pos + 19] = 0.0
+      break
+    case 2:
+      vertices[pos] = x - size
+      vertices[pos + 1] = y + size
+      vertices[pos + 2] = z - size
+      vertices[pos + 3] = 0.0
+      vertices[pos + 4] = 0.0
+
+      vertices[pos + 5] = x - size
+      vertices[pos + 6] = y + size
+      vertices[pos + 7] = z + size
+      vertices[pos + 8] = 0.0
+      vertices[pos + 9] = 1.0
+
+      vertices[pos + 10] = x + size
+      vertices[pos + 11] = y + size
+      vertices[pos + 12] = z + size
+      vertices[pos + 13] = 1.0
+      vertices[pos + 14] = 1.0
+
+      vertices[pos + 15] = x + size
+      vertices[pos + 16] = y + size
+      vertices[pos + 17] = z - size
+      vertices[pos + 18] = 1.0
+      vertices[pos + 19] = 0.0
+      break
+    case 3:
+      vertices[pos] = x - size
+      vertices[pos + 1] = y - size
+      vertices[pos + 2] = z - size
+      vertices[pos + 3] = 0.0
+      vertices[pos + 4] = 0.0
+
+      vertices[pos + 5] = x + size
+      vertices[pos + 6] = y - size
+      vertices[pos + 7] = z - size
+      vertices[pos + 8] = 1.0
+      vertices[pos + 9] = 0.0
+
+      vertices[pos + 10] = x + size
+      vertices[pos + 11] = y - size
+      vertices[pos + 12] = z + size
+      vertices[pos + 13] = 1.0
+      vertices[pos + 14] = 1.0
+
+      vertices[pos + 15] = x - size
+      vertices[pos + 16] = y - size
+      vertices[pos + 17] = z + size
+      vertices[pos + 18] = 0.0
+      vertices[pos + 19] = 1.0
+      break
+    case 4:
+      vertices[pos] = x + size
+      vertices[pos + 1] = y - size
+      vertices[pos + 2] = z + size
+      vertices[pos + 3] = 0.0
+      vertices[pos + 4] = 1.0
+
+      vertices[pos + 5] = x + size
+      vertices[pos + 6] = y + size
+      vertices[pos + 7] = z + size
+      vertices[pos + 8] = 0.0
+      vertices[pos + 9] = 0.0
+
+      vertices[pos + 10] = x - size
+      vertices[pos + 11] = y + size
+      vertices[pos + 12] = z + size
+      vertices[pos + 13] = 1.0
+      vertices[pos + 14] = 0.0
+
+      vertices[pos + 15] = x - size
+      vertices[pos + 16] = y - size
+      vertices[pos + 17] = z + size
+      vertices[pos + 18] = 1.0
+      vertices[pos + 19] = 1.0
+      break
+    case 5:
+      vertices[pos] = x - size
+      vertices[pos + 1] = y - size
+      vertices[pos + 2] = z - size
+      vertices[pos + 3] = 0.0
+      vertices[pos + 4] = 1.0
+
+      vertices[pos + 5] = x - size
+      vertices[pos + 6] = y + size
+      vertices[pos + 7] = z - size
+      vertices[pos + 8] = 0.0
+      vertices[pos + 9] = 0.0
+
+      vertices[pos + 10] = x + size
+      vertices[pos + 11] = y + size
+      vertices[pos + 12] = z - size
+      vertices[pos + 13] = 1.0
+      vertices[pos + 14] = 0.0
+
+      vertices[pos + 15] = x + size
+      vertices[pos + 16] = y - size
+      vertices[pos + 17] = z - size
+      vertices[pos + 18] = 1.0
+      vertices[pos + 19] = 1.0
+      break
+  }
+
+  b.vertexPosition = pos + 20
+  index4(b)
+}
+
+export function drawSkyBox(b) {
+  const x = 0.0
+  const y = 0.0
+  const z = 0.0
+  const size = 0.5
+  for (let i = 0; i < 6; i++) drawCubeSide(b, i, x, y, z, size)
+}

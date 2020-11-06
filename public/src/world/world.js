@@ -240,13 +240,13 @@ export class World {
     for (const line of this.lines) this.buildCellLines(line)
   }
 
-  trigger(type, trigger, conditions, events) {
-    let list = this.triggets.get(type)
+  trigger(trigger, conditions, events) {
+    let list = this.triggers.get(trigger)
     if (!list) {
       list = []
-      this.triggers.set(type, list)
+      this.triggers.set(trigger, list)
     }
-    list.push(events)
+    list.push([conditions, events])
   }
 
   notify(trigger, params) {
@@ -255,6 +255,16 @@ export class World {
       this.game.notify(trigger, params)
       return
     }
-    for (const entry of list) entry.process()
+    for (const entry of list) {
+      let conditions = entry[0]
+      let events = entry[1]
+      console.log(trigger, params, '=>', conditions, events)
+      if (trigger === 'interact-line') {
+        let line = params[1]
+        if (line === conditions[0]) {
+          this.game.notify(events[0])
+        }
+      }
+    }
   }
 }

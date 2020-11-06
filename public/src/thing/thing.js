@@ -46,9 +46,16 @@ export class Thing {
     let maxR = Math.floor(this.z + box) >> WORLD_CELL_SHIFT
 
     let world = this.world
+    let columns = world.columns
+
+    if (minC < 0) minC = 0
+    if (minR < 0) minR = 0
+    if (maxC > columns) maxC = columns
+    if (maxR > world.rows) maxR = world.rows
+
     for (let r = minR; r <= maxR; r++) {
       for (let c = minC; c <= maxC; c++) {
-        world.cells[c + r * world.columns].pushThing(this)
+        world.cells[c + r * columns].pushThing(this)
       }
     }
 
@@ -189,14 +196,20 @@ export class Thing {
       let minR = Math.floor(this.z - box) >> WORLD_CELL_SHIFT
       let maxR = Math.floor(this.z + box) >> WORLD_CELL_SHIFT
 
+      let world = this.world
+      let columns = world.columns
+
+      if (minC < 0) minC = 0
+      if (minR < 0) minR = 0
+      if (maxC > columns) maxC = columns
+      if (maxR > world.rows) maxR = world.rows
+
       let collided = new Set()
       let collisions = new Set()
 
-      let world = this.world
-
       for (let r = minR; r <= maxR; r++) {
         for (let c = minC; c <= maxC; c++) {
-          let cell = world.cells[c + r * world.columns]
+          let cell = world.cells[c + r * columns]
           let i = cell.thingCount
           while (i--) {
             let thing = cell.things[i]

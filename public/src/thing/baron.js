@@ -3,10 +3,10 @@ import {ANIMATION_ALMOST_DONE, ANIMATION_DONE} from '/src/world/world.js'
 import {Thing} from '/src/thing/thing.js'
 import {WORLD_CELL_SHIFT} from '/src/world/world.js'
 import {Plasma} from '/src/missile/plasma.js'
-import {Blood} from '/src/particle/blood.js'
 import {playSound} from '/src/assets/sounds.js'
 import {textureIndexForName, entityByName} from '/src/assets/assets.js'
 import {animationMap} from '/src/entity/entity.js'
+import {redBloodTowards, redBloodExplode} from '/src/thing/thing-util.js'
 
 const STATUS_LOOK = 0
 const STATUS_CHASE = 1
@@ -111,7 +111,7 @@ export class Baron extends Thing {
     }
   }
 
-  damage(health) {
+  damage(source, health) {
     if (this.status === STATUS_DEAD || this.status === STATUS_FINAL) return
     this.health -= health
     if (this.health <= 0) {
@@ -121,20 +121,10 @@ export class Baron extends Thing {
       this.animation = this.animations.get('death')
       this.updateSprite()
       playSound('baron-death')
+      redBloodExplode(this)
     } else {
       playSound('baron-pain')
-    }
-    const spread = 0.2
-    const tau = 2.0 * Math.PI
-    for (let i = 0; i < 20; i++) {
-      let theta = tau * Math.random()
-      let x = this.x + this.box * Math.sin(theta)
-      let z = this.z + this.box * Math.cos(theta)
-      let y = this.y + this.height * Math.random()
-      let dx = spread * Math.sin(theta)
-      let dz = spread * Math.cos(theta)
-      let dy = spread * Math.random()
-      new Blood(this.world, entityByName('blood'), x, y, z, dx, dy, dz)
+      redBloodTowards(this, source)
     }
   }
 
@@ -173,7 +163,7 @@ export class Baron extends Thing {
     if (frame === ANIMATION_ALMOST_DONE) {
       this.reaction = 40 + randomInt(220)
       if (this.approximateDistance(this.target)) {
-        this.target.damage(1 + randomInt(3))
+        this.target.damage(this, 1 + randomInt(3))
       }
     } else if (frame === ANIMATION_DONE) {
       this.status = STATUS_CHASE
@@ -187,8 +177,8 @@ export class Baron extends Thing {
     let frame = this.updateAnimation()
     if (frame === ANIMATION_ALMOST_DONE) {
       this.reaction = 40 + randomInt(220)
+      const speed = 0.3
       let target = this.target
-      let speed = 0.3
       let angle = Math.atan2(target.z - this.z, target.x - this.x)
       let distance = this.approximateDistance(target)
       let dx = Math.cos(angle)

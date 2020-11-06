@@ -22,4 +22,7 @@ interact {
     scroll
     sigil
   ]
+  quest [
+    foobar
+  ]
 }

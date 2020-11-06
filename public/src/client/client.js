@@ -2,6 +2,7 @@ import {fetchText, fetchImage} from '/src/client/net.js'
 import {Buffer} from '/src/webgl/buffer.js'
 import {createTexture, compileProgram} from '/src/webgl/webgl.js'
 import {Renderer} from '/src/webgl/renderer.js'
+import {drawSkyBox} from '/src/render/render.js'
 import {drawWall, drawFloorCeil} from '/src/client/render-sector.js'
 import {orthographic, perspective} from '/src/math/matrix.js'
 import {saveSound, saveMusic, pauseMusic, resumeMusic} from '/src/assets/sounds.js'
@@ -27,6 +28,7 @@ export class Client {
     this.rendering = null
     this.bufferGUI = null
     this.bufferColor = null
+    this.bufferSky = null
     this.sectorBuffers = new Map()
     this.spriteBuffers = new Map()
     this.music = null
@@ -204,6 +206,9 @@ export class Client {
     this.rendering = new Renderer(gl)
     this.bufferGUI = new Buffer(2, 4, 2, 0, 4 * 800, 36 * 800)
     this.bufferColor = new Buffer(2, 4, 0, 0, 4 * 1600, 36 * 1600)
+    this.bufferSky = new Buffer(3, 0, 2, 0, 24, 36)
+
+    drawSkyBox(this.bufferSky)
 
     let rendering = this.rendering
 
@@ -217,6 +222,9 @@ export class Client {
 
     rendering.makeVAO(this.bufferGUI)
     rendering.makeVAO(this.bufferColor)
+    rendering.makeVAO(this.bufferSky)
+
+    rendering.updateVAO(this.bufferSky, gl.STATIC_DRAW)
 
     switch (main.get('open')) {
       case 'game':

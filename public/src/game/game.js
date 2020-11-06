@@ -26,6 +26,7 @@ export class Game {
     this.input = new Input()
     this.hero = null
     this.camera = new Camera(0.0, 0.0, 0.0, 0.0, 0.0, 8.0)
+    this.cinema = false
   }
 
   async load(file) {
@@ -127,39 +128,64 @@ export class Game {
     }
 
     if (this.camera.target === null) throw 'map is missing a hero entity'
+
+    if (index < map.length) {
+      let triggers = index + parseInt(map[index].split(' ')[1])
+      index++
+      for (; index <= triggers; index++) {
+        let trigger = map[index].split(' ')
+        console.log(trigger)
+        if (trigger[0] === 'line') {
+          let line = lines[parseInt(trigger[1])]
+          world.trigger('interact-line', [line], trigger.slice(2))
+        }
+      }
+    }
   }
 
   update() {
     let input = this.input
     let camera = this.camera
 
-    if (input.rightLeft()) {
-      camera.ry -= 0.05
-      if (camera.ry < 0.0) camera.ry += 2.0 * Math.PI
-    }
+    if (this.cinema) {
+      camera.towardsTarget()
+    } else {
+      if (input.rightLeft()) {
+        camera.ry -= 0.05
+        if (camera.ry < 0.0) camera.ry += 2.0 * Math.PI
+      }
 
-    if (input.rightRight()) {
-      camera.ry += 0.05
-      if (camera.ry >= 2.0 * Math.PI) camera.ry -= 2.0 * Math.PI
-    }
+      if (input.rightRight()) {
+        camera.ry += 0.05
+        if (camera.ry >= 2.0 * Math.PI) camera.ry -= 2.0 * Math.PI
+      }
 
-    if (input.rightUp()) {
-      camera.rx -= 0.05
-      if (camera.rx < 0.0) camera.rx += 2.0 * Math.PI
-    }
+      if (input.rightUp()) {
+        camera.rx -= 0.05
+        if (camera.rx < -0.5 * Math.PI) camera.rx = -0.5 * Math.PI
+      }
 
-    if (input.rightDown()) {
-      camera.rx += 0.05
-      if (camera.rx >= 2.0 * Math.PI) camera.rx -= 2.0 * Math.PI
-    }
+      if (input.rightDown()) {
+        camera.rx += 0.05
+        if (camera.rx > 0.5 * Math.PI) camera.rx = 0.5 * Math.PI
+      }
 
-    camera.updateCinema()
-    camera.target.rotation = camera.ry
+      camera.followCinema()
+      camera.target.rotation = camera.ry
+    }
 
     this.world.update()
   }
 
   notify(trigger, params) {
+    switch (trigger) {
+      case 'begin-cinema':
+        this.cinema = true
+        return
+      case 'end-cinema':
+        this.cinema = false
+        return
+    }
     this.parent.notify(trigger, params)
   }
 }

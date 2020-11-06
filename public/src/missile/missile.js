@@ -83,7 +83,7 @@ export class Missile {
   }
 
   hit(thing) {
-    if (thing) thing.damage(this.damage)
+    if (thing) thing.damage(this, this.damage)
   }
 
   check() {

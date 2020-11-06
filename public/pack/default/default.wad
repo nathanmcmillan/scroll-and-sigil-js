@@ -30,7 +30,7 @@ sounds [
   plasma-impact
 ]
 textures [
-  {name:sky, wrap:repeat}
   {name:font, wrap:clamp}
   {name:cursor, wrap:clamp}
+  {name:sky-box-up, wrap:clamp}
 ]

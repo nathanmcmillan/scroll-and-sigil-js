@@ -34,9 +34,16 @@ export class Particle {
     let maxR = Math.floor(this.z + box) >> WORLD_CELL_SHIFT
 
     let world = this.world
+    let columns = world.columns
+
+    if (minC < 0) minC = 0
+    if (minR < 0) minR = 0
+    if (maxC > columns) maxC = columns
+    if (maxR > world.rows) maxR = world.rows
+
     for (let r = minR; r <= maxR; r++) {
       for (let c = minC; c <= maxC; c++) {
-        world.cells[c + r * world.columns].pushParticle(this)
+        world.cells[c + r * columns].pushParticle(this)
       }
     }
 

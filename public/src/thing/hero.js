@@ -1,5 +1,4 @@
 import {Thing} from '/src/thing/thing.js'
-import {Blood} from '/src/particle/blood.js'
 import {playSound} from '/src/assets/sounds.js'
 import {textureIndexForName, entityByName} from '/src/assets/assets.js'
 import {animationMap} from '/src/entity/entity.js'
@@ -8,6 +7,7 @@ import {Plasma} from '/src/missile/plasma.js'
 import {randomInt} from '/src/math/random.js'
 import {lineIntersect} from '/src/math/vector.js'
 import * as In from '/src/game/input.js'
+import {redBloodTowards, redBloodExplode} from '/src/thing/thing-util.js'
 
 const STATUS_IDLE = 0
 const STATUS_MOVE = 1
@@ -15,6 +15,8 @@ const STATUS_MELEE = 2
 const STATUS_MISSILE = 3
 const STATUS_DEAD = 4
 const STATUS_BUSY = 5
+
+const COMBAT_TIMER = 300
 
 export class Hero extends Thing {
   constructor(world, entity, x, z, input) {
@@ -37,11 +39,18 @@ export class Hero extends Thing {
     this.experienceNeeded = 20
     this.techniquePoints = 0
     this.inventory = []
+    this.head = null
+    this.outfit = null
+    this.weapon = null
+    this.combat = 0
     this.menu = null
+    this.menuSub = 0
+    this.menuColumn = 0
+    this.menuRow = 0
     this.interaction = null
   }
 
-  damage(health) {
+  damage(source, health) {
     if (this.status === STATUS_BUSY) {
       this.status = STATUS_IDLE
       this.menu = null
@@ -54,21 +63,13 @@ export class Hero extends Thing {
       this.animationFrame = 0
       this.animation = this.animations.get('death')
       this.updateSprite()
+      this.combat = 0
       playSound('baron-death')
+      redBloodExplode(this)
     } else {
+      this.combat = COMBAT_TIMER
       playSound('baron-pain')
-    }
-    const spread = 0.2
-    const tau = 2.0 * Math.PI
-    for (let i = 0; i < 20; i++) {
-      let theta = tau * Math.random()
-      let x = this.x + this.box * Math.sin(theta)
-      let z = this.z + this.box * Math.cos(theta)
-      let y = this.y + this.height * Math.random()
-      let dx = spread * Math.sin(theta)
-      let dz = spread * Math.cos(theta)
-      let dy = spread * Math.random()
-      new Blood(this.world, entityByName('blood'), x, y, z, dx, dy, dz)
+      redBloodTowards(this, source)
     }
   }
 
@@ -159,9 +160,9 @@ export class Hero extends Thing {
         while (i--) {
           let line = cell.lines[i]
           if (this.closeToLine(x, z, line)) {
-            console.log('interacting with line', line)
             this.world.notify('interact-line', [this, line])
-            this.world.notify('hero-goto-map', 'base_copy')
+            // this.world.notify('hero-goto-map', 'base_copy')
+            // this.world.notify('begin-cinema')
             return true
           }
         }
@@ -251,7 +252,7 @@ export class Hero extends Thing {
             let thing = cell.things[i]
             if (this === thing) continue
             if (this.closeToThing(x, z, thing)) {
-              thing.damage(1 + randomInt(3))
+              thing.damage(this, 1 + randomInt(3))
               if (thing.health <= 0) this.takeExperience(thing.experience)
               break iter
             }
@@ -287,6 +288,7 @@ export class Hero extends Thing {
   }
 
   move() {
+    if (this.combat > 0) this.combat--
     if (this.reaction > 0) {
       this.reaction--
     } else if (this.input.a()) {
@@ -294,6 +296,7 @@ export class Hero extends Thing {
       this.animationFrame = 0
       this.animation = this.animations.get('missile')
       this.updateSprite()
+      this.combat = COMBAT_TIMER
       playSound('baron-missile')
       return
     } else if (this.input.b()) {
@@ -301,6 +304,7 @@ export class Hero extends Thing {
       this.animationFrame = 0
       this.animation = this.animations.get('melee')
       this.updateSprite()
+      this.combat = COMBAT_TIMER
       playSound('baron-melee')
       return
     } else if (this.input.rightTrigger()) {
