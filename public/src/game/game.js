@@ -8,7 +8,7 @@ import {Input} from '/src/game/input.js'
 import {Hero} from '/src/thing/hero.js'
 import {Baron} from '/src/thing/baron.js'
 import {Tree} from '/src/thing/tree.js'
-import {Merchant} from '/src/thing/merchant.js'
+import {NonPlayerCharacter} from '/src/thing/npc.js'
 import {Medkit} from '/src/thing/medkit.js'
 import {Armor} from '/src/thing/armor.js'
 import {textureIndexForName, entityByName} from '/src/assets/assets.js'
@@ -103,6 +103,7 @@ export class Game {
       let z = parseFloat(thing[1])
       let name = thing[2]
       let entity = entityByName(name)
+      if (entity.has('class')) name = entity.get('class')
       switch (name) {
         case 'baron':
           new Baron(world, entity, x, z)
@@ -116,8 +117,8 @@ export class Game {
         case 'armor':
           new Armor(world, entity, x, z)
           continue
-        case 'merchant':
-          new Merchant(world, entity, x, z)
+        case 'npc':
+          new NonPlayerCharacter(world, entity, x, z)
           continue
         case 'hero':
           if (this.hero) this.hero.set(x, z)

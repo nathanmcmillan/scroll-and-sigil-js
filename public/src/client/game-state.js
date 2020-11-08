@@ -160,7 +160,7 @@ export class GameState {
     rendering.bindTexture(gl.TEXTURE0, sky.texture)
     rendering.bindAndDraw(client.bufferSky)
 
-    gl.enable(gl.CULL_FACE)
+    // gl.enable(gl.CULL_FACE)
     gl.enable(gl.DEPTH_TEST)
 
     identity(view)
@@ -312,11 +312,10 @@ export class GameState {
       rendering.updateAndDraw(client.bufferGUI)
     } else if (hero.interaction) {
       let interaction = hero.interaction
-      let thing = interaction.thing
-      let options = interaction.options
-      drawTextSpecial(client.bufferGUI, pad, client.height - pad - fontHeight, thing.name, scale, 1.0, 0.0, 0.0, 1.0)
+      let interactionWith = hero.interactionWith
+      drawTextSpecial(client.bufferGUI, pad, client.height - pad - fontHeight, interactionWith.name, scale, 1.0, 0.0, 0.0, 1.0)
       let y = Math.floor(0.5 * client.height)
-      for (const option of options.keys()) {
+      for (const option of interaction.keys()) {
         drawTextSpecial(client.bufferGUI, pad, y, option, scale, 1.0, 0.0, 0.0, 1.0)
         y += fontHeight
       }
@@ -327,10 +326,10 @@ export class GameState {
 
   notify(trigger, params) {
     switch (trigger) {
-      case 'hero-goto-map':
+      case 'goto-map':
         this.events.push([trigger, params])
         return
-      case 'hero-dead-menu':
+      case 'death-menu':
         return
     }
   }

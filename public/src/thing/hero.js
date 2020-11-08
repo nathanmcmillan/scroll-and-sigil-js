@@ -34,10 +34,11 @@ export class Hero extends Thing {
     this.status = STATUS_IDLE
     this.reaction = 0
     this.group = 'human'
-    this.rank = 1
+    this.level = 1
     this.experience = 0
     this.experienceNeeded = 20
-    this.techniquePoints = 0
+    this.skills = 0
+    this.tree = {}
     this.inventory = []
     this.head = null
     this.outfit = null
@@ -47,7 +48,7 @@ export class Hero extends Thing {
     this.menuSub = 0
     this.menuColumn = 0
     this.menuRow = 0
-    this.interaction = null
+    this.interactionWith = null
   }
 
   damage(source, health) {
@@ -55,6 +56,7 @@ export class Hero extends Thing {
       this.status = STATUS_IDLE
       this.menu = null
       this.interaction = null
+      this.interactionWith = null
     }
     this.health -= health
     if (this.health <= 0) {
@@ -91,18 +93,19 @@ export class Hero extends Thing {
   }
 
   closeToThing(x, z, thing) {
-    let box = thing.box
-    let vx = x - this.x
-    let vz = z - this.z
-    let wx = thing.x - this.x
-    let wz = thing.z - this.z
-    let t = (wx * vx + wz * vz) / (vx * vx + vz * vz)
-    if (t < 0.0) t = 0.0
-    else if (t > 1.0) t = 1.0
-    let px = this.x + vx * t - thing.x
-    let pz = this.z + vz * t - thing.z
-    if (px * px + pz * pz > box * box) return false
-    return true
+    return this.approximateDistance(thing)
+    // let box = thing.box
+    // let vx = x - this.x
+    // let vz = z - this.z
+    // let wx = thing.x - this.x
+    // let wz = thing.z - this.z
+    // let t = (wx * vx + wz * vz) / (vx * vx + vz * vz)
+    // if (t < 0.0) t = 0.0
+    // else if (t > 1.0) t = 1.0
+    // let px = this.x + vx * t - thing.x
+    // let pz = this.z + vz * t - thing.z
+    // if (px * px + pz * pz > box * box) return false
+    // return true
   }
 
   closeToLine(x, z, line) {
@@ -146,13 +149,15 @@ export class Hero extends Thing {
         while (i--) {
           let thing = cell.things[i]
           if (this === thing) continue
-          if (thing.interactions && this.closeToThing(x, z, thing)) {
+          if (thing.interaction && this.closeToThing(x, z, thing)) {
+            this.combat = 0
             this.status = STATUS_BUSY
             this.animationFrame = 0
             this.animation = this.animations.get('move')
             this.updateSprite()
-            this.interaction = {thing: thing, options: thing.interactions}
-            this.world.notify('interact', [this, thing])
+            this.interactionWith = thing
+            this.interaction = thing.interaction
+            this.world.notify('interact-thing', [this, thing])
             return true
           }
         }
@@ -161,8 +166,6 @@ export class Hero extends Thing {
           let line = cell.lines[i]
           if (this.closeToLine(x, z, line)) {
             this.world.notify('interact-line', [this, line])
-            // this.world.notify('hero-goto-map', 'base_copy')
-            // this.world.notify('begin-cinema')
             return true
           }
         }
@@ -176,7 +179,7 @@ export class Hero extends Thing {
     if (this.animationFrame === this.animation.length - 1) {
       if (this.input.a()) {
         this.input.off(In.BUTTON_A)
-        this.world.notify('hero-dead-menu')
+        this.world.notify('death-menu')
       }
       return
     }
@@ -197,7 +200,10 @@ export class Hero extends Thing {
       this.input.off(In.RIGHT_TRIGGER)
       this.status = STATUS_IDLE
       if (this.menu) this.menu = null
-      if (this.interaction) this.interaction = null
+      if (this.interaction) {
+        this.interaction = null
+        this.interactionWith = null
+      }
     }
   }
 

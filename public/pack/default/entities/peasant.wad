@@ -3,8 +3,8 @@ sprite: baron
 box: 0.4
 height: 0.8
 health: 1
-name: 'Traveling Merchant'
-group: (human)(merchant)
+name: Peasant
+group: (human)(peasant)
 think: baron-update
 animations {
   idle [walk-1]
@@ -14,10 +14,13 @@ animations {
   death [death-0, death-1]
 }
 interaction {
-  type: merchant
-  title: 'Purchase equipment'
-  inventory [
-    ['medkit', 1]
-    ['armor', 1]
+  type: quest
+  title: Speak
+  dialogue [
+    'I heard a rumor of people disappearing in the forest.'
+    'Will you investigate?'
+  ]
+  events [
+    ['begin-quest', 'quest-name']
   ]
 }

@@ -8,8 +8,10 @@ const STATUS_STAND = 0
 const STATUS_DEAD = 1
 const STATUS_FINAL = 2
 
-export class Merchant extends Thing {
+export class NonPlayerCharacter extends Thing {
   constructor(world, entity, x, z) {
+    let box = entity.get('box')
+    let height = entity.get('height')
     super(world, x, z, 0.0, 0.4, 1.0)
     this.texture = textureIndexForName(entity.get('sprite'))
     this.animations = animationMap(entity)
@@ -22,8 +24,8 @@ export class Merchant extends Thing {
     this.status = STATUS_STAND
     this.reaction = 0
     this.name = entity.get('name')
-    this.group = 'human|merchant'
-    this.interactions = entity.get('interact')
+    this.group = entity.get('group')
+    this.interaction = entity.get('interaction')
   }
 
   damage(source, health) {

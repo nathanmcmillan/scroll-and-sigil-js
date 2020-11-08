@@ -31,7 +31,7 @@ export class Thing {
     this.isItem = false
     this.name = null
     this.group = null
-    this.interactions = null
+    this.interaction = null
     this.experience = 1
 
     this.pushToCells()
