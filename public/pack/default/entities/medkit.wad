@@ -1,4 +1,4 @@
 sprite: item
 animation: medkit
-box: 0.2
+box: 0.25
 height: 0.2

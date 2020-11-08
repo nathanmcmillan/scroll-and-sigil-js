@@ -1,6 +1,6 @@
 sprite: baron
 box: 0.4
-height: 0.8
+height: 1.0
 health: 1
 speed: 0.05
 think: baron-update

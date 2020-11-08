@@ -20,7 +20,9 @@ const COMBAT_TIMER = 300
 
 export class Hero extends Thing {
   constructor(world, entity, x, z, input) {
-    super(world, x, z, 0.0, 0.75, 2.0)
+    super(world, x, z)
+    this.box = entity.get('box')
+    this.height = entity.get('height')
     this.input = input
     this.texture = textureIndexForName(entity.get('sprite'))
     this.animations = animationMap(entity)
@@ -49,6 +51,7 @@ export class Hero extends Thing {
     this.menuColumn = 0
     this.menuRow = 0
     this.interactionWith = null
+    this.setup()
   }
 
   damage(source, health) {
@@ -93,7 +96,7 @@ export class Hero extends Thing {
   }
 
   closeToThing(x, z, thing) {
-    return this.approximateDistance(thing)
+    return this.approximateDistance(thing) < 2.0
     // let box = thing.box
     // let vx = x - this.x
     // let vz = z - this.z

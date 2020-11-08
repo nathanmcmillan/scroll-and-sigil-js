@@ -2,18 +2,18 @@ import {Float} from '/src/math/vector.js'
 import {WORLD_CELL_SHIFT, GRAVITY, ANIMATION_RATE, ANIMATION_NOT_DONE, ANIMATION_ALMOST_DONE, ANIMATION_DONE} from '/src/world/world.js'
 
 export class Particle {
-  constructor(world, x, y, z, dx, dy, dz, box, height) {
+  constructor(world, x, y, z) {
     let sector = world.findSector(x, z)
     this.world = world
     this.sector = sector
     this.x = x
     this.y = y
     this.z = z
-    this.deltaX = dx
-    this.deltaY = dy
-    this.deltaZ = dz
-    this.box = box
-    this.height = height
+    this.deltaX = 0.0
+    this.deltaY = 0.0
+    this.deltaZ = 0.0
+    this.box = 0.0
+    this.height = 0.0
     this.ground = false
     this.texture = 0
     this.sprite = null
@@ -21,9 +21,11 @@ export class Particle {
     this.maxC = 0
     this.minR = 0
     this.maxR = 0
+  }
 
+  setup() {
     this.pushToCells()
-    world.pushParticle(this)
+    this.world.pushThing(this)
   }
 
   pushToCells() {

@@ -17,7 +17,9 @@ const STATUS_FINAL = 5
 
 export class Baron extends Thing {
   constructor(world, entity, x, z) {
-    super(world, x, z, 0.0, 0.4, 1.0)
+    super(world, x, z)
+    this.box = entity.get('box')
+    this.height = entity.get('height')
     this.texture = textureIndexForName(entity.get('sprite'))
     this.animations = animationMap(entity)
     this.animation = this.animations.get('idle')
@@ -32,6 +34,7 @@ export class Baron extends Thing {
     this.reaction = 0
     this.name = 'Demon'
     this.group = 'demon'
+    this.setup()
   }
 
   tryOverlap(x, z, thing) {
@@ -162,7 +165,7 @@ export class Baron extends Thing {
     let frame = this.updateAnimation()
     if (frame === ANIMATION_ALMOST_DONE) {
       this.reaction = 40 + randomInt(220)
-      if (this.approximateDistance(this.target)) {
+      if (this.approximateDistance(this.target) < this.meleeRange) {
         this.target.damage(this, 1 + randomInt(3))
       }
     } else if (frame === ANIMATION_DONE) {

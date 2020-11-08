@@ -5,12 +5,13 @@ import {animationMap} from '/src/entity/entity.js'
 
 export class PlasmaExplosion extends Particle {
   constructor(world, entity, x, y, z) {
-    super(world, x, y, z, 0.0, 0.0, 0.0, 0.0, 0.0)
+    super(world, x, y, z)
     this.texture = textureIndexForName(entity.get('sprite'))
     this.animation = animationMap(entity)
     this.sprite = this.animation[0]
     this.animationMod = 0
     this.animationFrame = 0
+    this.setup()
   }
 
   update() {

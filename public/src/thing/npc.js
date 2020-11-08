@@ -10,9 +10,9 @@ const STATUS_FINAL = 2
 
 export class NonPlayerCharacter extends Thing {
   constructor(world, entity, x, z) {
-    let box = entity.get('box')
-    let height = entity.get('height')
-    super(world, x, z, 0.0, 0.4, 1.0)
+    super(world, x, z)
+    this.box = entity.get('box')
+    this.height = entity.get('height')
     this.texture = textureIndexForName(entity.get('sprite'))
     this.animations = animationMap(entity)
     this.animation = this.animations.get('idle')
@@ -26,6 +26,7 @@ export class NonPlayerCharacter extends Thing {
     this.name = entity.get('name')
     this.group = entity.get('group')
     this.interaction = entity.get('interaction')
+    this.setup()
   }
 
   damage(source, health) {

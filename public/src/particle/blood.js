@@ -6,10 +6,16 @@ import {randomInt} from '/src/math/random.js'
 
 export class Blood extends Particle {
   constructor(world, entity, x, y, z, dx, dy, dz) {
-    super(world, x, y, z, dx, dy, dz, 0.2, 0.2)
+    super(world, x, y, z)
+    this.box = entity.get('box')
+    this.height = entity.get('height')
     this.texture = textureIndexForName(entity.get('sprite'))
     let types = entity.get('animation')
     this.sprite = spritesByName(entity.get('sprite')).get(types[randomInt(types.length)])
+    this.deltaX = dx
+    this.deltaY = dy
+    this.deltaZ = dz
+    this.setup()
   }
 
   hitFloor() {

@@ -2,7 +2,7 @@ import {Float} from '/src/math/vector.js'
 import {WORLD_CELL_SHIFT, GRAVITY, RESISTANCE, ANIMATION_RATE, ANIMATION_NOT_DONE, ANIMATION_ALMOST_DONE, ANIMATION_DONE} from '/src/world/world.js'
 
 export class Thing {
-  constructor(world, x, z, rotation, box, height) {
+  constructor(world, x, z) {
     let sector = world.findSector(x, z)
     this.world = world
     this.sector = sector
@@ -12,9 +12,9 @@ export class Thing {
     this.deltaX = 0.0
     this.deltaY = 0.0
     this.deltaZ = 0.0
-    this.box = box
-    this.height = height
-    this.rotation = rotation
+    this.box = 0.0
+    this.height = 0.0
+    this.rotation = 0.0
     this.ground = false
     this.speed = 0.0
     this.health = 0.0
@@ -33,9 +33,11 @@ export class Thing {
     this.group = null
     this.interaction = null
     this.experience = 1
+  }
 
+  setup() {
     this.pushToCells()
-    world.pushThing(this)
+    this.world.pushThing(this)
   }
 
   pushToCells() {
