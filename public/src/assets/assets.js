@@ -1,3 +1,4 @@
+import {Entity} from '/src/entity/entity.js'
 import {fetchText, fetchImage} from '/src/client/net.js'
 import {createSpriteSheet} from '/src/assets/sprite-sheet.js'
 import * as Wad from '/src/wad/wad.js'
@@ -80,7 +81,7 @@ async function promiseEntity(name, directory, path) {
 
   let sprite = wad.get('sprite')
 
-  ENTITIES.set(name, wad)
+  ENTITIES.set(name, new Entity(wad))
 
   directory += '/sprites'
 

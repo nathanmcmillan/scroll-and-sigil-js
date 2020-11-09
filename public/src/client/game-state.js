@@ -160,7 +160,7 @@ export class GameState {
     rendering.bindTexture(gl.TEXTURE0, sky.texture)
     rendering.bindAndDraw(client.bufferSky)
 
-    // gl.enable(gl.CULL_FACE)
+    gl.enable(gl.CULL_FACE)
     gl.enable(gl.DEPTH_TEST)
 
     identity(view)
@@ -297,30 +297,39 @@ export class GameState {
         rendering.bindTexture(gl.TEXTURE0, textureByName('font').texture)
         rendering.updateAndDraw(client.bufferGUI)
       }
-    } else if (hero.combat) {
-      let text = ''
-      let health = Math.floor((hero.health / hero.maxHealth) * 20)
-      let stamina = Math.floor((hero.stamina / hero.maxStamina) * 20)
-      for (let i = 0; i < health; i++) text += 'x'
+    } else {
       let x = pad
-      let y = pad
-      drawTextSpecial(client.bufferGUI, x, y, text, scale, 1.0, 0.0, 0.0, 1.0)
-      y += fontHeight
-      for (let i = 0; i < stamina; i++) text += 'x'
-      drawTextSpecial(client.bufferGUI, x, y, text, scale, 0.0, 1.0, 0.0, 1.0)
-      rendering.bindTexture(gl.TEXTURE0, textureByName('font').texture)
-      rendering.updateAndDraw(client.bufferGUI)
-    } else if (hero.interaction) {
-      let interaction = hero.interaction
-      let interactionWith = hero.interactionWith
-      drawTextSpecial(client.bufferGUI, pad, client.height - pad - fontHeight, interactionWith.name, scale, 1.0, 0.0, 0.0, 1.0)
-      let y = Math.floor(0.5 * client.height)
-      for (const option of interaction.keys()) {
-        drawTextSpecial(client.bufferGUI, pad, y, option, scale, 1.0, 0.0, 0.0, 1.0)
-        y += fontHeight
+      let y = client.height - pad - fontHeight
+      for (const thing of hero.nearby) {
+        let text = thing.isItem ? 'Collect' : 'Speak'
+        drawTextSpecial(client.bufferGUI, x, y, text, scale, 1.0, 0.0, 0.0, 1.0)
+        y -= fontHeight
       }
-      rendering.bindTexture(gl.TEXTURE0, textureByName('font').texture)
-      rendering.updateAndDraw(client.bufferGUI)
+      if (hero.combat) {
+        let text = ''
+        let health = Math.floor((hero.health / hero.maxHealth) * 20)
+        let stamina = Math.floor((hero.stamina / hero.maxStamina) * 20)
+        for (let i = 0; i < health; i++) text += 'x'
+        let x = pad
+        let y = pad
+        drawTextSpecial(client.bufferGUI, x, y, text, scale, 1.0, 0.0, 0.0, 1.0)
+        y += fontHeight
+        for (let i = 0; i < stamina; i++) text += 'x'
+        drawTextSpecial(client.bufferGUI, x, y, text, scale, 0.0, 1.0, 0.0, 1.0)
+      } else if (hero.interaction) {
+        let interaction = hero.interaction
+        let interactionWith = hero.interactionWith
+        drawTextSpecial(client.bufferGUI, pad, client.height - pad - fontHeight, interactionWith.name, scale, 1.0, 0.0, 0.0, 1.0)
+        let y = Math.floor(0.5 * client.height)
+        for (const option of interaction.keys()) {
+          drawTextSpecial(client.bufferGUI, pad, y, option, scale, 1.0, 0.0, 0.0, 1.0)
+          y += fontHeight
+        }
+      }
+      if (client.bufferGUI.indexPosition > 0) {
+        rendering.bindTexture(gl.TEXTURE0, textureByName('font').texture)
+        rendering.updateAndDraw(client.bufferGUI)
+      }
     }
   }
 

@@ -29,6 +29,7 @@ sounds [
   baron-pain
   baron-death
   plasma-impact
+  pickup-item
 ]
 textures [
   {name:font, wrap:clamp}

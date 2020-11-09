@@ -1,7 +1,6 @@
 import {Thing} from '/src/thing/thing.js'
 import {playSound} from '/src/assets/sounds.js'
 import {textureIndexForName, entityByName} from '/src/assets/assets.js'
-import {animationMap} from '/src/entity/entity.js'
 import {WORLD_CELL_SHIFT, ANIMATION_ALMOST_DONE, ANIMATION_DONE} from '/src/world/world.js'
 import {Plasma} from '/src/missile/plasma.js'
 import {randomInt} from '/src/math/random.js'
@@ -21,17 +20,17 @@ const COMBAT_TIMER = 300
 export class Hero extends Thing {
   constructor(world, entity, x, z, input) {
     super(world, x, z)
-    this.box = entity.get('box')
-    this.height = entity.get('height')
+    this.box = entity.box()
+    this.height = entity.height()
     this.input = input
     this.texture = textureIndexForName(entity.get('sprite'))
-    this.animations = animationMap(entity)
+    this.animations = entity.animations()
     this.animation = this.animations.get('move')
     this.sprite = this.animation[0]
-    this.speed = 0.025
-    this.maxHealth = 10
+    this.speed = entity.speed()
+    this.maxHealth = entity.health()
     this.health = this.maxHealth
-    this.maxStamina = 10
+    this.maxStamina = entity.stamina()
     this.stamina = this.maxStamina
     this.status = STATUS_IDLE
     this.reaction = 0
@@ -41,10 +40,12 @@ export class Hero extends Thing {
     this.experienceNeeded = 20
     this.skills = 0
     this.tree = {}
-    this.inventory = []
     this.head = null
     this.outfit = null
     this.weapon = null
+    this.nearby = []
+    this.quests = []
+    this.inventory = []
     this.combat = 0
     this.menu = null
     this.menuSub = 0
@@ -63,17 +64,17 @@ export class Hero extends Thing {
     }
     this.health -= health
     if (this.health <= 0) {
+      playSound('baron-death')
       this.health = 0
       this.status = STATUS_DEAD
       this.animationFrame = 0
       this.animation = this.animations.get('death')
       this.updateSprite()
       this.combat = 0
-      playSound('baron-death')
       redBloodExplode(this)
     } else {
-      this.combat = COMBAT_TIMER
       playSound('baron-pain')
+      this.combat = COMBAT_TIMER
       redBloodTowards(this, source)
     }
   }
@@ -86,7 +87,8 @@ export class Hero extends Thing {
         let i = cell.thingCount
         while (i--) {
           let thing = cell.things[i]
-          if (thing.isItem && !thing.pickedUp && this.collision(thing)) {
+          if (thing.isItem && !thing.pickedUp && this.closeToThing(this.x, this.z, thing)) {
+            playSound('pickup-item')
             this.inventory.push(thing)
             thing.pickedUp = true
           }
@@ -97,18 +99,6 @@ export class Hero extends Thing {
 
   closeToThing(x, z, thing) {
     return this.approximateDistance(thing) < 2.0
-    // let box = thing.box
-    // let vx = x - this.x
-    // let vz = z - this.z
-    // let wx = thing.x - this.x
-    // let wz = thing.z - this.z
-    // let t = (wx * vx + wz * vz) / (vx * vx + vz * vz)
-    // if (t < 0.0) t = 0.0
-    // else if (t > 1.0) t = 1.0
-    // let px = this.x + vx * t - thing.x
-    // let pz = this.z + vz * t - thing.z
-    // if (px * px + pz * pz > box * box) return false
-    // return true
   }
 
   closeToLine(x, z, line) {
@@ -142,8 +132,8 @@ export class Hero extends Thing {
 
     if (minC < 0) minC = 0
     if (minR < 0) minR = 0
-    if (maxC > columns) maxC = columns
-    if (maxR > world.rows) maxR = world.rows
+    if (maxC >= columns) maxC = columns - 1
+    if (maxR >= world.rows) maxR = world.rows - 1
 
     for (let r = minR; r <= maxR; r++) {
       for (let c = minC; c <= maxC; c++) {
@@ -160,7 +150,10 @@ export class Hero extends Thing {
             this.updateSprite()
             this.interactionWith = thing
             this.interaction = thing.interaction
-            this.world.notify('interact-thing', [this, thing])
+            if (this.interaction.get('type') === 'quest') {
+              this.world.notify('begin-cinema')
+            }
+            // this.world.notify('interact-thing', [this, thing])
             return true
           }
         }
@@ -250,8 +243,8 @@ export class Hero extends Thing {
 
       if (minC < 0) minC = 0
       if (minR < 0) minR = 0
-      if (maxC > columns) maxC = columns
-      if (maxR > world.rows) maxR = world.rows
+      if (maxC >= columns) maxC = columns - 1
+      if (maxR >= world.rows) maxR = world.rows - 1
 
       iter: for (let r = minR; r <= maxR; r++) {
         for (let c = minC; c <= maxC; c++) {
@@ -298,23 +291,37 @@ export class Hero extends Thing {
 
   move() {
     if (this.combat > 0) this.combat--
+    this.nearby.length = 0
+    let world = this.world
+    for (let r = this.minR; r <= this.maxR; r++) {
+      for (let c = this.minC; c <= this.maxC; c++) {
+        let cell = world.cells[c + r * world.columns]
+        let i = cell.thingCount
+        while (i--) {
+          let thing = cell.things[i]
+          if (((thing.isItem && !thing.pickedUp) || thing.interaction) && this.closeToThing(this.x, this.z, thing)) {
+            this.nearby.push(thing)
+          }
+        }
+      }
+    }
     if (this.reaction > 0) {
       this.reaction--
     } else if (this.input.a()) {
+      playSound('baron-missile')
       this.status = STATUS_MISSILE
       this.animationFrame = 0
       this.animation = this.animations.get('missile')
       this.updateSprite()
       this.combat = COMBAT_TIMER
-      playSound('baron-missile')
       return
     } else if (this.input.b()) {
+      playSound('baron-melee')
       this.status = STATUS_MELEE
       this.animationFrame = 0
       this.animation = this.animations.get('melee')
       this.updateSprite()
       this.combat = COMBAT_TIMER
-      playSound('baron-melee')
       return
     } else if (this.input.rightTrigger()) {
       this.input.off(In.RIGHT_TRIGGER)

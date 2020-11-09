@@ -1,7 +1,6 @@
 import {Thing} from '/src/thing/thing.js'
 import {playSound} from '/src/assets/sounds.js'
 import {textureIndexForName} from '/src/assets/assets.js'
-import {animationMap} from '/src/entity/entity.js'
 import {redBloodTowards, redBloodExplode} from '/src/thing/thing-util.js'
 
 const STATUS_STAND = 0
@@ -11,20 +10,20 @@ const STATUS_FINAL = 2
 export class NonPlayerCharacter extends Thing {
   constructor(world, entity, x, z) {
     super(world, x, z)
-    this.box = entity.get('box')
-    this.height = entity.get('height')
+    this.box = entity.box()
+    this.height = entity.height()
+    this.name = entity.name()
+    this.group = entity.group()
     this.texture = textureIndexForName(entity.get('sprite'))
-    this.animations = animationMap(entity)
+    this.animations = entity.animations()
     this.animation = this.animations.get('idle')
-    this.health = parseInt(entity.get('health'))
-    this.speed = parseFloat(entity.get('speed'))
+    this.health = entity.health()
+    this.speed = entity.speed()
     this.sprite = this.animation[0]
     this.target = null
     this.moveCount = 0
     this.status = STATUS_STAND
     this.reaction = 0
-    this.name = entity.get('name')
-    this.group = entity.get('group')
     this.interaction = entity.get('interaction')
     this.setup()
   }

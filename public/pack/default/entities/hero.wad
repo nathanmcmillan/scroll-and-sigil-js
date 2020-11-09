@@ -1,11 +1,11 @@
 sprite: baron
 box: 0.75
 height: 2.0
-health: 1
-speed: 0.05
+health: 10
+speed: 0.025
 think: baron-update
 sight: 5.0
-stamina: 0
+stamina: 10
 energy: 0
 attributes {
   strength: 0

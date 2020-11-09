@@ -1,27 +1,69 @@
 import {spritesByName} from '/src/assets/assets.js'
 
-export function animationMap(entity) {
-  let sheet = spritesByName(entity.get('sprite'))
-  if (entity.has('animation')) {
-    let animation = entity.get('animation')
-    if (Array.isArray(animation)) {
-      let list = []
-      for (const sprite of animation) {
-        list.push(sheet.get(sprite))
+export class Entity {
+  constructor(wad) {
+    this.wad = wad
+  }
+
+  has(key) {
+    return this.wad.has(key)
+  }
+
+  get(key) {
+    return this.wad.get(key)
+  }
+
+  name() {
+    return this.wad.get('name')
+  }
+
+  group() {
+    return this.wad.get('group')
+  }
+
+  box() {
+    return parseFloat(this.wad.get('box'))
+  }
+
+  height() {
+    return parseFloat(this.wad.get('height'))
+  }
+
+  speed() {
+    return parseFloat(this.wad.get('speed'))
+  }
+
+  health() {
+    return parseInt(this.wad.get('health'))
+  }
+
+  stamina() {
+    return parseInt(this.wad.get('stamina'))
+  }
+
+  animations() {
+    let sheet = spritesByName(this.wad.get('sprite'))
+    if (this.wad.has('animation')) {
+      let animation = this.wad.get('animation')
+      if (Array.isArray(animation)) {
+        let list = []
+        for (const sprite of animation) {
+          list.push(sheet.get(sprite))
+        }
+        return list
+      } else {
+        return sheet.get(animation)
       }
-      return list
     } else {
-      return sheet.get(animation)
-    }
-  } else {
-    let map = new Map()
-    for (const [name, animation] of entity.get('animations')) {
-      let entry = []
-      for (const sprite of animation) {
-        entry.push(sheet.get(sprite))
+      let map = new Map()
+      for (const [name, animation] of this.wad.get('animations')) {
+        let entry = []
+        for (const sprite of animation) {
+          entry.push(sheet.get(sprite))
+        }
+        map.set(name, entry)
       }
-      map.set(name, entry)
+      return map
     }
-    return map
   }
 }

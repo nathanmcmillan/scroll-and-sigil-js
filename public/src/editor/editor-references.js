@@ -1,5 +1,4 @@
 import {textureNameFromIndex, textureIndexForName} from '/src/assets/assets.js'
-import {animationMap} from '/src/entity/entity.js'
 import {Float} from '/src/math/vector.js'
 
 export class VectorReference {
@@ -191,10 +190,10 @@ export class ThingReference {
     this.x = x
     this.y = 0.0
     this.z = z
-    this.box = parseFloat(entity.get('box'))
-    this.height = parseFloat(entity.get('height'))
+    this.box = entity.box()
+    this.height = entity.height()
     this.texture = textureIndexForName(entity.get('sprite'))
-    this.animations = animationMap(entity)
+    this.animations = entity.animations()
     if (Array.isArray(this.animations)) {
       this.sprite = this.animations[0]
     } else if (this.animations instanceof Map) {

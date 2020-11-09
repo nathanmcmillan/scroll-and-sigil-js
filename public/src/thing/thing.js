@@ -52,8 +52,8 @@ export class Thing {
 
     if (minC < 0) minC = 0
     if (minR < 0) minR = 0
-    if (maxC > columns) maxC = columns
-    if (maxR > world.rows) maxR = world.rows
+    if (maxC >= columns) maxC = columns - 1
+    if (maxR >= world.rows) maxR = world.rows - 1
 
     for (let r = minR; r <= maxR; r++) {
       for (let c = minC; c <= maxC; c++) {
@@ -203,8 +203,8 @@ export class Thing {
 
       if (minC < 0) minC = 0
       if (minR < 0) minR = 0
-      if (maxC > columns) maxC = columns
-      if (maxR > world.rows) maxR = world.rows
+      if (maxC >= columns) maxC = columns - 1
+      if (maxR >= world.rows) maxR = world.rows - 1
 
       let collided = new Set()
       let collisions = new Set()
