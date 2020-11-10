@@ -119,6 +119,7 @@ export class Missile {
   }
 
   integrate() {
+    // TODO sector floor check
     if (this.check()) return true
     this.x += this.deltaX
     this.y += this.deltaY

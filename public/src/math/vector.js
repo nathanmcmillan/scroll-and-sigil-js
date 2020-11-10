@@ -46,7 +46,7 @@ export class Vector3 {
   }
 
   normalize() {
-    let magnitude = (this.x * this.x + this.y * this.y + this.z * this.z).sqrt()
+    let magnitude = Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z)
     let multiple = 1.0 / magnitude
     this.x *= multiple
     this.y *= multiple
@@ -74,4 +74,22 @@ export function lineIntersect(ax, ay, bx, by, cx, cy, dx, dy) {
   let denominator = a1 * b2 - a2 * b1
   if (Float.zero(denominator)) return false
   return true
+}
+
+export function normalize(a) {
+  let magnitude = Math.sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2])
+  let multiple = 1.0 / magnitude
+  a[0] *= multiple
+  a[1] *= multiple
+  a[2] *= multiple
+}
+
+export function dot(a, b) {
+  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
+}
+
+export function cross(out, a, b) {
+  out[0] = a[1] * b[2] - a[2] * b[1]
+  out[1] = a[2] * b[0] - a[0] * b[2]
+  out[2] = a[0] * b[1] - a[1] * b[0]
 }

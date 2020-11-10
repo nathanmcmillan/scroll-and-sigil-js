@@ -43,7 +43,7 @@ export class Hero extends Thing {
     this.head = null
     this.outfit = null
     this.weapon = null
-    this.nearby = []
+    this.nearby = null
     this.quests = []
     this.inventory = []
     this.combat = 0
@@ -79,53 +79,29 @@ export class Hero extends Thing {
     }
   }
 
-  pickup() {
-    let world = this.world
-    for (let r = this.minR; r <= this.maxR; r++) {
-      for (let c = this.minC; c <= this.maxC; c++) {
-        let cell = world.cells[c + r * world.columns]
-        let i = cell.thingCount
-        while (i--) {
-          let thing = cell.things[i]
-          if (thing.isItem && !thing.pickedUp && this.closeToThing(this.x, this.z, thing)) {
-            playSound('pickup-item')
-            this.inventory.push(thing)
-            thing.pickedUp = true
-          }
-        }
-      }
-    }
+  distanceToLine(box, line) {
+    let vx = line.b.x - line.a.x
+    let vz = line.b.y - line.a.y
+    let wx = this.x - line.a.x
+    let wz = this.z - line.a.y
+    let t = (wx * vx + wz * vz) / (vx * vx + vz * vz)
+    if (t < 0.0) t = 0.0
+    else if (t > 1.0) t = 1.0
+    let px = line.a.x + vx * t - this.x
+    let pz = line.a.y + vz * t - this.z
+    let distance = px * px + pz * pz
+    if (distance > box * box) return null
+    return Math.sqrt(distance)
   }
 
-  closeToThing(x, z, thing) {
-    return this.approximateDistance(thing) < 2.0
-  }
+  findClosestThing() {
+    this.nearby = null
 
-  closeToLine(x, z, line) {
-    return lineIntersect(this.x, this.z, x, z, line.a.x, line.a.y, line.b.x, line.b.y)
-  }
-
-  interact() {
-    let distance = this.box + 3.0
-    let x = this.x + distance * Math.sin(this.rotation)
-    let z = this.z - distance * Math.cos(this.rotation)
-
-    let minC = Math.floor(this.x) >> WORLD_CELL_SHIFT
-    let maxC = Math.floor(x) >> WORLD_CELL_SHIFT
-    let minR = Math.floor(this.z) >> WORLD_CELL_SHIFT
-    let maxR = Math.floor(z) >> WORLD_CELL_SHIFT
-
-    if (maxC < minC) {
-      let temp = minC
-      minC = maxC
-      maxC = temp
-    }
-
-    if (maxR < minR) {
-      let temp = minR
-      minR = maxR
-      maxR = temp
-    }
+    let box = this.box + 2.0
+    let minC = Math.floor(this.x - box) >> WORLD_CELL_SHIFT
+    let maxC = Math.floor(this.x + box) >> WORLD_CELL_SHIFT
+    let minR = Math.floor(this.z - box) >> WORLD_CELL_SHIFT
+    let maxR = Math.floor(this.z + box) >> WORLD_CELL_SHIFT
 
     let world = this.world
     let columns = world.columns
@@ -135,6 +111,8 @@ export class Hero extends Thing {
     if (maxC >= columns) maxC = columns - 1
     if (maxR >= world.rows) maxR = world.rows - 1
 
+    let closest = Number.MAX_VALUE
+
     for (let r = minR; r <= maxR; r++) {
       for (let c = minC; c <= maxC; c++) {
         let cell = world.cells[c + r * columns]
@@ -142,30 +120,77 @@ export class Hero extends Thing {
         while (i--) {
           let thing = cell.things[i]
           if (this === thing) continue
-          if (thing.interaction && this.closeToThing(x, z, thing)) {
-            this.combat = 0
-            this.status = STATUS_BUSY
-            this.animationFrame = 0
-            this.animation = this.animations.get('move')
-            this.updateSprite()
-            this.interactionWith = thing
-            this.interaction = thing.interaction
-            if (this.interaction.get('type') === 'quest') {
-              this.world.notify('begin-cinema')
+          if ((thing.isItem && !thing.pickedUp) || (thing.interaction && thing.health > 0)) {
+            let distance = this.approximateDistance(thing)
+            if (distance < 2.0 && distance < closest) {
+              closest = distance
+              this.nearby = thing
             }
-            // this.world.notify('interact-thing', [this, thing])
-            return true
-          }
-        }
-        i = cell.lines.length
-        while (i--) {
-          let line = cell.lines[i]
-          if (this.closeToLine(x, z, line)) {
-            this.world.notify('interact-line', [this, line])
-            return true
           }
         }
       }
+    }
+  }
+
+  interact() {
+    if (this.nearby) {
+      let thing = this.nearby
+      if (thing.isItem && !thing.pickedUp) {
+        playSound('pickup-item')
+        this.inventory.push(thing)
+        thing.pickedUp = true
+        return false
+      } else if (thing.interaction && thing.health > 0) {
+        this.combat = 0
+        this.status = STATUS_BUSY
+        this.animationFrame = 0
+        this.animation = this.animations.get('move')
+        this.updateSprite()
+        this.interactionWith = thing
+        this.interaction = thing.interaction
+        if (this.interaction.get('type') === 'quest') {
+          this.world.notify('begin-cinema')
+        }
+        // this.world.notify('interact-thing', [this, thing])
+        return true
+      }
+    }
+
+    let box = this.box + 2.0
+    let minC = Math.floor(this.x - box) >> WORLD_CELL_SHIFT
+    let maxC = Math.floor(this.x + box) >> WORLD_CELL_SHIFT
+    let minR = Math.floor(this.z - box) >> WORLD_CELL_SHIFT
+    let maxR = Math.floor(this.z + box) >> WORLD_CELL_SHIFT
+
+    let world = this.world
+    let columns = world.columns
+
+    if (minC < 0) minC = 0
+    if (minR < 0) minR = 0
+    if (maxC >= columns) maxC = columns - 1
+    if (maxR >= world.rows) maxR = world.rows - 1
+
+    let closest = Number.MAX_VALUE
+    let target = null
+
+    for (let r = minR; r <= maxR; r++) {
+      for (let c = minC; c <= maxC; c++) {
+        let cell = world.cells[c + r * columns]
+        let i = cell.lines.length
+        while (i--) {
+          let line = cell.lines[i]
+          let distance = this.distanceToLine(box, line)
+          if (distance !== null && distance < 2.0 && distance < closest) {
+            closest = distance
+            target = line
+          }
+        }
+      }
+    }
+
+    if (target) {
+      this.world.notify('interact-line', [this, target])
+      return true
     }
 
     return false
@@ -217,26 +242,11 @@ export class Hero extends Thing {
     if (frame === ANIMATION_ALMOST_DONE) {
       this.reaction = 40
 
-      let distance = this.box + 3.0
-      let x = this.x + distance * Math.sin(this.rotation)
-      let z = this.z - distance * Math.cos(this.rotation)
-
-      let minC = Math.floor(this.x) >> WORLD_CELL_SHIFT
-      let maxC = Math.floor(x) >> WORLD_CELL_SHIFT
-      let minR = Math.floor(this.z) >> WORLD_CELL_SHIFT
-      let maxR = Math.floor(z) >> WORLD_CELL_SHIFT
-
-      if (maxC < minC) {
-        let temp = minC
-        minC = maxC
-        maxC = temp
-      }
-
-      if (maxR < minR) {
-        let temp = minR
-        minR = maxR
-        maxR = temp
-      }
+      let box = this.box + 2.0
+      let minC = Math.floor(this.x - box) >> WORLD_CELL_SHIFT
+      let maxC = Math.floor(this.x + box) >> WORLD_CELL_SHIFT
+      let minR = Math.floor(this.z - box) >> WORLD_CELL_SHIFT
+      let maxR = Math.floor(this.z + box) >> WORLD_CELL_SHIFT
 
       let world = this.world
       let columns = world.columns
@@ -246,20 +256,28 @@ export class Hero extends Thing {
       if (maxC >= columns) maxC = columns - 1
       if (maxR >= world.rows) maxR = world.rows - 1
 
-      iter: for (let r = minR; r <= maxR; r++) {
+      let closest = Number.MAX_VALUE
+      let target = null
+
+      for (let r = minR; r <= maxR; r++) {
         for (let c = minC; c <= maxC; c++) {
           let cell = world.cells[c + r * columns]
           let i = cell.thingCount
           while (i--) {
             let thing = cell.things[i]
             if (this === thing) continue
-            if (this.closeToThing(x, z, thing)) {
-              thing.damage(this, 1 + randomInt(3))
-              if (thing.health <= 0) this.takeExperience(thing.experience)
-              break iter
+            let distance = this.approximateDistance(thing)
+            if (distance < 2.0 && distance < closest) {
+              closest = distance
+              target = thing
             }
           }
         }
+      }
+
+      if (target) {
+        target.damage(this, 1 + randomInt(3))
+        if (target.health <= 0) this.takeExperience(target.experience)
       }
     } else if (frame === ANIMATION_DONE) {
       this.status = STATUS_IDLE
@@ -277,9 +295,9 @@ export class Hero extends Thing {
       let angle = this.rotation
       let dx = Math.sin(angle)
       let dz = -Math.cos(angle)
-      let x = this.x + dx * this.box * 3.0
-      let z = this.z + dz * this.box * 3.0
-      let y = this.y + this.height * 0.75
+      let x = this.x + dx * (this.box + 1.0)
+      let z = this.z + dz * (this.box + 1.0)
+      let y = this.y + 0.5 * this.height
       new Plasma(this.world, entityByName('plasma'), x, y, z, dx * speed, 0.0, dz * speed, 1 + randomInt(3))
     } else if (frame === ANIMATION_DONE) {
       this.status = STATUS_IDLE
@@ -291,20 +309,7 @@ export class Hero extends Thing {
 
   move() {
     if (this.combat > 0) this.combat--
-    this.nearby.length = 0
-    let world = this.world
-    for (let r = this.minR; r <= this.maxR; r++) {
-      for (let c = this.minC; c <= this.maxC; c++) {
-        let cell = world.cells[c + r * world.columns]
-        let i = cell.thingCount
-        while (i--) {
-          let thing = cell.things[i]
-          if (((thing.isItem && !thing.pickedUp) || thing.interaction) && this.closeToThing(this.x, this.z, thing)) {
-            this.nearby.push(thing)
-          }
-        }
-      }
-    }
+    this.findClosestThing()
     if (this.reaction > 0) {
       this.reaction--
     } else if (this.input.a()) {
@@ -327,10 +332,7 @@ export class Hero extends Thing {
       this.input.off(In.RIGHT_TRIGGER)
       if (this.interact()) return
     }
-    if (this.input.leftTrigger()) {
-      this.input.off(In.LEFT_TRIGGER)
-      this.pickup()
-    } else if (this.input.rightBumper()) {
+    if (this.input.rightBumper()) {
       this.input.off(In.RIGHT_BUMPER)
       this.openMenu()
     }

@@ -32,7 +32,7 @@ export class Camera {
     let sinY = Math.sin(this.ry - offset)
     let cosY = Math.cos(this.ry - offset)
     let x = target.x
-    let y = target.y + target.height * 2.0
+    let y = target.y + target.height
     let z = target.z
     this.x = x - this.radius * cosX * sinY
     this.y = y + this.radius * sinX

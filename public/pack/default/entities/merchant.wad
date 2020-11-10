@@ -1,7 +1,7 @@
 class: npc
 sprite: baron
 box: 0.4
-height: 0.8
+height: 4.0
 health: 1
 name: 'Traveling Merchant'
 group: (human)(merchant)

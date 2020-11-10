@@ -186,9 +186,9 @@ export class Baron extends Thing {
       let dx = Math.cos(angle)
       let dz = Math.sin(angle)
       let dy = (target.y + target.height * 0.5 - this.y - this.height * 0.5) / (distance / speed)
-      let x = this.x + dx * this.box * 3.0
-      let z = this.z + dz * this.box * 3.0
-      let y = this.y + dy * this.height * 0.75
+      let x = this.x + dx * (this.box + 1.0)
+      let z = this.z + dz * (this.box + 1.0)
+      let y = this.y + 0.5 * this.height
       new Plasma(this.world, entityByName('plasma'), x, y, z, dx * speed, dy, dz * speed, 1 + randomInt(3))
     } else if (frame === ANIMATION_DONE) {
       this.status = STATUS_CHASE

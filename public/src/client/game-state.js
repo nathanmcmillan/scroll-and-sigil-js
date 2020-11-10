@@ -2,7 +2,7 @@ import {TwoWayMap} from '/src/util/collections.js'
 import {Game} from '/src/game/game.js'
 import {drawDecal} from '/src/client/render-sector.js'
 import {drawRectangle, drawSprite, drawText, FONT_WIDTH, FONT_HEIGHT} from '/src/render/render.js'
-import {identity, multiply, rotateX, rotateY, translate} from '/src/math/matrix.js'
+import {identity, multiply, rotateX, rotateY, translate, multiplyVector3} from '/src/math/matrix.js'
 import {textureByName, textureByIndex} from '/src/assets/assets.js'
 import * as In from '/src/game/input.js'
 
@@ -170,6 +170,8 @@ export class GameState {
     multiply(projection, client.perspective, view)
     rendering.updateUniformMatrix('u_mvp', projection)
 
+    let projection3d = projection.slice()
+
     for (const [index, buffer] of client.sectorBuffers) {
       rendering.bindTexture(gl.TEXTURE0, textureByIndex(index).texture)
       rendering.bindAndDraw(buffer)
@@ -298,12 +300,19 @@ export class GameState {
         rendering.updateAndDraw(client.bufferGUI)
       }
     } else {
-      let x = pad
-      let y = client.height - pad - fontHeight
-      for (const thing of hero.nearby) {
-        let text = thing.isItem ? 'Collect' : 'Speak'
-        drawTextSpecial(client.bufferGUI, x, y, text, scale, 1.0, 0.0, 0.0, 1.0)
-        y -= fontHeight
+      if (hero.nearby) {
+        let thing = hero.nearby
+        let text = thing.isItem ? 'COLLECT' : 'SPEAK'
+        let vec = [thing.x, thing.y + thing.height, thing.z]
+        let position = []
+        multiplyVector3(position, projection3d, vec)
+        position[0] /= position[2]
+        position[1] /= position[2]
+        position[0] = 0.5 * ((position[0] + 1.0) * client.width)
+        position[1] = 0.5 * ((position[1] + 1.0) * client.height)
+        position[0] = Math.floor(position[0])
+        position[1] = Math.floor(position[1])
+        drawTextSpecial(client.bufferGUI, position[0], position[1], text, scale, 1.0, 0.0, 0.0, 1.0)
       }
       if (hero.combat) {
         let text = ''

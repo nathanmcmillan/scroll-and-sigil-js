@@ -1,6 +1,6 @@
 sprite: baron
 box: 0.4
-height: 1.0
+height: 4.0
 name: Demon
 group: (demon)
 health: 4
