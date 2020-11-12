@@ -215,7 +215,8 @@ export class GameState {
       rendering.updateAndDraw(buffer, gl.DYNAMIC_DRAW)
     }
 
-    let d = world.decalCount
+    let decals = world.decals
+    let d = decals.length
     if (d > 0) {
       for (const buffer of buffers.values()) {
         buffer.zero()
@@ -225,7 +226,6 @@ export class GameState {
       gl.enable(gl.POLYGON_OFFSET_FILL)
       gl.polygonOffset(-1, -1)
 
-      let decals = world.decals
       while (d--) {
         let decal = decals[d]
         let buffer = client.getSpriteBuffer(decal.texture)

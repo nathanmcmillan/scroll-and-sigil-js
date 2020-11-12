@@ -1,5 +1,5 @@
 sprite: baron
-box: 0.4
+box: 0.6
 height: 4.0
 name: Demon
 group: (demon)

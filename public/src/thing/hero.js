@@ -4,9 +4,8 @@ import {textureIndexForName, entityByName} from '/src/assets/assets.js'
 import {WORLD_CELL_SHIFT, ANIMATION_ALMOST_DONE, ANIMATION_DONE} from '/src/world/world.js'
 import {Plasma} from '/src/missile/plasma.js'
 import {randomInt} from '/src/math/random.js'
-import {lineIntersect} from '/src/math/vector.js'
-import * as In from '/src/game/input.js'
 import {redBloodTowards, redBloodExplode} from '/src/thing/thing-util.js'
+import * as In from '/src/game/input.js'
 
 const STATUS_IDLE = 0
 const STATUS_MOVE = 1
@@ -84,6 +83,7 @@ export class Hero extends Thing {
     let vz = line.b.y - line.a.y
     let wx = this.x - line.a.x
     let wz = this.z - line.a.y
+    if (vx * wz - vz * wx < 0.0) return null
     let t = (wx * vx + wz * vz) / (vx * vx + vz * vz)
     if (t < 0.0) t = 0.0
     else if (t > 1.0) t = 1.0
@@ -170,9 +170,6 @@ export class Hero extends Thing {
     if (maxC >= columns) maxC = columns - 1
     if (maxR >= world.rows) maxR = world.rows - 1
 
-    let closest = Number.MAX_VALUE
-    let target = null
-
     for (let r = minR; r <= maxR; r++) {
       for (let c = minC; c <= maxC; c++) {
         let cell = world.cells[c + r * columns]
@@ -180,17 +177,11 @@ export class Hero extends Thing {
         while (i--) {
           let line = cell.lines[i]
           let distance = this.distanceToLine(box, line)
-          if (distance !== null && distance < 2.0 && distance < closest) {
-            closest = distance
-            target = line
+          if (distance !== null && distance < 2.0) {
+            this.world.notify('interact-line', [this, line])
           }
         }
       }
-    }
-
-    if (target) {
-      this.world.notify('interact-line', [this, target])
-      return true
     }
 
     return false
@@ -242,7 +233,9 @@ export class Hero extends Thing {
     if (frame === ANIMATION_ALMOST_DONE) {
       this.reaction = 40
 
-      let box = this.box + 2.0
+      const meleeRange = 1.0
+
+      let box = this.box + meleeRange
       let minC = Math.floor(this.x - box) >> WORLD_CELL_SHIFT
       let maxC = Math.floor(this.x + box) >> WORLD_CELL_SHIFT
       let minR = Math.floor(this.z - box) >> WORLD_CELL_SHIFT
@@ -267,7 +260,7 @@ export class Hero extends Thing {
             let thing = cell.things[i]
             if (this === thing) continue
             let distance = this.approximateDistance(thing)
-            if (distance < 2.0 && distance < closest) {
+            if (distance < this.box + thing.box + meleeRange && distance < closest) {
               closest = distance
               target = thing
             }
@@ -292,11 +285,10 @@ export class Hero extends Thing {
     if (frame === ANIMATION_ALMOST_DONE) {
       this.reaction = 60
       let speed = 0.3
-      let angle = this.rotation
-      let dx = Math.sin(angle)
-      let dz = -Math.cos(angle)
-      let x = this.x + dx * (this.box + 1.0)
-      let z = this.z + dz * (this.box + 1.0)
+      let dx = Math.cos(this.rotation)
+      let dz = Math.sin(this.rotation)
+      let x = this.x + dx * (this.box + 2.0)
+      let z = this.z + dz * (this.box + 2.0)
       let y = this.y + 0.5 * this.height
       new Plasma(this.world, entityByName('plasma'), x, y, z, dx * speed, 0.0, dz * speed, 1 + randomInt(3))
     } else if (frame === ANIMATION_DONE) {
@@ -385,8 +377,8 @@ export class Hero extends Thing {
           }
         }
         if (rotation) {
-          this.deltaX += Math.sin(rotation) * this.speed
-          this.deltaZ -= Math.cos(rotation) * this.speed
+          this.deltaX += Math.cos(rotation) * this.speed
+          this.deltaZ += Math.sin(rotation) * this.speed
           if (this.updateAnimation() === ANIMATION_DONE) this.animationFrame = 0
           this.updateSprite()
         }
@@ -415,14 +407,5 @@ export class Hero extends Thing {
     }
     this.integrate()
     return false
-  }
-
-  set(x, z) {
-    this.sector = this.world.findSector(x, z)
-    this.x = this.previousX = x
-    this.y = this.previousY = this.sector.floor
-    this.z = this.previousZ = z
-    this.pushToCells()
-    this.world.pushThing(this)
   }
 }

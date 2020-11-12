@@ -6,6 +6,7 @@ import {Plasma} from '/src/missile/plasma.js'
 import {playSound} from '/src/assets/sounds.js'
 import {textureIndexForName, entityByName} from '/src/assets/assets.js'
 import {redBloodTowards, redBloodExplode} from '/src/thing/thing-util.js'
+import {sin, cos, atan2} from '/src/math/approximate.js'
 
 const STATUS_LOOK = 0
 const STATUS_CHASE = 1
@@ -29,7 +30,7 @@ export class Baron extends Thing {
     this.sprite = this.animation[0]
     this.target = null
     this.moveCount = 0
-    this.meleeRange = 2.0
+    this.meleeRange = 1.0
     this.missileRange = 50.0
     this.status = STATUS_LOOK
     this.reaction = 0
@@ -42,6 +43,8 @@ export class Baron extends Thing {
   }
 
   tryLineOverlap(x, z, line) {
+    const step = 1.0
+    if (!line.middle && line.plus && this.y + step > line.plus.floor && this.y + this.height < line.plus.ceiling) return false
     let box = this.box
     let vx = line.b.x - line.a.x
     let vz = line.b.y - line.a.y
@@ -52,8 +55,7 @@ export class Baron extends Thing {
     else if (t > 1.0) t = 1.0
     let px = line.a.x + vx * t - x
     let pz = line.a.y + vz * t - z
-    if (px * px + pz * pz > box * box) return false
-    return line.middle || !line.plus || this.y + 1.0 < line.plus.floor || this.y + this.height > line.plus.ceiling
+    return px * px + pz * pz <= box * box
   }
 
   tryMove(x, z) {
@@ -67,7 +69,7 @@ export class Baron extends Thing {
     if (minC < 0 || minR < 0 || maxC >= columns || maxR >= world.rows) return false
     for (let r = minR; r <= maxR; r++) {
       for (let c = minC; c <= maxC; c++) {
-        let cell = world.cells[c + r * world.columns]
+        let cell = world.cells[c + r * columns]
         let i = cell.thingCount
         while (i--) {
           let thing = cell.things[i]
@@ -84,8 +86,8 @@ export class Baron extends Thing {
   }
 
   move() {
-    let x = this.x + Math.sin(this.rotation) * this.speed
-    let z = this.z - Math.cos(this.rotation) * this.speed
+    let x = this.x + cos(this.rotation) * this.speed
+    let z = this.z + sin(this.rotation) * this.speed
     if (this.tryMove(x, z)) {
       this.removeFromCells()
       this.previousX = this.x
@@ -93,22 +95,22 @@ export class Baron extends Thing {
       this.x = x
       this.z = z
       this.pushToCells()
+      this.updateSector()
       return true
     }
     return false
   }
 
   testMove() {
-    if (!this.move()) {
-      return false
-    }
+    if (!this.move()) return false
     this.moveCount = 16 + randomInt(32)
     return true
   }
 
   chaseDirection() {
+    let angle = atan2(this.target.z - this.z, this.target.x - this.x)
     for (let i = 0; i < 4; i++) {
-      this.rotation = Math.random() * 360
+      this.rotation = angle - 0.785375 + 1.57075 * Math.random()
       if (this.testMove()) return
     }
   }
@@ -146,7 +148,7 @@ export class Baron extends Thing {
     while (i--) {
       let thing = things[i]
       if (this === thing) continue
-      if (thing.group === 'human' && thing.health > 0) {
+      if (thing.group === 'human' && thing.health > 0 && this.checkSight(thing)) {
         if (Math.random() < 0.4) playSound('baron-scream')
         this.target = thing
         this.status = STATUS_CHASE
@@ -164,7 +166,7 @@ export class Baron extends Thing {
     let frame = this.updateAnimation()
     if (frame === ANIMATION_ALMOST_DONE) {
       this.reaction = 40 + randomInt(220)
-      if (this.approximateDistance(this.target) < this.meleeRange) {
+      if (this.approximateDistance(this.target) < this.box + this.target.box + this.meleeRange) {
         this.target.damage(this, 1 + randomInt(3))
       }
     } else if (frame === ANIMATION_DONE) {
@@ -181,13 +183,13 @@ export class Baron extends Thing {
       this.reaction = 40 + randomInt(220)
       const speed = 0.3
       let target = this.target
-      let angle = Math.atan2(target.z - this.z, target.x - this.x)
+      let angle = atan2(target.z - this.z, target.x - this.x)
       let distance = this.approximateDistance(target)
-      let dx = Math.cos(angle)
-      let dz = Math.sin(angle)
+      let dx = cos(angle)
+      let dz = sin(angle)
       let dy = (target.y + target.height * 0.5 - this.y - this.height * 0.5) / (distance / speed)
-      let x = this.x + dx * (this.box + 1.0)
-      let z = this.z + dz * (this.box + 1.0)
+      let x = this.x + dx * (this.box + 2.0)
+      let z = this.z + dz * (this.box + 2.0)
       let y = this.y + 0.5 * this.height
       new Plasma(this.world, entityByName('plasma'), x, y, z, dx * speed, dy, dz * speed, 1 + randomInt(3))
     } else if (frame === ANIMATION_DONE) {
@@ -208,18 +210,22 @@ export class Baron extends Thing {
       this.updateSprite()
     } else {
       let distance = this.approximateDistance(this.target)
-      if (this.reaction <= 0 && distance < this.meleeRange) {
+      if (this.reaction <= 0 && distance < this.box + this.target.box + this.meleeRange) {
         playSound('baron-melee')
         this.status = STATUS_MELEE
         this.animationFrame = 0
         this.animation = this.animations.get('melee')
         this.updateSprite()
       } else if (this.reaction <= 0 && distance < this.missileRange) {
-        playSound('baron-missile')
-        this.status = STATUS_MISSILE
-        this.animationFrame = 0
-        this.animation = this.animations.get('missile')
-        this.updateSprite()
+        if (this.checkSight(this.target)) {
+          playSound('baron-missile')
+          this.status = STATUS_MISSILE
+          this.animationFrame = 0
+          this.animation = this.animations.get('missile')
+          this.updateSprite()
+        } else {
+          this.reaction = 20 + randomInt(110)
+        }
       } else {
         this.moveCount--
         if (this.moveCount < 0 || !this.move()) this.chaseDirection()

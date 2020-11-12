@@ -1,5 +1,5 @@
-import {Float} from '/src/math/vector.js'
-import {WORLD_CELL_SHIFT, GRAVITY, RESISTANCE, ANIMATION_RATE, ANIMATION_NOT_DONE, ANIMATION_ALMOST_DONE, ANIMATION_DONE} from '/src/world/world.js'
+import {lineIntersect, Float} from '/src/math/vector.js'
+import {toCell, toFloatCell, WORLD_CELL_SHIFT, GRAVITY, RESISTANCE, ANIMATION_RATE, ANIMATION_NOT_DONE, ANIMATION_ALMOST_DONE, ANIMATION_DONE} from '/src/world/world.js'
 
 export class Thing {
   constructor(world, x, z) {
@@ -7,8 +7,8 @@ export class Thing {
     this.world = world
     this.sector = sector
     this.x = this.previousX = x
-    this.y = this.previousY = sector.floor
     this.z = this.previousZ = z
+    this.y = 0.0
     this.deltaX = 0.0
     this.deltaY = 0.0
     this.deltaZ = 0.0
@@ -37,6 +37,7 @@ export class Thing {
 
   setup() {
     this.pushToCells()
+    this.updateSector()
     this.world.pushThing(this)
   }
 
@@ -76,6 +77,21 @@ export class Thing {
     }
   }
 
+  updateSector() {
+    let previous = this.sector
+    let sector = this.world.findSector(this.x, this.z)
+    if (sector !== previous) {
+      if (this.y < sector.floor) {
+        this.ground = true
+        this.deltaY = 0.0
+        this.y = sector.floor
+      } else if (this.y > sector.floor) {
+        this.ground = false
+      }
+    }
+    this.sector = sector
+  }
+
   updateAnimation() {
     this.animationMod++
     if (this.animationMod === ANIMATION_RATE) {
@@ -93,6 +109,63 @@ export class Thing {
   }
 
   damage() {}
+
+  checkSight(thing) {
+    let xf = toFloatCell(this.x)
+    let yf = toFloatCell(this.z)
+    let dx = Math.abs(toFloatCell(thing.x) - xf)
+    let dy = Math.abs(toFloatCell(thing.z) - yf)
+    let x = toCell(this.x)
+    let y = toCell(this.z)
+    let xb = toCell(thing.x)
+    let yb = toCell(thing.z)
+    let n = 1
+    let error = 0.0
+    let incrementX = 0
+    let incrementY = 0
+    if (Float.zero(dx)) {
+      incrementX = 0
+      error = Number.MAX_VALUE
+    } else if (thing.x > this.x) {
+      incrementX = 1
+      n += xb - x
+      error = (x + 1.0 - xf) * dy
+    } else {
+      incrementX = -1
+      n += x - xb
+      error = (xf - x) * dy
+    }
+    if (Float.zero(dy)) {
+      incrementY = 0
+      error = -Number.MAX_VALUE
+    } else if (thing.z > this.z) {
+      incrementY = 1
+      n += yb - y
+      error -= (y + 1.0 - yf) * dx
+    } else {
+      incrementY = -1
+      n += y - yb
+      error -= (yf - y) * dx
+    }
+    let cells = this.world.cells
+    let columns = this.world.columns
+    for (; n > 0; n--) {
+      let cell = cells[x + y * columns]
+      let i = cell.lines.length
+      while (i--) {
+        let line = cell.lines[i]
+        if (line.middle && lineIntersect(this.x, this.z, thing.x, thing.z, line.a.x, line.a.y, line.b.x, line.b.y)) return false
+      }
+      if (error > 0.0) {
+        y += incrementY
+        error -= dx
+      } else {
+        x += incrementX
+        error += dy
+      }
+    }
+    return true
+  }
 
   approximateDistance(thing) {
     let dx = Math.abs(this.x - thing.x)
@@ -130,11 +203,14 @@ export class Thing {
   }
 
   lineCollision(line) {
-    let box = this.box
+    if (this.sector === line.plus) return
 
+    const step = 1.0
+    if (!line.middle && line.plus && this.y + step > line.plus.floor && this.y + this.height < line.plus.ceiling) return
+
+    let box = this.box
     let vx = line.b.x - line.a.x
     let vz = line.b.y - line.a.y
-
     let wx = this.x - line.a.x
     let wz = this.z - line.a.y
 
@@ -153,27 +229,21 @@ export class Thing {
 
     if (px * px + pz * pz > box * box) return
 
-    let collision = line.middle || !line.plus || this.y + 1.0 < line.plus.floor || this.y + this.height > line.plus.ceiling
+    if (endpoint) {
+      let ex = -px
+      let ez = -pz
 
-    if (collision) {
-      if (this.sec === line.plus) return
+      let em = Math.sqrt(ex * ex + ez * ez)
+      ex /= em
+      ez /= em
 
-      if (endpoint) {
-        let ex = -px
-        let ez = -pz
-
-        let em = Math.sqrt(ex * ex + ez * ez)
-        ex /= em
-        ez /= em
-
-        let overlap = Math.sqrt((px + box * ex) * (px + box * ex) + (pz + box * ez) * (pz + box * ez))
-        this.x += ex * overlap
-        this.z += ez * overlap
-      } else {
-        let overlap = Math.sqrt((px + box * line.normal.x) * (px + box * line.normal.x) + (pz + box * line.normal.y) * (pz + box * line.normal.y))
-        this.x += line.normal.x * overlap
-        this.z += line.normal.y * overlap
-      }
+      let overlap = Math.sqrt((px + box * ex) * (px + box * ex) + (pz + box * ez) * (pz + box * ez))
+      this.x += ex * overlap
+      this.z += ez * overlap
+    } else {
+      let overlap = Math.sqrt((px + box * line.normal.x) * (px + box * line.normal.x) + (pz + box * line.normal.y) * (pz + box * line.normal.y))
+      this.x += line.normal.x * overlap
+      this.z += line.normal.y * overlap
     }
   }
 
@@ -247,6 +317,7 @@ export class Thing {
       }
 
       this.pushToCells()
+      this.updateSector()
     }
 
     if (this.ground === false || !Float.zero(this.deltaY)) {
@@ -256,18 +327,28 @@ export class Thing {
         this.ground = true
         this.deltaY = 0.0
         this.y = this.sector.floor
-      } else {
-        this.ground = false
+      } else if (this.y + this.height > this.sector.ceiling) {
+        this.deltaY = 0.0
+        this.y = this.sector.ceiling - this.height
       }
     }
   }
 
-  teleport(x, z) {
-    this.sector = this.world.findSector(x, z)
+  set(x, z) {
     this.x = this.previousX = x
-    this.y = this.previousY = this.sector.floor
     this.z = this.previousZ = z
-    this.removeFromCells()
     this.pushToCells()
+    this.updateSector()
+    this.y = this.sector.floor
+    this.world.pushThing(this)
+  }
+
+  teleport(x, z) {
+    this.removeFromCells()
+    this.x = this.previousX = x
+    this.z = this.previousZ = z
+    this.pushToCells()
+    this.updateSector()
+    this.y = this.sector.floor
   }
 }

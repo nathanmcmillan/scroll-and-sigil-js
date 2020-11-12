@@ -2,6 +2,7 @@ import {Float} from '/src/math/vector.js'
 import {Cell} from '/src/world/cell.js'
 import {sectorUpdateLines, sectorInsideOutside} from '/src/map/sector.js'
 import {sectorTriangulate} from '/src/map/triangulate.js'
+import {Particle} from '/src/particle/particle.js'
 
 export const WORLD_SCALE = 0.25
 export const WORLD_CELL_SHIFT = 5
@@ -14,11 +15,13 @@ export const ANIMATION_NOT_DONE = 0
 export const ANIMATION_ALMOST_DONE = 1
 export const ANIMATION_DONE = 2
 
-function toCell(f) {
+const DECAL_LIMIT = 300
+
+export function toCell(f) {
   return Math.floor(f) >> WORLD_CELL_SHIFT
 }
 
-function toFloatCell(f) {
+export function toFloatCell(f) {
   return f / (1 << WORLD_CELL_SHIFT)
 }
 
@@ -37,7 +40,7 @@ export class World {
     this.particles = []
     this.particleCount = 0
     this.decals = []
-    this.decalCount = 0
+    this.decalQueue = 0
     this.triggers = new Map()
   }
 
@@ -58,56 +61,49 @@ export class World {
     this.particles.length = 0
     this.particleCount = 0
     this.decals.length = 0
-    this.decalCount = 0
+    this.decalQueue = 0
     this.triggers.clear()
   }
 
   pushThing(thing) {
     let things = this.things
-    if (things.length === this.thingCount) {
-      things.push(thing)
-    } else {
-      things[this.thingCount] = thing
-    }
+    if (things.length === this.thingCount) things.push(thing)
+    else things[this.thingCount] = thing
     this.thingCount++
   }
 
   pushMissile(missile) {
     let missiles = this.missiles
-    if (missiles.length === this.missileCount) {
-      missiles.push(missile)
-    } else {
-      missiles[this.missileCount] = missile
-    }
+    if (missiles.length === this.missileCount) missiles.push(missile)
+    else missiles[this.missileCount] = missile
     this.missileCount++
   }
 
-  pushParticle(particle) {
+  newParticle(x, y, z) {
     let particles = this.particles
+    let particle
     if (particles.length === this.particleCount) {
+      particle = new Particle()
       particles.push(particle)
     } else {
-      particles[this.particleCount] = particle
+      particle = particles[this.particleCount]
     }
     this.particleCount++
+    particle.initialize(this, x, y, z)
+    return particle
   }
 
   pushDecal(decal) {
     let decals = this.decals
-    if (decals.length === this.decalCount) {
-      decals.push(decal)
+    if (decals.length === DECAL_LIMIT) {
+      this.decalQueue++
+      if (this.decalQueue >= DECAL_LIMIT) this.decalQueue = 0
+      decals[this.decalQueue] = decal
     } else {
-      decals[this.decalCount] = decal
+      if (decals.length === this.decalQueue) decals.push(decal)
+      else decals[this.decalQueue] = decal
+      this.decalQueue++
     }
-    this.decalCount++
-  }
-
-  removeDecal(decal) {
-    let decals = this.decals
-    let index = decals.indexOf(decal)
-    this.decalCount--
-    decals[index] = decals[this.decalCount]
-    decals[this.decalCount] = null
   }
 
   update() {
@@ -134,10 +130,11 @@ export class World {
     const particles = this.particles
     i = this.particleCount
     while (i--) {
-      if (particles[i].update()) {
+      let particle = particles[i]
+      if (particle.update()) {
         this.particleCount--
         particles[i] = particles[this.particleCount]
-        particles[this.particleCount] = null
+        particles[this.particleCount] = particle
       }
     }
   }
@@ -150,11 +147,8 @@ export class World {
     let i = this.sectors.length
     while (i--) {
       let sector = this.sectors[i]
-      if (sector.outside) {
-        continue
-      } else if (sector.contains(x, z)) {
-        return sector.find(x, z)
-      }
+      if (sector.outside) continue
+      else if (sector.contains(x, z)) return sector.find(x, z)
     }
     return null
   }
@@ -162,21 +156,16 @@ export class World {
   buildCellLines(line) {
     let xf = toFloatCell(line.a.x)
     let yf = toFloatCell(line.a.y)
-
     let dx = Math.abs(toFloatCell(line.b.x) - xf)
     let dy = Math.abs(toFloatCell(line.b.y) - yf)
-
     let x = toCell(line.a.x)
     let y = toCell(line.a.y)
-
     let xb = toCell(line.b.x)
     let yb = toCell(line.b.y)
-
     let n = 1
     let error = 0.0
     let incrementX = 0
     let incrementY = 0
-
     if (Float.zero(dx)) {
       incrementX = 0
       error = Number.MAX_VALUE
@@ -189,7 +178,6 @@ export class World {
       n += x - xb
       error = (xf - x) * dy
     }
-
     if (Float.zero(dy)) {
       incrementY = 0
       error = -Number.MAX_VALUE
@@ -202,7 +190,6 @@ export class World {
       n += y - yb
       error -= (yf - y) * dx
     }
-
     for (; n > 0; n--) {
       let cell = this.cells[x + y * this.columns]
       cell.lines.push(line)

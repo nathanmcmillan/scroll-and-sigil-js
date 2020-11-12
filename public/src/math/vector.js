@@ -72,8 +72,7 @@ export function lineIntersect(ax, ay, bx, by, cx, cy, dx, dy) {
   let r2 = a2 * bx + b2 * by + c2
   if (!Float.zero(r1) && !Float.zero(r2) && r1 * r2 >= 0.0) return false
   let denominator = a1 * b2 - a2 * b1
-  if (Float.zero(denominator)) return false
-  return true
+  return !Float.zero(denominator)
 }
 
 export function normalize(a) {

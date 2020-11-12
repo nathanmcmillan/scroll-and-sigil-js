@@ -1,6 +1,6 @@
 class: npc
 sprite: baron
-box: 0.4
+box: 0.6
 height: 4.0
 health: 1
 name: 'Traveling Merchant'

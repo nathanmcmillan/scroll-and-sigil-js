@@ -25,7 +25,8 @@ export class Missile {
 
   setup() {
     this.pushToCells()
-    this.world.pushThing(this)
+    this.updateSector()
+    this.world.pushMissile(this)
   }
 
   pushToCells() {
@@ -63,12 +64,17 @@ export class Missile {
     }
   }
 
+  updateSector() {
+    this.sector = this.world.findSector(this.x, this.z)
+  }
+
   overlap(thing) {
     let box = this.box + thing.box
     return Math.abs(this.x - thing.x) <= box && Math.abs(this.z - thing.z) <= box
   }
 
   lineOverlap(line) {
+    if (!line.middle && line.plus && this.y > line.plus.floor && this.y + this.height < line.plus.ceiling) return false
     let box = this.box
     let vx = line.b.x - line.a.x
     let vz = line.b.y - line.a.y
@@ -79,9 +85,7 @@ export class Missile {
     else if (t > 1.0) t = 1.0
     let px = line.a.x + vx * t - this.x
     let pz = line.a.y + vz * t - this.z
-    if (px * px + pz * pz > box * box) return false
-    if (!line.plus) return false
-    return line.middle || this.y < line.plus.floor || this.y + this.height > line.plus.ceiling
+    return px * px + pz * pz <= box * box
   }
 
   hit(thing) {
@@ -89,15 +93,24 @@ export class Missile {
   }
 
   check() {
+    this.updateSector()
+    if (this.y < this.sector.floor) {
+      this.hit(null)
+      return true
+    } else if (this.y + this.height > this.sector.ceiling) {
+      this.hit(null)
+      return true
+    }
     let box = this.box
     let minC = Math.floor(this.x - box) >> WORLD_CELL_SHIFT
     let maxC = Math.floor(this.x + box) >> WORLD_CELL_SHIFT
     let minR = Math.floor(this.z - box) >> WORLD_CELL_SHIFT
     let maxR = Math.floor(this.z + box) >> WORLD_CELL_SHIFT
     let world = this.world
+    let columns = world.columns
     for (let r = minR; r <= maxR; r++) {
       for (let c = minC; c <= maxC; c++) {
-        let cell = world.cells[c + r * world.columns]
+        let cell = world.cells[c + r * columns]
         let i = cell.thingCount
         while (i--) {
           let thing = cell.things[i]
@@ -119,7 +132,6 @@ export class Missile {
   }
 
   integrate() {
-    // TODO sector floor check
     if (this.check()) return true
     this.x += this.deltaX
     this.y += this.deltaY

@@ -1,14 +1,12 @@
-import {Float} from '/src/math/vector.js'
-import {WORLD_CELL_SHIFT, GRAVITY, ANIMATION_RATE, ANIMATION_NOT_DONE, ANIMATION_ALMOST_DONE, ANIMATION_DONE} from '/src/world/world.js'
+import {WORLD_CELL_SHIFT, ANIMATION_RATE, ANIMATION_NOT_DONE, ANIMATION_ALMOST_DONE, ANIMATION_DONE} from '/src/world/world.js'
 
 export class Particle {
-  constructor(world, x, y, z) {
-    let sector = world.findSector(x, z)
-    this.world = world
-    this.sector = sector
-    this.x = x
-    this.y = y
-    this.z = z
+  constructor() {
+    this.world = null
+    this.sector = null
+    this.x = 0.0
+    this.y = 0.0
+    this.z = 0.0
     this.deltaX = 0.0
     this.deltaY = 0.0
     this.deltaZ = 0.0
@@ -23,9 +21,17 @@ export class Particle {
     this.maxR = 0
   }
 
+  initialize(world, x, y, z) {
+    this.world = world
+    this.x = x
+    this.y = y
+    this.z = z
+  }
+
   setup() {
     this.pushToCells()
-    this.world.pushThing(this)
+    this.updateSector()
+    // this.world.pushParticle(this)
   }
 
   pushToCells() {
@@ -64,6 +70,10 @@ export class Particle {
     }
   }
 
+  updateSector() {
+    this.sector = this.world.findSector(this.x, this.z)
+  }
+
   updateAnimation() {
     this.animationMod++
     if (this.animationMod === ANIMATION_RATE) {
@@ -76,48 +86,5 @@ export class Particle {
     return ANIMATION_NOT_DONE
   }
 
-  lineCollision() {}
-
-  integrate() {
-    if (!Float.zero(this.deltaX) || !Float.zero(this.deltaZ)) {
-      this.previousX = this.x
-      this.previousZ = this.z
-
-      this.x += this.deltaX
-      this.z += this.deltaZ
-
-      this.removeFromCells()
-
-      let box = this.box
-      let minC = Math.floor(this.x - box) >> WORLD_CELL_SHIFT
-      let maxC = Math.floor(this.x + box) >> WORLD_CELL_SHIFT
-      let minR = Math.floor(this.z - box) >> WORLD_CELL_SHIFT
-      let maxR = Math.floor(this.z + box) >> WORLD_CELL_SHIFT
-
-      let world = this.world
-
-      for (let r = minR; r <= maxR; r++) {
-        for (let c = minC; c <= maxC; c++) {
-          let cell = world.cells[c + r * world.columns]
-          for (const line of cell.lines) {
-            this.lineCollision(line)
-          }
-        }
-      }
-
-      this.pushToCells()
-    }
-
-    if (this.ground == false || !Float.zero(this.deltaY)) {
-      this.deltaY -= GRAVITY
-      this.y += this.deltaY
-      if (this.y < this.sector.floor) {
-        this.ground = true
-        this.deltaY = 0.0
-        this.y = this.sector.floor
-      } else {
-        this.ground = false
-      }
-    }
-  }
+  update() {}
 }
