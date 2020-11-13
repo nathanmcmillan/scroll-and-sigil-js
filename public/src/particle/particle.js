@@ -31,7 +31,6 @@ export class Particle {
   setup() {
     this.pushToCells()
     this.updateSector()
-    // this.world.pushParticle(this)
   }
 
   pushToCells() {

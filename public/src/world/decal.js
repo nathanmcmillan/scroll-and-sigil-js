@@ -1,7 +1,6 @@
 export class Decal {
-  constructor(world, texture) {
-    this.world = world
-    this.texture = texture
+  constructor() {
+    this.texture = null
 
     this.x1 = 0.0
     this.y1 = 0.0
@@ -34,7 +33,9 @@ export class Decal {
     this.nx = 0.0
     this.ny = 0.0
     this.nz = 0.0
+  }
 
-    world.pushDecal(this)
+  initialize(texture) {
+    this.texture = texture
   }
 }

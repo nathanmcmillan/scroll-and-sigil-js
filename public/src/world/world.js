@@ -1,8 +1,10 @@
 import {Float} from '/src/math/vector.js'
 import {Cell} from '/src/world/cell.js'
+import {Decal} from '/src/world/decal.js'
+import {Particle} from '/src/particle/particle.js'
+import {Missile} from '/src/missile/missile.js'
 import {sectorUpdateLines, sectorInsideOutside} from '/src/map/sector.js'
 import {sectorTriangulate} from '/src/map/triangulate.js'
-import {Particle} from '/src/particle/particle.js'
 
 export const WORLD_SCALE = 0.25
 export const WORLD_CELL_SHIFT = 5
@@ -72,11 +74,18 @@ export class World {
     this.thingCount++
   }
 
-  pushMissile(missile) {
+  newMissile(x, y, z) {
     let missiles = this.missiles
-    if (missiles.length === this.missileCount) missiles.push(missile)
-    else missiles[this.missileCount] = missile
+    let missile
+    if (missiles.length === this.missileCount) {
+      missile = new Missile()
+      missiles.push(missile)
+    } else {
+      missile = missiles[this.missileCount]
+    }
     this.missileCount++
+    missile.initialize(this, x, y, z)
+    return missile
   }
 
   newParticle(x, y, z) {
@@ -93,17 +102,19 @@ export class World {
     return particle
   }
 
-  pushDecal(decal) {
+  newDecal(texture) {
     let decals = this.decals
+    let decal
     if (decals.length === DECAL_LIMIT) {
+      decal = decals[this.decalQueue]
       this.decalQueue++
-      if (this.decalQueue >= DECAL_LIMIT) this.decalQueue = 0
-      decals[this.decalQueue] = decal
+      if (this.decalQueue == DECAL_LIMIT) this.decalQueue = 0
     } else {
-      if (decals.length === this.decalQueue) decals.push(decal)
-      else decals[this.decalQueue] = decal
-      this.decalQueue++
+      decal = new Decal()
+      decals.push(decal)
     }
+    decal.initialize(texture)
+    return decal
   }
 
   update() {
@@ -120,10 +131,11 @@ export class World {
     const missiles = this.missiles
     i = this.missileCount
     while (i--) {
-      if (missiles[i].update()) {
+      let missile = missiles[i]
+      if (missile.update()) {
         this.missileCount--
         missiles[i] = missiles[this.missileCount]
-        missiles[this.missileCount] = null
+        missiles[this.missileCount] = missile
       }
     }
 

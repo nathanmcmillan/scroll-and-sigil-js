@@ -1,11 +1,10 @@
 import {WORLD_CELL_SHIFT} from '/src/world/world.js'
-import {Decal} from '/src/world/decal.js'
 import {textureIndexForName, spritesByName} from '/src/assets/assets.js'
 import {randomInt} from '/src/math/random.js'
 
 function hitFloor() {
   let sector = this.sector
-  let decal = new Decal(this.world, this.texture)
+  let decal = this.world.newDecal(this.texture)
 
   let sprite = this.sprite
   let width = sprite.halfWidth
@@ -49,7 +48,7 @@ function hitFloor() {
 
 function hitCeiling() {
   let sector = this.sector
-  let decal = new Decal(this.world, this.texture)
+  let decal = this.world.newDecal(this.texture)
 
   let sprite = this.sprite
   let width = sprite.halfWidth
@@ -106,7 +105,7 @@ function hitLine(line) {
   let pz = line.a.y + vz * t - this.z
   if (px * px + pz * pz > box * box) return false
 
-  let decal = new Decal(this.world, this.texture)
+  let decal = this.world.newDecal(this.texture)
 
   let x = px + this.x
   let z = pz + this.z

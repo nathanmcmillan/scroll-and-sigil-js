@@ -2,7 +2,7 @@ import {Thing} from '/src/thing/thing.js'
 import {playSound} from '/src/assets/sounds.js'
 import {textureIndexForName, entityByName} from '/src/assets/assets.js'
 import {WORLD_CELL_SHIFT, ANIMATION_ALMOST_DONE, ANIMATION_DONE} from '/src/world/world.js'
-import {Plasma} from '/src/missile/plasma.js'
+import {newPlasma} from '/src/missile/plasma.js'
 import {randomInt} from '/src/math/random.js'
 import {redBloodTowards, redBloodExplode} from '/src/thing/thing-util.js'
 import * as In from '/src/game/input.js'
@@ -290,7 +290,7 @@ export class Hero extends Thing {
       let x = this.x + dx * (this.box + 2.0)
       let z = this.z + dz * (this.box + 2.0)
       let y = this.y + 0.5 * this.height
-      new Plasma(this.world, entityByName('plasma'), x, y, z, dx * speed, 0.0, dz * speed, 1 + randomInt(3))
+      newPlasma(this.world, entityByName('plasma'), x, y, z, dx * speed, 0.0, dz * speed, 1 + randomInt(3))
     } else if (frame === ANIMATION_DONE) {
       this.status = STATUS_IDLE
       this.animationFrame = 0

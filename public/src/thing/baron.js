@@ -2,7 +2,7 @@ import {randomInt} from '/src/math/random.js'
 import {ANIMATION_ALMOST_DONE, ANIMATION_DONE} from '/src/world/world.js'
 import {Thing} from '/src/thing/thing.js'
 import {WORLD_CELL_SHIFT} from '/src/world/world.js'
-import {Plasma} from '/src/missile/plasma.js'
+import {newPlasma} from '/src/missile/plasma.js'
 import {playSound} from '/src/assets/sounds.js'
 import {textureIndexForName, entityByName} from '/src/assets/assets.js'
 import {redBloodTowards, redBloodExplode} from '/src/thing/thing-util.js'
@@ -112,7 +112,10 @@ export class Baron extends Thing {
     for (let i = 0; i < 4; i++) {
       this.rotation = angle - 0.785375 + 1.57075 * Math.random()
       if (this.testMove()) return
+      angle += Math.PI
     }
+    if (this.rotation < 0.0) this.rotation += 2.0 * Math.PI
+    else if (this.rotation >= 2.0 * Math.PI) this.rotation -= 2.0 * Math.PI
   }
 
   damage(source, health) {
@@ -191,7 +194,7 @@ export class Baron extends Thing {
       let x = this.x + dx * (this.box + 2.0)
       let z = this.z + dz * (this.box + 2.0)
       let y = this.y + 0.5 * this.height
-      new Plasma(this.world, entityByName('plasma'), x, y, z, dx * speed, dy, dz * speed, 1 + randomInt(3))
+      newPlasma(this.world, entityByName('plasma'), x, y, z, dx * speed, dy, dz * speed, 1 + randomInt(3))
     } else if (frame === ANIMATION_DONE) {
       this.status = STATUS_CHASE
       this.animationFrame = 0

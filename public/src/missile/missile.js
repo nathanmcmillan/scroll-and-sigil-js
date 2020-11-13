@@ -1,13 +1,16 @@
 import {WORLD_CELL_SHIFT} from '/src/world/world.js'
 
+export function missileHit(self, thing) {
+  if (thing) thing.damage(self, self.damage)
+}
+
 export class Missile {
-  constructor(world, x, y, z) {
-    let sector = world.findSector(x, z)
-    this.world = world
-    this.sector = sector
-    this.x = x
-    this.y = y
-    this.z = z
+  constructor() {
+    this.world = null
+    this.sector = null
+    this.x = 0.0
+    this.y = 0.0
+    this.z = 0.0
     this.deltaX = 0.0
     this.deltaY = 0.0
     this.deltaZ = 0.0
@@ -23,10 +26,16 @@ export class Missile {
     this.damage = 0
   }
 
+  initialize(world, x, y, z) {
+    this.world = world
+    this.x = x
+    this.y = y
+    this.z = z
+  }
+
   setup() {
     this.pushToCells()
     this.updateSector()
-    this.world.pushMissile(this)
   }
 
   pushToCells() {
