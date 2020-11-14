@@ -1,11 +1,136 @@
 import {lineIntersect, Float} from '/src/math/vector.js'
 import {toCell, toFloatCell, WORLD_CELL_SHIFT, GRAVITY, RESISTANCE, ANIMATION_RATE, ANIMATION_NOT_DONE, ANIMATION_ALMOST_DONE, ANIMATION_DONE} from '/src/world/world.js'
 
+let collided = new Set()
+let collisions = new Set()
+
+// function sideOfLine(x, z, line) {
+//   let vx = line.b.x - line.a.x
+//   let vz = line.b.y - line.a.y
+//   let wx = x - line.a.x
+//   let wz = z - line.a.y
+//   if (vx * wz - vz * wx < 0.0) return -1
+//   return 1
+// }
+
+function thingUpdateY(self) {
+  if (self.y < self.floor) {
+    self.ground = true
+    self.deltaY = 0.0
+    self.y = self.floor
+  } else if (self.y > self.floor) {
+    self.ground = false
+    if (self.y + self.height > self.ceiling) {
+      self.deltaY = 0.0
+      self.y = self.ceiling - self.height
+    }
+  }
+}
+
+function thingFindSector(self) {
+  let previous = self.sector
+  if (previous !== null && previous.contains(self.x, self.z)) return
+  let sector = self.world.findSector(self.x, self.z)
+  self.sector = sector
+  self.floor = sector.floor
+  self.ceiling = sector.ceiling
+}
+
+function thingLineCollision(self, line) {
+  let box = self.box
+  let vx = line.b.x - line.a.x
+  let vz = line.b.y - line.a.y
+  let wx = self.x - line.a.x
+  let wz = self.z - line.a.y
+  let t = (wx * vx + wz * vz) / (vx * vx + vz * vz)
+  let endpoint = false
+  if (t < 0.0) {
+    t = 0.0
+    endpoint = true
+  } else if (t > 1.0) {
+    t = 1.0
+    endpoint = true
+  }
+  let px = line.a.x + vx * t - self.x
+  let pz = line.a.y + vz * t - self.z
+  if (px * px + pz * pz > box * box) return false
+  const step = 1.0
+  if (!line.middle) {
+    let min = self.y + step
+    let max = self.y + self.height
+    if (line.plus && min > line.plus.floor && max < line.plus.ceiling) return true
+    if (line.minus && min > line.minus.floor && max < line.minus.ceiling) return true
+  }
+  if (endpoint) {
+    let ex = -px
+    let ez = -pz
+    let em = Math.sqrt(ex * ex + ez * ez)
+    ex /= em
+    ez /= em
+    let overlap = Math.sqrt((px + box * ex) * (px + box * ex) + (pz + box * ez) * (pz + box * ez))
+    self.x += ex * overlap
+    self.z += ez * overlap
+  } else {
+    let overlap = Math.sqrt((px + box * line.normal.x) * (px + box * line.normal.x) + (pz + box * line.normal.y) * (pz + box * line.normal.y))
+    self.x += line.normal.x * overlap
+    self.z += line.normal.y * overlap
+  }
+  return false
+}
+
+function thingLineFloorAndCeiling(self, line) {
+  let box = self.box
+  let vx = line.b.x - line.a.x
+  let vz = line.b.y - line.a.y
+  let wx = self.x - line.a.x
+  let wz = self.z - line.a.y
+  let t = (wx * vx + wz * vz) / (vx * vx + vz * vz)
+  if (t < 0.0) t = 0.0
+  else if (t > 1.0) t = 1.0
+  let px = line.a.x + vx * t - self.x
+  let pz = line.a.y + vz * t - self.z
+  if (px * px + pz * pz > box * box) return false
+  if (line.plus) {
+    if (line.plus.floor > self.floor) {
+      self.sector = line.plus
+      self.floor = line.plus.floor
+    }
+    if (line.plus.ceiling < self.ceiling) self.ceiling = line.plus.ceiling
+  }
+  if (line.minus) {
+    if (line.minus.floor > self.floor) {
+      self.sector = line.minus
+      self.floor = line.minus.floor
+    }
+    if (line.minus.ceiling < self.ceiling) self.ceiling = line.minus.ceiling
+  }
+  return true
+}
+
+function thingFindSectorFromLine(self) {
+  self.floor = -Number.MAX_VALUE
+  self.ceiling = Number.MAX_VALUE
+  const cells = self.world.cells
+  const columns = self.world.columns
+  let on = false
+  for (let r = self.minR; r <= self.maxR; r++) {
+    for (let c = self.minC; c <= self.maxC; c++) {
+      let cell = cells[c + r * columns]
+      let i = cell.lines.length
+      while (i--) {
+        on = thingLineFloorAndCeiling(self, cell.lines[i]) || on
+      }
+    }
+  }
+  return on
+}
+
 export class Thing {
   constructor(world, x, z) {
-    let sector = world.findSector(x, z)
     this.world = world
-    this.sector = sector
+    this.sector = null
+    this.floor = 0.0
+    this.ceiling = 0.0
     this.x = this.previousX = x
     this.z = this.previousZ = z
     this.y = 0.0
@@ -37,8 +162,29 @@ export class Thing {
 
   setup() {
     this.pushToCells()
-    this.updateSector()
+    if (!thingFindSectorFromLine(this)) thingFindSector(this)
+    thingUpdateY(this)
     this.world.pushThing(this)
+  }
+
+  set(x, z) {
+    this.x = this.previousX = x
+    this.z = this.previousZ = z
+    this.pushToCells()
+    this.sector = null
+    if (!thingFindSectorFromLine(this)) thingFindSector(this)
+    thingUpdateY(this)
+    this.world.pushThing(this)
+  }
+
+  teleport(x, z) {
+    this.removeFromCells()
+    this.x = this.previousX = x
+    this.z = this.previousZ = z
+    this.pushToCells()
+    this.sector = null
+    if (!thingFindSectorFromLine(this)) thingFindSector(this)
+    thingUpdateY(this)
   }
 
   pushToCells() {
@@ -69,27 +215,13 @@ export class Thing {
   }
 
   removeFromCells() {
-    let world = this.world
+    const cells = this.world.cells
+    const columns = this.world.columns
     for (let r = this.minR; r <= this.maxR; r++) {
       for (let c = this.minC; c <= this.maxC; c++) {
-        world.cells[c + r * world.columns].removeThing(this)
+        cells[c + r * columns].removeThing(this)
       }
     }
-  }
-
-  updateSector() {
-    let previous = this.sector
-    let sector = this.world.findSector(this.x, this.z)
-    if (sector !== previous) {
-      if (this.y < sector.floor) {
-        this.ground = true
-        this.deltaY = 0.0
-        this.y = sector.floor
-      } else if (this.y > sector.floor) {
-        this.ground = false
-      }
-    }
-    this.sector = sector
   }
 
   updateAnimation() {
@@ -184,7 +316,6 @@ export class Thing {
   resolveCollision(thing) {
     let box = this.box + thing.box
     if (Math.abs(this.x - thing.x) > box || Math.abs(this.z - thing.z) > box) return
-
     if (Math.abs(this.previousX - thing.x) > Math.abs(this.previousZ - thing.z)) {
       if (this.previousX - thing.x < 0.0) {
         this.x = thing.x - box
@@ -199,51 +330,6 @@ export class Thing {
         this.z = thing.z + box
       }
       this.deltaZ = 0.0
-    }
-  }
-
-  lineCollision(line) {
-    if (this.sector === line.plus) return
-
-    const step = 1.0
-    if (!line.middle && line.plus && this.y + step > line.plus.floor && this.y + this.height < line.plus.ceiling) return
-
-    let box = this.box
-    let vx = line.b.x - line.a.x
-    let vz = line.b.y - line.a.y
-    let wx = this.x - line.a.x
-    let wz = this.z - line.a.y
-
-    let t = (wx * vx + wz * vz) / (vx * vx + vz * vz)
-    let endpoint = false
-    if (t < 0.0) {
-      t = 0.0
-      endpoint = true
-    } else if (t > 1.0) {
-      t = 1.0
-      endpoint = true
-    }
-
-    let px = line.a.x + vx * t - this.x
-    let pz = line.a.y + vz * t - this.z
-
-    if (px * px + pz * pz > box * box) return
-
-    if (endpoint) {
-      let ex = -px
-      let ez = -pz
-
-      let em = Math.sqrt(ex * ex + ez * ez)
-      ex /= em
-      ez /= em
-
-      let overlap = Math.sqrt((px + box * ex) * (px + box * ex) + (pz + box * ez) * (pz + box * ez))
-      this.x += ex * overlap
-      this.z += ez * overlap
-    } else {
-      let overlap = Math.sqrt((px + box * line.normal.x) * (px + box * line.normal.x) + (pz + box * line.normal.y) * (pz + box * line.normal.y))
-      this.x += line.normal.x * overlap
-      this.z += line.normal.y * overlap
     }
   }
 
@@ -267,17 +353,15 @@ export class Thing {
       let maxC = Math.floor(this.x + box) >> WORLD_CELL_SHIFT
       let minR = Math.floor(this.z - box) >> WORLD_CELL_SHIFT
       let maxR = Math.floor(this.z + box) >> WORLD_CELL_SHIFT
-
       let world = this.world
       let columns = world.columns
-
       if (minC < 0) minC = 0
       if (minR < 0) minR = 0
       if (maxC >= columns) maxC = columns - 1
       if (maxR >= world.rows) maxR = world.rows - 1
 
-      let collided = new Set()
-      let collisions = new Set()
+      collided.clear()
+      collisions.clear()
 
       for (let r = minR; r <= maxR; r++) {
         for (let c = minC; c <= maxC; c++) {
@@ -306,49 +390,27 @@ export class Thing {
         collided.delete(closest)
       }
 
+      let on = false
       for (let r = minR; r <= maxR; r++) {
         for (let c = minC; c <= maxC; c++) {
           let cell = world.cells[c + r * world.columns]
           let i = cell.lines.length
           while (i--) {
-            this.lineCollision(cell.lines[i])
+            on = thingLineCollision(this, cell.lines[i]) || on
           }
         }
       }
+      if (on) on = thingFindSectorFromLine(this)
+      if (!on) thingFindSector(this)
 
       this.pushToCells()
-      this.updateSector()
     }
 
     if (this.ground === false || !Float.zero(this.deltaY)) {
       this.deltaY -= GRAVITY
       this.y += this.deltaY
-      if (this.y < this.sector.floor) {
-        this.ground = true
-        this.deltaY = 0.0
-        this.y = this.sector.floor
-      } else if (this.y + this.height > this.sector.ceiling) {
-        this.deltaY = 0.0
-        this.y = this.sector.ceiling - this.height
-      }
     }
-  }
 
-  set(x, z) {
-    this.x = this.previousX = x
-    this.z = this.previousZ = z
-    this.pushToCells()
-    this.updateSector()
-    this.y = this.sector.floor
-    this.world.pushThing(this)
-  }
-
-  teleport(x, z) {
-    this.removeFromCells()
-    this.x = this.previousX = x
-    this.z = this.previousZ = z
-    this.pushToCells()
-    this.updateSector()
-    this.y = this.sector.floor
+    thingUpdateY(this)
   }
 }

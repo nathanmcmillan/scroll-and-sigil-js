@@ -34,8 +34,8 @@ export class Decal {
     this.ny = 0.0
     this.nz = 0.0
   }
+}
 
-  initialize(texture) {
-    this.texture = texture
-  }
+export function decalInitialize(self, texture) {
+  self.texture = texture
 }

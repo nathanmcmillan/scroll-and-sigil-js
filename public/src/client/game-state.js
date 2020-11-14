@@ -277,55 +277,44 @@ export class GameState {
         let x = Math.floor(0.5 * client.width)
         let text = 'Outfit'
         drawTextSpecial(client.bufferGUI, x, client.height - pad - fontHeight, text, scale, 1.0, 0.0, 0.0, 1.0)
+        if (hero.outfit) {
+          text = hero.outfit.name
+          drawTextSpecial(client.bufferGUI, x, client.height - pad - 2.0 * fontHeight, text, scale, 1.0, 0.0, 0.0, 1.0)
+        } else {
+          drawTextSpecial(client.bufferGUI, x, client.height - pad - 2.0 * fontHeight, 'None', scale, 1.0, 0.0, 0.0, 1.0)
+        }
         x += (text.length + 1) * fontWidth
-        text = 'Head Piece'
+        text = 'Headpiece'
         drawTextSpecial(client.bufferGUI, x, client.height - pad - fontHeight, text, scale, 1.0, 0.0, 0.0, 1.0)
+        if (hero.headpiece) {
+          text = hero.headpiece.name
+          drawTextSpecial(client.bufferGUI, x, client.height - pad - 2.0 * fontHeight, text, scale, 1.0, 0.0, 0.0, 1.0)
+        } else {
+          drawTextSpecial(client.bufferGUI, x, client.height - pad - 2.0 * fontHeight, 'None', scale, 1.0, 0.0, 0.0, 1.0)
+        }
         x += (text.length + 1) * fontWidth
         text = 'Weapon'
+        if (hero.weapon) {
+          text = hero.weapon.name
+          drawTextSpecial(client.bufferGUI, x, client.height - pad - 2.0 * fontHeight, text, scale, 1.0, 0.0, 0.0, 1.0)
+        } else {
+          drawTextSpecial(client.bufferGUI, x, client.height - pad - 2.0 * fontHeight, 'None', scale, 1.0, 0.0, 0.0, 1.0)
+        }
         drawTextSpecial(client.bufferGUI, x, client.height - pad - fontHeight, text, scale, 1.0, 0.0, 0.0, 1.0)
-
-        drawTextSpecial(client.bufferGUI, pad, client.height - pad - fontHeight, 'Inventory', scale, 1.0, 0.0, 0.0, 1.0)
-        let y = Math.floor(0.5 * client.height)
-        y += fontHeight
-        drawTextSpecial(client.bufferGUI, pad, y, 'Weapons', scale, 1.0, 0.0, 0.0, 1.0)
-        y += fontHeight
-        drawTextSpecial(client.bufferGUI, pad, y, 'Outfits', scale, 1.0, 0.0, 0.0, 1.0)
-        y += fontHeight
-        drawTextSpecial(client.bufferGUI, pad, y, 'Scrolls', scale, 1.0, 0.0, 0.0, 1.0)
-        y += fontHeight
-        drawTextSpecial(client.bufferGUI, pad, y, 'Materials', scale, 1.0, 0.0, 0.0, 1.0)
-        y += fontHeight
-        drawTextSpecial(client.bufferGUI, pad, y, 'Food', scale, 1.0, 0.0, 0.0, 1.0)
+        let y = client.height - pad - fontHeight
+        drawTextSpecial(client.bufferGUI, pad, y, 'Inventory', scale, 1.0, 0.0, 0.0, 1.0)
+        let index = 0
+        for (const item of hero.inventory) {
+          y -= fontHeight
+          if (index === hero.menuRow) drawTextSpecial(client.bufferGUI, pad, y, item.name, scale, 1.0, 1.0, 0.0, 1.0)
+          else drawTextSpecial(client.bufferGUI, pad, y, item.name, scale, 1.0, 0.0, 0.0, 1.0)
+          index++
+        }
         rendering.bindTexture(gl.TEXTURE0, textureByName('font').texture)
         rendering.updateAndDraw(client.bufferGUI)
       }
     } else {
-      if (hero.nearby) {
-        let thing = hero.nearby
-        let text = thing.isItem ? 'COLLECT' : 'SPEAK'
-        let vec = [thing.x, thing.y + thing.height, thing.z]
-        let position = []
-        multiplyVector3(position, projection3d, vec)
-        position[0] /= position[2]
-        position[1] /= position[2]
-        position[0] = 0.5 * ((position[0] + 1.0) * client.width)
-        position[1] = 0.5 * ((position[1] + 1.0) * client.height)
-        position[0] = Math.floor(position[0])
-        position[1] = Math.floor(position[1])
-        drawTextSpecial(client.bufferGUI, position[0], position[1], text, scale, 1.0, 0.0, 0.0, 1.0)
-      }
-      if (hero.combat) {
-        let text = ''
-        let health = Math.floor((hero.health / hero.maxHealth) * 20)
-        let stamina = Math.floor((hero.stamina / hero.maxStamina) * 20)
-        for (let i = 0; i < health; i++) text += 'x'
-        let x = pad
-        let y = pad
-        drawTextSpecial(client.bufferGUI, x, y, text, scale, 1.0, 0.0, 0.0, 1.0)
-        y += fontHeight
-        for (let i = 0; i < stamina; i++) text += 'x'
-        drawTextSpecial(client.bufferGUI, x, y, text, scale, 0.0, 1.0, 0.0, 1.0)
-      } else if (hero.interaction) {
+      if (hero.interaction) {
         let interaction = hero.interaction
         let interactionWith = hero.interactionWith
         drawTextSpecial(client.bufferGUI, pad, client.height - pad - fontHeight, interactionWith.name, scale, 1.0, 0.0, 0.0, 1.0)
@@ -333,6 +322,32 @@ export class GameState {
         for (const option of interaction.keys()) {
           drawTextSpecial(client.bufferGUI, pad, y, option, scale, 1.0, 0.0, 0.0, 1.0)
           y += fontHeight
+        }
+      } else {
+        if (hero.nearby) {
+          let thing = hero.nearby
+          let text = thing.isItem ? 'COLLECT' : 'SPEAK'
+          let vec = [thing.x, thing.y + thing.height, thing.z]
+          let position = []
+          multiplyVector3(position, projection3d, vec)
+          position[0] /= position[2]
+          position[1] /= position[2]
+          position[0] = 0.5 * ((position[0] + 1.0) * client.width)
+          position[1] = 0.5 * ((position[1] + 1.0) * client.height)
+          position[0] = Math.floor(position[0])
+          position[1] = Math.floor(position[1])
+          drawTextSpecial(client.bufferGUI, position[0], position[1], text, scale, 1.0, 0.0, 0.0, 1.0)
+        }
+        if (hero.combat) {
+          let text = ''
+          for (let i = 0; i < hero.health; i++) text += 'x'
+          let x = pad
+          let y = pad
+          drawTextSpecial(client.bufferGUI, x, y, text, scale, 1.0, 0.0, 0.0, 1.0)
+          text = ''
+          y += fontHeight
+          for (let i = 0; i < hero.stamina; i++) text += 'x'
+          drawTextSpecial(client.bufferGUI, x, y, text, scale, 0.0, 1.0, 0.0, 1.0)
         }
       }
       if (client.bufferGUI.indexPosition > 0) {

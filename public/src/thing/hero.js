@@ -7,6 +7,9 @@ import {randomInt} from '/src/math/random.js'
 import {redBloodTowards, redBloodExplode} from '/src/thing/thing-util.js'
 import * as In from '/src/game/input.js'
 
+// TODO
+// If thing interacting with dies / is busy then nullify hero interaction
+
 const STATUS_IDLE = 0
 const STATUS_MOVE = 1
 const STATUS_MELEE = 2
@@ -15,6 +18,9 @@ const STATUS_DEAD = 4
 const STATUS_BUSY = 5
 
 const COMBAT_TIMER = 300
+
+const MELEE_COST = 2
+const MISSILE_COST = 4
 
 export class Hero extends Thing {
   constructor(world, entity, x, z, input) {
@@ -31,6 +37,8 @@ export class Hero extends Thing {
     this.health = this.maxHealth
     this.maxStamina = entity.stamina()
     this.stamina = this.maxStamina
+    this.staminaRate = 0
+    this.staminaBound = 32
     this.status = STATUS_IDLE
     this.reaction = 0
     this.group = 'human'
@@ -39,8 +47,8 @@ export class Hero extends Thing {
     this.experienceNeeded = 20
     this.skills = 0
     this.tree = {}
-    this.head = null
     this.outfit = null
+    this.headpiece = null
     this.weapon = null
     this.nearby = null
     this.quests = []
@@ -301,24 +309,33 @@ export class Hero extends Thing {
 
   move() {
     if (this.combat > 0) this.combat--
+    if (this.stamina < this.maxStamina) {
+      this.staminaRate++
+      if (this.staminaRate >= this.staminaBound) {
+        this.stamina++
+        this.staminaRate = 0
+      }
+    }
     this.findClosestThing()
     if (this.reaction > 0) {
       this.reaction--
-    } else if (this.input.a()) {
+    } else if (this.input.a() && this.stamina >= MISSILE_COST) {
       playSound('baron-missile')
       this.status = STATUS_MISSILE
       this.animationFrame = 0
       this.animation = this.animations.get('missile')
       this.updateSprite()
       this.combat = COMBAT_TIMER
+      this.stamina -= MISSILE_COST
       return
-    } else if (this.input.b()) {
+    } else if (this.input.b() && this.stamina >= MELEE_COST) {
       playSound('baron-melee')
       this.status = STATUS_MELEE
       this.animationFrame = 0
       this.animation = this.animations.get('melee')
       this.updateSprite()
       this.combat = COMBAT_TIMER
+      this.stamina -= MELEE_COST
       return
     } else if (this.input.rightTrigger()) {
       this.input.off(In.RIGHT_TRIGGER)

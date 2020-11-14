@@ -19,71 +19,70 @@ export class Particle {
     this.maxC = 0
     this.minR = 0
     this.maxR = 0
+    this.update = null
   }
+}
 
-  initialize(world, x, y, z) {
-    this.world = world
-    this.x = x
-    this.y = y
-    this.z = z
-  }
+export function particleInitialize(self, world, x, y, z) {
+  self.world = world
+  self.x = x
+  self.y = y
+  self.z = z
+}
 
-  setup() {
-    this.pushToCells()
-    this.updateSector()
-  }
+export function particleSetup(self) {
+  particlePushToCells(self)
+  particleUpdateSector(self)
+}
 
-  pushToCells() {
-    let box = this.box
-    let minC = Math.floor(this.x - box) >> WORLD_CELL_SHIFT
-    let maxC = Math.floor(this.x + box) >> WORLD_CELL_SHIFT
-    let minR = Math.floor(this.z - box) >> WORLD_CELL_SHIFT
-    let maxR = Math.floor(this.z + box) >> WORLD_CELL_SHIFT
+export function particlePushToCells(self) {
+  let box = self.box
+  let minC = Math.floor(self.x - box) >> WORLD_CELL_SHIFT
+  let maxC = Math.floor(self.x + box) >> WORLD_CELL_SHIFT
+  let minR = Math.floor(self.z - box) >> WORLD_CELL_SHIFT
+  let maxR = Math.floor(self.z + box) >> WORLD_CELL_SHIFT
 
-    let world = this.world
-    let columns = world.columns
+  let world = self.world
+  let columns = world.columns
 
-    if (minC < 0) minC = 0
-    if (minR < 0) minR = 0
-    if (maxC >= columns) maxC = columns - 1
-    if (maxR >= world.rows) maxR = world.rows - 1
+  if (minC < 0) minC = 0
+  if (minR < 0) minR = 0
+  if (maxC >= columns) maxC = columns - 1
+  if (maxR >= world.rows) maxR = world.rows - 1
 
-    for (let r = minR; r <= maxR; r++) {
-      for (let c = minC; c <= maxC; c++) {
-        world.cells[c + r * columns].pushParticle(this)
-      }
-    }
-
-    this.minC = minC
-    this.maxC = maxC
-    this.minR = minR
-    this.maxR = maxR
-  }
-
-  removeFromCells() {
-    let world = this.world
-    for (let r = this.minR; r <= this.maxR; r++) {
-      for (let c = this.minC; c <= this.maxC; c++) {
-        world.cells[c + r * world.columns].removeParticle(this)
-      }
+  for (let r = minR; r <= maxR; r++) {
+    for (let c = minC; c <= maxC; c++) {
+      world.cells[c + r * columns].pushParticle(this)
     }
   }
 
-  updateSector() {
-    this.sector = this.world.findSector(this.x, this.z)
-  }
+  self.minC = minC
+  self.maxC = maxC
+  self.minR = minR
+  self.maxR = maxR
+}
 
-  updateAnimation() {
-    this.animationMod++
-    if (this.animationMod === ANIMATION_RATE) {
-      this.animationMod = 0
-      this.animationFrame++
-      let frames = this.animation.length
-      if (this.animationFrame === frames - 1) return ANIMATION_ALMOST_DONE
-      else if (this.animationFrame === frames) return ANIMATION_DONE
+export function particleRemoveFromCells(self) {
+  let world = self.world
+  for (let r = self.minR; r <= self.maxR; r++) {
+    for (let c = self.minC; c <= self.maxC; c++) {
+      world.cells[c + r * world.columns].removeParticle(this)
     }
-    return ANIMATION_NOT_DONE
   }
+}
 
-  update() {}
+export function particleUpdateSector(self) {
+  self.sector = self.world.findSector(self.x, self.z)
+}
+
+export function particleUpdateAnimation(self) {
+  self.animationMod++
+  if (self.animationMod === ANIMATION_RATE) {
+    self.animationMod = 0
+    self.animationFrame++
+    let frames = self.animation.length
+    if (self.animationFrame === frames - 1) return ANIMATION_ALMOST_DONE
+    else if (self.animationFrame === frames) return ANIMATION_DONE
+  }
+  return ANIMATION_NOT_DONE
 }

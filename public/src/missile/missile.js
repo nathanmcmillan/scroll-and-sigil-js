@@ -1,9 +1,5 @@
 import {WORLD_CELL_SHIFT} from '/src/world/world.js'
 
-export function missileHit(self, thing) {
-  if (thing) thing.damage(self, self.damage)
-}
-
 export class Missile {
   constructor() {
     this.world = null
@@ -24,129 +20,131 @@ export class Missile {
     this.minR = 0
     this.maxR = 0
     this.damage = 0
+    this.update = null
+    this.hit = null
   }
+}
 
-  initialize(world, x, y, z) {
-    this.world = world
-    this.x = x
-    this.y = y
-    this.z = z
-  }
+export function missileHit(self, thing) {
+  if (thing) thing.damage(self, self.damage)
+}
 
-  setup() {
-    this.pushToCells()
-    this.updateSector()
-  }
+export function missileInitialize(self, world, x, y, z) {
+  self.world = world
+  self.x = x
+  self.y = y
+  self.z = z
+}
 
-  pushToCells() {
-    let box = this.box
-    let minC = Math.floor(this.x - box) >> WORLD_CELL_SHIFT
-    let maxC = Math.floor(this.x + box) >> WORLD_CELL_SHIFT
-    let minR = Math.floor(this.z - box) >> WORLD_CELL_SHIFT
-    let maxR = Math.floor(this.z + box) >> WORLD_CELL_SHIFT
+export function missileSetup(self) {
+  missilePushToCells(self)
+  missileUpdateSector(self)
+}
 
-    let world = this.world
-    let columns = world.columns
+export function missilePushToCells(self) {
+  let box = self.box
+  let minC = Math.floor(self.x - box) >> WORLD_CELL_SHIFT
+  let maxC = Math.floor(self.x + box) >> WORLD_CELL_SHIFT
+  let minR = Math.floor(self.z - box) >> WORLD_CELL_SHIFT
+  let maxR = Math.floor(self.z + box) >> WORLD_CELL_SHIFT
 
-    if (minC < 0 || minR < 0 || maxC >= columns || maxR >= world.rows) return true
+  let world = self.world
+  let columns = world.columns
 
-    for (let r = minR; r <= maxR; r++) {
-      for (let c = minC; c <= maxC; c++) {
-        world.cells[c + r * columns].pushMissile(this)
-      }
-    }
+  if (minC < 0 || minR < 0 || maxC >= columns || maxR >= world.rows) return true
 
-    this.minC = minC
-    this.maxC = maxC
-    this.minR = minR
-    this.maxR = maxR
-
-    return false
-  }
-
-  removeFromCells() {
-    let world = this.world
-    for (let r = this.minR; r <= this.maxR; r++) {
-      for (let c = this.minC; c <= this.maxC; c++) {
-        world.cells[c + r * world.columns].removeMissile(this)
-      }
+  for (let r = minR; r <= maxR; r++) {
+    for (let c = minC; c <= maxC; c++) {
+      world.cells[c + r * columns].pushMissile(self)
     }
   }
 
-  updateSector() {
-    this.sector = this.world.findSector(this.x, this.z)
-  }
+  self.minC = minC
+  self.maxC = maxC
+  self.minR = minR
+  self.maxR = maxR
 
-  overlap(thing) {
-    let box = this.box + thing.box
-    return Math.abs(this.x - thing.x) <= box && Math.abs(this.z - thing.z) <= box
-  }
+  return false
+}
 
-  lineOverlap(line) {
-    if (!line.middle && line.plus && this.y > line.plus.floor && this.y + this.height < line.plus.ceiling) return false
-    let box = this.box
-    let vx = line.b.x - line.a.x
-    let vz = line.b.y - line.a.y
-    let wx = this.x - line.a.x
-    let wz = this.z - line.a.y
-    let t = (wx * vx + wz * vz) / (vx * vx + vz * vz)
-    if (t < 0.0) t = 0.0
-    else if (t > 1.0) t = 1.0
-    let px = line.a.x + vx * t - this.x
-    let pz = line.a.y + vz * t - this.z
-    return px * px + pz * pz <= box * box
-  }
-
-  hit(thing) {
-    if (thing) thing.damage(this, this.damage)
-  }
-
-  check() {
-    this.updateSector()
-    if (this.y < this.sector.floor) {
-      this.hit(null)
-      return true
-    } else if (this.y + this.height > this.sector.ceiling) {
-      this.hit(null)
-      return true
+export function missileRemoveFromCells(self) {
+  let world = self.world
+  for (let r = self.minR; r <= self.maxR; r++) {
+    for (let c = self.minC; c <= self.maxC; c++) {
+      world.cells[c + r * world.columns].removeMissile(self)
     }
-    let box = this.box
-    let minC = Math.floor(this.x - box) >> WORLD_CELL_SHIFT
-    let maxC = Math.floor(this.x + box) >> WORLD_CELL_SHIFT
-    let minR = Math.floor(this.z - box) >> WORLD_CELL_SHIFT
-    let maxR = Math.floor(this.z + box) >> WORLD_CELL_SHIFT
-    let world = this.world
-    let columns = world.columns
-    for (let r = minR; r <= maxR; r++) {
-      for (let c = minC; c <= maxC; c++) {
-        let cell = world.cells[c + r * columns]
-        let i = cell.thingCount
-        while (i--) {
-          let thing = cell.things[i]
-          if (this == thing) continue
-          if (thing.isPhysical && this.overlap(thing)) {
-            this.hit(thing)
-            return true
-          }
-        }
-        i = cell.lines.length
-        while (i--) {
-          if (this.lineOverlap(cell.lines[i])) {
-            this.hit(null)
-            return true
-          }
+  }
+}
+
+export function missileUpdateSector(self) {
+  self.sector = self.world.findSector(self.x, self.z)
+}
+
+export function missileOverlap(self, thing) {
+  let box = self.box + thing.box
+  return Math.abs(self.x - thing.x) <= box && Math.abs(self.z - thing.z) <= box
+}
+
+export function missileLineOverlap(self, line) {
+  if (!line.middle && line.plus && self.y > line.plus.floor && self.y + self.height < line.plus.ceiling) return false
+  let box = self.box
+  let vx = line.b.x - line.a.x
+  let vz = line.b.y - line.a.y
+  let wx = self.x - line.a.x
+  let wz = self.z - line.a.y
+  let t = (wx * vx + wz * vz) / (vx * vx + vz * vz)
+  if (t < 0.0) t = 0.0
+  else if (t > 1.0) t = 1.0
+  let px = line.a.x + vx * t - self.x
+  let pz = line.a.y + vz * t - self.z
+  return px * px + pz * pz <= box * box
+}
+
+export function missileCheck(self) {
+  missileUpdateSector(self)
+  if (self.y < self.sector.floor) {
+    self.hit(null)
+    return true
+  } else if (self.y + self.height > self.sector.ceiling) {
+    self.hit(null)
+    return true
+  }
+  let box = self.box
+  let minC = Math.floor(self.x - box) >> WORLD_CELL_SHIFT
+  let maxC = Math.floor(self.x + box) >> WORLD_CELL_SHIFT
+  let minR = Math.floor(self.z - box) >> WORLD_CELL_SHIFT
+  let maxR = Math.floor(self.z + box) >> WORLD_CELL_SHIFT
+  let world = self.world
+  let columns = world.columns
+  for (let r = minR; r <= maxR; r++) {
+    for (let c = minC; c <= maxC; c++) {
+      let cell = world.cells[c + r * columns]
+      let i = cell.thingCount
+      while (i--) {
+        let thing = cell.things[i]
+        if (self == thing) continue
+        if (thing.isPhysical && missileOverlap(self, thing)) {
+          self.hit(thing)
+          return true
         }
       }
+      i = cell.lines.length
+      while (i--) {
+        if (missileLineOverlap(self, cell.lines[i])) {
+          self.hit(null)
+          return true
+        }
+      }
     }
   }
+}
 
-  integrate() {
-    if (this.check()) return true
-    this.x += this.deltaX
-    this.y += this.deltaY
-    this.z += this.deltaZ
-    this.removeFromCells()
-    if (this.pushToCells()) return true
-    return this.check()
-  }
+export function missileIntegrate(self) {
+  if (missileCheck(self)) return true
+  self.x += self.deltaX
+  self.y += self.deltaY
+  self.z += self.deltaZ
+  missileRemoveFromCells(self)
+  if (missilePushToCells(self)) return true
+  return missileCheck(self)
 }

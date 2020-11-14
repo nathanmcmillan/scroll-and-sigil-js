@@ -1,11 +1,11 @@
 map: base
 package: default
 open: game
--- width: unlimited
--- height: unlimited
 width: 320
 height: 200
 pixel-scale: 2
+screen: fit
+screen: center
 screen: stretch
--- screen: fit
--- screen: center
+width: unlimited
+height: unlimited

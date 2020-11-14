@@ -1,17 +1,18 @@
 import {WORLD_CELL_SHIFT} from '/src/world/world.js'
 import {textureIndexForName, spritesByName} from '/src/assets/assets.js'
 import {randomInt} from '/src/math/random.js'
+import {particleSetup, particleUpdateSector} from '/src/particle/particle.js'
 
-function hitFloor() {
-  let sector = this.sector
-  let decal = this.world.newDecal(this.texture)
+function bloodHitFloor(self) {
+  let sector = self.sector
+  let decal = self.world.newDecal(self.texture)
 
-  let sprite = this.sprite
+  let sprite = self.sprite
   let width = sprite.halfWidth
   let height = 0.5 * sprite.height
 
-  let x = Math.round(this.x * 16.0) / 16.0
-  let z = Math.round(this.z * 16.0) / 16.0
+  let x = Math.round(self.x * 16.0) / 16.0
+  let z = Math.round(self.z * 16.0) / 16.0
 
   decal.x1 = x - width
   decal.y1 = sector.floor
@@ -46,16 +47,16 @@ function hitFloor() {
   decal.nz = 0.0
 }
 
-function hitCeiling() {
-  let sector = this.sector
-  let decal = this.world.newDecal(this.texture)
+function bloodHitCeiling(self) {
+  let sector = self.sector
+  let decal = self.world.newDecal(self.texture)
 
-  let sprite = this.sprite
+  let sprite = self.sprite
   let width = sprite.halfWidth
   let height = 0.5 * sprite.height
 
-  let x = Math.round(this.x * 16.0) / 16.0
-  let z = Math.round(this.z * 16.0) / 16.0
+  let x = Math.round(self.x * 16.0) / 16.0
+  let z = Math.round(self.z * 16.0) / 16.0
 
   decal.x1 = x + width
   decal.y1 = sector.ceiling
@@ -90,32 +91,32 @@ function hitCeiling() {
   decal.nz = 0.0
 }
 
-function hitLine(line) {
-  if (!line.middle && line.plus && this.y > line.plus.floor && this.y + this.height < line.plus.ceiling) return false
+function bloodHitLine(self, line) {
+  if (!line.middle && line.plus && self.y > line.plus.floor && self.y + self.height < line.plus.ceiling) return false
 
-  let box = this.box
+  let box = self.box
   let vx = line.b.x - line.a.x
   let vz = line.b.y - line.a.y
-  let wx = this.x - line.a.x
-  let wz = this.z - line.a.y
+  let wx = self.x - line.a.x
+  let wz = self.z - line.a.y
   let t = (wx * vx + wz * vz) / (vx * vx + vz * vz)
   if (t < 0.0) t = 0.0
   else if (t > 1.0) t = 1.0
-  let px = line.a.x + vx * t - this.x
-  let pz = line.a.y + vz * t - this.z
+  let px = line.a.x + vx * t - self.x
+  let pz = line.a.y + vz * t - self.z
   if (px * px + pz * pz > box * box) return false
 
-  let decal = this.world.newDecal(this.texture)
+  let decal = self.world.newDecal(self.texture)
 
-  let x = px + this.x
-  let z = pz + this.z
+  let x = px + self.x
+  let z = pz + self.z
 
-  let sprite = this.sprite
+  let sprite = self.sprite
   let width = sprite.halfWidth
   let height = sprite.height
 
   decal.x1 = x - line.normal.y * width
-  decal.y1 = this.y + height
+  decal.y1 = self.y + height
   decal.z1 = z + line.normal.x * width
 
   wx = decal.x1 - line.a.x
@@ -132,14 +133,14 @@ function hitLine(line) {
   decal.v1 = sprite.top
 
   decal.x2 = decal.x1
-  decal.y2 = this.y
+  decal.y2 = self.y
   decal.z2 = decal.z1
 
   decal.u2 = sprite.left
   decal.v2 = sprite.bottom
 
   decal.x3 = x + line.normal.y * width
-  decal.y3 = this.y
+  decal.y3 = self.y
   decal.z3 = z - line.normal.x * width
 
   wx = decal.x3 - line.a.x
@@ -169,21 +170,21 @@ function hitLine(line) {
   return true
 }
 
-function check() {
-  this.updateSector()
-  if (this.y < this.sector.floor) {
-    this.hitFloor()
+function bloodCheck(self) {
+  particleUpdateSector(self)
+  if (self.y < self.sector.floor) {
+    bloodHitFloor(self)
     return true
-  } else if (this.y + this.height > this.sector.ceiling) {
-    this.hitCeiling()
+  } else if (self.y + self.height > self.sector.ceiling) {
+    bloodHitCeiling(self)
     return true
   }
-  let box = this.box
-  let minC = Math.floor(this.x - box) >> WORLD_CELL_SHIFT
-  let maxC = Math.floor(this.x + box) >> WORLD_CELL_SHIFT
-  let minR = Math.floor(this.z - box) >> WORLD_CELL_SHIFT
-  let maxR = Math.floor(this.z + box) >> WORLD_CELL_SHIFT
-  let world = this.world
+  let box = self.box
+  let minC = Math.floor(self.x - box) >> WORLD_CELL_SHIFT
+  let maxC = Math.floor(self.x + box) >> WORLD_CELL_SHIFT
+  let minR = Math.floor(self.z - box) >> WORLD_CELL_SHIFT
+  let maxR = Math.floor(self.z + box) >> WORLD_CELL_SHIFT
+  let world = self.world
   let columns = world.columns
   if (minC < 0 || minR < 0 || maxC >= columns || maxR >= world.rows) return true
   for (let r = minR; r <= maxR; r++) {
@@ -191,7 +192,7 @@ function check() {
       let cell = world.cells[c + r * columns]
       let i = cell.lines.length
       while (i--) {
-        if (this.hitLine(cell.lines[i])) {
+        if (bloodHitLine(self, cell.lines[i])) {
           return true
         }
       }
@@ -200,36 +201,31 @@ function check() {
   return false
 }
 
-function update() {
+function bloodUpdate() {
   this.deltaX *= 0.97
   this.deltaY -= 0.015
   this.deltaZ *= 0.97
   this.x += this.deltaX
   this.y += this.deltaY
   this.z += this.deltaZ
-  return this.check()
+  return bloodCheck(this)
 }
 
-function init(entity, dx, dy, dz) {
-  this.update = update
-  this.check = check
-  this.hitCeiling = hitCeiling
-  this.hitFloor = hitFloor
-  this.hitLine = hitLine
-  this.box = entity.box()
-  this.height = entity.height()
-  this.texture = textureIndexForName(entity.get('sprite'))
+function bloodInit(self, entity, dx, dy, dz) {
+  self.update = bloodUpdate
+  self.box = entity.box()
+  self.height = entity.height()
+  self.texture = textureIndexForName(entity.get('sprite'))
   let types = entity.get('animation')
-  this.sprite = spritesByName(entity.get('sprite')).get(types[randomInt(types.length)])
-  this.deltaX = dx
-  this.deltaY = dy
-  this.deltaZ = dz
-  this.setup()
+  self.sprite = spritesByName(entity.get('sprite')).get(types[randomInt(types.length)])
+  self.deltaX = dx
+  self.deltaY = dy
+  self.deltaZ = dz
+  particleSetup(self)
 }
 
 export function newBlood(world, entity, x, y, z, dx, dy, dz) {
   let particle = world.newParticle(x, y, z)
-  particle.init = init
-  particle.init(entity, dx, dy, dz)
+  bloodInit(particle, entity, dx, dy, dz)
   return particle
 }

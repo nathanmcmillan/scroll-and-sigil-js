@@ -148,9 +148,7 @@ export class Game {
     let input = this.input
     let camera = this.camera
 
-    if (this.cinema) {
-      camera.towardsTarget()
-    } else {
+    if (!this.cinema) {
       if (input.rightLeft()) {
         camera.ry -= 0.05
         if (camera.ry < 0.0) camera.ry += 2.0 * Math.PI
@@ -167,11 +165,13 @@ export class Game {
         camera.rx += 0.05
         if (camera.rx > 0.5 * Math.PI) camera.rx = 0.5 * Math.PI
       }
-      camera.followCinema()
       camera.target.rotation = camera.ry - 0.5 * Math.PI
     }
 
     this.world.update()
+
+    if (this.cinema) camera.towardsTarget()
+    else camera.followCinema()
   }
 
   notify(trigger, params) {

@@ -1,8 +1,8 @@
 import {Float} from '/src/math/vector.js'
 import {Cell} from '/src/world/cell.js'
-import {Decal} from '/src/world/decal.js'
-import {Particle} from '/src/particle/particle.js'
-import {Missile} from '/src/missile/missile.js'
+import {decalInitialize, Decal} from '/src/world/decal.js'
+import {particleInitialize, Particle} from '/src/particle/particle.js'
+import {missileInitialize, Missile} from '/src/missile/missile.js'
 import {sectorUpdateLines, sectorInsideOutside} from '/src/map/sector.js'
 import {sectorTriangulate} from '/src/map/triangulate.js'
 
@@ -84,7 +84,7 @@ export class World {
       missile = missiles[this.missileCount]
     }
     this.missileCount++
-    missile.initialize(this, x, y, z)
+    missileInitialize(missile, this, x, y, z)
     return missile
   }
 
@@ -98,7 +98,7 @@ export class World {
       particle = particles[this.particleCount]
     }
     this.particleCount++
-    particle.initialize(this, x, y, z)
+    particleInitialize(particle, this, x, y, z)
     return particle
   }
 
@@ -113,7 +113,7 @@ export class World {
       decal = new Decal()
       decals.push(decal)
     }
-    decal.initialize(texture)
+    decalInitialize(decal, texture)
     return decal
   }
 

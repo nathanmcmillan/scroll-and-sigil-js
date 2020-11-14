@@ -50,11 +50,10 @@ export class Sector {
     return this
   }
 
-  otherIsInside(sector) {
-    // for debugging
+  otherIsInside(other) {
     for (const inside of this.inside) {
-      if (inside === sector) return true
-      if (inside.otherIsInside(sector)) return true
+      if (inside === other) return true
+      if (inside.otherIsInside(other)) return true
     }
   }
 }

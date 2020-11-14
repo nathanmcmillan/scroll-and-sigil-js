@@ -15,6 +15,54 @@ const STATUS_MISSILE = 3
 const STATUS_DEAD = 4
 const STATUS_FINAL = 5
 
+function thingTryOverlap(x, z, box, thing) {
+  box += thing.box
+  return Math.abs(x - thing.x) <= box && Math.abs(z - thing.z) <= box
+}
+
+function thingTryLineOverlap(self, x, z, line) {
+  const step = 1.0
+  if (!line.middle && line.plus && self.y + step > line.plus.floor && self.y + self.height < line.plus.ceiling) return false
+  let box = self.box
+  let vx = line.b.x - line.a.x
+  let vz = line.b.y - line.a.y
+  let wx = x - line.a.x
+  let wz = z - line.a.y
+  let t = (wx * vx + wz * vz) / (vx * vx + vz * vz)
+  if (t < 0.0) t = 0.0
+  else if (t > 1.0) t = 1.0
+  let px = line.a.x + vx * t - x
+  let pz = line.a.y + vz * t - z
+  return px * px + pz * pz <= box * box
+}
+
+function thingTryMove(self, x, z) {
+  let box = self.box
+  let minC = Math.floor(x - box) >> WORLD_CELL_SHIFT
+  let maxC = Math.floor(x + box) >> WORLD_CELL_SHIFT
+  let minR = Math.floor(z - box) >> WORLD_CELL_SHIFT
+  let maxR = Math.floor(z + box) >> WORLD_CELL_SHIFT
+  let world = self.world
+  let columns = world.columns
+  if (minC < 0 || minR < 0 || maxC >= columns || maxR >= world.rows) return false
+  for (let r = minR; r <= maxR; r++) {
+    for (let c = minC; c <= maxC; c++) {
+      let cell = world.cells[c + r * columns]
+      let i = cell.thingCount
+      while (i--) {
+        let thing = cell.things[i]
+        if (self === thing) continue
+        if (thingTryOverlap(x, z, box, thing)) return false
+      }
+      i = cell.lines.length
+      while (i--) {
+        if (thingTryLineOverlap(self, x, z, cell.lines[i])) return false
+      }
+    }
+  }
+  return true
+}
+
 export class Baron extends Thing {
   constructor(world, entity, x, z) {
     super(world, x, z)
@@ -37,58 +85,10 @@ export class Baron extends Thing {
     this.setup()
   }
 
-  tryOverlap(x, z, thing) {
-    let box = this.box + thing.box
-    return Math.abs(x - thing.x) <= box && Math.abs(z - thing.z) <= box
-  }
-
-  tryLineOverlap(x, z, line) {
-    const step = 1.0
-    if (!line.middle && line.plus && this.y + step > line.plus.floor && this.y + this.height < line.plus.ceiling) return false
-    let box = this.box
-    let vx = line.b.x - line.a.x
-    let vz = line.b.y - line.a.y
-    let wx = x - line.a.x
-    let wz = z - line.a.y
-    let t = (wx * vx + wz * vz) / (vx * vx + vz * vz)
-    if (t < 0.0) t = 0.0
-    else if (t > 1.0) t = 1.0
-    let px = line.a.x + vx * t - x
-    let pz = line.a.y + vz * t - z
-    return px * px + pz * pz <= box * box
-  }
-
-  tryMove(x, z) {
-    let box = this.box
-    let minC = Math.floor(x - box) >> WORLD_CELL_SHIFT
-    let maxC = Math.floor(x + box) >> WORLD_CELL_SHIFT
-    let minR = Math.floor(z - box) >> WORLD_CELL_SHIFT
-    let maxR = Math.floor(z + box) >> WORLD_CELL_SHIFT
-    let world = this.world
-    let columns = world.columns
-    if (minC < 0 || minR < 0 || maxC >= columns || maxR >= world.rows) return false
-    for (let r = minR; r <= maxR; r++) {
-      for (let c = minC; c <= maxC; c++) {
-        let cell = world.cells[c + r * columns]
-        let i = cell.thingCount
-        while (i--) {
-          let thing = cell.things[i]
-          if (this === thing) continue
-          if (this.tryOverlap(x, z, thing)) return false
-        }
-        i = cell.lines.length
-        while (i--) {
-          if (this.tryLineOverlap(x, z, cell.lines[i])) return false
-        }
-      }
-    }
-    return true
-  }
-
   move() {
     let x = this.x + cos(this.rotation) * this.speed
     let z = this.z + sin(this.rotation) * this.speed
-    if (this.tryMove(x, z)) {
+    if (thingTryMove(this, x, z)) {
       this.removeFromCells()
       this.previousX = this.x
       this.previousZ = this.z
