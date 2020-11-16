@@ -1,7 +1,6 @@
 import {randomInt} from '/src/math/random.js'
-import {ANIMATION_ALMOST_DONE, ANIMATION_DONE} from '/src/world/world.js'
-import {Thing} from '/src/thing/thing.js'
-import {WORLD_CELL_SHIFT} from '/src/world/world.js'
+import {WORLD_CELL_SHIFT, ANIMATION_ALMOST_DONE, ANIMATION_DONE} from '/src/world/world.js'
+import {thingFindSectorFromLine, thingFindSector, thingY, Thing} from '/src/thing/thing.js'
 import {newPlasma} from '/src/missile/plasma.js'
 import {playSound} from '/src/assets/sounds.js'
 import {textureIndexForName, entityByName} from '/src/assets/assets.js'
@@ -21,8 +20,13 @@ function thingTryOverlap(x, z, box, thing) {
 }
 
 function thingTryLineOverlap(self, x, z, line) {
-  const step = 1.0
-  if (!line.middle && line.plus && self.y + step > line.plus.floor && self.y + self.height < line.plus.ceiling) return false
+  if (!line.physical) {
+    const step = 1.0
+    let min = self.y + step
+    let max = self.y + self.height
+    if (line.plus && min > line.plus.floor && max < line.plus.ceiling) return false
+    if (line.minus && min > line.minus.floor && max < line.minus.ceiling) return false
+  }
   let box = self.box
   let vx = line.b.x - line.a.x
   let vz = line.b.y - line.a.y
@@ -63,6 +67,32 @@ function thingTryMove(self, x, z) {
   return true
 }
 
+function thingMove(self) {
+  let x = self.x + cos(self.rotation) * self.speed
+  let z = self.z + sin(self.rotation) * self.speed
+  if (thingTryMove(self, x, z)) {
+    self.removeFromCells()
+    self.previousX = self.x
+    self.previousZ = self.z
+    self.x = x
+    self.z = z
+    self.pushToCells()
+    if (!thingFindSectorFromLine(self)) {
+      console.log('uh oh...', self.floor, self.ceiling)
+      thingFindSector(self)
+      console.log('final...', self.sector, self.floor, self.ceiling)
+    }
+    return true
+  }
+  return false
+}
+
+function baronTestMove(self) {
+  if (!thingMove(self)) return false
+  self.moveCount = 16 + randomInt(32)
+  return true
+}
+
 export class Baron extends Thing {
   constructor(world, entity, x, z) {
     super(world, x, z)
@@ -85,33 +115,11 @@ export class Baron extends Thing {
     this.setup()
   }
 
-  move() {
-    let x = this.x + cos(this.rotation) * this.speed
-    let z = this.z + sin(this.rotation) * this.speed
-    if (thingTryMove(this, x, z)) {
-      this.removeFromCells()
-      this.previousX = this.x
-      this.previousZ = this.z
-      this.x = x
-      this.z = z
-      this.pushToCells()
-      this.updateSector()
-      return true
-    }
-    return false
-  }
-
-  testMove() {
-    if (!this.move()) return false
-    this.moveCount = 16 + randomInt(32)
-    return true
-  }
-
   chaseDirection() {
     let angle = atan2(this.target.z - this.z, this.target.x - this.x)
     for (let i = 0; i < 4; i++) {
       this.rotation = angle - 0.785375 + 1.57075 * Math.random()
-      if (this.testMove()) return
+      if (baronTestMove(this)) return
       angle += Math.PI
     }
     if (this.rotation < 0.0) this.rotation += 2.0 * Math.PI
@@ -231,7 +239,7 @@ export class Baron extends Thing {
         }
       } else {
         this.moveCount--
-        if (this.moveCount < 0 || !this.move()) this.chaseDirection()
+        if (this.moveCount < 0 || !thingMove(this)) this.chaseDirection()
         if (this.updateAnimation() === ANIMATION_DONE) this.animationFrame = 0
         this.updateSprite()
       }
@@ -258,7 +266,8 @@ export class Baron extends Thing {
       case STATUS_FINAL:
         return false
     }
-    this.integrate()
+    console.log(this.floor, this.ceiling, this.ground)
+    thingY(this)
     return false
   }
 }

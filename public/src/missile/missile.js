@@ -86,7 +86,11 @@ export function missileOverlap(self, thing) {
 }
 
 export function missileLineOverlap(self, line) {
-  if (!line.middle && line.plus && self.y > line.plus.floor && self.y + self.height < line.plus.ceiling) return false
+  if (!line.physical) {
+    let max = self.y + self.height
+    if (line.plus && self.y > line.plus.floor && max < line.plus.ceiling) return false
+    if (line.minus && self.y > line.minus.floor && max < line.minus.ceiling) return false
+  }
   let box = self.box
   let vx = line.b.x - line.a.x
   let vz = line.b.y - line.a.y

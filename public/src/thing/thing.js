@@ -27,13 +27,12 @@ function thingUpdateY(self) {
   }
 }
 
-function thingFindSector(self) {
-  let previous = self.sector
-  if (previous !== null && previous.contains(self.x, self.z)) return
-  let sector = self.world.findSector(self.x, self.z)
-  self.sector = sector
-  self.floor = sector.floor
-  self.ceiling = sector.ceiling
+export function thingY(self) {
+  if (self.ground === false || !Float.zero(self.deltaY)) {
+    self.deltaY -= GRAVITY
+    self.y += self.deltaY
+  }
+  thingUpdateY(self)
 }
 
 function thingLineCollision(self, line) {
@@ -54,8 +53,8 @@ function thingLineCollision(self, line) {
   let px = line.a.x + vx * t - self.x
   let pz = line.a.y + vz * t - self.z
   if (px * px + pz * pz > box * box) return false
-  const step = 1.0
-  if (!line.middle) {
+  if (!line.physical) {
+    const step = 1.0
     let min = self.y + step
     let max = self.y + self.height
     if (line.plus && min > line.plus.floor && max < line.plus.ceiling) return true
@@ -107,7 +106,7 @@ function thingLineFloorAndCeiling(self, line) {
   return true
 }
 
-function thingFindSectorFromLine(self) {
+export function thingFindSectorFromLine(self) {
   self.floor = -Number.MAX_VALUE
   self.ceiling = Number.MAX_VALUE
   const cells = self.world.cells
@@ -123,6 +122,15 @@ function thingFindSectorFromLine(self) {
     }
   }
   return on
+}
+
+export function thingFindSector(self) {
+  // let previous = self.sector
+  // if (previous !== null && previous.contains(self.x, self.z)) return // actually this will never happen because there should ALWAYS be a line collision to update sector
+  let sector = self.world.findSector(self.x, self.z)
+  self.sector = sector
+  self.floor = sector.floor
+  self.ceiling = sector.ceiling
 }
 
 export class Thing {
@@ -171,7 +179,6 @@ export class Thing {
     this.x = this.previousX = x
     this.z = this.previousZ = z
     this.pushToCells()
-    this.sector = null
     if (!thingFindSectorFromLine(this)) thingFindSector(this)
     thingUpdateY(this)
     this.world.pushThing(this)
@@ -182,7 +189,6 @@ export class Thing {
     this.x = this.previousX = x
     this.z = this.previousZ = z
     this.pushToCells()
-    this.sector = null
     if (!thingFindSectorFromLine(this)) thingFindSector(this)
     thingUpdateY(this)
   }
@@ -286,7 +292,7 @@ export class Thing {
       let i = cell.lines.length
       while (i--) {
         let line = cell.lines[i]
-        if (line.middle && lineIntersect(this.x, this.z, thing.x, thing.z, line.a.x, line.a.y, line.b.x, line.b.y)) return false
+        if (line.physical && lineIntersect(this.x, this.z, thing.x, thing.z, line.a.x, line.a.y, line.b.x, line.b.y)) return false
       }
       if (error > 0.0) {
         y += incrementY
@@ -406,11 +412,6 @@ export class Thing {
       this.pushToCells()
     }
 
-    if (this.ground === false || !Float.zero(this.deltaY)) {
-      this.deltaY -= GRAVITY
-      this.y += this.deltaY
-    }
-
-    thingUpdateY(this)
+    thingY(this)
   }
 }
