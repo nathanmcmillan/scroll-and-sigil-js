@@ -125,12 +125,9 @@ export function thingFindSectorFromLine(self) {
 }
 
 export function thingFindSector(self) {
-  // let previous = self.sector
-  // if (previous !== null && previous.contains(self.x, self.z)) return // actually this will never happen because there should ALWAYS be a line collision to update sector
-  let sector = self.world.findSector(self.x, self.z)
-  self.sector = sector
-  self.floor = sector.floor
-  self.ceiling = sector.ceiling
+  self.sector = self.world.findSector(self.x, self.z)
+  self.floor = self.sector.floor
+  self.ceiling = self.sector.ceiling
 }
 
 export class Thing {

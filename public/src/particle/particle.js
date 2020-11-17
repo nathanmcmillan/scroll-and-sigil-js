@@ -73,6 +73,7 @@ export function particleRemoveFromCells(self) {
 
 export function particleUpdateSector(self) {
   self.sector = self.world.findSector(self.x, self.z)
+  return self.sector === null
 }
 
 export function particleUpdateAnimation(self) {

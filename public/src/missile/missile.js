@@ -78,6 +78,7 @@ export function missileRemoveFromCells(self) {
 
 export function missileUpdateSector(self) {
   self.sector = self.world.findSector(self.x, self.z)
+  return self.sector === null
 }
 
 export function missileOverlap(self, thing) {
@@ -105,8 +106,10 @@ export function missileLineOverlap(self, line) {
 }
 
 export function missileCheck(self) {
-  missileUpdateSector(self)
-  if (self.y < self.sector.floor) {
+  if (missileUpdateSector(self)) {
+    self.hit(null)
+    return true
+  } else if (self.y < self.sector.floor) {
     self.hit(null)
     return true
   } else if (self.y + self.height > self.sector.ceiling) {

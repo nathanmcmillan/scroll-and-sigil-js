@@ -175,7 +175,7 @@ function bloodHitLine(self, line) {
 }
 
 function bloodCheck(self) {
-  particleUpdateSector(self)
+  if (particleUpdateSector(self)) return true
   if (self.y < self.sector.floor) {
     bloodHitFloor(self)
     return true

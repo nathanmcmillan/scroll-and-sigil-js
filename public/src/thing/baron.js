@@ -1,6 +1,6 @@
 import {randomInt} from '/src/math/random.js'
 import {WORLD_CELL_SHIFT, ANIMATION_ALMOST_DONE, ANIMATION_DONE} from '/src/world/world.js'
-import {thingFindSectorFromLine, thingFindSector, thingY, Thing} from '/src/thing/thing.js'
+import {thingFindSector, thingY, Thing} from '/src/thing/thing.js'
 import {newPlasma} from '/src/missile/plasma.js'
 import {playSound} from '/src/assets/sounds.js'
 import {textureIndexForName, entityByName} from '/src/assets/assets.js'
@@ -14,6 +14,10 @@ const STATUS_MISSILE = 3
 const STATUS_DEAD = 4
 const STATUS_FINAL = 5
 
+let tempSector = null
+let tempFloor = 0.0
+let tempCeiling = 0.0
+
 function thingTryOverlap(x, z, box, thing) {
   box += thing.box
   return Math.abs(x - thing.x) <= box && Math.abs(z - thing.z) <= box
@@ -21,6 +25,20 @@ function thingTryOverlap(x, z, box, thing) {
 
 function thingTryLineOverlap(self, x, z, line) {
   if (!line.physical) {
+    if (line.plus) {
+      if (line.plus.floor > tempFloor) {
+        tempSector = line.plus
+        tempFloor = line.plus.floor
+      }
+      if (line.plus.ceiling < tempCeiling) tempCeiling = line.plus.ceiling
+    }
+    if (line.minus) {
+      if (line.minus.floor > tempFloor) {
+        tempSector = line.minus
+        tempFloor = line.minus.floor
+      }
+      if (line.minus.ceiling < tempCeiling) tempCeiling = line.minus.ceiling
+    }
     const step = 1.0
     let min = self.y + step
     let max = self.y + self.height
@@ -41,6 +59,9 @@ function thingTryLineOverlap(self, x, z, line) {
 }
 
 function thingTryMove(self, x, z) {
+  tempSector = null
+  tempFloor = -Number.MAX_VALUE
+  tempCeiling = Number.MAX_VALUE
   let box = self.box
   let minC = Math.floor(x - box) >> WORLD_CELL_SHIFT
   let maxC = Math.floor(x + box) >> WORLD_CELL_SHIFT
@@ -77,10 +98,14 @@ function thingMove(self) {
     self.x = x
     self.z = z
     self.pushToCells()
-    if (!thingFindSectorFromLine(self)) {
-      console.log('uh oh...', self.floor, self.ceiling)
+    if (tempSector === null) {
+      console.log('oh snap')
       thingFindSector(self)
-      console.log('final...', self.sector, self.floor, self.ceiling)
+    } else {
+      // console.log(tempSector, tempFloor, tempCeiling)
+      self.sector = tempSector
+      self.floor = tempFloor
+      self.ceiling = tempCeiling
     }
     return true
   }
@@ -91,6 +116,17 @@ function baronTestMove(self) {
   if (!thingMove(self)) return false
   self.moveCount = 16 + randomInt(32)
   return true
+}
+
+function chaseDirection(self) {
+  let angle = atan2(self.target.z - self.z, self.target.x - self.x)
+  for (let i = 0; i < 4; i++) {
+    self.rotation = angle - 0.785375 + 1.57075 * Math.random()
+    if (baronTestMove(self)) return
+    angle += Math.PI
+  }
+  if (self.rotation < 0.0) self.rotation += 2.0 * Math.PI
+  else if (self.rotation >= 2.0 * Math.PI) self.rotation -= 2.0 * Math.PI
 }
 
 export class Baron extends Thing {
@@ -113,17 +149,6 @@ export class Baron extends Thing {
     this.status = STATUS_LOOK
     this.reaction = 0
     this.setup()
-  }
-
-  chaseDirection() {
-    let angle = atan2(this.target.z - this.z, this.target.x - this.x)
-    for (let i = 0; i < 4; i++) {
-      this.rotation = angle - 0.785375 + 1.57075 * Math.random()
-      if (baronTestMove(this)) return
-      angle += Math.PI
-    }
-    if (this.rotation < 0.0) this.rotation += 2.0 * Math.PI
-    else if (this.rotation >= 2.0 * Math.PI) this.rotation -= 2.0 * Math.PI
   }
 
   damage(source, health) {
@@ -239,7 +264,7 @@ export class Baron extends Thing {
         }
       } else {
         this.moveCount--
-        if (this.moveCount < 0 || !thingMove(this)) this.chaseDirection()
+        if (this.moveCount < 0 || !thingMove(this)) chaseDirection(this)
         if (this.updateAnimation() === ANIMATION_DONE) this.animationFrame = 0
         this.updateSprite()
       }
@@ -266,7 +291,6 @@ export class Baron extends Thing {
       case STATUS_FINAL:
         return false
     }
-    console.log(this.floor, this.ceiling, this.ground)
     thingY(this)
     return false
   }
