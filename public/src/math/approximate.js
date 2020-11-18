@@ -22,10 +22,11 @@ export function atan2(y, x) {
   }
   let atan
   let z = y / x
-  if ((z >= 0.0 && z < 1.0) || (z <= 0.0 && -z < 1.0)) {
+  let abs = z < 0.0 ? -z : z
+  if (abs < 1.0) {
     atan = z / (1.0 + 0.28 * z * z)
     if (x < 0.0) {
-      if (y < 0.0) return atan - halfpi
+      if (y < 0.0) return atan - pi
       return atan + pi
     }
   } else {

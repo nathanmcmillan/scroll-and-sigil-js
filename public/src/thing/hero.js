@@ -1,4 +1,4 @@
-import {Thing} from '/src/thing/thing.js'
+import {thingSetup, thingUpdateSprite, thingUpdateAnimation, thingApproximateDistance, Thing} from '/src/thing/thing.js'
 import {playSound} from '/src/assets/sounds.js'
 import {textureIndexForName, entityByName} from '/src/assets/assets.js'
 import {WORLD_CELL_SHIFT, ANIMATION_ALMOST_DONE, ANIMATION_DONE} from '/src/world/world.js'
@@ -21,6 +21,53 @@ const COMBAT_TIMER = 300
 
 const MELEE_COST = 2
 const MISSILE_COST = 4
+
+function heroDamage(source, health) {
+  if (this.status === STATUS_BUSY) {
+    this.status = STATUS_IDLE
+    this.menu = null
+    this.interaction = null
+    this.interactionWith = null
+  }
+  this.health -= health
+  if (this.health <= 0) {
+    playSound('baron-death')
+    this.health = 0
+    this.status = STATUS_DEAD
+    this.animationFrame = 0
+    this.animation = this.animations.get('death')
+    thingUpdateSprite(this)
+    this.combat = 0
+    redBloodExplode(this)
+  } else {
+    playSound('baron-pain')
+    this.combat = COMBAT_TIMER
+    redBloodTowards(this, source)
+  }
+}
+
+function heroUpdate() {
+  switch (this.status) {
+    case STATUS_IDLE:
+    case STATUS_MOVE:
+      this.move()
+      break
+    case STATUS_MELEE:
+      this.melee()
+      break
+    case STATUS_MISSILE:
+      this.missile()
+      break
+    case STATUS_DEAD:
+      this.dead()
+      break
+    case STATUS_BUSY:
+      this.busy()
+      break
+  }
+  this.integrate()
+  return false
+}
 
 export class Hero extends Thing {
   constructor(world, entity, x, z, input) {
@@ -59,31 +106,9 @@ export class Hero extends Thing {
     this.menuColumn = 0
     this.menuRow = 0
     this.interactionWith = null
-    this.setup()
-  }
-
-  damage(source, health) {
-    if (this.status === STATUS_BUSY) {
-      this.status = STATUS_IDLE
-      this.menu = null
-      this.interaction = null
-      this.interactionWith = null
-    }
-    this.health -= health
-    if (this.health <= 0) {
-      playSound('baron-death')
-      this.health = 0
-      this.status = STATUS_DEAD
-      this.animationFrame = 0
-      this.animation = this.animations.get('death')
-      this.updateSprite()
-      this.combat = 0
-      redBloodExplode(this)
-    } else {
-      playSound('baron-pain')
-      this.combat = COMBAT_TIMER
-      redBloodTowards(this, source)
-    }
+    this.damage = heroDamage
+    this.update = heroUpdate
+    thingSetup(this)
   }
 
   distanceToLine(box, line) {
@@ -129,7 +154,7 @@ export class Hero extends Thing {
           let thing = cell.things[i]
           if (this === thing) continue
           if ((thing.isItem && !thing.pickedUp) || (thing.interaction && thing.health > 0)) {
-            let distance = this.approximateDistance(thing)
+            let distance = thingApproximateDistance(this, thing)
             if (distance < 2.0 && distance < closest) {
               closest = distance
               this.nearby = thing
@@ -153,7 +178,7 @@ export class Hero extends Thing {
         this.status = STATUS_BUSY
         this.animationFrame = 0
         this.animation = this.animations.get('move')
-        this.updateSprite()
+        thingUpdateSprite(this)
         this.interactionWith = thing
         this.interaction = thing.interaction
         if (this.interaction.get('type') === 'quest') {
@@ -203,15 +228,15 @@ export class Hero extends Thing {
       }
       return
     }
-    this.updateAnimation()
-    this.updateSprite()
+    thingUpdateAnimation(this)
+    thingUpdateSprite(this)
   }
 
   openMenu() {
     this.status = STATUS_BUSY
     this.animationFrame = 0
     this.animation = this.animations.get('move')
-    this.updateSprite()
+    thingUpdateSprite(this)
     this.menu = {page: 'inventory'}
   }
 
@@ -237,7 +262,7 @@ export class Hero extends Thing {
   }
 
   melee() {
-    let frame = this.updateAnimation()
+    let frame = thingUpdateAnimation(this)
     if (frame === ANIMATION_ALMOST_DONE) {
       this.reaction = 40
 
@@ -267,7 +292,7 @@ export class Hero extends Thing {
           while (i--) {
             let thing = cell.things[i]
             if (this === thing) continue
-            let distance = this.approximateDistance(thing)
+            let distance = thingApproximateDistance(this, thing)
             if (distance < this.box + thing.box + meleeRange && distance < closest) {
               closest = distance
               target = thing
@@ -284,12 +309,12 @@ export class Hero extends Thing {
       this.status = STATUS_IDLE
       this.animationFrame = 0
       this.animation = this.animations.get('move')
-      this.updateSprite()
+      thingUpdateSprite(this)
     }
   }
 
   missile() {
-    let frame = this.updateAnimation()
+    let frame = thingUpdateAnimation(this)
     if (frame === ANIMATION_ALMOST_DONE) {
       this.reaction = 60
       let speed = 0.3
@@ -303,7 +328,7 @@ export class Hero extends Thing {
       this.status = STATUS_IDLE
       this.animationFrame = 0
       this.animation = this.animations.get('move')
-      this.updateSprite()
+      thingUpdateSprite(this)
     }
   }
 
@@ -324,7 +349,7 @@ export class Hero extends Thing {
       this.status = STATUS_MISSILE
       this.animationFrame = 0
       this.animation = this.animations.get('missile')
-      this.updateSprite()
+      thingUpdateSprite(this)
       this.combat = COMBAT_TIMER
       this.stamina -= MISSILE_COST
       return
@@ -333,7 +358,7 @@ export class Hero extends Thing {
       this.status = STATUS_MELEE
       this.animationFrame = 0
       this.animation = this.animations.get('melee')
-      this.updateSprite()
+      thingUpdateSprite(this)
       this.combat = COMBAT_TIMER
       this.stamina -= MELEE_COST
       return
@@ -396,33 +421,10 @@ export class Hero extends Thing {
         if (rotation) {
           this.deltaX += Math.cos(rotation) * this.speed
           this.deltaZ += Math.sin(rotation) * this.speed
-          if (this.updateAnimation() === ANIMATION_DONE) this.animationFrame = 0
-          this.updateSprite()
+          if (thingUpdateAnimation(this) === ANIMATION_DONE) this.animationFrame = 0
+          thingUpdateSprite(this)
         }
       }
     }
-  }
-
-  update() {
-    switch (this.status) {
-      case STATUS_IDLE:
-      case STATUS_MOVE:
-        this.move()
-        break
-      case STATUS_MELEE:
-        this.melee()
-        break
-      case STATUS_MISSILE:
-        this.missile()
-        break
-      case STATUS_DEAD:
-        this.dead()
-        break
-      case STATUS_BUSY:
-        this.busy()
-        break
-    }
-    this.integrate()
-    return false
   }
 }

@@ -1,6 +1,17 @@
+import {
+  thingSetup,
+  thingPushToCells,
+  thingRemoveFromCells,
+  thingFindSector,
+  thingY,
+  thingApproximateDistance,
+  thingCheckSight,
+  thingUpdateSprite,
+  thingUpdateAnimation,
+  Thing,
+} from '/src/thing/thing.js'
 import {randomInt} from '/src/math/random.js'
 import {WORLD_CELL_SHIFT, ANIMATION_ALMOST_DONE, ANIMATION_DONE} from '/src/world/world.js'
-import {thingFindSector, thingY, Thing} from '/src/thing/thing.js'
 import {newPlasma} from '/src/missile/plasma.js'
 import {playSound} from '/src/assets/sounds.js'
 import {textureIndexForName, entityByName} from '/src/assets/assets.js'
@@ -92,21 +103,20 @@ function thingMove(self) {
   let x = self.x + cos(self.rotation) * self.speed
   let z = self.z + sin(self.rotation) * self.speed
   if (thingTryMove(self, x, z)) {
-    self.removeFromCells()
+    thingRemoveFromCells(self)
     self.previousX = self.x
     self.previousZ = self.z
     self.x = x
     self.z = z
-    self.pushToCells()
+    thingPushToCells(self)
     if (tempSector === null) {
-      console.log('oh snap')
-      thingFindSector(self)
+      if (self.wasOnLine) thingFindSector(self)
     } else {
-      // console.log(tempSector, tempFloor, tempCeiling)
       self.sector = tempSector
       self.floor = tempFloor
       self.ceiling = tempCeiling
     }
+    self.wasOnLine = tempSector !== null
     return true
   }
   return false
@@ -129,6 +139,47 @@ function chaseDirection(self) {
   else if (self.rotation >= 2.0 * Math.PI) self.rotation -= 2.0 * Math.PI
 }
 
+function baronDamage(source, health) {
+  if (this.status === STATUS_DEAD || this.status === STATUS_FINAL) return
+  this.health -= health
+  if (this.health <= 0) {
+    playSound('baron-death')
+    this.health = 0
+    this.status = STATUS_DEAD
+    this.animationFrame = 0
+    this.animation = this.animations.get('death')
+    thingUpdateSprite(this)
+    redBloodExplode(this)
+  } else {
+    playSound('baron-pain')
+    redBloodTowards(this, source)
+  }
+}
+
+function baronUpdate() {
+  switch (this.status) {
+    case STATUS_LOOK:
+      this.look()
+      break
+    case STATUS_CHASE:
+      this.chase()
+      break
+    case STATUS_MELEE:
+      this.melee()
+      break
+    case STATUS_MISSILE:
+      this.missile()
+      break
+    case STATUS_DEAD:
+      this.dead()
+      break
+    case STATUS_FINAL:
+      return false
+  }
+  thingY(this)
+  return false
+}
+
 export class Baron extends Thing {
   constructor(world, entity, x, z) {
     super(world, x, z)
@@ -148,24 +199,9 @@ export class Baron extends Thing {
     this.missileRange = 50.0
     this.status = STATUS_LOOK
     this.reaction = 0
-    this.setup()
-  }
-
-  damage(source, health) {
-    if (this.status === STATUS_DEAD || this.status === STATUS_FINAL) return
-    this.health -= health
-    if (this.health <= 0) {
-      playSound('baron-death')
-      this.health = 0
-      this.status = STATUS_DEAD
-      this.animationFrame = 0
-      this.animation = this.animations.get('death')
-      this.updateSprite()
-      redBloodExplode(this)
-    } else {
-      playSound('baron-pain')
-      redBloodTowards(this, source)
-    }
+    this.damage = baronDamage
+    this.update = baronUpdate
+    thingSetup(this)
   }
 
   dead() {
@@ -174,53 +210,58 @@ export class Baron extends Thing {
       this.status = STATUS_FINAL
       return
     }
-    this.updateAnimation()
-    this.updateSprite()
+    thingUpdateAnimation(this)
+    thingUpdateSprite(this)
   }
 
   look() {
-    let things = this.world.things
-    let i = this.world.thingCount
-    while (i--) {
-      let thing = things[i]
-      if (this === thing) continue
-      if (thing.group === 'human' && thing.health > 0 && this.checkSight(thing)) {
-        if (Math.random() < 0.4) playSound('baron-scream')
-        this.target = thing
-        this.status = STATUS_CHASE
-        this.animationFrame = 0
-        this.animation = this.animations.get('move')
-        this.updateSprite()
-        return
+    if (this.reaction > 0) {
+      this.reaction--
+    } else {
+      let things = this.world.things
+      let i = this.world.thingCount
+      while (i--) {
+        let thing = things[i]
+        if (this === thing) continue
+        if (thing.group === 'human' && thing.health > 0 && thingCheckSight(this, thing)) {
+          if (Math.random() < 0.4) playSound('baron-scream')
+          this.target = thing
+          this.status = STATUS_CHASE
+          this.animationFrame = 0
+          this.animation = this.animations.get('move')
+          thingUpdateSprite(this)
+          return
+        }
       }
+      this.reaction = 10 + randomInt(60)
     }
-    if (this.updateAnimation() === ANIMATION_DONE) this.animationFrame = 0
-    this.updateSprite()
+    if (thingUpdateAnimation(this) === ANIMATION_DONE) this.animationFrame = 0
+    thingUpdateSprite(this)
   }
 
   melee() {
-    let frame = this.updateAnimation()
+    let frame = thingUpdateAnimation(this)
     if (frame === ANIMATION_ALMOST_DONE) {
       this.reaction = 40 + randomInt(220)
-      if (this.approximateDistance(this.target) < this.box + this.target.box + this.meleeRange) {
+      if (thingApproximateDistance(this, this.target) < this.box + this.target.box + this.meleeRange) {
         this.target.damage(this, 1 + randomInt(3))
       }
     } else if (frame === ANIMATION_DONE) {
       this.status = STATUS_CHASE
       this.animationFrame = 0
       this.animation = this.animations.get('move')
-      this.updateSprite()
+      thingUpdateSprite(this)
     }
   }
 
   missile() {
-    let frame = this.updateAnimation()
+    let frame = thingUpdateAnimation(this)
     if (frame === ANIMATION_ALMOST_DONE) {
       this.reaction = 40 + randomInt(220)
       const speed = 0.3
       let target = this.target
       let angle = atan2(target.z - this.z, target.x - this.x)
-      let distance = this.approximateDistance(target)
+      let distance = thingApproximateDistance(this, target)
       let dx = cos(angle)
       let dz = sin(angle)
       let dy = (target.y + target.height * 0.5 - this.y - this.height * 0.5) / (distance / speed)
@@ -232,7 +273,7 @@ export class Baron extends Thing {
       this.status = STATUS_CHASE
       this.animationFrame = 0
       this.animation = this.animations.get('move')
-      this.updateSprite()
+      thingUpdateSprite(this)
     }
   }
 
@@ -243,55 +284,31 @@ export class Baron extends Thing {
       this.status = STATUS_LOOK
       this.animationFrame = 0
       this.animation = this.animations.get('idle')
-      this.updateSprite()
+      thingUpdateSprite(this)
     } else {
-      let distance = this.approximateDistance(this.target)
+      let distance = thingApproximateDistance(this, this.target)
       if (this.reaction <= 0 && distance < this.box + this.target.box + this.meleeRange) {
         playSound('baron-melee')
         this.status = STATUS_MELEE
         this.animationFrame = 0
         this.animation = this.animations.get('melee')
-        this.updateSprite()
+        thingUpdateSprite(this)
       } else if (this.reaction <= 0 && distance < this.missileRange) {
-        if (this.checkSight(this.target)) {
+        if (thingCheckSight(this, this.target)) {
           playSound('baron-missile')
           this.status = STATUS_MISSILE
           this.animationFrame = 0
           this.animation = this.animations.get('missile')
-          this.updateSprite()
+          thingUpdateSprite(this)
         } else {
           this.reaction = 20 + randomInt(110)
         }
       } else {
         this.moveCount--
         if (this.moveCount < 0 || !thingMove(this)) chaseDirection(this)
-        if (this.updateAnimation() === ANIMATION_DONE) this.animationFrame = 0
-        this.updateSprite()
+        if (thingUpdateAnimation(this) === ANIMATION_DONE) this.animationFrame = 0
+        thingUpdateSprite(this)
       }
     }
-  }
-
-  update() {
-    switch (this.status) {
-      case STATUS_LOOK:
-        this.look()
-        break
-      case STATUS_CHASE:
-        this.chase()
-        break
-      case STATUS_MELEE:
-        this.melee()
-        break
-      case STATUS_MISSILE:
-        this.missile()
-        break
-      case STATUS_DEAD:
-        this.dead()
-        break
-      case STATUS_FINAL:
-        return false
-    }
-    thingY(this)
-    return false
   }
 }

@@ -125,9 +125,165 @@ export function thingFindSectorFromLine(self) {
 }
 
 export function thingFindSector(self) {
-  self.sector = self.world.findSector(self.x, self.z)
-  self.floor = self.sector.floor
-  self.ceiling = self.sector.ceiling
+  let previous = self.sector
+  if (previous !== null) {
+    if (previous.contains(self.x, self.z)) {
+      self.floor = previous.floor
+      self.ceiling = previous.ceiling
+      return
+    }
+  }
+  let sector = self.world.findSector(self.x, self.z)
+  self.sector = sector
+  self.floor = sector.floor
+  self.ceiling = sector.ceiling
+}
+
+export function thingUpdateAnimation(self) {
+  self.animationMod++
+  if (self.animationMod === ANIMATION_RATE) {
+    self.animationMod = 0
+    self.animationFrame++
+    let frames = self.animation.length
+    if (self.animationFrame === frames - 1) return ANIMATION_ALMOST_DONE
+    else if (self.animationFrame === frames) return ANIMATION_DONE
+  }
+  return ANIMATION_NOT_DONE
+}
+
+export function thingUpdateSprite(self) {
+  self.sprite = self.animation[self.animationFrame]
+}
+
+export function thingCheckSight(self, thing) {
+  let xf = toFloatCell(self.x)
+  let yf = toFloatCell(self.z)
+  let dx = Math.abs(toFloatCell(thing.x) - xf)
+  let dy = Math.abs(toFloatCell(thing.z) - yf)
+  let x = toCell(self.x)
+  let y = toCell(self.z)
+  let xb = toCell(thing.x)
+  let yb = toCell(thing.z)
+  let n = 1
+  let error = 0.0
+  let incrementX = 0
+  let incrementY = 0
+  if (Float.zero(dx)) {
+    incrementX = 0
+    error = Number.MAX_VALUE
+  } else if (thing.x > self.x) {
+    incrementX = 1
+    n += xb - x
+    error = (x + 1.0 - xf) * dy
+  } else {
+    incrementX = -1
+    n += x - xb
+    error = (xf - x) * dy
+  }
+  if (Float.zero(dy)) {
+    incrementY = 0
+    error = -Number.MAX_VALUE
+  } else if (thing.z > self.z) {
+    incrementY = 1
+    n += yb - y
+    error -= (y + 1.0 - yf) * dx
+  } else {
+    incrementY = -1
+    n += y - yb
+    error -= (yf - y) * dx
+  }
+  let cells = self.world.cells
+  let columns = self.world.columns
+  for (; n > 0; n--) {
+    let cell = cells[x + y * columns]
+    let i = cell.lines.length
+    while (i--) {
+      let line = cell.lines[i]
+      if (line.physical && lineIntersect(self.x, self.z, thing.x, thing.z, line.a.x, line.a.y, line.b.x, line.b.y)) return false
+    }
+    if (error > 0.0) {
+      y += incrementY
+      error -= dx
+    } else {
+      x += incrementX
+      error += dy
+    }
+  }
+  return true
+}
+
+export function thingApproximateDistance(self, thing) {
+  let dx = Math.abs(self.x - thing.x)
+  let dz = Math.abs(self.z - thing.z)
+  if (dx > dz) {
+    return dx + dz - dz * 0.5
+  }
+  return dx + dz - dx * 0.5
+}
+
+function thingCollision(self, thing) {
+  let box = self.box + thing.box
+  return Math.abs(self.x - thing.x) <= box && Math.abs(self.z - thing.z) <= box
+}
+
+export function thingSetup(self) {
+  thingPushToCells(self)
+  if (!thingFindSectorFromLine(self)) thingFindSector(self)
+  thingUpdateY(self)
+  self.world.pushThing(self)
+}
+
+export function thingSet(self, x, z) {
+  self.x = self.previousX = x
+  self.z = self.previousZ = z
+  thingPushToCells(self)
+  self.sector = null
+  if (!thingFindSectorFromLine(self)) thingFindSector(self)
+  thingUpdateY(self)
+  self.world.pushThing(self)
+}
+
+export function thingTeleport(self, x, z) {
+  thingRemoveFromCells(self)
+  self.x = self.previousX = x
+  self.z = self.previousZ = z
+  thingPushToCells(self)
+  self.sector = null
+  if (!thingFindSectorFromLine(self)) thingFindSector(self)
+  thingUpdateY(self)
+}
+
+export function thingPushToCells(self) {
+  let box = self.box
+  let minC = Math.floor(self.x - box) >> WORLD_CELL_SHIFT
+  let maxC = Math.floor(self.x + box) >> WORLD_CELL_SHIFT
+  let minR = Math.floor(self.z - box) >> WORLD_CELL_SHIFT
+  let maxR = Math.floor(self.z + box) >> WORLD_CELL_SHIFT
+  let world = self.world
+  let columns = world.columns
+  if (minC < 0) minC = 0
+  if (minR < 0) minR = 0
+  if (maxC >= columns) maxC = columns - 1
+  if (maxR >= world.rows) maxR = world.rows - 1
+  for (let r = minR; r <= maxR; r++) {
+    for (let c = minC; c <= maxC; c++) {
+      world.cells[c + r * columns].pushThing(self)
+    }
+  }
+  self.minC = minC
+  self.maxC = maxC
+  self.minR = minR
+  self.maxR = maxR
+}
+
+export function thingRemoveFromCells(self) {
+  const cells = self.world.cells
+  const columns = self.world.columns
+  for (let r = self.minR; r <= self.maxR; r++) {
+    for (let c = self.minC; c <= self.maxC; c++) {
+      cells[c + r * columns].removeThing(self)
+    }
+  }
 }
 
 export class Thing {
@@ -159,162 +315,14 @@ export class Thing {
     this.animation = null
     this.isPhysical = true
     this.isItem = false
+    this.wasOnLine = false
     this.name = null
     this.group = null
     this.interaction = null
     this.experience = 1
   }
 
-  setup() {
-    this.pushToCells()
-    if (!thingFindSectorFromLine(this)) thingFindSector(this)
-    thingUpdateY(this)
-    this.world.pushThing(this)
-  }
-
-  set(x, z) {
-    this.x = this.previousX = x
-    this.z = this.previousZ = z
-    this.pushToCells()
-    if (!thingFindSectorFromLine(this)) thingFindSector(this)
-    thingUpdateY(this)
-    this.world.pushThing(this)
-  }
-
-  teleport(x, z) {
-    this.removeFromCells()
-    this.x = this.previousX = x
-    this.z = this.previousZ = z
-    this.pushToCells()
-    if (!thingFindSectorFromLine(this)) thingFindSector(this)
-    thingUpdateY(this)
-  }
-
-  pushToCells() {
-    let box = this.box
-    let minC = Math.floor(this.x - box) >> WORLD_CELL_SHIFT
-    let maxC = Math.floor(this.x + box) >> WORLD_CELL_SHIFT
-    let minR = Math.floor(this.z - box) >> WORLD_CELL_SHIFT
-    let maxR = Math.floor(this.z + box) >> WORLD_CELL_SHIFT
-
-    let world = this.world
-    let columns = world.columns
-
-    if (minC < 0) minC = 0
-    if (minR < 0) minR = 0
-    if (maxC >= columns) maxC = columns - 1
-    if (maxR >= world.rows) maxR = world.rows - 1
-
-    for (let r = minR; r <= maxR; r++) {
-      for (let c = minC; c <= maxC; c++) {
-        world.cells[c + r * columns].pushThing(this)
-      }
-    }
-
-    this.minC = minC
-    this.maxC = maxC
-    this.minR = minR
-    this.maxR = maxR
-  }
-
-  removeFromCells() {
-    const cells = this.world.cells
-    const columns = this.world.columns
-    for (let r = this.minR; r <= this.maxR; r++) {
-      for (let c = this.minC; c <= this.maxC; c++) {
-        cells[c + r * columns].removeThing(this)
-      }
-    }
-  }
-
-  updateAnimation() {
-    this.animationMod++
-    if (this.animationMod === ANIMATION_RATE) {
-      this.animationMod = 0
-      this.animationFrame++
-      let frames = this.animation.length
-      if (this.animationFrame === frames - 1) return ANIMATION_ALMOST_DONE
-      else if (this.animationFrame === frames) return ANIMATION_DONE
-    }
-    return ANIMATION_NOT_DONE
-  }
-
-  updateSprite() {
-    this.sprite = this.animation[this.animationFrame]
-  }
-
   damage() {}
-
-  checkSight(thing) {
-    let xf = toFloatCell(this.x)
-    let yf = toFloatCell(this.z)
-    let dx = Math.abs(toFloatCell(thing.x) - xf)
-    let dy = Math.abs(toFloatCell(thing.z) - yf)
-    let x = toCell(this.x)
-    let y = toCell(this.z)
-    let xb = toCell(thing.x)
-    let yb = toCell(thing.z)
-    let n = 1
-    let error = 0.0
-    let incrementX = 0
-    let incrementY = 0
-    if (Float.zero(dx)) {
-      incrementX = 0
-      error = Number.MAX_VALUE
-    } else if (thing.x > this.x) {
-      incrementX = 1
-      n += xb - x
-      error = (x + 1.0 - xf) * dy
-    } else {
-      incrementX = -1
-      n += x - xb
-      error = (xf - x) * dy
-    }
-    if (Float.zero(dy)) {
-      incrementY = 0
-      error = -Number.MAX_VALUE
-    } else if (thing.z > this.z) {
-      incrementY = 1
-      n += yb - y
-      error -= (y + 1.0 - yf) * dx
-    } else {
-      incrementY = -1
-      n += y - yb
-      error -= (yf - y) * dx
-    }
-    let cells = this.world.cells
-    let columns = this.world.columns
-    for (; n > 0; n--) {
-      let cell = cells[x + y * columns]
-      let i = cell.lines.length
-      while (i--) {
-        let line = cell.lines[i]
-        if (line.physical && lineIntersect(this.x, this.z, thing.x, thing.z, line.a.x, line.a.y, line.b.x, line.b.y)) return false
-      }
-      if (error > 0.0) {
-        y += incrementY
-        error -= dx
-      } else {
-        x += incrementX
-        error += dy
-      }
-    }
-    return true
-  }
-
-  approximateDistance(thing) {
-    let dx = Math.abs(this.x - thing.x)
-    let dz = Math.abs(this.z - thing.z)
-    if (dx > dz) {
-      return dx + dz - dz * 0.5
-    }
-    return dx + dz - dx * 0.5
-  }
-
-  collision(thing) {
-    let box = this.box + thing.box
-    return Math.abs(this.x - thing.x) <= box && Math.abs(this.z - thing.z) <= box
-  }
 
   resolveCollision(thing) {
     let box = this.box + thing.box
@@ -349,7 +357,7 @@ export class Thing {
       this.x += this.deltaX
       this.z += this.deltaZ
 
-      this.removeFromCells()
+      thingRemoveFromCells(this)
 
       let box = this.box
       let minC = Math.floor(this.x - box) >> WORLD_CELL_SHIFT
@@ -373,7 +381,7 @@ export class Thing {
           while (i--) {
             let thing = cell.things[i]
             if (!thing.isPhysical || collisions.has(thing)) continue
-            if (this.collision(thing)) collided.add(thing)
+            if (thingCollision(this, thing)) collided.add(thing)
             collisions.add(thing)
           }
         }
@@ -404,9 +412,10 @@ export class Thing {
         }
       }
       if (on) on = thingFindSectorFromLine(this)
-      if (!on) thingFindSector(this)
+      if (!on && this.wasOnLine) thingFindSector(this)
+      this.wasOnLine = on
 
-      this.pushToCells()
+      thingPushToCells(this)
     }
 
     thingY(this)

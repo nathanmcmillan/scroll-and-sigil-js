@@ -1,4 +1,4 @@
-import {Thing} from '/src/thing/thing.js'
+import {thingSetup, Thing} from '/src/thing/thing.js'
 import {textureIndexForName, spritesByName} from '/src/assets/assets.js'
 
 export class Tree extends Thing {
@@ -8,10 +8,26 @@ export class Tree extends Thing {
     this.height = entity.height()
     this.texture = textureIndexForName(entity.get('sprite'))
     this.sprite = spritesByName(entity.get('sprite')).get(entity.get('animation'))
-    this.setup()
+    this.update = treeUpdate
+    thingSetup(this)
   }
+}
 
-  update() {
-    return false
-  }
+function treeUpdate() {
+  return false
+}
+
+function treeInit(self, entity) {
+  this.box = entity.box()
+  this.height = entity.height()
+  this.texture = textureIndexForName(entity.get('sprite'))
+  this.sprite = spritesByName(entity.get('sprite')).get(entity.get('animation'))
+  this.update = treeUpdate
+  thingSetup(this)
+}
+
+export function newTree(world, entity, x, z) {
+  let thing = world.newThing(x, 0.0, z)
+  treeInit(thing, entity)
+  return thing
 }

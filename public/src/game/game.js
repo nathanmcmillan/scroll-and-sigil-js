@@ -5,6 +5,7 @@ import {Sector} from '/src/map/sector.js'
 import {World} from '/src/world/world.js'
 import {Camera} from '/src/game/camera.js'
 import {Input} from '/src/game/input.js'
+import {thingSet} from '/src/thing/thing.js'
 import {Hero} from '/src/thing/hero.js'
 import {Baron} from '/src/thing/baron.js'
 import {Tree} from '/src/thing/tree.js'
@@ -121,7 +122,7 @@ export class Game {
           new NonPlayerCharacter(world, entity, x, z)
           continue
         case 'hero':
-          if (this.hero) this.hero.set(x, z)
+          if (this.hero) thingSet(this.hero, x, z)
           else this.hero = new Hero(world, entity, x, z, this.input)
           this.camera.target = this.hero
           continue

@@ -1,4 +1,4 @@
-import {Thing} from '/src/thing/thing.js'
+import {thingSetup, Thing} from '/src/thing/thing.js'
 import {textureIndexForName, spritesByName} from '/src/assets/assets.js'
 
 export class Medkit extends Thing {
@@ -13,7 +13,7 @@ export class Medkit extends Thing {
     this.isPhysical = false
     this.isItem = true
     this.pickedUp = false
-    this.setup()
+    thingSetup(this)
   }
 
   update() {

@@ -1,4 +1,4 @@
-import {Thing} from '/src/thing/thing.js'
+import {thingSetup, thingUpdateSprite, thingUpdateAnimation, Thing} from '/src/thing/thing.js'
 import {playSound} from '/src/assets/sounds.js'
 import {textureIndexForName} from '/src/assets/assets.js'
 import {redBloodTowards, redBloodExplode} from '/src/thing/thing-util.js'
@@ -25,7 +25,7 @@ export class NonPlayerCharacter extends Thing {
     this.status = STATUS_STAND
     this.reaction = 0
     this.interaction = entity.get('interaction')
-    this.setup()
+    thingSetup(this)
   }
 
   damage(source, health) {
@@ -36,7 +36,7 @@ export class NonPlayerCharacter extends Thing {
       this.status = STATUS_DEAD
       this.animationFrame = 0
       this.animation = this.animations.get('death')
-      this.updateSprite()
+      thingUpdateSprite(this)
       playSound('baron-death')
       redBloodExplode(this)
     } else {
@@ -51,8 +51,8 @@ export class NonPlayerCharacter extends Thing {
       this.status = STATUS_FINAL
       return
     }
-    this.updateAnimation()
-    this.updateSprite()
+    thingUpdateAnimation(this)
+    thingUpdateSprite(this)
   }
 
   update() {
