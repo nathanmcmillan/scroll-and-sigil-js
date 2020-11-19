@@ -1,5 +1,10 @@
 import {Float} from '/src/math/vector.js'
 
+function cameraFixView(self) {
+  // TODO
+  // gather world line intersections along camera bounds
+}
+
 export class Camera {
   constructor(x, y, z, rx, ry, radius, ox = 0.0, oy = 0.0) {
     this.x = x
@@ -37,6 +42,7 @@ export class Camera {
     this.x = x - this.radius * cosX * sinY
     this.y = y + this.radius * sinX
     this.z = z + this.radius * cosX * cosY
+    cameraFixView(this)
   }
 
   towardsTarget() {

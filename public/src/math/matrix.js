@@ -1,5 +1,9 @@
 import {normalize, cross} from '/src/math/vector.js'
 
+const temp = new Float32Array(16)
+const copy = new Float32Array(16)
+const dest = new Float32Array(16)
+
 export function identity(matrix) {
   matrix[0] = 1.0
   matrix[1] = 0.0
@@ -124,8 +128,6 @@ export function multiply(matrix, a, b) {
 }
 
 export function rotateX(matrix, sine, cosine) {
-  const temp = new Array(16)
-
   temp[0] = 1.0
   temp[1] = 0.0
   temp[2] = 0.0
@@ -146,15 +148,12 @@ export function rotateX(matrix, sine, cosine) {
   temp[14] = 0.0
   temp[15] = 1.0
 
-  const copy = new Array(16)
   for (let i = 0; i < 16; i++) copy[i] = matrix[i]
 
   multiply(matrix, copy, temp)
 }
 
 export function rotateY(matrix, sine, cosine) {
-  const temp = new Array(16)
-
   temp[0] = cosine
   temp[1] = 0.0
   temp[2] = -sine
@@ -175,15 +174,12 @@ export function rotateY(matrix, sine, cosine) {
   temp[14] = 0.0
   temp[15] = 1.0
 
-  const copy = new Array(16)
   for (let i = 0; i < 16; i++) copy[i] = matrix[i]
 
   multiply(matrix, copy, temp)
 }
 
 export function rotateZ(matrix, sine, cosine) {
-  const temp = new Array(16)
-
   temp[0] = cosine
   temp[1] = sine
   temp[2] = 0.0
@@ -204,7 +200,6 @@ export function rotateZ(matrix, sine, cosine) {
   temp[14] = 0.0
   temp[15] = 1.0
 
-  const copy = new Array(16)
   for (let i = 0; i < 16; i++) copy[i] = matrix[i]
 
   multiply(matrix, copy, temp)
@@ -216,8 +211,8 @@ export function setTranslation(matrix, x, y, z) {
   matrix[14] = z
 }
 
-export function matrix_inverse(matrix, from) {
-  let src = new Array(16)
+export function matrixInverse(matrix, from) {
+  let src = new Float32Array(16)
 
   src[0] = from[0]
   src[4] = from[1]
@@ -239,7 +234,7 @@ export function matrix_inverse(matrix, from) {
   src[11] = from[14]
   src[15] = from[15]
 
-  let tmp = new Array(16)
+  let tmp = new Float32Array(16)
 
   tmp[0] = src[10] * src[15]
   tmp[1] = src[11] * src[14]
@@ -254,7 +249,7 @@ export function matrix_inverse(matrix, from) {
   tmp[10] = src[8] * src[13]
   tmp[11] = src[9] * src[12]
 
-  let dst = new Array(16)
+  let dst = new Float32Array(16)
 
   dst[0] = tmp[0] * src[5] + tmp[3] * src[6] + tmp[4] * src[7]
   dst[0] -= tmp[1] * src[5] + tmp[2] * src[6] + tmp[5] * src[7]

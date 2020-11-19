@@ -14,13 +14,37 @@ function newCanvas(width, height) {
   return canvas
 }
 
+const PERFORMANCE = false
+let perfLow = Number.MAX_VALUE
+let perfHigh = -Number.MAX_VALUE
+let perfTick = 0
+let perfStart = 0.0
+
 let active = true
 let client = null
 
 function tick() {
   if (active) {
+    let perf
+    if (PERFORMANCE) perf = performance.now()
+
     client.update()
     client.render()
+
+    if (PERFORMANCE) {
+      let diff = performance.now() - perf
+      if (diff < perfLow) perfLow = diff
+      if (diff > perfHigh) perfHigh = diff
+      perfTick++
+      if (perfTick === 16) {
+        let average = (performance.now() - perfStart) / perfTick
+        console.log('time (low := ' + perfLow + ') (high := ' + perfHigh + ') average :=', average)
+        perfLow = Number.MAX_VALUE
+        perfHigh = -Number.MAX_VALUE
+        perfTick = 0
+        perfStart = performance.now()
+      }
+    }
   }
   window.requestAnimationFrame(tick)
 }

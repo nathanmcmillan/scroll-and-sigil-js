@@ -1,4 +1,4 @@
-import {thingSetup, thingUpdateSprite, thingUpdateAnimation, Thing} from '/src/thing/thing.js'
+import {thingSetup, thingIntegrate, thingUpdateSprite, thingUpdateAnimation, Thing} from '/src/thing/thing.js'
 import {playSound} from '/src/assets/sounds.js'
 import {textureIndexForName} from '/src/assets/assets.js'
 import {redBloodTowards, redBloodExplode} from '/src/thing/thing-util.js'
@@ -25,45 +25,47 @@ export class NonPlayerCharacter extends Thing {
     this.status = STATUS_STAND
     this.reaction = 0
     this.interaction = entity.get('interaction')
+    this.update = npcUpdate
+    this.damage = npcDamage
     thingSetup(this)
   }
+}
 
-  damage(source, health) {
-    if (this.status === STATUS_DEAD || this.status === STATUS_FINAL) return
-    this.health -= health
-    if (this.health <= 0) {
-      this.health = 0
-      this.status = STATUS_DEAD
-      this.animationFrame = 0
-      this.animation = this.animations.get('death')
-      thingUpdateSprite(this)
-      playSound('baron-death')
-      redBloodExplode(this)
-    } else {
-      playSound('baron-pain')
-      redBloodTowards(this, source)
-    }
+function npcDead(self) {
+  if (self.animationFrame == self.animation.length - 1) {
+    self.isPhysical = false
+    self.status = STATUS_FINAL
+    return
   }
+  thingUpdateAnimation(self)
+  thingUpdateSprite(self)
+}
 
-  dead() {
-    if (this.animationFrame == this.animation.length - 1) {
-      this.isPhysical = false
-      this.status = STATUS_FINAL
-      return
-    }
-    thingUpdateAnimation(this)
+function npcDamage(source, health) {
+  if (this.status === STATUS_DEAD || this.status === STATUS_FINAL) return
+  this.health -= health
+  if (this.health <= 0) {
+    this.health = 0
+    this.status = STATUS_DEAD
+    this.animationFrame = 0
+    this.animation = this.animations.get('death')
     thingUpdateSprite(this)
+    playSound('baron-death')
+    redBloodExplode(this)
+  } else {
+    playSound('baron-pain')
+    redBloodTowards(this, source)
   }
+}
 
-  update() {
-    switch (this.status) {
-      case STATUS_DEAD:
-        this.dead()
-        break
-      case STATUS_FINAL:
-        return false
-    }
-    this.integrate()
-    return false
+function npcUpdate() {
+  switch (this.status) {
+    case STATUS_DEAD:
+      npcDead(this)
+      break
+    case STATUS_FINAL:
+      return false
   }
+  thingIntegrate(this)
+  return false
 }

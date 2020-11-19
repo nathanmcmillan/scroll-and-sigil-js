@@ -4,6 +4,44 @@ import {toCell, toFloatCell, WORLD_CELL_SHIFT, GRAVITY, RESISTANCE, ANIMATION_RA
 let collided = new Set()
 let collisions = new Set()
 
+export class Thing {
+  constructor(world, x, z) {
+    this.world = world
+    this.sector = null
+    this.floor = 0.0
+    this.ceiling = 0.0
+    this.x = this.previousX = x
+    this.z = this.previousZ = z
+    this.y = 0.0
+    this.deltaX = 0.0
+    this.deltaY = 0.0
+    this.deltaZ = 0.0
+    this.box = 0.0
+    this.height = 0.0
+    this.rotation = 0.0
+    this.ground = false
+    this.speed = 0.0
+    this.health = 0.0
+    this.texture = 0
+    this.sprite = null
+    this.minC = 0
+    this.maxC = 0
+    this.minR = 0
+    this.maxR = 0
+    this.animationMod = 0
+    this.animationFrame = 0
+    this.animation = null
+    this.isPhysical = true
+    this.isItem = false
+    this.wasOnLine = false
+    this.name = null
+    this.group = null
+    this.interaction = null
+    this.experience = 1
+    this.damage = thingDamage
+  }
+}
+
 // function sideOfLine(x, z, line) {
 //   let vx = line.b.x - line.a.x
 //   let vz = line.b.y - line.a.y
@@ -286,138 +324,101 @@ export function thingRemoveFromCells(self) {
   }
 }
 
-export class Thing {
-  constructor(world, x, z) {
-    this.world = world
-    this.sector = null
-    this.floor = 0.0
-    this.ceiling = 0.0
-    this.x = this.previousX = x
-    this.z = this.previousZ = z
-    this.y = 0.0
-    this.deltaX = 0.0
-    this.deltaY = 0.0
-    this.deltaZ = 0.0
-    this.box = 0.0
-    this.height = 0.0
-    this.rotation = 0.0
-    this.ground = false
-    this.speed = 0.0
-    this.health = 0.0
-    this.texture = 0
-    this.sprite = null
-    this.minC = 0
-    this.maxC = 0
-    this.minR = 0
-    this.maxR = 0
-    this.animationMod = 0
-    this.animationFrame = 0
-    this.animation = null
-    this.isPhysical = true
-    this.isItem = false
-    this.wasOnLine = false
-    this.name = null
-    this.group = null
-    this.interaction = null
-    this.experience = 1
-  }
+function thingDamage() {}
 
-  damage() {}
-
-  resolveCollision(thing) {
-    let box = this.box + thing.box
-    if (Math.abs(this.x - thing.x) > box || Math.abs(this.z - thing.z) > box) return
-    if (Math.abs(this.previousX - thing.x) > Math.abs(this.previousZ - thing.z)) {
-      if (this.previousX - thing.x < 0.0) {
-        this.x = thing.x - box
-      } else {
-        this.x = thing.x + box
-      }
-      this.deltaX = 0.0
+function thingResolveCollision(self, thing) {
+  let box = self.box + thing.box
+  if (Math.abs(self.x - thing.x) > box || Math.abs(self.z - thing.z) > box) return
+  if (Math.abs(self.previousX - thing.x) > Math.abs(self.previousZ - thing.z)) {
+    if (self.previousX - thing.x < 0.0) {
+      self.x = thing.x - box
     } else {
-      if (this.previousZ - thing.z < 0.0) {
-        this.z = thing.z - box
-      } else {
-        this.z = thing.z + box
-      }
-      this.deltaZ = 0.0
+      self.x = thing.x + box
     }
+    self.deltaX = 0.0
+  } else {
+    if (self.previousZ - thing.z < 0.0) {
+      self.z = thing.z - box
+    } else {
+      self.z = thing.z + box
+    }
+    self.deltaZ = 0.0
+  }
+}
+
+export function thingIntegrate(self) {
+  if (self.ground) {
+    self.deltaX *= RESISTANCE
+    self.deltaZ *= RESISTANCE
   }
 
-  integrate() {
-    if (this.ground) {
-      this.deltaX *= RESISTANCE
-      this.deltaZ *= RESISTANCE
+  if (!Float.zero(self.deltaX) || !Float.zero(self.deltaZ)) {
+    self.previousX = self.x
+    self.previousZ = self.z
+
+    self.x += self.deltaX
+    self.z += self.deltaZ
+
+    thingRemoveFromCells(self)
+
+    let box = self.box
+    let minC = Math.floor(self.x - box) >> WORLD_CELL_SHIFT
+    let maxC = Math.floor(self.x + box) >> WORLD_CELL_SHIFT
+    let minR = Math.floor(self.z - box) >> WORLD_CELL_SHIFT
+    let maxR = Math.floor(self.z + box) >> WORLD_CELL_SHIFT
+    let world = self.world
+    let columns = world.columns
+    if (minC < 0) minC = 0
+    if (minR < 0) minR = 0
+    if (maxC >= columns) maxC = columns - 1
+    if (maxR >= world.rows) maxR = world.rows - 1
+
+    collided.clear()
+    collisions.clear()
+
+    for (let r = minR; r <= maxR; r++) {
+      for (let c = minC; c <= maxC; c++) {
+        let cell = world.cells[c + r * columns]
+        let i = cell.thingCount
+        while (i--) {
+          let thing = cell.things[i]
+          if (!thing.isPhysical || collisions.has(thing)) continue
+          if (thingCollision(self, thing)) collided.add(thing)
+          collisions.add(thing)
+        }
+      }
     }
 
-    if (!Float.zero(this.deltaX) || !Float.zero(this.deltaZ)) {
-      this.previousX = this.x
-      this.previousZ = this.z
-
-      this.x += this.deltaX
-      this.z += this.deltaZ
-
-      thingRemoveFromCells(this)
-
-      let box = this.box
-      let minC = Math.floor(this.x - box) >> WORLD_CELL_SHIFT
-      let maxC = Math.floor(this.x + box) >> WORLD_CELL_SHIFT
-      let minR = Math.floor(this.z - box) >> WORLD_CELL_SHIFT
-      let maxR = Math.floor(this.z + box) >> WORLD_CELL_SHIFT
-      let world = this.world
-      let columns = world.columns
-      if (minC < 0) minC = 0
-      if (minR < 0) minR = 0
-      if (maxC >= columns) maxC = columns - 1
-      if (maxR >= world.rows) maxR = world.rows - 1
-
-      collided.clear()
-      collisions.clear()
-
-      for (let r = minR; r <= maxR; r++) {
-        for (let c = minC; c <= maxC; c++) {
-          let cell = world.cells[c + r * columns]
-          let i = cell.thingCount
-          while (i--) {
-            let thing = cell.things[i]
-            if (!thing.isPhysical || collisions.has(thing)) continue
-            if (thingCollision(this, thing)) collided.add(thing)
-            collisions.add(thing)
-          }
+    while (collided.size > 0) {
+      let closest = null
+      let manhattan = Number.MAX_VALUE
+      for (const thing of collided) {
+        let distance = Math.abs(self.previousX - thing.x) + Math.abs(self.previousZ - thing.z)
+        if (distance < manhattan) {
+          manhattan = distance
+          closest = thing
         }
       }
-
-      while (collided.size > 0) {
-        let closest = null
-        let manhattan = Number.MAX_VALUE
-        for (const thing of collided) {
-          let distance = Math.abs(this.previousX - thing.x) + Math.abs(this.previousZ - thing.z)
-          if (distance < manhattan) {
-            manhattan = distance
-            closest = thing
-          }
-        }
-        this.resolveCollision(closest)
-        collided.delete(closest)
-      }
-
-      let on = false
-      for (let r = minR; r <= maxR; r++) {
-        for (let c = minC; c <= maxC; c++) {
-          let cell = world.cells[c + r * world.columns]
-          let i = cell.lines.length
-          while (i--) {
-            on = thingLineCollision(this, cell.lines[i]) || on
-          }
-        }
-      }
-      if (on) on = thingFindSectorFromLine(this)
-      if (!on && this.wasOnLine) thingFindSector(this)
-      this.wasOnLine = on
-
-      thingPushToCells(this)
+      thingResolveCollision(self, closest)
+      collided.delete(closest)
     }
 
-    thingY(this)
+    let on = false
+    for (let r = minR; r <= maxR; r++) {
+      for (let c = minC; c <= maxC; c++) {
+        let cell = world.cells[c + r * world.columns]
+        let i = cell.lines.length
+        while (i--) {
+          on = thingLineCollision(self, cell.lines[i]) || on
+        }
+      }
+    }
+    if (on) on = thingFindSectorFromLine(self)
+    if (!on && self.wasOnLine) thingFindSector(self)
+    self.wasOnLine = on
+
+    thingPushToCells(self)
   }
+
+  thingY(self)
 }

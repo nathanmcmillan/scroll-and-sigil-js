@@ -29,6 +29,31 @@ let tempSector = null
 let tempFloor = 0.0
 let tempCeiling = 0.0
 
+export class Baron extends Thing {
+  constructor(world, entity, x, z) {
+    super(world, x, z)
+    this.box = entity.box()
+    this.height = entity.height()
+    this.name = entity.name()
+    this.group = entity.group()
+    this.texture = textureIndexForName(entity.get('sprite'))
+    this.animations = entity.animations()
+    this.animation = this.animations.get('idle')
+    this.health = entity.health()
+    this.speed = entity.speed()
+    this.sprite = this.animation[0]
+    this.target = null
+    this.moveCount = 0
+    this.meleeRange = 1.0
+    this.missileRange = 50.0
+    this.status = STATUS_LOOK
+    this.reaction = 0
+    this.damage = baronDamage
+    this.update = baronUpdate
+    thingSetup(this)
+  }
+}
+
 function thingTryOverlap(x, z, box, thing) {
   box += thing.box
   return Math.abs(x - thing.x) <= box && Math.abs(z - thing.z) <= box
@@ -139,6 +164,114 @@ function chaseDirection(self) {
   else if (self.rotation >= 2.0 * Math.PI) self.rotation -= 2.0 * Math.PI
 }
 
+function baronDead(self) {
+  if (self.animationFrame === self.animation.length - 1) {
+    self.isPhysical = false
+    self.status = STATUS_FINAL
+    return
+  }
+  thingUpdateAnimation(self)
+  thingUpdateSprite(self)
+}
+
+function baronLook(self) {
+  if (self.reaction > 0) {
+    self.reaction--
+  } else {
+    let things = self.world.things
+    let i = self.world.thingCount
+    while (i--) {
+      let thing = things[i]
+      if (self === thing) continue
+      if (thing.group === 'human' && thing.health > 0 && thingCheckSight(self, thing)) {
+        if (Math.random() < 0.9) playSound('baron-scream')
+        self.target = thing
+        self.status = STATUS_CHASE
+        self.animationFrame = 0
+        self.animation = self.animations.get('move')
+        thingUpdateSprite(self)
+        return
+      }
+    }
+    self.reaction = 10 + randomInt(20)
+  }
+  if (thingUpdateAnimation(self) === ANIMATION_DONE) self.animationFrame = 0
+  thingUpdateSprite(self)
+}
+
+function baronMelee(self) {
+  let frame = thingUpdateAnimation(self)
+  if (frame === ANIMATION_ALMOST_DONE) {
+    self.reaction = 40 + randomInt(220)
+    if (thingApproximateDistance(self, self.target) < self.box + self.target.box + self.meleeRange) {
+      self.target.damage(self, 1 + randomInt(3))
+    }
+  } else if (frame === ANIMATION_DONE) {
+    self.status = STATUS_CHASE
+    self.animationFrame = 0
+    self.animation = self.animations.get('move')
+    thingUpdateSprite(self)
+  }
+}
+
+function baronMissile(self) {
+  let frame = thingUpdateAnimation(self)
+  if (frame === ANIMATION_ALMOST_DONE) {
+    self.reaction = 40 + randomInt(220)
+    const speed = 0.3
+    let target = self.target
+    let angle = atan2(target.z - self.z, target.x - self.x)
+    let distance = thingApproximateDistance(self, target)
+    let dx = cos(angle)
+    let dz = sin(angle)
+    let dy = (target.y + target.height * 0.5 - self.y - self.height * 0.5) / (distance / speed)
+    let x = self.x + dx * (self.box + 2.0)
+    let z = self.z + dz * (self.box + 2.0)
+    let y = self.y + 0.5 * self.height
+    newPlasma(self.world, entityByName('plasma'), x, y, z, dx * speed, dy, dz * speed, 1 + randomInt(3))
+  } else if (frame === ANIMATION_DONE) {
+    self.status = STATUS_CHASE
+    self.animationFrame = 0
+    self.animation = self.animations.get('move')
+    thingUpdateSprite(self)
+  }
+}
+
+function baronChase(self) {
+  if (self.reaction > 0) self.reaction--
+  if (self.target.health <= 0 || self.target === null) {
+    self.target = null
+    self.status = STATUS_LOOK
+    self.animationFrame = 0
+    self.animation = self.animations.get('idle')
+    thingUpdateSprite(self)
+  } else {
+    let distance = thingApproximateDistance(self, self.target)
+    if (self.reaction <= 0 && distance < self.box + self.target.box + self.meleeRange) {
+      playSound('baron-melee')
+      self.status = STATUS_MELEE
+      self.animationFrame = 0
+      self.animation = self.animations.get('melee')
+      thingUpdateSprite(self)
+    } else if (self.reaction <= 0 && distance < self.missileRange) {
+      if (thingCheckSight(self, self.target)) {
+        playSound('baron-missile')
+        self.status = STATUS_MISSILE
+        self.animationFrame = 0
+        self.animation = self.animations.get('missile')
+        thingUpdateSprite(self)
+      } else {
+        self.reaction = 20 + randomInt(110)
+      }
+    } else {
+      self.moveCount--
+      if (self.moveCount < 0 || !thingMove(self)) chaseDirection(self)
+      if (thingUpdateAnimation(self) === ANIMATION_DONE) self.animationFrame = 0
+      thingUpdateSprite(self)
+    }
+  }
+}
+
 function baronDamage(source, health) {
   if (this.status === STATUS_DEAD || this.status === STATUS_FINAL) return
   this.health -= health
@@ -159,156 +292,23 @@ function baronDamage(source, health) {
 function baronUpdate() {
   switch (this.status) {
     case STATUS_LOOK:
-      this.look()
+      baronLook(this)
       break
     case STATUS_CHASE:
-      this.chase()
+      baronChase(this)
       break
     case STATUS_MELEE:
-      this.melee()
+      baronMelee(this)
       break
     case STATUS_MISSILE:
-      this.missile()
+      baronMissile(this)
       break
     case STATUS_DEAD:
-      this.dead()
+      baronDead(this)
       break
     case STATUS_FINAL:
       return false
   }
   thingY(this)
   return false
-}
-
-export class Baron extends Thing {
-  constructor(world, entity, x, z) {
-    super(world, x, z)
-    this.box = entity.box()
-    this.height = entity.height()
-    this.name = entity.name()
-    this.group = entity.group()
-    this.texture = textureIndexForName(entity.get('sprite'))
-    this.animations = entity.animations()
-    this.animation = this.animations.get('idle')
-    this.health = entity.health()
-    this.speed = entity.speed()
-    this.sprite = this.animation[0]
-    this.target = null
-    this.moveCount = 0
-    this.meleeRange = 1.0
-    this.missileRange = 50.0
-    this.status = STATUS_LOOK
-    this.reaction = 0
-    this.damage = baronDamage
-    this.update = baronUpdate
-    thingSetup(this)
-  }
-
-  dead() {
-    if (this.animationFrame === this.animation.length - 1) {
-      this.isPhysical = false
-      this.status = STATUS_FINAL
-      return
-    }
-    thingUpdateAnimation(this)
-    thingUpdateSprite(this)
-  }
-
-  look() {
-    if (this.reaction > 0) {
-      this.reaction--
-    } else {
-      let things = this.world.things
-      let i = this.world.thingCount
-      while (i--) {
-        let thing = things[i]
-        if (this === thing) continue
-        if (thing.group === 'human' && thing.health > 0 && thingCheckSight(this, thing)) {
-          if (Math.random() < 0.4) playSound('baron-scream')
-          this.target = thing
-          this.status = STATUS_CHASE
-          this.animationFrame = 0
-          this.animation = this.animations.get('move')
-          thingUpdateSprite(this)
-          return
-        }
-      }
-      this.reaction = 10 + randomInt(60)
-    }
-    if (thingUpdateAnimation(this) === ANIMATION_DONE) this.animationFrame = 0
-    thingUpdateSprite(this)
-  }
-
-  melee() {
-    let frame = thingUpdateAnimation(this)
-    if (frame === ANIMATION_ALMOST_DONE) {
-      this.reaction = 40 + randomInt(220)
-      if (thingApproximateDistance(this, this.target) < this.box + this.target.box + this.meleeRange) {
-        this.target.damage(this, 1 + randomInt(3))
-      }
-    } else if (frame === ANIMATION_DONE) {
-      this.status = STATUS_CHASE
-      this.animationFrame = 0
-      this.animation = this.animations.get('move')
-      thingUpdateSprite(this)
-    }
-  }
-
-  missile() {
-    let frame = thingUpdateAnimation(this)
-    if (frame === ANIMATION_ALMOST_DONE) {
-      this.reaction = 40 + randomInt(220)
-      const speed = 0.3
-      let target = this.target
-      let angle = atan2(target.z - this.z, target.x - this.x)
-      let distance = thingApproximateDistance(this, target)
-      let dx = cos(angle)
-      let dz = sin(angle)
-      let dy = (target.y + target.height * 0.5 - this.y - this.height * 0.5) / (distance / speed)
-      let x = this.x + dx * (this.box + 2.0)
-      let z = this.z + dz * (this.box + 2.0)
-      let y = this.y + 0.5 * this.height
-      newPlasma(this.world, entityByName('plasma'), x, y, z, dx * speed, dy, dz * speed, 1 + randomInt(3))
-    } else if (frame === ANIMATION_DONE) {
-      this.status = STATUS_CHASE
-      this.animationFrame = 0
-      this.animation = this.animations.get('move')
-      thingUpdateSprite(this)
-    }
-  }
-
-  chase() {
-    if (this.reaction > 0) this.reaction--
-    if (this.target.health <= 0 || this.target === null) {
-      this.target = null
-      this.status = STATUS_LOOK
-      this.animationFrame = 0
-      this.animation = this.animations.get('idle')
-      thingUpdateSprite(this)
-    } else {
-      let distance = thingApproximateDistance(this, this.target)
-      if (this.reaction <= 0 && distance < this.box + this.target.box + this.meleeRange) {
-        playSound('baron-melee')
-        this.status = STATUS_MELEE
-        this.animationFrame = 0
-        this.animation = this.animations.get('melee')
-        thingUpdateSprite(this)
-      } else if (this.reaction <= 0 && distance < this.missileRange) {
-        if (thingCheckSight(this, this.target)) {
-          playSound('baron-missile')
-          this.status = STATUS_MISSILE
-          this.animationFrame = 0
-          this.animation = this.animations.get('missile')
-          thingUpdateSprite(this)
-        } else {
-          this.reaction = 20 + randomInt(110)
-        }
-      } else {
-        this.moveCount--
-        if (this.moveCount < 0 || !thingMove(this)) chaseDirection(this)
-        if (thingUpdateAnimation(this) === ANIMATION_DONE) this.animationFrame = 0
-        thingUpdateSprite(this)
-      }
-    }
-  }
 }
