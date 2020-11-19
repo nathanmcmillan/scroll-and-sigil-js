@@ -44,12 +44,11 @@ export function renderEditorViewMode(state) {
   const client = state.client
   const gl = client.gl
   const rendering = client.rendering
+  const view = state.view
+  const projection = state.projection
 
   gl.clear(gl.COLOR_BUFFER_BIT)
   gl.clear(gl.DEPTH_BUFFER_BIT)
-
-  let view = new Array(16)
-  let projection = new Array(16)
 
   let camera = editor.camera
 

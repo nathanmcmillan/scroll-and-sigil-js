@@ -95,15 +95,14 @@ export function renderEditorTopMode(state) {
   const client = state.client
   const gl = client.gl
   const rendering = client.rendering
+  const view = state.view
+  const projection = state.projection
 
   gl.clear(gl.COLOR_BUFFER_BIT)
   gl.clear(gl.DEPTH_BUFFER_BIT)
 
   gl.disable(gl.CULL_FACE)
   gl.disable(gl.DEPTH_TEST)
-
-  let view = new Array(16)
-  let projection = new Array(16)
 
   rendering.setProgram(0)
   rendering.setView(0, 0, client.width, client.height)

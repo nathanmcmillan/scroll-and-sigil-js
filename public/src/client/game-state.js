@@ -49,6 +49,9 @@ export class GameState {
     keys.set('KeyN', In.RIGHT_BUMPER)
 
     this.keys = keys
+
+    this.view = new Float32Array(16)
+    this.projection = new Float32Array(16)
   }
 
   resize() {}
@@ -99,12 +102,11 @@ export class GameState {
     const client = this.client
     const gl = client.gl
     const rendering = client.rendering
+    const view = this.view
+    const projection = this.projection
 
     gl.clear(gl.COLOR_BUFFER_BIT)
     gl.clear(gl.DEPTH_BUFFER_BIT)
-
-    let view = new Array(16)
-    let projection = new Array(16)
 
     rendering.setProgram(1)
     rendering.setView(0, 0, client.width, client.height)
@@ -136,12 +138,11 @@ export class GameState {
     const gl = client.gl
     const rendering = client.rendering
     const camera = game.camera
+    const view = this.view
+    const projection = this.projection
 
     gl.clear(gl.COLOR_BUFFER_BIT)
     gl.clear(gl.DEPTH_BUFFER_BIT)
-
-    let view = new Array(16)
-    let projection = new Array(16)
 
     rendering.setProgram(2)
     rendering.setView(0, 0, client.width, client.height)

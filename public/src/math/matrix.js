@@ -1,8 +1,5 @@
-import {normalize, cross} from '/src/math/vector.js'
-
 const temp = new Float32Array(16)
 const copy = new Float32Array(16)
-const dest = new Float32Array(16)
 
 export function identity(matrix) {
   matrix[0] = 1.0
@@ -212,95 +209,69 @@ export function setTranslation(matrix, x, y, z) {
 }
 
 export function matrixInverse(matrix, from) {
-  let src = new Float32Array(16)
+  copy[0] = from[10] * from[15]
+  copy[1] = from[11] * from[14]
+  copy[2] = from[9] * from[15]
+  copy[3] = from[11] * from[13]
+  copy[4] = from[9] * from[14]
+  copy[5] = from[10] * from[13]
+  copy[6] = from[8] * from[15]
+  copy[7] = from[11] * from[12]
+  copy[8] = from[8] * from[14]
+  copy[9] = from[10] * from[12]
+  copy[10] = from[8] * from[13]
+  copy[11] = from[9] * from[12]
 
-  src[0] = from[0]
-  src[4] = from[1]
-  src[8] = from[2]
-  src[12] = from[3]
+  temp[0] = copy[0] * from[5] + copy[3] * from[6] + copy[4] * from[7]
+  temp[0] -= copy[1] * from[5] + copy[2] * from[6] + copy[5] * from[7]
+  temp[1] = copy[1] * from[4] + copy[6] * from[6] + copy[9] * from[7]
+  temp[1] -= copy[0] * from[4] + copy[7] * from[6] + copy[8] * from[7]
+  temp[2] = copy[2] * from[4] + copy[7] * from[5] + copy[10] * from[7]
+  temp[2] -= copy[3] * from[4] + copy[6] * from[5] + copy[11] * from[7]
+  temp[3] = copy[5] * from[4] + copy[8] * from[5] + copy[11] * from[6]
+  temp[3] -= copy[4] * from[4] + copy[9] * from[5] + copy[10] * from[6]
+  temp[4] = copy[1] * from[1] + copy[2] * from[2] + copy[5] * from[3]
+  temp[4] -= copy[0] * from[1] + copy[3] * from[2] + copy[4] * from[3]
+  temp[5] = copy[0] * from[0] + copy[7] * from[2] + copy[8] * from[3]
+  temp[5] -= copy[1] * from[0] + copy[6] * from[2] + copy[9] * from[3]
+  temp[6] = copy[3] * from[0] + copy[6] * from[1] + copy[11] * from[3]
+  temp[6] -= copy[2] * from[0] + copy[7] * from[1] + copy[10] * from[3]
+  temp[7] = copy[4] * from[0] + copy[9] * from[1] + copy[10] * from[2]
+  temp[7] -= copy[5] * from[0] + copy[8] * from[1] + copy[11] * from[2]
 
-  src[1] = from[4]
-  src[5] = from[5]
-  src[9] = from[6]
-  src[13] = from[7]
+  copy[0] = from[2] * from[7]
+  copy[1] = from[3] * from[6]
+  copy[2] = from[1] * from[7]
+  copy[3] = from[3] * from[5]
+  copy[4] = from[1] * from[6]
+  copy[5] = from[2] * from[5]
+  copy[6] = from[0] * from[7]
+  copy[7] = from[3] * from[4]
+  copy[8] = from[0] * from[6]
+  copy[9] = from[2] * from[4]
+  copy[10] = from[0] * from[5]
+  copy[11] = from[1] * from[4]
 
-  src[2] = from[8]
-  src[6] = from[9]
-  src[10] = from[10]
-  src[14] = from[11]
+  temp[8] = copy[0] * from[13] + copy[3] * from[14] + copy[4] * from[15]
+  temp[8] -= copy[1] * from[13] + copy[2] * from[14] + copy[5] * from[15]
+  temp[9] = copy[1] * from[12] + copy[6] * from[14] + copy[9] * from[15]
+  temp[9] -= copy[0] * from[12] + copy[7] * from[14] + copy[8] * from[15]
+  temp[10] = copy[2] * from[12] + copy[7] * from[13] + copy[10] * from[15]
+  temp[10] -= copy[3] * from[12] + copy[6] * from[13] + copy[11] * from[15]
+  temp[11] = copy[5] * from[12] + copy[8] * from[13] + copy[11] * from[14]
+  temp[11] -= copy[4] * from[12] + copy[9] * from[13] + copy[10] * from[14]
+  temp[12] = copy[2] * from[10] + copy[5] * from[11] + copy[1] * from[9]
+  temp[12] -= copy[4] * from[11] + copy[0] * from[9] + copy[3] * from[10]
+  temp[13] = copy[8] * from[11] + copy[0] * from[8] + copy[7] * from[10]
+  temp[13] -= copy[6] * from[10] + copy[9] * from[11] + copy[1] * from[8]
+  temp[14] = copy[6] * from[9] + copy[11] * from[11] + copy[3] * from[8]
+  temp[14] -= copy[10] * from[11] + copy[2] * from[8] + copy[7] * from[9]
+  temp[15] = copy[10] * from[10] + copy[4] * from[8] + copy[9] * from[9]
+  temp[15] -= copy[8] * from[9] + copy[11] * from[10] + copy[5] * from[8]
 
-  src[3] = from[12]
-  src[7] = from[13]
-  src[11] = from[14]
-  src[15] = from[15]
+  let det = 1.0 / (from[0] * temp[0] + from[1] * temp[1] + from[2] * temp[2] + from[3] * temp[3])
 
-  let tmp = new Float32Array(16)
-
-  tmp[0] = src[10] * src[15]
-  tmp[1] = src[11] * src[14]
-  tmp[2] = src[9] * src[15]
-  tmp[3] = src[11] * src[13]
-  tmp[4] = src[9] * src[14]
-  tmp[5] = src[10] * src[13]
-  tmp[6] = src[8] * src[15]
-  tmp[7] = src[11] * src[12]
-  tmp[8] = src[8] * src[14]
-  tmp[9] = src[10] * src[12]
-  tmp[10] = src[8] * src[13]
-  tmp[11] = src[9] * src[12]
-
-  let dst = new Float32Array(16)
-
-  dst[0] = tmp[0] * src[5] + tmp[3] * src[6] + tmp[4] * src[7]
-  dst[0] -= tmp[1] * src[5] + tmp[2] * src[6] + tmp[5] * src[7]
-  dst[1] = tmp[1] * src[4] + tmp[6] * src[6] + tmp[9] * src[7]
-  dst[1] -= tmp[0] * src[4] + tmp[7] * src[6] + tmp[8] * src[7]
-  dst[2] = tmp[2] * src[4] + tmp[7] * src[5] + tmp[10] * src[7]
-  dst[2] -= tmp[3] * src[4] + tmp[6] * src[5] + tmp[11] * src[7]
-  dst[3] = tmp[5] * src[4] + tmp[8] * src[5] + tmp[11] * src[6]
-  dst[3] -= tmp[4] * src[4] + tmp[9] * src[5] + tmp[10] * src[6]
-  dst[4] = tmp[1] * src[1] + tmp[2] * src[2] + tmp[5] * src[3]
-  dst[4] -= tmp[0] * src[1] + tmp[3] * src[2] + tmp[4] * src[3]
-  dst[5] = tmp[0] * src[0] + tmp[7] * src[2] + tmp[8] * src[3]
-  dst[5] -= tmp[1] * src[0] + tmp[6] * src[2] + tmp[9] * src[3]
-  dst[6] = tmp[3] * src[0] + tmp[6] * src[1] + tmp[11] * src[3]
-  dst[6] -= tmp[2] * src[0] + tmp[7] * src[1] + tmp[10] * src[3]
-  dst[7] = tmp[4] * src[0] + tmp[9] * src[1] + tmp[10] * src[2]
-  dst[7] -= tmp[5] * src[0] + tmp[8] * src[1] + tmp[11] * src[2]
-
-  tmp[0] = src[2] * src[7]
-  tmp[1] = src[3] * src[6]
-  tmp[2] = src[1] * src[7]
-  tmp[3] = src[3] * src[5]
-  tmp[4] = src[1] * src[6]
-  tmp[5] = src[2] * src[5]
-  tmp[6] = src[0] * src[7]
-  tmp[7] = src[3] * src[4]
-  tmp[8] = src[0] * src[6]
-  tmp[9] = src[2] * src[4]
-  tmp[10] = src[0] * src[5]
-  tmp[11] = src[1] * src[4]
-
-  dst[8] = tmp[0] * src[13] + tmp[3] * src[14] + tmp[4] * src[15]
-  dst[8] -= tmp[1] * src[13] + tmp[2] * src[14] + tmp[5] * src[15]
-  dst[9] = tmp[1] * src[12] + tmp[6] * src[14] + tmp[9] * src[15]
-  dst[9] -= tmp[0] * src[12] + tmp[7] * src[14] + tmp[8] * src[15]
-  dst[10] = tmp[2] * src[12] + tmp[7] * src[13] + tmp[10] * src[15]
-  dst[10] -= tmp[3] * src[12] + tmp[6] * src[13] + tmp[11] * src[15]
-  dst[11] = tmp[5] * src[12] + tmp[8] * src[13] + tmp[11] * src[14]
-  dst[11] -= tmp[4] * src[12] + tmp[9] * src[13] + tmp[10] * src[14]
-  dst[12] = tmp[2] * src[10] + tmp[5] * src[11] + tmp[1] * src[9]
-  dst[12] -= tmp[4] * src[11] + tmp[0] * src[9] + tmp[3] * src[10]
-  dst[13] = tmp[8] * src[11] + tmp[0] * src[8] + tmp[7] * src[10]
-  dst[13] -= tmp[6] * src[10] + tmp[9] * src[11] + tmp[1] * src[8]
-  dst[14] = tmp[6] * src[9] + tmp[11] * src[11] + tmp[3] * src[8]
-  dst[14] -= tmp[10] * src[11] + tmp[2] * src[8] + tmp[7] * src[9]
-  dst[15] = tmp[10] * src[10] + tmp[4] * src[8] + tmp[9] * src[9]
-  dst[15] -= tmp[8] * src[9] + tmp[11] * src[10] + tmp[5] * src[8]
-
-  let det = 1.0 / (src[0] * dst[0] + src[1] * dst[1] + src[2] * dst[2] + src[3] * dst[3])
-
-  for (let i = 0; i < 16; i++) matrix[i] = dst[i] * det
+  for (let i = 0; i < 16; i++) matrix[i] = temp[i] * det
 }
 
 export function transpose(matrix, from) {
@@ -339,30 +310,41 @@ export function multiplyVector4(out, matrix, vec) {
 }
 
 export function lookAt(matrix, eye, center) {
-  let forward = [center[0] - eye[0], center[1] - eye[1], center[2] - eye[2]]
-  normalize(forward)
+  let forwardX = center[0] - eye[0]
+  let forwardY = center[1] - eye[1]
+  let forwardZ = center[2] - eye[2]
 
-  let any = [0.0, 1.0, 0.0]
+  let magnitude = Math.sqrt(forwardX * forwardX + forwardY * forwardY + forwardZ * forwardZ)
+  let multiple = 1.0 / magnitude
+  forwardX *= multiple
+  forwardY *= multiple
+  forwardZ *= multiple
 
-  let side = []
-  cross(side, forward, any)
+  const anyX = 0.0
+  const anyY = 1.0
+  const anyZ = 0.0
 
-  let up = []
-  cross(up, side, forward)
+  let sideX = forwardY * anyZ - forwardZ * anyY
+  let sideY = forwardZ * anyX - forwardX * anyZ
+  let sideZ = forwardX * anyY - forwardY * anyX
 
-  matrix[0] = side[0]
-  matrix[4] = side[1]
-  matrix[8] = side[2]
+  let upX = sideY * forwardZ - sideZ * forwardY
+  let upY = sideZ * forwardX - sideX * forwardZ
+  let upZ = sideX * forwardY - sideY * forwardX
+
+  matrix[0] = sideX
+  matrix[4] = sideY
+  matrix[8] = sideZ
   matrix[12] = 0.0
 
-  matrix[1] = up[0]
-  matrix[5] = up[1]
-  matrix[9] = up[2]
+  matrix[1] = upX
+  matrix[5] = upY
+  matrix[9] = upZ
   matrix[13] = 0.0
 
-  matrix[2] = -forward[0]
-  matrix[6] = -forward[1]
-  matrix[10] = -forward[2]
+  matrix[2] = -forwardX
+  matrix[6] = -forwardY
+  matrix[10] = -forwardZ
   matrix[14] = 0.0
 
   matrix[3] = 0.0

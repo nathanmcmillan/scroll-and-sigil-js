@@ -3,7 +3,7 @@ import {Line} from '/src/map/line.js'
 import {Vector2} from '/src/math/vector.js'
 import {Sector} from '/src/map/sector.js'
 import {World} from '/src/world/world.js'
-import {Camera} from '/src/game/camera.js'
+import {cameraTowardsTarget, cameraFollowCinema, Camera} from '/src/game/camera.js'
 import {Input} from '/src/game/input.js'
 import {thingSet} from '/src/thing/thing.js'
 import {Hero} from '/src/thing/hero.js'
@@ -171,8 +171,8 @@ export class Game {
 
     this.world.update()
 
-    if (this.cinema) camera.towardsTarget()
-    else camera.followCinema()
+    if (this.cinema) cameraTowardsTarget(camera)
+    else cameraFollowCinema(camera)
   }
 
   notify(trigger, params) {

@@ -42,6 +42,9 @@ export class EditorState {
       self.switchMode()
     }
 
+    this.view = new Float32Array(16)
+    this.projection = new Float32Array(16)
+
     this.editor = new Editor(client.width, client.height, callbacks)
   }
 

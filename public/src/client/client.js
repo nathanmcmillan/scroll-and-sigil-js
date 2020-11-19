@@ -23,8 +23,8 @@ export class Client {
     this.mouseRight = false
     this.mouseX = 0
     this.mouseY = 0
-    this.orthographic = new Array(16)
-    this.perspective = new Array(16)
+    this.orthographic = new Float32Array(16)
+    this.perspective = new Float32Array(16)
     this.rendering = null
     this.bufferGUI = null
     this.bufferColor = null
