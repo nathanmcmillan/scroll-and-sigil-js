@@ -172,7 +172,7 @@ export class Game {
     this.world.update()
 
     if (this.cinema) cameraTowardsTarget(camera)
-    else cameraFollowCinema(camera)
+    else cameraFollowCinema(camera, this.world)
   }
 
   notify(trigger, params) {

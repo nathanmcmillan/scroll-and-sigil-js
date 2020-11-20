@@ -75,6 +75,23 @@ export function lineIntersect(ax, ay, bx, by, cx, cy, dx, dy) {
   return !Float.zero(denominator)
 }
 
+export function lineIntersectAt(out, ax, ay, bx, by, cx, cy, dx, dy) {
+  let a1 = by - ay
+  let a2 = dy - cy
+  let a3 = bx - ax
+  let a4 = ay - cy
+  let a5 = ax - cx
+  let a6 = dx - cx
+  let div = a2 * a3 - a6 * a1
+  let uA = (a6 * a4 - a2 * a5) / div
+  if (uA < 0.0 || uA > 1.0) return false
+  let uB = (a3 * a4 - a1 * a5) / div
+  if (uB < 0.0 || uB > 1.0) return false
+  out[0] = ax + uA * a3
+  out[1] = ay + uA * a1
+  return true
+}
+
 export function normalize(a) {
   let magnitude = Math.sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2])
   let multiple = 1.0 / magnitude
