@@ -159,6 +159,13 @@ export function drawRectangle(b, x, y, width, height, red, green, blue, alpha) {
   index4(b)
 }
 
+export function drawHollowRectangle(b, x, y, width, height, thickness, red, green, blue, alpha) {
+  drawLine(b, x, y, x + width, y, thickness, red, green, blue, alpha)
+  drawLine(b, x + width, y, x + width, y + height, thickness, red, green, blue, alpha)
+  drawLine(b, x, y + height, x + width, y + height, thickness, red, green, blue, alpha)
+  drawLine(b, x, y, x, y + height, thickness, red, green, blue, alpha)
+}
+
 export function drawImage(b, x, y, width, height, red, green, blue, alpha, left, top, right, bottom) {
   let pos = b.vertexPosition
   let vertices = b.vertices

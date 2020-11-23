@@ -7,7 +7,7 @@ import {cameraTowardsTarget, cameraFollowCinema, Camera} from '/src/game/camera.
 import {Input} from '/src/game/input.js'
 import {thingSet} from '/src/thing/thing.js'
 import {Hero} from '/src/thing/hero.js'
-import {Baron} from '/src/thing/baron.js'
+import {Monster} from '/src/thing/monster.js'
 import {Tree} from '/src/thing/tree.js'
 import {NonPlayerCharacter} from '/src/thing/npc.js'
 import {Medkit} from '/src/thing/medkit.js'
@@ -39,15 +39,6 @@ export class Game {
 
     let map = (await fetchText(file)).split('\n')
     let index = 0
-
-    let info = parseInt(map[index].split(' ')[1])
-    index++
-    for (; index <= info; index++) {
-      let content = map[index].split(' ')
-      if (content[0] === 'music') {
-        playMusic(content[1])
-      }
-    }
 
     let vectors = index + parseInt(map[index].split(' ')[1])
     index++
@@ -96,52 +87,62 @@ export class Game {
     world.setLines(lines)
     world.build()
 
-    let things = index + parseInt(map[index].split(' ')[1])
-    index++
-    for (; index <= things; index++) {
-      let thing = map[index].split(' ')
-      let x = parseFloat(thing[0])
-      let z = parseFloat(thing[1])
-      let name = thing[2]
-      let entity = entityByName(name)
-      if (entity.has('class')) name = entity.get('class')
-      switch (name) {
-        case 'baron':
-          new Baron(world, entity, x, z)
-          continue
-        case 'tree':
-          new Tree(world, entity, x, z)
-          continue
-        case 'medkit':
-          new Medkit(world, entity, x, z)
-          continue
-        case 'armor':
-          new Armor(world, entity, x, z)
-          continue
-        case 'npc':
-          new NonPlayerCharacter(world, entity, x, z)
-          continue
-        case 'hero':
-          if (this.hero) thingSet(this.hero, x, z)
-          else this.hero = new Hero(world, entity, x, z, this.input)
-          this.camera.target = this.hero
-          continue
-      }
-    }
-
-    if (this.camera.target === null) throw 'map is missing a hero entity'
-
-    if (index < map.length) {
-      let triggers = index + parseInt(map[index].split(' ')[1])
-      index++
-      for (; index <= triggers; index++) {
-        let trigger = map[index].split(' ')
-        console.log(trigger)
-        if (trigger[0] === 'line') {
-          let line = lines[parseInt(trigger[1])]
-          world.trigger('interact-line', [line], trigger.slice(2))
+    while (index < map.length - 1) {
+      let top = map[index].split(' ')
+      let count = parseInt(top[1])
+      if (top[0] === 'things') {
+        let things = index + count
+        index++
+        for (; index <= things; index++) {
+          let thing = map[index].split(' ')
+          let x = parseFloat(thing[0])
+          let z = parseFloat(thing[1])
+          let name = thing[2]
+          let entity = entityByName(name)
+          if (entity.has('class')) name = entity.get('class')
+          switch (name) {
+            case 'monster':
+              new Monster(world, entity, x, z)
+              continue
+            case 'tree':
+              new Tree(world, entity, x, z)
+              continue
+            case 'medkit':
+              new Medkit(world, entity, x, z)
+              continue
+            case 'armor':
+              new Armor(world, entity, x, z)
+              continue
+            case 'npc':
+              new NonPlayerCharacter(world, entity, x, z)
+              continue
+            case 'hero':
+              if (this.hero) thingSet(this.hero, x, z)
+              else this.hero = new Hero(world, entity, x, z, this.input)
+              this.camera.target = this.hero
+              continue
+          }
         }
-      }
+        if (this.camera.target === null) throw 'map is missing hero entity'
+      } else if (top[0] === 'triggers') {
+        let triggers = index + count
+        index++
+        for (; index <= triggers; index++) {
+          let trigger = map[index].split(' ')
+          console.log(trigger)
+          if (trigger[0] === 'line') {
+            let line = lines[parseInt(trigger[1])]
+            world.trigger('interact-line', [line], trigger.slice(2))
+          }
+        }
+      } else if (top[0] === 'info') {
+        let info = index + count
+        index++
+        for (; index <= info; index++) {
+          let content = map[index].split(' ')
+          if (content[0] === 'music') playMusic(content[1])
+        }
+      } else throw "unknown map data: '" + top[0] + "'"
     }
   }
 

@@ -2,11 +2,11 @@ class: monster
 sprite: baron
 box: 0.6
 height: 4.0
-name: 'Demon Baron'
-group: (monster)(baron)
-health: 4
-speed: 0.05
-sight: 60.0
+name: Zombie
+group: (monster)(zombie)
+health: 1
+speed: 0.08
+sight: 6.0
 sound-pain: baron-pain
 sound-death: baron-death
 sound-wake: baron-scream
@@ -27,16 +27,5 @@ attack [
     damage-on-frame: 1
     sound: baron-melee
     sound-on-frame: 0
-  }
-  {
-    range: 40.0
-    animation: missile
-    damage [2, 6]
-    reaction [40, 220]
-    type: projectile
-    projectile: plasma
-    damage-on-frame: 1
-    sound: baron-missile
-    sound-on-frame: 1
   }
 ]

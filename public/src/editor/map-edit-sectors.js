@@ -1,7 +1,8 @@
+import {lineNullSectors} from '/src/map/line.js'
 import {WORLD_SCALE} from '/src/world/world.js'
-import {sectorUpdateLines, sectorInsideOutside} from '/src/map/sector.js'
+import {sectorLineNeighbors, sectorInsideOutside} from '/src/map/sector.js'
 import {sectorTriangulateForEditor} from '/src/map/triangulate.js'
-import {SectorReference} from '/src/editor/editor-references.js'
+import {SectorReference} from '/src/editor/map-edit-references.js'
 
 function copy(src, dest) {
   dest.bottom = src.bottom
@@ -71,28 +72,28 @@ function clockwiseInterior(a, b, c) {
   return angle
 }
 
-function swap(lines) {
-  for (const line of lines) {
-    let left = null
-    let right = null
-    let start = null
-    let end = null
-    for (const other of lines) {
-      if (other === line) continue
-      if (line.a == other.a) start = other
-      if (line.a == other.b) left = other
-      if (line.b == other.b) end = other
-      if (line.b == other.a) right = other
-    }
-    if (left !== null && right !== null) continue
-    if (left === null && right !== null) continue
-    if (left === null && start === null) continue
-    if (right === null && end === null) continue
-    let temp = line.a
-    line.a = line.b
-    line.b = temp
-  }
-}
+// function swap(lines) {
+//   for (const line of lines) {
+//     let left = null
+//     let right = null
+//     let start = null
+//     let end = null
+//     for (const other of lines) {
+//       if (other === line) continue
+//       if (line.a == other.a) start = other
+//       if (line.a == other.b) left = other
+//       if (line.b == other.b) end = other
+//       if (line.b == other.a) right = other
+//     }
+//     if (left !== null && right !== null) continue
+//     if (left === null && right !== null) continue
+//     if (left === null && start === null) continue
+//     if (right === null && end === null) continue
+//     let temp = line.a
+//     line.a = line.b
+//     line.b = temp
+//   }
+// }
 
 function clockwise(vecs) {
   let sum = 0.0
@@ -239,7 +240,8 @@ export function computeSectors(editor) {
     }
   }
 
-  for (const sector of sectors) sectorUpdateLines(sector, WORLD_SCALE)
+  lineNullSectors(editor.lines)
+  sectorLineNeighbors(sectors, WORLD_SCALE)
 
   editor.sectors = sectors
   console.log('--- end compute sectors and triangles ', sectors.length, '---')

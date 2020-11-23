@@ -3,7 +3,7 @@ import {Cell} from '/src/world/cell.js'
 import {decalInitialize, Decal} from '/src/world/decal.js'
 import {particleInitialize, Particle} from '/src/particle/particle.js'
 import {missileInitialize, Missile} from '/src/missile/missile.js'
-import {sectorUpdateLines, sectorInsideOutside} from '/src/map/sector.js'
+import {sectorInsideOutside, sectorLineNeighbors} from '/src/map/sector.js'
 import {sectorTriangulate} from '/src/map/triangulate.js'
 
 export const WORLD_SCALE = 0.25
@@ -235,7 +235,7 @@ export class World {
     for (let i = 0; i < this.cells.length; i++) this.cells[i] = new Cell()
     sectorInsideOutside(this.sectors)
     for (const sector of this.sectors) sectorTriangulate(sector, WORLD_SCALE)
-    for (const sector of this.sectors) sectorUpdateLines(sector, WORLD_SCALE)
+    sectorLineNeighbors(this.sectors, WORLD_SCALE)
     for (const line of this.lines) this.buildCellLines(line)
   }
 

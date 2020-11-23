@@ -42,15 +42,6 @@ export class Thing {
   }
 }
 
-// function sideOfLine(x, z, line) {
-//   let vx = line.b.x - line.a.x
-//   let vz = line.b.y - line.a.y
-//   let wx = x - line.a.x
-//   let wz = z - line.a.y
-//   if (vx * wz - vz * wx < 0.0) return -1
-//   return 1
-// }
-
 function thingUpdateY(self) {
   if (self.y < self.floor) {
     self.ground = true
@@ -108,9 +99,15 @@ function thingLineCollision(self, line) {
     self.x += ex * overlap
     self.z += ez * overlap
   } else {
-    let overlap = Math.sqrt((px + box * line.normal.x) * (px + box * line.normal.x) + (pz + box * line.normal.y) * (pz + box * line.normal.y))
-    self.x += line.normal.x * overlap
-    self.z += line.normal.y * overlap
+    let x = line.normal.x
+    let z = line.normal.y
+    if (vx * wz - vz * wx < 0.0) {
+      x = -x
+      z = -z
+    }
+    let overlap = Math.sqrt((px + box * x) * (px + box * x) + (pz + box * z) * (pz + box * z))
+    self.x += x * overlap
+    self.z += z * overlap
   }
   return false
 }
@@ -163,15 +160,9 @@ export function thingFindSectorFromLine(self) {
 }
 
 export function thingFindSector(self) {
-  let previous = self.sector
-  if (previous !== null) {
-    if (previous.contains(self.x, self.z)) {
-      self.floor = previous.floor
-      self.ceiling = previous.ceiling
-      return
-    }
-  }
-  let sector = self.world.findSector(self.x, self.z)
+  let sector = self.sector
+  if (sector === null) sector = self.world.findSector(self.x, self.z)
+  else sector = sector.searchFor(self.x, self.z)
   self.sector = sector
   self.floor = sector.floor
   self.ceiling = sector.ceiling
@@ -191,6 +182,13 @@ export function thingUpdateAnimation(self) {
 
 export function thingUpdateSprite(self) {
   self.sprite = self.animation[self.animationFrame]
+}
+
+export function thingSetAnimation(self, name) {
+  self.animationMod = 0
+  self.animationFrame = 0
+  self.animation = self.animations.get(name)
+  thingUpdateSprite(self)
 }
 
 export function thingCheckSight(self, thing) {

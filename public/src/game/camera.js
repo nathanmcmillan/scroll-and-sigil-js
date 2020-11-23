@@ -43,6 +43,8 @@ function cameraFixView(self, world) {
   if (maxC >= columns) maxC = columns - 1
   if (maxR >= world.rows) maxR = world.rows - 1
 
+  const fudge = 0.05
+
   for (let r = minR; r <= maxR; r++) {
     for (let c = minC; c <= maxC; c++) {
       let cell = world.cells[c + r * world.columns]
@@ -50,12 +52,20 @@ function cameraFixView(self, world) {
       while (i--) {
         let line = cell.lines[i]
         if (line.physical && lineIntersectAt(out, self.x, self.z, target.x, target.z, line.a.x, line.a.y, line.b.x, line.b.y)) {
-          self.x = out[0]
-          self.z = out[1]
+          let angle = Math.atan2(target.z - self.z, target.x - self.x)
+          let dx = Math.cos(angle)
+          let dz = Math.sin(angle)
+          self.x = out[0] + fudge * dx
+          self.z = out[1] + fudge * dz
         }
       }
     }
   }
+
+  let sector = world.findSector(self.x, self.z)
+  if (sector === null) return
+  if (sector.hasFloor() && self.y < sector.floor + fudge) self.y = sector.floor + fudge
+  if (sector.hasCeiling() && self.y > sector.ceiling - fudge) self.y = sector.ceiling - fudge
 }
 
 export function cameraFollowOrbit(self) {

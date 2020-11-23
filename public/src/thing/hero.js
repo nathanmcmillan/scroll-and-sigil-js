@@ -1,4 +1,4 @@
-import {thingSetup, thingIntegrate, thingUpdateSprite, thingUpdateAnimation, thingApproximateDistance, Thing} from '/src/thing/thing.js'
+import {thingSetup, thingIntegrate, thingUpdateSprite, thingSetAnimation, thingUpdateAnimation, thingApproximateDistance, Thing} from '/src/thing/thing.js'
 import {playSound} from '/src/assets/sounds.js'
 import {textureIndexForName, entityByName} from '/src/assets/assets.js'
 import {WORLD_CELL_SHIFT, ANIMATION_ALMOST_DONE, ANIMATION_DONE} from '/src/world/world.js'
@@ -34,9 +34,7 @@ function heroDamage(source, health) {
     playSound('baron-death')
     this.health = 0
     this.status = STATUS_DEAD
-    this.animationFrame = 0
-    this.animation = this.animations.get('death')
-    thingUpdateSprite(this)
+    thingSetAnimation(this, 'death')
     this.combat = 0
     redBloodExplode(this)
   } else {
@@ -134,9 +132,7 @@ function heroInteract(self) {
     } else if (thing.interaction && thing.health > 0) {
       self.combat = 0
       self.status = STATUS_BUSY
-      self.animationFrame = 0
-      self.animation = self.animations.get('move')
-      thingUpdateSprite(self)
+      thingSetAnimation(self, 'move')
       self.interactionWith = thing
       self.interaction = thing.interaction
       if (self.interaction.get('type') === 'quest') {
@@ -192,9 +188,7 @@ function heroDead(self) {
 
 function heroOpenMenu(self) {
   self.status = STATUS_BUSY
-  self.animationFrame = 0
-  self.animation = self.animations.get('move')
-  thingUpdateSprite(self)
+  thingSetAnimation(self, 'move')
   self.menu = {page: 'inventory'}
 }
 
@@ -265,10 +259,10 @@ function heroMelee(self) {
     }
   } else if (frame === ANIMATION_DONE) {
     self.status = STATUS_IDLE
-    self.animationFrame = 0
-    self.animation = self.animations.get('move')
-    thingUpdateSprite(self)
+    thingSetAnimation(self, 'move')
+    return
   }
+  thingUpdateSprite(self)
 }
 
 function heroMissile(self) {
@@ -284,10 +278,10 @@ function heroMissile(self) {
     newPlasma(self.world, entityByName('plasma'), x, y, z, dx * speed, 0.0, dz * speed, 1 + randomInt(3))
   } else if (frame === ANIMATION_DONE) {
     self.status = STATUS_IDLE
-    self.animationFrame = 0
-    self.animation = self.animations.get('move')
-    thingUpdateSprite(self)
+    thingSetAnimation(self, 'move')
+    return
   }
+  thingUpdateSprite(self)
 }
 
 function heroMove(self) {
@@ -305,18 +299,14 @@ function heroMove(self) {
   } else if (self.input.a() && self.stamina >= MISSILE_COST) {
     playSound('baron-missile')
     self.status = STATUS_MISSILE
-    self.animationFrame = 0
-    self.animation = self.animations.get('missile')
-    thingUpdateSprite(self)
+    thingSetAnimation(self, 'missile')
     self.combat = COMBAT_TIMER
     self.stamina -= MISSILE_COST
     return
   } else if (self.input.b() && self.stamina >= MELEE_COST) {
     playSound('baron-melee')
     self.status = STATUS_MELEE
-    self.animationFrame = 0
-    self.animation = self.animations.get('melee')
-    thingUpdateSprite(self)
+    thingSetAnimation(self, 'melee')
     self.combat = COMBAT_TIMER
     self.stamina -= MELEE_COST
     return

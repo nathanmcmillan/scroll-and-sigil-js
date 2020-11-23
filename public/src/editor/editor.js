@@ -1,11 +1,10 @@
 import {fetchText} from '/src/client/net.js'
 import {Camera} from '/src/game/camera.js'
-import {VectorReference, LineReference, SectorReference, ThingReference} from '/src/editor/editor-references.js'
+import {VectorReference, LineReference, SectorReference, ThingReference} from '/src/editor/map-edit-references.js'
 import {tileList, entityList, textureIndexForName, entityByName} from '/src/assets/assets.js'
 import {WORLD_SCALE} from '/src/world/world.js'
-import {referenceLinesFromVec} from '/src/editor/editor-util.js'
-import {computeSectors} from '/src/editor/editor-sectors.js'
-import {sectorUpdateLines, sectorInsideOutside} from '/src/map/sector.js'
+import {computeSectors} from '/src/editor/map-edit-sectors.js'
+import {sectorLineNeighbors, sectorInsideOutside} from '/src/map/sector.js'
 import {sectorTriangulateForEditor} from '/src/map/triangulate.js'
 import * as In from '/src/editor/editor-input.js'
 
@@ -152,6 +151,16 @@ export function thingSize(thing, zoom) {
   return Math.ceil(thing.box * zoom)
 }
 
+function referenceLinesFromVec(vec, lines) {
+  let list = []
+  for (const line of lines) {
+    if (line.has(vec)) {
+      list.push(line)
+    }
+  }
+  return list
+}
+
 export class Editor {
   constructor(width, height, callbacks) {
     this.width = width
@@ -186,6 +195,7 @@ export class Editor {
     this.viewThings = true
     this.viewLineNormals = true
     this.shadowInput = true
+    this.doPaint = true
   }
 
   resize(width, height) {
@@ -208,9 +218,6 @@ export class Editor {
 
     let map = (await fetchText(file)).split('\n')
     let index = 0
-
-    let info = parseInt(map[index].split(' ')[1])
-    index += info
 
     let vectors = index + parseInt(map[index].split(' ')[1])
     index++
@@ -259,9 +266,7 @@ export class Editor {
     }
 
     let i = 0
-    for (const sector of this.sectors) {
-      sector.index = i++
-    }
+    for (const sector of this.sectors) sector.index = i++
 
     sectorInsideOutside(this.sectors)
     this.sectors.sort((a, b) => {
@@ -280,16 +285,26 @@ export class Editor {
       }
     }
 
-    for (const sector of this.sectors) sectorUpdateLines(sector, WORLD_SCALE)
+    sectorLineNeighbors(this.sectors, WORLD_SCALE)
 
-    let things = index + parseInt(map[index].split(' ')[1])
-    index++
-    for (; index <= things; index++) {
-      let thing = map[index].split(' ')
-      let x = parseFloat(thing[0])
-      let z = parseFloat(thing[1])
-      let entity = entityByName(thing[2])
-      this.things.push(new ThingReference(entity, x, z))
+    while (index < map.length - 1) {
+      let top = map[index].split(' ')
+      let count = parseInt(top[1])
+      if (top[0] === 'things') {
+        let things = index + count
+        index++
+        for (; index <= things; index++) {
+          let thing = map[index].split(' ')
+          let x = parseFloat(thing[0])
+          let z = parseFloat(thing[1])
+          let entity = entityByName(thing[2])
+          this.things.push(new ThingReference(entity, x, z))
+        }
+      } else if (top[0] === 'triggers') {
+        index += count + 1
+      } else if (top[0] === 'info') {
+        index += count + 1
+      } else throw "unknown map data: '" + top[0] + "'"
     }
   }
 
@@ -907,23 +922,15 @@ export class Editor {
   }
 
   update() {
+    this.doPaint = false
     if (this.input.nothingOn()) {
-      if (this.shadowInput) {
-        this.shadowInput = false
-      } else {
-        return
-      }
-    } else {
-      this.shadowInput = true
-    }
-    switch (this.mode) {
-      case TOP_MODE:
-        this.top()
-        break
-      case VIEW_MODE:
-        this.view()
-        break
-    }
+      if (this.shadowInput) this.shadowInput = false
+      else return
+    } else this.shadowInput = true
+    this.doPaint = true
+
+    if (this.mode === TOP_MODE) this.top()
+    else this.view()
   }
 
   export() {
@@ -944,10 +951,14 @@ export class Editor {
     for (const sector of this.sectors) {
       content += sector.export() + '\n'
     }
-    content += `things ${this.things.length}\n`
-    for (const thing of this.things) {
-      content += thing.export() + '\n'
+    if (this.things.length > 0) {
+      content += `things ${this.things.length}\n`
+      for (const thing of this.things) {
+        content += thing.export() + '\n'
+      }
     }
+    // content += `triggers 0\n`
+    // content += `info 0\n`
     return content
   }
 }

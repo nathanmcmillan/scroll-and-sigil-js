@@ -1,6 +1,6 @@
 import {TwoWayMap} from '/src/util/collections.js'
-import {renderEditorTopMode} from '/src/client/editor-top-mode.js'
-import {renderEditorViewMode, updateEditorViewSectorBuffer} from '/src/client/editor-view-mode.js'
+import {renderMapEditTopMode} from '/src/client/map-edit-top-mode.js'
+import {renderMapEditViewMode, updateMapEditViewSectorBuffer} from '/src/client/map-edit-view-mode.js'
 import {Editor, TOP_MODE, VIEW_MODE, SWITCH_MODE_CALLBACK} from '/src/editor/editor.js'
 import * as In from '/src/editor/editor-input.js'
 
@@ -67,7 +67,7 @@ export class EditorState {
 
   switchMode() {
     if (this.editor.mode === VIEW_MODE) {
-      updateEditorViewSectorBuffer(this)
+      updateMapEditViewSectorBuffer(this)
     }
   }
 
@@ -77,9 +77,9 @@ export class EditorState {
 
   render() {
     if (this.editor.mode === TOP_MODE) {
-      renderEditorTopMode(this)
+      renderMapEditTopMode(this)
     } else {
-      renderEditorViewMode(this)
+      renderMapEditViewMode(this)
     }
   }
 }

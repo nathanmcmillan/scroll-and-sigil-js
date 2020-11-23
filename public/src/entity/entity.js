@@ -33,6 +33,10 @@ export class Entity {
     return parseFloat(this.wad.get('speed'))
   }
 
+  sight() {
+    return parseFloat(this.wad.get('sight'))
+  }
+
   health() {
     return parseInt(this.wad.get('health'))
   }

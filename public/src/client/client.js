@@ -8,6 +8,7 @@ import {orthographic, perspective} from '/src/math/matrix.js'
 import {saveSound, saveMusic, pauseMusic, resumeMusic} from '/src/assets/sounds.js'
 import {saveEntity, saveTile, saveTexture, waitForResources, createNewTexturesAndSpriteSheets} from '/src/assets/assets.js'
 import {EditorState} from '/src/client/editor-state.js'
+import {PainterState} from '/src/client/painter-state.js'
 import {GameState} from '/src/client/game-state.js'
 import {MainMenuState} from '/src/client/main-menu-state.js'
 import * as Wad from '/src/wad/wad.js'
@@ -205,7 +206,7 @@ export class Client {
 
     this.rendering = new Renderer(gl)
     this.bufferGUI = new Buffer(2, 4, 2, 0, 4 * 800, 36 * 800)
-    this.bufferColor = new Buffer(2, 4, 0, 0, 4 * 1600, 36 * 1600)
+    this.bufferColor = new Buffer(2, 4, 0, 0, 4 * 25600, 36 * 25600)
     this.bufferSky = new Buffer(3, 0, 2, 0, 24, 36)
 
     drawSkyBox(this.bufferSky)
@@ -232,6 +233,9 @@ export class Client {
         break
       case 'editor':
         this.state = new EditorState(this)
+        break
+      case 'painter':
+        this.state = new PainterState(this)
         break
       default:
         this.state = new MainMenuState(this)

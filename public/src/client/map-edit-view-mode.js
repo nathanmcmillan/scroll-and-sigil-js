@@ -1,23 +1,23 @@
-import {drawImage, drawSprite, drawText} from '/src/render/render.js'
+import {drawSprite, drawText} from '/src/render/render.js'
 import {identity, multiply, rotateX, rotateY, translate} from '/src/math/matrix.js'
 import {textureByName, textureByIndex} from '/src/assets/assets.js'
-import {drawReferenceWall, drawFloorCeil} from '/src/client/render-sector.js'
+import {drawWall, drawFloorCeil} from '/src/client/render-sector.js'
 
 function lineRender(client, line) {
   let wall = line.top
   if (wall) {
     let buffer = client.getSectorBuffer(wall.texture)
-    drawReferenceWall(buffer, wall)
+    drawWall(buffer, wall)
   }
   wall = line.middle
   if (wall) {
     let buffer = client.getSectorBuffer(wall.texture)
-    drawReferenceWall(buffer, wall)
+    drawWall(buffer, wall)
   }
   wall = line.bottom
   if (wall) {
     let buffer = client.getSectorBuffer(wall.texture)
-    drawReferenceWall(buffer, wall)
+    drawWall(buffer, wall)
   }
 }
 
@@ -28,7 +28,7 @@ function floorCeilRender(client, sector) {
   }
 }
 
-export function updateEditorViewSectorBuffer(state) {
+export function updateMapEditViewSectorBuffer(state) {
   const editor = state.editor
   const client = state.client
   const gl = client.gl
@@ -39,42 +39,34 @@ export function updateEditorViewSectorBuffer(state) {
   for (const buffer of client.sectorBuffers.values()) client.rendering.updateVAO(buffer, gl.STATIC_DRAW)
 }
 
-export function renderEditorViewMode(state) {
+export function renderMapEditViewMode(state) {
   const editor = state.editor
   const client = state.client
   const gl = client.gl
   const rendering = client.rendering
+  const camera = editor.camera
   const view = state.view
   const projection = state.projection
 
   gl.clear(gl.COLOR_BUFFER_BIT)
   gl.clear(gl.DEPTH_BUFFER_BIT)
 
-  let camera = editor.camera
-
-  rendering.setProgram(1)
-  rendering.setView(0, 0, client.width, client.height)
-
-  identity(view)
-  multiply(projection, client.orthographic, view)
-  rendering.updateUniformMatrix('u_mvp', projection)
-
-  client.bufferGUI.zero()
-
-  let sky = textureByName('sky')
-  let turnX = client.width * 2.0
-  let skyX = (camera.ry / (2.0 * Math.PI)) * turnX
-  if (skyX >= turnX) skyX -= turnX
-  let skyHeight = 2.0 * sky.height
-  let skyY = client.height - skyHeight
-
-  drawImage(client.bufferGUI, -skyX, skyY, turnX * 2.0, skyHeight, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 2.0, 1.0)
-
-  rendering.bindTexture(gl.TEXTURE0, sky.texture)
-  rendering.updateAndDraw(client.bufferGUI)
-
   rendering.setProgram(2)
   rendering.setView(0, 0, client.width, client.height)
+
+  gl.disable(gl.CULL_FACE)
+  gl.disable(gl.DEPTH_TEST)
+
+  identity(view)
+  rotateX(view, Math.sin(camera.rx), Math.cos(camera.rx))
+  rotateY(view, Math.sin(camera.ry), Math.cos(camera.ry))
+  translate(view, 0.0, 0.0, 0.0)
+  multiply(projection, client.perspective, view)
+  rendering.updateUniformMatrix('u_mvp', projection)
+
+  let sky = textureByName('sky-box-up')
+  rendering.bindTexture(gl.TEXTURE0, sky.texture)
+  rendering.bindAndDraw(client.bufferSky)
 
   gl.enable(gl.CULL_FACE)
   gl.enable(gl.DEPTH_TEST)

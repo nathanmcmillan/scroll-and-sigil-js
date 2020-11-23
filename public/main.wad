@@ -1,6 +1,3 @@
-map: base
-package: default
-open: game
 width: 320
 height: 200
 pixel-scale: 2
@@ -9,3 +6,8 @@ screen: center
 screen: stretch
 width: unlimited
 height: unlimited
+package: default
+open: game
+open: editor
+open: painter
+map: test

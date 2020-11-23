@@ -11,6 +11,7 @@ export class Sector {
     this.triangles = []
     this.inside = []
     this.outside = null
+    this.neighbors = []
   }
 
   hasFloor() {
@@ -50,6 +51,24 @@ export class Sector {
     return this
   }
 
+  searchFor(x, z) {
+    if (this.contains(x, z)) return this.find(x, z)
+    let queue = this.neighbors.slice()
+    let done = []
+    while (queue.length > 0) {
+      let current = queue.shift()
+      if (current.contains(x, z)) return current.find(x, z)
+      let neighbors = current.neighbors
+      for (let i = 0; i < neighbors.length; i++) {
+        let neighbor = neighbors[i]
+        if (neighbor === current || queue.includes(neighbor) || done.includes(neighbor)) continue
+        queue.push(neighbor)
+      }
+      done.push(current)
+    }
+    return null
+  }
+
   otherIsInside(other) {
     for (const inside of this.inside) {
       if (inside === other) return true
@@ -65,46 +84,16 @@ function deleteNestedInside(set, inside) {
   }
 }
 
-export function sectorUpdateLines(sector, scale) {
-  if (sector.lines.length === 0) return
-  let plus, minus
-  if (sector.outside) {
-    plus = sector
-    minus = sector.outside
-  } else {
-    plus = null
-    minus = sector
-  }
-  let bottom = sector.bottom
-  let floor = sector.floor
-  let ceil = sector.ceiling
-  let top = sector.top
-  let uv = 0.0
-  for (const line of sector.lines) {
-    if (line.plus !== null && line.minus !== null) console.error('Line already linked to sectors')
-    line.updateSectors(plus, minus)
-    let x = line.a.x - line.b.x
-    let y = line.a.y - line.b.y
-    let st = uv + Math.sqrt(x * x + y * y) * scale
-    if (line.top) line.top.update(ceil, top, uv, ceil * scale, st, top * scale)
-    if (line.middle) line.middle.update(floor, ceil, uv, floor * scale, st, ceil * scale)
-    if (line.bottom) line.bottom.update(bottom, floor, uv, bottom * scale, st, floor * scale)
-    uv = st
-  }
-}
-
 export function sectorInsideOutside(sectors) {
   for (const sector of sectors) {
     for (const other of sectors) {
-      if (sector === other) {
-        continue
-      }
+      if (sector === other) continue
       let inside = 0
       let outside = 0
       for (const o of other.vecs) {
         let shared = false
         for (const s of sector.vecs) {
-          if (s.eq(o)) {
+          if (s === o) {
             shared = true
             break
           }
@@ -118,13 +107,42 @@ export function sectorInsideOutside(sectors) {
   }
   for (const sector of sectors) {
     let dead = new Set()
-    for (const inside of sector.inside) {
-      deleteNestedInside(dead, inside)
-    }
+    for (const inside of sector.inside) deleteNestedInside(dead, inside)
     for (const other of dead) {
       let index = sector.inside.indexOf(other)
       if (index >= 0) sector.inside.splice(index, 1)
     }
     for (const inside of sector.inside) inside.outside = sector
+  }
+}
+
+export function sectorLineNeighbors(sectors, scale) {
+  for (const sector of sectors) {
+    for (const other of sectors) {
+      if (sector === other) continue
+      if (other.neighbors.includes(sector)) continue
+      iter: for (const o of other.lines) {
+        for (const line of sector.lines) {
+          if (line === o) {
+            sector.neighbors.push(other)
+            other.neighbors.push(sector)
+            line.updateSectors(sector, other, scale)
+            break iter
+          }
+        }
+      }
+    }
+    let plus, minus
+    if (sector.outside) {
+      plus = sector
+      minus = sector.outside
+    } else {
+      plus = null
+      minus = sector
+    }
+    for (const line of sector.lines) {
+      if (line.plus !== null || line.minus !== null) continue
+      line.updateSectors(plus, minus, scale)
+    }
   }
 }

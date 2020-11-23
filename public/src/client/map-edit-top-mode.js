@@ -47,7 +47,6 @@ function mapRender(b, editor) {
         let y3 = mapZ(triangle.c.y, zoom, camera)
         if (sector == editor.selectedSector) drawTriangle(b, x1, y1, x2, y2, x3, y3, 0.5, 0.5, 0.5, alpha)
         else {
-          // 0.25
           let color = 0.2 + debug_random() * 0.25
           drawTriangle(b, x1, y1, x2, y2, x3, y3, color, color, color, alpha)
         }
@@ -90,8 +89,10 @@ function drawTextSpecial(b, x, y, text, scale, red, green, blue) {
   drawText(b, x, y, text, scale, red, green, blue, 1.0)
 }
 
-export function renderEditorTopMode(state) {
+export function renderMapEditTopMode(state) {
   const editor = state.editor
+  if (!editor.doPaint) return
+
   const client = state.client
   const gl = client.gl
   const rendering = client.rendering
@@ -104,11 +105,11 @@ export function renderEditorTopMode(state) {
   gl.disable(gl.CULL_FACE)
   gl.disable(gl.DEPTH_TEST)
 
-  rendering.setProgram(0)
-  rendering.setView(0, 0, client.width, client.height)
-
   identity(view)
   multiply(projection, client.orthographic, view)
+
+  rendering.setProgram(0)
+  rendering.setView(0, 0, client.width, client.height)
   rendering.updateUniformMatrix('u_mvp', projection)
 
   client.bufferColor.zero()
@@ -130,9 +131,6 @@ export function renderEditorTopMode(state) {
 
   rendering.setProgram(1)
   rendering.setView(0, 0, client.width, client.height)
-
-  identity(view)
-  multiply(projection, client.orthographic, view)
   rendering.updateUniformMatrix('u_mvp', projection)
 
   client.bufferGUI.zero()
