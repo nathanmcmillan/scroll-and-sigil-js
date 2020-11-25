@@ -62,10 +62,37 @@ attack {
     }]
   }
 }
+damage (
+  (if (or (eq (status self) STATUS_DEAD) (eq (status self) STATUS_DEAD))
+    return
+    pass)
+  (health-minus self damage)
+  (if (le health 0)
+    (
+      (play-sound 'monster-death')
+      (set-status self dead)
+      (update-sprite self)
+      (red-blood-explode self)
+    )
+    (
+      (play-sound 'monster-pain')
+      (red-blood-towards self source)
+    )
+  )
+)
+init (
+  (let foobar table)
+  (set foobar 'extra-var' 0.0)
+  (func name (a, b) (
+    (print 'monster init' a b)
+  ))
+  (name 1 2)
+  (export foobar)
+)
 states {
-  look {
-    [if-not-null, [find-target], [goto-state, chase], [do-nothing]]
-  }
+  look (
+    (if (ne (find-target) null) (goto-state chase) (pass))
+  )
   wander {
   }
   chase {

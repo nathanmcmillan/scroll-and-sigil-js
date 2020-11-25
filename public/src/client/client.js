@@ -206,7 +206,7 @@ export class Client {
 
     this.rendering = new Renderer(gl)
     this.bufferGUI = new Buffer(2, 4, 2, 0, 4 * 800, 36 * 800)
-    this.bufferColor = new Buffer(2, 4, 0, 0, 4 * 25600, 36 * 25600)
+    this.bufferColor = new Buffer(2, 4, 0, 0, 4 * 1600, 36 * 1600)
     this.bufferSky = new Buffer(3, 0, 2, 0, 24, 36)
 
     drawSkyBox(this.bufferSky)

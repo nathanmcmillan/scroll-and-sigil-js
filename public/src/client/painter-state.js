@@ -1,7 +1,7 @@
 import {TwoWayMap} from '/src/util/collections.js'
-import {Painter} from '/src/editor/painter.js'
+import {exportSheetPixels, Painter} from '/src/editor/painter.js'
 import {textureByName} from '/src/assets/assets.js'
-import {drawText, drawRectangle, drawHollowRectangle, FONT_HEIGHT} from '/src/render/render.js'
+import {drawText, drawRectangle, drawHollowRectangle, drawImage, FONT_HEIGHT} from '/src/render/render.js'
 import {identity, multiply} from '/src/math/matrix.js'
 import * as In from '/src/editor/editor-input.js'
 
@@ -18,9 +18,17 @@ function drawTextSpecial(b, x, y, text, scale, red, green, blue) {
 //   return texture_init("", id, width, height);
 // }
 
-// function pixelsToTexture(width,height,format,pixels) {
-
-// }
+function pixelsToTexture(gl, width, height, pixels) {
+  let texture = gl.createTexture()
+  gl.bindTexture(gl.TEXTURE_2D, texture)
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, width, height, 0, gl.RGB, gl.UNSIGNED_BYTE, pixels, 0)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+  gl.bindTexture(gl.TEXTURE_2D, null)
+  return texture
+}
 
 export class PainterState {
   constructor(client) {
@@ -57,7 +65,13 @@ export class PainterState {
     this.view = new Float32Array(16)
     this.projection = new Float32Array(16)
 
-    this.painter = new Painter(client.width, client.height)
+    let painter = new Painter(client.width, client.height)
+    this.painter = painter
+
+    let rows = painter.sheetRows
+    let columns = painter.sheetColumns
+    let pixels = exportSheetPixels(painter, 0)
+    this.texture = pixelsToTexture(client.gl, columns, rows, pixels)
   }
 
   resize(width, height) {
@@ -78,7 +92,15 @@ export class PainterState {
   }
 
   update() {
-    this.painter.update()
+    let painter = this.painter
+    painter.update()
+    if (painter.updates) {
+      this.client.gl.deleteTexture(this.texture)
+      let rows = painter.sheetRows
+      let columns = painter.sheetColumns
+      let pixels = exportSheetPixels(painter, 0)
+      this.texture = pixelsToTexture(this.client.gl, columns, rows, pixels)
+    }
   }
 
   render() {
@@ -100,80 +122,89 @@ export class PainterState {
     identity(view)
     multiply(projection, client.orthographic, view)
 
-    rendering.setProgram(0)
-    rendering.setView(0, 0, client.width, client.height)
-    rendering.updateUniformMatrix('u_mvp', projection)
-
     let buffer = client.bufferColor
     buffer.zero()
 
     let scale = 2.0
     let fontHeight = scale * FONT_HEIGHT
 
+    let viewMultiplier = painter.viewMultiplier
+
+    let posOffsetC = painter.positionOffsetC
+    let posOffsetR = painter.positionOffsetR
+
     let posC = painter.positionC
     let posR = painter.positionR
 
     let paletteRows = painter.paletteRows
     let paletteColumns = painter.paletteColumns
-    let palette = painter.palette
+    let palette = painter.paletteFloat
 
     let sheetRows = painter.sheetRows
     let sheetColumns = painter.sheetColumns
     let sheetIndex = painter.sheetIndex
-    let sheet = painter.sheets[sheetIndex]
 
     let rows = painter.rows
     let columns = painter.columns
-    let matrix = painter.matrix
 
-    // matrix
-    let top = 300
-    let left = 50
-    let magnify = 32
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < columns; c++) {
-        let x = left + c * magnify
-        let y = top - r * magnify
-        let index = c + r * columns
-        let paletteIndex = matrix[index] * 3
-        let red = palette[paletteIndex]
-        let green = palette[paletteIndex + 1]
-        let blue = palette[paletteIndex + 2]
-        drawRectangle(buffer, x, y, magnify, magnify, red, green, blue, 1.0)
-      }
-    }
+    let magnify, top, left, width, height
 
-    let x = left + posC * magnify
-    let y = top - posR * magnify
-    drawHollowRectangle(buffer, x, y, magnify, magnify, 2.0, 1.0, 1.0, 1.0, 1.0)
+    rendering.setProgram(1)
+    rendering.setView(0, 0, client.width, client.height)
+    rendering.updateUniformMatrix('u_mvp', projection)
 
-    let height = rows * magnify
-    drawHollowRectangle(buffer, left, top - height + magnify, columns * magnify, height, 2.0, 1.0, 1.0, 1.0, 1.0)
+    client.bufferGUI.zero()
 
     // sheet
-    top = client.height - 100
-    left = 340
     magnify = 2
-    for (let r = 0; r < sheetRows; r++) {
-      for (let c = 0; c < sheetColumns; c++) {
-        let x = left + c * magnify
-        let y = top - r * magnify
-        let index = c + r * sheetColumns
-        let paletteIndex = sheet[index] * 3
-        let red = palette[paletteIndex]
-        let green = palette[paletteIndex + 1]
-        let blue = palette[paletteIndex + 2]
-        drawRectangle(buffer, x, y, magnify, magnify, red, green, blue, 1.0)
-      }
-    }
-
     height = sheetRows * magnify
-    drawHollowRectangle(buffer, left, top - height + magnify, sheetColumns * magnify, height, 2.0, 1.0, 1.0, 1.0, 1.0)
+    top = client.height - 100 - height
+    left = 100
+
+    drawImage(client.bufferGUI, left, top, sheetColumns * magnify, height, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0)
+
+    // view
+    magnify = 32
+    height = rows * magnify
+    width = columns * magnify
+    top = client.height - 100 - height
+    left = client.width - 100 - width
+
+    let sl = posOffsetC
+    let st = posOffsetR
+    let sr = posOffsetC + viewMultiplier / sheetColumns
+    let sb = posOffsetR + viewMultiplier / sheetRows
+
+    console.log(posOffsetC, posOffsetR, '|', sl, st)
+    console.log(sheetColumns, sheetRows, '|', sr, sb)
+
+    drawImage(client.bufferGUI, left, top, width, height, 1.0, 1.0, 1.0, 1.0, sl, st, sr, sb)
+
+    rendering.bindTexture(gl.TEXTURE0, this.texture)
+    rendering.updateAndDraw(client.bufferGUI)
+
+    rendering.setProgram(0)
+    rendering.setView(0, 0, client.width, client.height)
+    rendering.updateUniformMatrix('u_mvp', projection)
+
+    let x = left + posC * magnify
+    let y = top + height - (posR + 1) * magnify
+    drawHollowRectangle(buffer, x, y, magnify, magnify, 2.0, 1.0, 1.0, 1.0, 1.0)
+
+    drawHollowRectangle(buffer, left, top, width, height, 2.0, 1.0, 1.0, 1.0, 1.0)
+
+    // sheet
+    magnify = 2
+    height = sheetRows * magnify
+    top = client.height - 100 - height
+    left = 100
+
+    drawHollowRectangle(buffer, left, top, sheetColumns * magnify, height, 2.0, 1.0, 1.0, 1.0, 1.0)
 
     // pallete
-    top = 70
-    left = 400
     magnify = 32
+    top = 70
+    left = 600
     for (let r = 0; r < paletteRows; r++) {
       for (let c = 0; c < paletteColumns; c++) {
         let x = left + c * magnify
@@ -198,6 +229,7 @@ export class PainterState {
 
     rendering.updateAndDraw(buffer)
 
+    // fonts
     rendering.setProgram(1)
     rendering.setView(0, 0, client.width, client.height)
     rendering.updateUniformMatrix('u_mvp', projection)
