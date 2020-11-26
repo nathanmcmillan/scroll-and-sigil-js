@@ -1,8 +1,9 @@
 import {TwoWayMap} from '/src/util/collections.js'
-import {exportSheetPixels, Painter} from '/src/editor/painter.js'
+import {exportSheetPixels, exportSheetToCanvas, Painter} from '/src/editor/painter.js'
 import {textureByName} from '/src/assets/assets.js'
 import {drawText, drawRectangle, drawHollowRectangle, drawImage, FONT_HEIGHT} from '/src/render/render.js'
 import {identity, multiply} from '/src/math/matrix.js'
+import {darkbluef, whitef} from '/src/editor/palette.js'
 import * as In from '/src/editor/editor-input.js'
 
 function drawTextSpecial(b, x, y, text, scale, red, green, blue) {
@@ -10,15 +11,7 @@ function drawTextSpecial(b, x, y, text, scale, red, green, blue) {
   drawText(b, x, y, text, scale, red, green, blue, 1.0)
 }
 
-// texture *create_texture_pixels(int width, int height, GLint clamp, GLint interpolate, GLint internal_format, GLint format, GLint type, const void *pixels) {
-//   GLuint id;
-//   gen(&id, clamp, interpolate);
-//   glTexImage2D(GL_TEXTURE_2D, 0, internal_format, width, height, 0, format, type, pixels);
-//   glBindTexture(GL_TEXTURE_2D, 0);
-//   return texture_init("", id, width, height);
-// }
-
-function pixelsToTexture(gl, width, height, pixels) {
+function newPixelsToTexture(gl, width, height, pixels) {
   let texture = gl.createTexture()
   gl.bindTexture(gl.TEXTURE_2D, texture)
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, width, height, 0, gl.RGB, gl.UNSIGNED_BYTE, pixels, 0)
@@ -26,6 +19,13 @@ function pixelsToTexture(gl, width, height, pixels) {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+  gl.bindTexture(gl.TEXTURE_2D, null)
+  return texture
+}
+
+function updatePixelsToTexture(gl, texture, width, height, pixels) {
+  gl.bindTexture(gl.TEXTURE_2D, texture)
+  gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, width, height, gl.RGB, gl.UNSIGNED_BYTE, pixels, 0)
   gl.bindTexture(gl.TEXTURE_2D, null)
   return texture
 }
@@ -71,7 +71,7 @@ export class PainterState {
     let rows = painter.sheetRows
     let columns = painter.sheetColumns
     let pixels = exportSheetPixels(painter, 0)
-    this.texture = pixelsToTexture(client.gl, columns, rows, pixels)
+    this.texture = newPixelsToTexture(client.gl, columns, rows, pixels)
   }
 
   resize(width, height) {
@@ -84,6 +84,21 @@ export class PainterState {
     }
     if (down && code === 'Digit0') {
       console.log(this.painter.export())
+    } else if (down && code === 'Digit9') {
+      let painter = this.painter
+      let canvas = document.createElement('canvas')
+      let context = canvas.getContext('2d')
+      canvas.width = painter.sheetColumns
+      canvas.height = painter.sheetRows
+      let data = context.createImageData(canvas.width, canvas.height)
+      exportSheetToCanvas(painter, painter.sheetIndex, data.data)
+      context.putImageData(data, 0, 0)
+      let blob = canvas.toDataURL('image/png')
+      console.log(blob)
+      let download = document.createElement('a')
+      download.href = blob
+      download.download = 'sheet' + painter.sheetIndex + '.png'
+      download.click()
     }
   }
 
@@ -95,11 +110,10 @@ export class PainterState {
     let painter = this.painter
     painter.update()
     if (painter.updates) {
-      this.client.gl.deleteTexture(this.texture)
       let rows = painter.sheetRows
       let columns = painter.sheetColumns
       let pixels = exportSheetPixels(painter, 0)
-      this.texture = pixelsToTexture(this.client.gl, columns, rows, pixels)
+      updatePixelsToTexture(this.client.gl, this.texture, columns, rows, pixels)
     }
   }
 
@@ -112,6 +126,12 @@ export class PainterState {
     const rendering = client.rendering
     const view = this.view
     const projection = this.projection
+
+    let darkblue0 = darkbluef(0)
+    let darkblue1 = darkbluef(1)
+    let darkblue2 = darkbluef(2)
+
+    gl.clearColor(darkblue0, darkblue1, darkblue2, 1.0)
 
     gl.clear(gl.COLOR_BUFFER_BIT)
     gl.clear(gl.DEPTH_BUFFER_BIT)
@@ -149,6 +169,18 @@ export class PainterState {
 
     let magnify, top, left, width, height
 
+    let thickness = 2.0
+    let doubleThick = 2.0 * thickness
+    let fourThick = 2.0 * doubleThick
+
+    let black0 = 0.0
+    let black1 = 0.0
+    let black2 = 0.0
+
+    let white0 = whitef(0)
+    let white1 = whitef(1)
+    let white2 = whitef(2)
+
     rendering.setProgram(1)
     rendering.setView(0, 0, client.width, client.height)
     rendering.updateUniformMatrix('u_mvp', projection)
@@ -156,7 +188,7 @@ export class PainterState {
     client.bufferGUI.zero()
 
     // sheet
-    magnify = 2
+    magnify = 4
     height = sheetRows * magnify
     top = client.height - 100 - height
     left = 100
@@ -170,13 +202,10 @@ export class PainterState {
     top = client.height - 100 - height
     left = client.width - 100 - width
 
-    let sl = posOffsetC
-    let st = posOffsetR
-    let sr = posOffsetC + viewMultiplier / sheetColumns
-    let sb = posOffsetR + viewMultiplier / sheetRows
-
-    console.log(posOffsetC, posOffsetR, '|', sl, st)
-    console.log(sheetColumns, sheetRows, '|', sr, sb)
+    let sl = posOffsetC / sheetColumns
+    let st = posOffsetR / sheetRows
+    let sr = (posOffsetC + viewMultiplier) / sheetColumns
+    let sb = (posOffsetR + viewMultiplier) / sheetRows
 
     drawImage(client.bufferGUI, left, top, width, height, 1.0, 1.0, 1.0, 1.0, sl, st, sr, sb)
 
@@ -189,17 +218,30 @@ export class PainterState {
 
     let x = left + posC * magnify
     let y = top + height - (posR + 1) * magnify
-    drawHollowRectangle(buffer, x, y, magnify, magnify, 2.0, 1.0, 1.0, 1.0, 1.0)
 
-    drawHollowRectangle(buffer, left, top, width, height, 2.0, 1.0, 1.0, 1.0, 1.0)
+    // box around view
+    drawHollowRectangle(buffer, left - thickness, top - thickness, width + doubleThick, height + doubleThick, thickness, black0, black1, black2, 1.0)
+    drawHollowRectangle(buffer, left - doubleThick, top - doubleThick, width + fourThick, height + fourThick, thickness, white0, white1, white2, 1.0)
+
+    // box around view focus
+    drawHollowRectangle(buffer, x - thickness, y - thickness, magnify + doubleThick, magnify + doubleThick, thickness, black0, black1, black2, 1.0)
+    drawHollowRectangle(buffer, x - doubleThick, y - doubleThick, magnify + fourThick, magnify + fourThick, thickness, white0, white1, white2, 1.0)
 
     // sheet
-    magnify = 2
+    magnify = 4
     height = sheetRows * magnify
     top = client.height - 100 - height
     left = 100
 
-    drawHollowRectangle(buffer, left, top, sheetColumns * magnify, height, 2.0, 1.0, 1.0, 1.0, 1.0)
+    x = left + posOffsetC * magnify
+    y = top + height - posOffsetR * magnify
+
+    // box around sheet focus
+    let box = viewMultiplier * magnify
+    drawHollowRectangle(buffer, x - thickness, y - box - thickness, box + doubleThick, box + doubleThick, thickness, white0, white1, white2, 1.0)
+
+    // box around sheet
+    drawHollowRectangle(buffer, left - thickness, top - thickness, sheetColumns * magnify + doubleThick, height + doubleThick, thickness, white0, white1, white2, 1.0)
 
     // pallete
     magnify = 32
@@ -219,10 +261,15 @@ export class PainterState {
 
     x = left + painter.paletteC * magnify
     y = top - painter.paletteR * magnify
-    drawHollowRectangle(buffer, x, y, magnify, magnify, 2.0, 1.0, 1.0, 1.0, 1.0)
+
+    // box around palette focus
+    drawHollowRectangle(buffer, x, y, magnify, magnify, thickness, white0, white1, white2, 1.0)
+    // TODO: Black outline here
 
     height = paletteRows * magnify
-    drawHollowRectangle(buffer, left, top - height + magnify, paletteColumns * magnify, height, 2.0, 1.0, 1.0, 1.0, 1.0)
+
+    // box around palette
+    drawHollowRectangle(buffer, left, top - height + magnify, paletteColumns * magnify, height, thickness, white0, white1, white2, 1.0)
 
     // top bar
     drawRectangle(buffer, 0, client.height - fontHeight, client.width, fontHeight, 1.0, 241.0 / 255.0, 232.0 / 255.0, 1.0)
@@ -239,12 +286,12 @@ export class PainterState {
     let displayC = posC < 10 ? '0' + posC : '' + posC
     let displayR = posR < 10 ? '0' + posR : '' + posR
     let text = 'x = ' + displayC + ' y =' + displayR
-    drawTextSpecial(client.bufferGUI, 10, client.height - fontHeight, text, 2.0, 1.0, 1.0, 1.0)
+    drawTextSpecial(client.bufferGUI, 10, client.height - fontHeight, text, 2.0, white0, white1, white2)
 
     let displaySheet = '#' + sheetIndex < 10 ? '00' + sheetIndex : sheetIndex < 100 ? '0' + sheetIndex : '' + sheetIndex
-    drawTextSpecial(client.bufferGUI, 10, client.height - fontHeight * 3, displaySheet, 2.0, 1.0, 1.0, 1.0)
+    drawTextSpecial(client.bufferGUI, 10, client.height - fontHeight * 3, displaySheet, 2.0, white0, white1, white2)
 
-    drawTextSpecial(client.bufferGUI, 10, 10, 'painter', 2.0, 1.0, 1.0, 1.0)
+    drawTextSpecial(client.bufferGUI, 10, 10, 'painter', 2.0, white0, white1, white2)
 
     rendering.bindTexture(gl.TEXTURE0, textureByName('font').texture)
     rendering.updateAndDraw(client.bufferGUI)

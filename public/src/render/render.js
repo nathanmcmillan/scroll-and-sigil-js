@@ -160,10 +160,10 @@ export function drawRectangle(b, x, y, width, height, red, green, blue, alpha) {
 }
 
 export function drawHollowRectangle(b, x, y, width, height, thickness, red, green, blue, alpha) {
-  drawLine(b, x, y, x + width, y, thickness, red, green, blue, alpha)
-  drawLine(b, x + width, y, x + width, y + height, thickness, red, green, blue, alpha)
-  drawLine(b, x, y + height, x + width, y + height, thickness, red, green, blue, alpha)
-  drawLine(b, x, y, x, y + height, thickness, red, green, blue, alpha)
+  drawRectangle(b, x, y, width, thickness, red, green, blue, alpha)
+  drawRectangle(b, x, y, thickness, height, red, green, blue, alpha)
+  drawRectangle(b, x + width - thickness, y, thickness, height, red, green, blue, alpha)
+  drawRectangle(b, x, y + height - thickness, width, thickness, red, green, blue, alpha)
 }
 
 export function drawImage(b, x, y, width, height, red, green, blue, alpha, left, top, right, bottom) {

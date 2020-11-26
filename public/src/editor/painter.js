@@ -22,8 +22,8 @@ export class Painter {
     this.palette = new Uint8Array(this.paletteRows * this.paletteColumns * 3)
     this.paletteFloat = new Float32Array(this.paletteRows * this.paletteColumns * 3)
 
-    this.sheetRows = 256
-    this.sheetColumns = 256
+    this.sheetRows = 128
+    this.sheetColumns = 128
 
     this.sheet = new Uint8Array(this.sheetRows * this.sheetColumns)
     let i = this.sheet.length
@@ -73,35 +73,61 @@ export class Painter {
     if (input.buttonA()) {
       input.in[In.BUTTON_A] = false
 
-      let index = this.positionC + this.positionR * this.sheetColumns
+      let index = this.positionC + this.positionOffsetC + (this.positionR + this.positionOffsetR) * this.sheetColumns
       let paletteIndex = this.paletteC + this.paletteR * this.paletteColumns
 
       this.sheet[index] = paletteIndex
       this.updates = true
     }
 
-    if (input.moveForward()) {
-      input.in[In.MOVE_FORWARD] = false
-      this.positionR--
-      if (this.positionR < 0) this.positionR = 0
-    }
+    if (input.leftTrigger()) {
+      if (input.moveForward()) {
+        input.in[In.MOVE_FORWARD] = false
+        this.positionOffsetR -= this.viewMultiplier
+        if (this.positionOffsetR < 0) this.positionOffsetR = 0
+      }
 
-    if (input.moveBackward()) {
-      input.in[In.MOVE_BACKWARD] = false
-      this.positionR++
-      if (this.positionR >= this.rows) this.positionR = this.rows - 1
-    }
+      if (input.moveBackward()) {
+        input.in[In.MOVE_BACKWARD] = false
+        this.positionOffsetR += this.viewMultiplier
+        if (this.positionOffsetR + this.viewMultiplier >= this.sheetRows) this.positionOffsetR = this.sheetRows - this.viewMultiplier
+      }
 
-    if (input.moveLeft()) {
-      input.in[In.MOVE_LEFT] = false
-      this.positionC--
-      if (this.positionC < 0) this.positionC = 0
-    }
+      if (input.moveLeft()) {
+        input.in[In.MOVE_LEFT] = false
+        this.positionOffsetC -= this.viewMultiplier
+        if (this.positionOffsetC < 0) this.positionOffsetC = 0
+      }
 
-    if (input.moveRight()) {
-      input.in[In.MOVE_RIGHT] = false
-      this.positionC++
-      if (this.positionC >= this.columns) this.positionC = this.columns - 1
+      if (input.moveRight()) {
+        input.in[In.MOVE_RIGHT] = false
+        this.positionOffsetC += this.viewMultiplier
+        if (this.positionOffsetC + this.viewMultiplier >= this.sheetColumns) this.positionOffsetC = this.sheetColumns - this.viewMultiplier
+      }
+    } else {
+      if (input.moveForward()) {
+        input.in[In.MOVE_FORWARD] = false
+        this.positionR--
+        if (this.positionR < 0) this.positionR = 0
+      }
+
+      if (input.moveBackward()) {
+        input.in[In.MOVE_BACKWARD] = false
+        this.positionR++
+        if (this.positionR >= this.rows) this.positionR = this.rows - 1
+      }
+
+      if (input.moveLeft()) {
+        input.in[In.MOVE_LEFT] = false
+        this.positionC--
+        if (this.positionC < 0) this.positionC = 0
+      }
+
+      if (input.moveRight()) {
+        input.in[In.MOVE_RIGHT] = false
+        this.positionC++
+        if (this.positionC >= this.columns) this.positionC = this.columns - 1
+      }
     }
 
     if (input.lookUp()) {
@@ -130,8 +156,8 @@ export class Painter {
   }
 
   export() {
-    let rows = this.rows
-    let columns = this.columns
+    let rows = this.sheetRows
+    let columns = this.sheetColumns
     let content = columns + ' ' + rows
     let sheet = this.sheet
     for (let r = 0; r < rows; r++) {
@@ -163,6 +189,25 @@ export function exportSheetPixels(painter, index) {
     }
   }
   return pixels
+}
+
+export function exportSheetToCanvas(painter, index, out) {
+  let sheet = painter.sheets[index]
+  let rows = painter.sheetRows
+  let columns = painter.sheetColumns
+  let palette = painter.palette
+  for (let r = 0; r < rows; r++) {
+    let row = r * columns
+    for (let c = 0; c < columns; c++) {
+      let i = c + row
+      let p = sheet[i] * 3
+      i *= 4
+      out[i] = palette[p]
+      out[i + 1] = palette[p + 1]
+      out[i + 2] = palette[p + 2]
+      out[i + 3] = 255
+    }
+  }
 }
 
 function setPalette(palette) {
