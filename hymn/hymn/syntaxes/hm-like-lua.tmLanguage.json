@@ -114,7 +114,7 @@
       }
     },
     {
-      "match": "(function|class|enum|interface)",
+      "match": "^(function|class|enum|interface) +(\\w+(?:\\.\\w+)?)",
       "captures": {
         "1": {
           "name": "keyword.struct.hymn"

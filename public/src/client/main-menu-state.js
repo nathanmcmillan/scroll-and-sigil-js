@@ -8,6 +8,10 @@ export class MainMenuState {
 
   keyEvent() {}
 
+  mouseEvent() {}
+
+  mouseMove() {}
+
   async initialize() {}
 
   update() {}

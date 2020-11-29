@@ -3,7 +3,7 @@
 -- we just need to add function pointers to the the global hymn lookup table
 -- javascript objects are just tables so it's possible to do self['var-name']
 
-function zombie_look(self)
+function monster_look(self)
   if self.reaction > 0
     self.reaction -= 1
   else
@@ -29,7 +29,7 @@ function zombie_look(self)
   thingUpdateSprite(self)
 end
 
-function zombie_on_damage(self, source, health)
+function monster_on_damage(self, source, health)
   if self.status is STATUS_DEAD or self.status is STATUS_FINAL
     return
   end

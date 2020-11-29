@@ -62,6 +62,10 @@ export class GameState {
     }
   }
 
+  mouseEvent() {}
+
+  mouseMove() {}
+
   async initialize(file) {
     await this.load(file)
   }

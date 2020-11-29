@@ -1,3 +1,4 @@
+import {fetchText} from '/src/client/net.js'
 import * as In from '/src/editor/editor-input.js'
 
 export const PENCIL_TOOL = 0
@@ -30,15 +31,13 @@ export class Painter {
     while (i--) this.sheet[i] = 0
     this.sheets = [this.sheet]
 
-    this.rows = 8
-    this.columns = 8
-
     this.paletteC = 0
     this.paletteR = 0
 
     this.sheetIndex = 0
 
-    this.viewMultiplier = 8
+    this.brushSize = 1
+    this.canvasZoom = 8
 
     this.positionOffsetC = 0
     this.positionOffsetR = 0
@@ -57,7 +56,25 @@ export class Painter {
     this.height = height
   }
 
-  async load() {}
+  async load(file) {
+    let image = (await fetchText(file)).split('\n')
+    let index = 0
+
+    let dimensions = image[index].split(' ')
+    let width = parseInt(dimensions[0])
+    let height = parseInt(dimensions[1])
+    index++
+
+    let sheet = this.sheet
+
+    for (let h = 0; h < height; h++) {
+      let row = image[index].split(' ')
+      for (let c = 0; c < width; c++) {
+        sheet[c + h * width] = parseInt(row[c])
+      }
+      index++
+    }
+  }
 
   update() {
     this.doPaint = false
@@ -73,36 +90,44 @@ export class Painter {
     if (input.buttonA()) {
       input.in[In.BUTTON_A] = false
 
-      let index = this.positionC + this.positionOffsetC + (this.positionR + this.positionOffsetR) * this.sheetColumns
+      let columns = this.sheetColumns
+      let index = this.positionC + this.positionOffsetC + (this.positionR + this.positionOffsetR) * columns
       let paletteIndex = this.paletteC + this.paletteR * this.paletteColumns
 
-      this.sheet[index] = paletteIndex
+      for (let h = 0; h < this.brushSize; h++) {
+        for (let c = 0; c < this.brushSize; c++) {
+          this.sheet[c + h * columns + index] = paletteIndex
+        }
+      }
+
       this.updates = true
     }
 
     if (input.leftTrigger()) {
+      const move = 8
+
       if (input.moveForward()) {
         input.in[In.MOVE_FORWARD] = false
-        this.positionOffsetR -= this.viewMultiplier
+        this.positionOffsetR -= move
         if (this.positionOffsetR < 0) this.positionOffsetR = 0
       }
 
       if (input.moveBackward()) {
         input.in[In.MOVE_BACKWARD] = false
-        this.positionOffsetR += this.viewMultiplier
-        if (this.positionOffsetR + this.viewMultiplier >= this.sheetRows) this.positionOffsetR = this.sheetRows - this.viewMultiplier
+        this.positionOffsetR += move
+        if (this.positionOffsetR + this.canvasZoom >= this.sheetRows) this.positionOffsetR = this.sheetRows - this.canvasZoom
       }
 
       if (input.moveLeft()) {
         input.in[In.MOVE_LEFT] = false
-        this.positionOffsetC -= this.viewMultiplier
+        this.positionOffsetC -= move
         if (this.positionOffsetC < 0) this.positionOffsetC = 0
       }
 
       if (input.moveRight()) {
         input.in[In.MOVE_RIGHT] = false
-        this.positionOffsetC += this.viewMultiplier
-        if (this.positionOffsetC + this.viewMultiplier >= this.sheetColumns) this.positionOffsetC = this.sheetColumns - this.viewMultiplier
+        this.positionOffsetC += move
+        if (this.positionOffsetC + this.canvasZoom >= this.sheetColumns) this.positionOffsetC = this.sheetColumns - this.canvasZoom
       }
     } else {
       if (input.moveForward()) {
@@ -114,7 +139,7 @@ export class Painter {
       if (input.moveBackward()) {
         input.in[In.MOVE_BACKWARD] = false
         this.positionR++
-        if (this.positionR >= this.rows) this.positionR = this.rows - 1
+        if (this.positionR + this.brushSize >= this.canvasZoom) this.positionR = this.canvasZoom - this.brushSize
       }
 
       if (input.moveLeft()) {
@@ -126,32 +151,64 @@ export class Painter {
       if (input.moveRight()) {
         input.in[In.MOVE_RIGHT] = false
         this.positionC++
-        if (this.positionC >= this.columns) this.positionC = this.columns - 1
+        if (this.positionC + this.brushSize >= this.canvasZoom) this.positionC = this.canvasZoom - this.brushSize
       }
     }
 
-    if (input.lookUp()) {
-      input.in[In.LOOK_UP] = false
-      this.paletteR--
-      if (this.paletteR < 0) this.paletteR = 0
-    }
+    if (input.leftTrigger()) {
+      if (input.lookLeft()) {
+        input.in[In.LOOK_LEFT] = false
+        this.brushSize--
+        if (this.brushSize < 1) this.brushSize = 1
+      }
 
-    if (input.lookDown()) {
-      input.in[In.LOOK_DOWN] = false
-      this.paletteR++
-      if (this.paletteR >= this.paletteRows) this.paletteR = this.paletteRows - 1
-    }
+      if (input.lookRight()) {
+        input.in[In.LOOK_RIGHT] = false
+        this.brushSize++
+        if (this.brushSize > 4) this.brushSize = 4
+        if (this.positionR + this.brushSize >= this.canvasZoom) this.positionR = this.canvasZoom - this.brushSize
+        if (this.positionC + this.brushSize > this.canvasZoom) this.positionC = this.canvasZoom - this.brushSize
+      }
+    } else if (input.rightTrigger()) {
+      if (input.lookLeft()) {
+        input.in[In.LOOK_LEFT] = false
+        this.canvasZoom /= 2
+        if (this.canvasZoom < 8) this.canvasZoom = 8
+        if (this.positionR + this.brushSize >= this.canvasZoom) this.positionR = this.canvasZoom - this.brushSize
+        if (this.positionC + this.brushSize > this.canvasZoom) this.positionC = this.canvasZoom - this.brushSize
+      }
 
-    if (input.lookLeft()) {
-      input.in[In.LOOK_LEFT] = false
-      this.paletteC--
-      if (this.paletteC < 0) this.paletteC = 0
-    }
+      if (input.lookRight()) {
+        input.in[In.LOOK_RIGHT] = false
+        this.canvasZoom *= 2
+        if (this.canvasZoom > 64) this.canvasZoom = 64
+        if (this.positionOffsetR + this.canvasZoom >= this.sheetRows) this.positionOffsetR = this.sheetRows - this.canvasZoom
+        if (this.positionOffsetC + this.canvasZoom >= this.sheetColumns) this.positionOffsetC = this.sheetColumns - this.canvasZoom
+      }
+    } else {
+      if (input.lookUp()) {
+        input.in[In.LOOK_UP] = false
+        this.paletteR--
+        if (this.paletteR < 0) this.paletteR = 0
+      }
 
-    if (input.lookRight()) {
-      input.in[In.LOOK_RIGHT] = false
-      this.paletteC++
-      if (this.paletteC >= this.paletteColumns) this.paletteC = this.paletteColumns - 1
+      if (input.lookDown()) {
+        input.in[In.LOOK_DOWN] = false
+        this.paletteR++
+        if (this.paletteR >= this.paletteRows) this.paletteR = this.paletteRows - 1
+      }
+
+      if (input.lookLeft()) {
+        input.in[In.LOOK_LEFT] = false
+        this.paletteC--
+        if (this.paletteC < 0) this.paletteC = 0
+      }
+
+      if (input.lookRight()) {
+        input.in[In.LOOK_RIGHT] = false
+        this.paletteC++
+        if (this.paletteC >= this.paletteColumns) this.paletteC = this.paletteColumns - 1
+      }
     }
   }
 
@@ -202,10 +259,17 @@ export function exportSheetToCanvas(painter, index, out) {
       let i = c + row
       let p = sheet[i] * 3
       i *= 4
-      out[i] = palette[p]
-      out[i + 1] = palette[p + 1]
-      out[i + 2] = palette[p + 2]
-      out[i + 3] = 255
+      if (p === 0) {
+        out[i] = 0
+        out[i + 1] = 0
+        out[i + 2] = 0
+        out[i + 3] = 0
+      } else {
+        out[i] = palette[p]
+        out[i + 1] = palette[p + 1]
+        out[i + 2] = palette[p + 2]
+        out[i + 3] = 255
+      }
     }
   }
 }

@@ -83,7 +83,13 @@ export class PainterState {
       this.painter.input.set(this.keys.get(code), down)
     }
     if (down && code === 'Digit0') {
-      console.log(this.painter.export())
+      let painter = this.painter
+      let blob = painter.export()
+      console.log(blob)
+      let download = document.createElement('a')
+      download.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(blob)
+      download.download = 'sheet' + painter.sheetIndex + '.image'
+      download.click()
     } else if (down && code === 'Digit9') {
       let painter = this.painter
       let canvas = document.createElement('canvas')
@@ -102,19 +108,29 @@ export class PainterState {
     }
   }
 
+  mouseEvent(left, down) {
+    if (left) this.painter.input.set(this.keys.get('Enter'), down)
+  }
+
+  mouseMove() {}
+
   async initialize(file) {
     await this.painter.load(file)
+    this.updateTexture()
+  }
+
+  updateTexture() {
+    let painter = this.painter
+    let rows = painter.sheetRows
+    let columns = painter.sheetColumns
+    let pixels = exportSheetPixels(painter, 0)
+    updatePixelsToTexture(this.client.gl, this.texture, columns, rows, pixels)
   }
 
   update() {
     let painter = this.painter
     painter.update()
-    if (painter.updates) {
-      let rows = painter.sheetRows
-      let columns = painter.sheetColumns
-      let pixels = exportSheetPixels(painter, 0)
-      updatePixelsToTexture(this.client.gl, this.texture, columns, rows, pixels)
-    }
+    if (painter.updates) this.updateTexture()
   }
 
   render() {
@@ -148,7 +164,8 @@ export class PainterState {
     let scale = 2.0
     let fontHeight = scale * FONT_HEIGHT
 
-    let viewMultiplier = painter.viewMultiplier
+    let brushSize = painter.brushSize
+    let canvasZoom = painter.canvasZoom
 
     let posOffsetC = painter.positionOffsetC
     let posOffsetR = painter.positionOffsetR
@@ -164,10 +181,10 @@ export class PainterState {
     let sheetColumns = painter.sheetColumns
     let sheetIndex = painter.sheetIndex
 
-    let rows = painter.rows
-    let columns = painter.columns
+    let rows = painter.canvasZoom
+    let columns = painter.canvasZoom
 
-    let magnify, top, left, width, height
+    let magnify, top, left, width, height, box, x, y
 
     let thickness = 2.0
     let doubleThick = 2.0 * thickness
@@ -196,7 +213,11 @@ export class PainterState {
     drawImage(client.bufferGUI, left, top, sheetColumns * magnify, height, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0)
 
     // view
-    magnify = 32
+    magnify = 0
+    if (canvasZoom === 8) magnify = 32
+    if (canvasZoom === 16) magnify = 16
+    if (canvasZoom === 32) magnify = 8
+    if (canvasZoom === 64) magnify = 4
     height = rows * magnify
     width = columns * magnify
     top = client.height - 100 - height
@@ -204,8 +225,8 @@ export class PainterState {
 
     let sl = posOffsetC / sheetColumns
     let st = posOffsetR / sheetRows
-    let sr = (posOffsetC + viewMultiplier) / sheetColumns
-    let sb = (posOffsetR + viewMultiplier) / sheetRows
+    let sr = (posOffsetC + canvasZoom) / sheetColumns
+    let sb = (posOffsetR + canvasZoom) / sheetRows
 
     drawImage(client.bufferGUI, left, top, width, height, 1.0, 1.0, 1.0, 1.0, sl, st, sr, sb)
 
@@ -216,16 +237,18 @@ export class PainterState {
     rendering.setView(0, 0, client.width, client.height)
     rendering.updateUniformMatrix('u_mvp', projection)
 
-    let x = left + posC * magnify
-    let y = top + height - (posR + 1) * magnify
-
     // box around view
     drawHollowRectangle(buffer, left - thickness, top - thickness, width + doubleThick, height + doubleThick, thickness, black0, black1, black2, 1.0)
     drawHollowRectangle(buffer, left - doubleThick, top - doubleThick, width + fourThick, height + fourThick, thickness, white0, white1, white2, 1.0)
 
     // box around view focus
-    drawHollowRectangle(buffer, x - thickness, y - thickness, magnify + doubleThick, magnify + doubleThick, thickness, black0, black1, black2, 1.0)
-    drawHollowRectangle(buffer, x - doubleThick, y - doubleThick, magnify + fourThick, magnify + fourThick, thickness, white0, white1, white2, 1.0)
+    x = left + posC * magnify
+    y = top + height - posR * magnify
+
+    box = magnify * brushSize
+
+    drawHollowRectangle(buffer, x - thickness, y - thickness - box, box + doubleThick, box + doubleThick, thickness, black0, black1, black2, 1.0)
+    drawHollowRectangle(buffer, x - doubleThick, y - doubleThick - box, box + fourThick, box + fourThick, thickness, white0, white1, white2, 1.0)
 
     // sheet
     magnify = 4
@@ -237,7 +260,7 @@ export class PainterState {
     y = top + height - posOffsetR * magnify
 
     // box around sheet focus
-    let box = viewMultiplier * magnify
+    box = canvasZoom * magnify
     drawHollowRectangle(buffer, x - thickness, y - box - thickness, box + doubleThick, box + doubleThick, thickness, white0, white1, white2, 1.0)
 
     // box around sheet
@@ -245,13 +268,14 @@ export class PainterState {
 
     // pallete
     magnify = 32
-    top = 70
-    left = 600
+
+    top = client.height - 100 - (8 + 2) * magnify
+    left = client.width - 100 - 8 * magnify
     for (let r = 0; r < paletteRows; r++) {
       for (let c = 0; c < paletteColumns; c++) {
         let x = left + c * magnify
         let y = top - r * magnify
-        let index = (c + r * columns) * 3
+        let index = (c + r * 8) * 3
         let red = palette[index]
         let green = palette[index + 1]
         let blue = palette[index + 2]
@@ -261,15 +285,37 @@ export class PainterState {
 
     x = left + painter.paletteC * magnify
     y = top - painter.paletteR * magnify
-
-    // box around palette focus
-    drawHollowRectangle(buffer, x, y, magnify, magnify, thickness, white0, white1, white2, 1.0)
-    // TODO: Black outline here
-
     height = paletteRows * magnify
 
     // box around palette
-    drawHollowRectangle(buffer, left, top - height + magnify, paletteColumns * magnify, height, thickness, white0, white1, white2, 1.0)
+    drawHollowRectangle(
+      buffer,
+      left - thickness,
+      top - height + magnify - thickness,
+      paletteColumns * magnify + doubleThick,
+      height + doubleThick,
+      thickness,
+      black0,
+      black1,
+      black2,
+      1.0
+    )
+    drawHollowRectangle(
+      buffer,
+      left - doubleThick,
+      top - height + magnify - doubleThick,
+      paletteColumns * magnify + fourThick,
+      height + fourThick,
+      thickness,
+      white0,
+      white1,
+      white2,
+      1.0
+    )
+
+    // box around palette focus
+    drawHollowRectangle(buffer, x - thickness, y - thickness, magnify + doubleThick, magnify + doubleThick, thickness, black0, black1, black2, 1.0)
+    drawHollowRectangle(buffer, x - doubleThick, y - doubleThick, magnify + fourThick, magnify + fourThick, thickness, white0, white1, white2, 1.0)
 
     // top bar
     drawRectangle(buffer, 0, client.height - fontHeight, client.width, fontHeight, 1.0, 241.0 / 255.0, 232.0 / 255.0, 1.0)
@@ -291,7 +337,11 @@ export class PainterState {
     let displaySheet = '#' + sheetIndex < 10 ? '00' + sheetIndex : sheetIndex < 100 ? '0' + sheetIndex : '' + sheetIndex
     drawTextSpecial(client.bufferGUI, 10, client.height - fontHeight * 3, displaySheet, 2.0, white0, white1, white2)
 
-    drawTextSpecial(client.bufferGUI, 10, 10, 'painter', 2.0, white0, white1, white2)
+    let displaySize = 'brush size ' + brushSize
+    drawTextSpecial(client.bufferGUI, 10, 10 + fontHeight * 2, displaySize, 2.0, white0, white1, white2)
+
+    let displayZoom = 'canvas zoom ' + canvasZoom
+    drawTextSpecial(client.bufferGUI, 10, 10, displayZoom, 2.0, white0, white1, white2)
 
     rendering.bindTexture(gl.TEXTURE0, textureByName('font').texture)
     rendering.updateAndDraw(client.bufferGUI)

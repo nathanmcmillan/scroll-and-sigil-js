@@ -11,3 +11,4 @@ open: game
 open: editor
 open: painter
 map: test
+image: test

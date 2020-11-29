@@ -49,25 +49,24 @@ export class Client {
     this.keyEvent(event.code, true)
   }
 
+  mouseEvent(button, down) {
+    if (button === 0) this.mouseLeft = down
+    else if (button === 2) this.mouseRight = down
+    this.state.mouseEvent(button === 0, down)
+  }
+
   mouseUp(event) {
-    if (event.button === 0) {
-      this.mouseLeft = false
-    } else if (event.button === 2) {
-      this.mouseRight = false
-    }
+    this.mouseEvent(event.button, false)
   }
 
   mouseDown(event) {
-    if (event.button === 0) {
-      this.mouseLeft = true
-    } else if (event.button === 2) {
-      this.mouseRight = true
-    }
+    this.mouseEvent(event.button, true)
   }
 
   mouseMove(event) {
     this.mouseX = event.clientX
     this.mouseY = event.clientY
+    this.state.mouseMove(this.mouseX, this.mouseY)
   }
 
   pause() {
@@ -227,22 +226,24 @@ export class Client {
 
     rendering.updateVAO(this.bufferSky, gl.STATIC_DRAW)
 
+    let file = null
+
     switch (main.get('open')) {
       case 'game':
         this.state = new GameState(this)
+        if (main.has('map')) file = '/maps/' + main.get('map') + '.map'
         break
       case 'editor':
         this.state = new EditorState(this)
+        if (main.has('map')) file = '/maps/' + main.get('map') + '.map'
         break
       case 'painter':
         this.state = new PainterState(this)
+        if (main.has('image')) file = '/pack/default/textures/' + main.get('image') + '.image'
         break
       default:
         this.state = new MainMenuState(this)
     }
-
-    let file = null
-    if (main.has('map')) file = '/maps/' + main.get('map') + '.map'
 
     await this.state.initialize(file)
   }

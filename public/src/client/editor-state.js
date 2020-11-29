@@ -61,6 +61,10 @@ export class EditorState {
     }
   }
 
+  mouseEvent() {}
+
+  mouseMove() {}
+
   async initialize(file) {
     await this.editor.load(file)
   }

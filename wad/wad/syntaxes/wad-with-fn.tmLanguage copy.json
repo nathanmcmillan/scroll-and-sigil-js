@@ -8,7 +8,7 @@
       "name": "comment.line.double-slash.wad"
     },
     {
-      "match": "(?:\\b|, *)([a-zA-Z0-9\\-]+) *(?=:|{|\\[)",
+      "match": "(?:\\b|, *)([a-zA-Z0-9\\-]+) *(?=:|{|\\[|\\()",
       "captures": {
         "1": {
           "name": "entity.name.function.wad"
@@ -16,7 +16,7 @@
       }
     },
     {
-      "match": "(?::|\\[|,) *(-?\\d+(\\.\\d+)?)",
+      "match": "(?::|\\[|\\(|,)? *(-?\\d+(\\.\\d+)?)",
       "captures": {
         "1": {
           "name": "constant.numeric.wad"
@@ -24,7 +24,15 @@
       }
     },
     {
-      "match": "(?::|\\[|,) *([^:{}\\[\\],]+)",
+      "match": "[^:]? *\\(([a-zA-Z0-9\\-]+)",
+      "captures": {
+        "1": {
+          "name": "storage.type.wad"
+        }
+      }
+    },
+    {
+      "match": "(?::|\\[|\\(|,) *([^:{}\\[\\]\\(\\), ]+)",
       "captures": {
         "1": {
           "name": "string.quoted.double.wad"
@@ -32,7 +40,7 @@
       }
     },
     {
-      "match": "^ *([^:{}\\[\\],]+) *$",
+      "match": "^ *([^:{}\\[\\]\\(\\),]+) *$",
       "captures": {
         "1": {
           "name": "string.quoted.double.wad"
