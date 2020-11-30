@@ -1,10 +1,10 @@
 import {TwoWayMap} from '/src/util/collections.js'
 import {renderMapEditTopMode} from '/src/client/map-edit-top-mode.js'
 import {renderMapEditViewMode, updateMapEditViewSectorBuffer} from '/src/client/map-edit-view-mode.js'
-import {Editor, TOP_MODE, VIEW_MODE, SWITCH_MODE_CALLBACK} from '/src/editor/editor.js'
+import {MapEdit, TOP_MODE, VIEW_MODE, SWITCH_MODE_CALLBACK} from '/src/editor/maps.js'
 import * as In from '/src/editor/editor-input.js'
 
-export class EditorState {
+export class MapState {
   constructor(client) {
     this.client = client
 
@@ -45,11 +45,11 @@ export class EditorState {
     this.view = new Float32Array(16)
     this.projection = new Float32Array(16)
 
-    this.editor = new Editor(client.width, client.height, callbacks)
+    this.editor = new MapEdit(client.width, client.height, callbacks)
   }
 
-  resize(width, height) {
-    this.editor.resize(width, height)
+  resize(width, height, scale) {
+    this.editor.resize(width, height, scale)
   }
 
   keyEvent(code, down) {

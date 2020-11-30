@@ -26,6 +26,7 @@ export const RIGHT_TRIGGER = 23
 export class EditorInput {
   constructor() {
     this.in = new Array(24).fill(false)
+    this.timers = new Array(24).fill(0)
   }
 
   set(index, down) {
@@ -56,6 +57,38 @@ export class EditorInput {
     return this.in[LOOK_DOWN]
   }
 
+  timerLookUp(now, rate) {
+    let previous = this.timers[LOOK_UP]
+    if (now - rate < previous) return
+    let down = this.in[LOOK_UP]
+    if (down) this.timers[LOOK_UP] = now
+    return down
+  }
+
+  timerLookDown(now, rate) {
+    let previous = this.timers[LOOK_DOWN]
+    if (now - rate < previous) return
+    let down = this.in[LOOK_DOWN]
+    if (down) this.timers[LOOK_DOWN] = now
+    return down
+  }
+
+  timerLookLeft(now, rate) {
+    let previous = this.timers[LOOK_LEFT]
+    if (now - rate < previous) return
+    let down = this.in[LOOK_LEFT]
+    if (down) this.timers[LOOK_LEFT] = now
+    return down
+  }
+
+  timerLookRight(now, rate) {
+    let previous = this.timers[LOOK_RIGHT]
+    if (now - rate < previous) return
+    let down = this.in[LOOK_RIGHT]
+    if (down) this.timers[LOOK_RIGHT] = now
+    return down
+  }
+
   moveForward() {
     return this.in[MOVE_FORWARD]
   }
@@ -80,8 +113,46 @@ export class EditorInput {
     return this.in[MOVE_DOWN]
   }
 
+  timerMoveForward(now, rate) {
+    let previous = this.timers[MOVE_FORWARD]
+    if (now - rate < previous) return
+    let down = this.in[MOVE_FORWARD]
+    if (down) this.timers[MOVE_FORWARD] = now
+    return down
+  }
+
+  timerMoveBackward(now, rate) {
+    let previous = this.timers[MOVE_BACKWARD]
+    if (now - rate < previous) return
+    let down = this.in[MOVE_BACKWARD]
+    if (down) this.timers[MOVE_BACKWARD] = now
+    return down
+  }
+
+  timerMoveLeft(now, rate) {
+    let previous = this.timers[MOVE_LEFT]
+    if (now - rate < previous) return
+    let down = this.in[MOVE_LEFT]
+    if (down) this.timers[MOVE_LEFT] = now
+    return down
+  }
+
+  timerMoveRight(now, rate) {
+    let previous = this.timers[MOVE_RIGHT]
+    if (now - rate < previous) return
+    let down = this.in[MOVE_RIGHT]
+    if (down) this.timers[MOVE_RIGHT] = now
+    return down
+  }
+
   buttonA() {
     return this.in[BUTTON_A]
+  }
+
+  pressButtonA() {
+    let down = this.in[BUTTON_A]
+    this.in[BUTTON_A] = false
+    return down
   }
 
   buttonB() {

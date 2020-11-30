@@ -8,7 +8,9 @@ width: unlimited
 height: unlimited
 package: default
 open: game
-open: editor
-open: painter
+open: sfx
+open: music
+open: maps
+open: paint
 map: test
-image: test
+x-image: test

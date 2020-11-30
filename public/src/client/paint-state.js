@@ -1,5 +1,5 @@
 import {TwoWayMap} from '/src/util/collections.js'
-import {exportSheetPixels, exportSheetToCanvas, Painter} from '/src/editor/painter.js'
+import {exportSheetPixels, exportSheetToCanvas, PaintEdit} from '/src/editor/paint.js'
 import {textureByName} from '/src/assets/assets.js'
 import {drawText, drawRectangle, drawHollowRectangle, drawImage, FONT_HEIGHT} from '/src/render/render.js'
 import {identity, multiply} from '/src/math/matrix.js'
@@ -30,7 +30,7 @@ function updatePixelsToTexture(gl, texture, width, height, pixels) {
   return texture
 }
 
-export class PainterState {
+export class PaintState {
   constructor(client) {
     this.client = client
 
@@ -65,7 +65,7 @@ export class PainterState {
     this.view = new Float32Array(16)
     this.projection = new Float32Array(16)
 
-    let painter = new Painter(client.width, client.height)
+    let painter = new PaintEdit(client.width, client.height)
     this.painter = painter
 
     let rows = painter.sheetRows
@@ -74,8 +74,8 @@ export class PainterState {
     this.texture = newPixelsToTexture(client.gl, columns, rows, pixels)
   }
 
-  resize(width, height) {
-    this.painter.resize(width, height)
+  resize(width, height, scale) {
+    this.painter.resize(width, height, scale)
   }
 
   keyEvent(code, down) {
@@ -85,7 +85,11 @@ export class PainterState {
     if (down && code === 'Digit0') {
       let painter = this.painter
       let blob = painter.export()
-      console.log(blob)
+      localStorage.setItem('paint-sheet', blob)
+      console.info('saved to local storage!')
+    } else if (down && code === 'Digit8') {
+      let painter = this.painter
+      let blob = painter.export()
       let download = document.createElement('a')
       download.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(blob)
       download.download = 'sheet' + painter.sheetIndex + '.image'
@@ -100,7 +104,6 @@ export class PainterState {
       exportSheetToCanvas(painter, painter.sheetIndex, data.data)
       context.putImageData(data, 0, 0)
       let blob = canvas.toDataURL('image/png')
-      console.log(blob)
       let download = document.createElement('a')
       download.href = blob
       download.download = 'sheet' + painter.sheetIndex + '.png'
@@ -130,7 +133,7 @@ export class PainterState {
   update() {
     let painter = this.painter
     painter.update()
-    if (painter.updates) this.updateTexture()
+    if (painter.hasUpdates) this.updateTexture()
   }
 
   render() {
@@ -142,6 +145,7 @@ export class PainterState {
     const rendering = client.rendering
     const view = this.view
     const projection = this.projection
+    const scale = painter.scale
 
     let darkblue0 = darkbluef(0)
     let darkblue1 = darkbluef(1)
@@ -161,8 +165,14 @@ export class PainterState {
     let buffer = client.bufferColor
     buffer.zero()
 
-    let scale = 2.0
     let fontHeight = scale * FONT_HEIGHT
+
+    let thickness = scale
+    let doubleThick = 2 * thickness
+    let fourThick = 2 * doubleThick
+
+    let canvasWidth = client.width
+    let canvasHeight = client.height
 
     let brushSize = painter.brushSize
     let canvasZoom = painter.canvasZoom
@@ -186,10 +196,6 @@ export class PainterState {
 
     let magnify, top, left, width, height, box, x, y
 
-    let thickness = 2.0
-    let doubleThick = 2.0 * thickness
-    let fourThick = 2.0 * doubleThick
-
     let black0 = 0.0
     let black1 = 0.0
     let black2 = 0.0
@@ -199,29 +205,29 @@ export class PainterState {
     let white2 = whitef(2)
 
     rendering.setProgram(1)
-    rendering.setView(0, 0, client.width, client.height)
+    rendering.setView(0, 0, canvasWidth, canvasHeight)
     rendering.updateUniformMatrix('u_mvp', projection)
 
     client.bufferGUI.zero()
 
     // sheet
-    magnify = 4
+    magnify = 2 * scale
     height = sheetRows * magnify
-    top = client.height - 100 - height
+    top = canvasHeight - 100 - height
     left = 100
 
     drawImage(client.bufferGUI, left, top, sheetColumns * magnify, height, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0)
 
     // view
-    magnify = 0
-    if (canvasZoom === 8) magnify = 32
-    if (canvasZoom === 16) magnify = 16
-    if (canvasZoom === 32) magnify = 8
-    if (canvasZoom === 64) magnify = 4
+    magnify = scale
+    if (canvasZoom === 8) magnify *= 16
+    if (canvasZoom === 16) magnify *= 8
+    if (canvasZoom === 32) magnify *= 4
+    if (canvasZoom === 64) magnify *= 2
     height = rows * magnify
     width = columns * magnify
-    top = client.height - 100 - height
-    left = client.width - 100 - width
+    top = canvasHeight - 100 - height
+    left = canvasWidth - 100 - width
 
     let sl = posOffsetC / sheetColumns
     let st = posOffsetR / sheetRows
@@ -234,7 +240,7 @@ export class PainterState {
     rendering.updateAndDraw(client.bufferGUI)
 
     rendering.setProgram(0)
-    rendering.setView(0, 0, client.width, client.height)
+    rendering.setView(0, 0, canvasWidth, canvasHeight)
     rendering.updateUniformMatrix('u_mvp', projection)
 
     // box around view
@@ -251,9 +257,9 @@ export class PainterState {
     drawHollowRectangle(buffer, x - doubleThick, y - doubleThick - box, box + fourThick, box + fourThick, thickness, white0, white1, white2, 1.0)
 
     // sheet
-    magnify = 4
+    magnify = 2 * scale
     height = sheetRows * magnify
-    top = client.height - 100 - height
+    top = canvasHeight - 100 - height
     left = 100
 
     x = left + posOffsetC * magnify
@@ -267,15 +273,15 @@ export class PainterState {
     drawHollowRectangle(buffer, left - thickness, top - thickness, sheetColumns * magnify + doubleThick, height + doubleThick, thickness, white0, white1, white2, 1.0)
 
     // pallete
-    magnify = 32
+    magnify = 16 * scale
 
-    top = client.height - 100 - (8 + 2) * magnify
-    left = client.width - 100 - 8 * magnify
+    top = canvasHeight - 100 - (8 + 2) * magnify
+    left = canvasWidth - 100 - 8 * magnify
     for (let r = 0; r < paletteRows; r++) {
       for (let c = 0; c < paletteColumns; c++) {
         let x = left + c * magnify
         let y = top - r * magnify
-        let index = (c + r * 8) * 3
+        let index = (c + r * paletteColumns) * 3
         let red = palette[index]
         let green = palette[index + 1]
         let blue = palette[index + 2]
@@ -318,13 +324,13 @@ export class PainterState {
     drawHollowRectangle(buffer, x - doubleThick, y - doubleThick, magnify + fourThick, magnify + fourThick, thickness, white0, white1, white2, 1.0)
 
     // top bar
-    drawRectangle(buffer, 0, client.height - fontHeight, client.width, fontHeight, 1.0, 241.0 / 255.0, 232.0 / 255.0, 1.0)
+    drawRectangle(buffer, 0, canvasHeight - fontHeight, canvasWidth, fontHeight, 1.0, 241.0 / 255.0, 232.0 / 255.0, 1.0)
 
     rendering.updateAndDraw(buffer)
 
     // fonts
     rendering.setProgram(1)
-    rendering.setView(0, 0, client.width, client.height)
+    rendering.setView(0, 0, canvasWidth, canvasHeight)
     rendering.updateUniformMatrix('u_mvp', projection)
 
     client.bufferGUI.zero()
@@ -332,16 +338,16 @@ export class PainterState {
     let displayC = posC < 10 ? '0' + posC : '' + posC
     let displayR = posR < 10 ? '0' + posR : '' + posR
     let text = 'x = ' + displayC + ' y =' + displayR
-    drawTextSpecial(client.bufferGUI, 10, client.height - fontHeight, text, 2.0, white0, white1, white2)
+    drawTextSpecial(client.bufferGUI, 10, canvasHeight - fontHeight, text, scale, white0, white1, white2)
 
     let displaySheet = '#' + sheetIndex < 10 ? '00' + sheetIndex : sheetIndex < 100 ? '0' + sheetIndex : '' + sheetIndex
-    drawTextSpecial(client.bufferGUI, 10, client.height - fontHeight * 3, displaySheet, 2.0, white0, white1, white2)
+    drawTextSpecial(client.bufferGUI, 10, canvasHeight - fontHeight * 3, displaySheet, scale, white0, white1, white2)
 
     let displaySize = 'brush size ' + brushSize
-    drawTextSpecial(client.bufferGUI, 10, 10 + fontHeight * 2, displaySize, 2.0, white0, white1, white2)
+    drawTextSpecial(client.bufferGUI, 10, 10 + fontHeight * 2, displaySize, scale, white0, white1, white2)
 
     let displayZoom = 'canvas zoom ' + canvasZoom
-    drawTextSpecial(client.bufferGUI, 10, 10, displayZoom, 2.0, white0, white1, white2)
+    drawTextSpecial(client.bufferGUI, 10, 10, displayZoom, scale, white0, white1, white2)
 
     rendering.bindTexture(gl.TEXTURE0, textureByName('font').texture)
     rendering.updateAndDraw(client.bufferGUI)

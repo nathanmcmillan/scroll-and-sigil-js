@@ -81,6 +81,7 @@ async function main() {
 
   window.onresize = () => {
     client.resize(window.innerWidth, window.innerHeight)
+    if (!active) client.render()
   }
 
   window.onblur = () => {

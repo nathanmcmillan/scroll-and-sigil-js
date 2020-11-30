@@ -9,17 +9,21 @@ export const DESCRIBE_TOOL = new Array(TOOL_COUNT)
 DESCRIBE_TOOL[PENCIL_TOOL] = 'Pencil'
 DESCRIBE_TOOL[ERASE_TOOL] = 'Eraser'
 
-export class Painter {
+const INPUT_RATE = 72
+
+export class PaintEdit {
   constructor(width, height) {
     this.width = width
     this.height = height
+    this.scale = 1
     this.input = new In.EditorInput()
-    this.zoom = 1
     this.shadowInput = true
     this.doPaint = true
+    this.hasUpdates = false
+    this.canUpdate = true
 
-    this.paletteRows = 2
-    this.paletteColumns = 8
+    this.paletteRows = 4
+    this.paletteColumns = 4
     this.palette = new Uint8Array(this.paletteRows * this.paletteColumns * 3)
     this.paletteFloat = new Float32Array(this.paletteRows * this.paletteColumns * 3)
 
@@ -47,17 +51,32 @@ export class Painter {
 
     setPalette(this.palette)
     setPaletteFloat(this.palette, this.paletteFloat)
-
-    this.updates = false
   }
 
-  resize(width, height) {
+  resize(width, height, scale) {
     this.width = width
     this.height = height
+    this.scale = scale
+    this.shadowInput = true
+    this.doPaint = true
+
+    // let middle = 0.5 * width
+    // let center = 0.5 * height
+
+    this.canvasTop = 0
+    this.canvasLeft = 0
+    this.canvasWidth = 0
+    this.canvasHeight = 0
   }
 
   async load(file) {
-    let image = (await fetchText(file)).split('\n')
+    let image = null
+    if (file === null) image = localStorage.getItem('paint-sheet')
+    else image = await fetchText(file)
+
+    if (image === null || image === undefined) return
+
+    image = image.split('\n')
     let index = 0
 
     let dimensions = image[index].split(' ')
@@ -83,131 +102,131 @@ export class Painter {
       else return
     } else this.shadowInput = true
     this.doPaint = true
-
-    this.updates = false
+    this.hasUpdates = false
 
     let input = this.input
-    if (input.buttonA()) {
-      input.in[In.BUTTON_A] = false
-
-      let columns = this.sheetColumns
-      let index = this.positionC + this.positionOffsetC + (this.positionR + this.positionOffsetR) * columns
-      let paletteIndex = this.paletteC + this.paletteR * this.paletteColumns
-
-      for (let h = 0; h < this.brushSize; h++) {
-        for (let c = 0; c < this.brushSize; c++) {
-          this.sheet[c + h * columns + index] = paletteIndex
-        }
-      }
-
-      this.updates = true
-    }
+    let time = new Date().getTime()
 
     if (input.leftTrigger()) {
       const move = 8
 
-      if (input.moveForward()) {
-        input.in[In.MOVE_FORWARD] = false
+      if (input.timerMoveForward(time, INPUT_RATE)) {
         this.positionOffsetR -= move
         if (this.positionOffsetR < 0) this.positionOffsetR = 0
+        this.canUpdate = true
       }
 
-      if (input.moveBackward()) {
-        input.in[In.MOVE_BACKWARD] = false
+      if (input.timerMoveBackward(time, INPUT_RATE)) {
         this.positionOffsetR += move
         if (this.positionOffsetR + this.canvasZoom >= this.sheetRows) this.positionOffsetR = this.sheetRows - this.canvasZoom
+        this.canUpdate = true
       }
 
-      if (input.moveLeft()) {
-        input.in[In.MOVE_LEFT] = false
+      if (input.timerMoveLeft(time, INPUT_RATE)) {
         this.positionOffsetC -= move
         if (this.positionOffsetC < 0) this.positionOffsetC = 0
+        this.canUpdate = true
       }
 
-      if (input.moveRight()) {
-        input.in[In.MOVE_RIGHT] = false
+      if (input.timerMoveRight(time, INPUT_RATE)) {
         this.positionOffsetC += move
         if (this.positionOffsetC + this.canvasZoom >= this.sheetColumns) this.positionOffsetC = this.sheetColumns - this.canvasZoom
+        this.canUpdate = true
       }
     } else {
-      if (input.moveForward()) {
-        input.in[In.MOVE_FORWARD] = false
+      if (input.timerMoveForward(time, INPUT_RATE)) {
         this.positionR--
         if (this.positionR < 0) this.positionR = 0
+        this.canUpdate = true
       }
 
-      if (input.moveBackward()) {
-        input.in[In.MOVE_BACKWARD] = false
+      if (input.timerMoveBackward(time, INPUT_RATE)) {
         this.positionR++
         if (this.positionR + this.brushSize >= this.canvasZoom) this.positionR = this.canvasZoom - this.brushSize
+        this.canUpdate = true
       }
 
-      if (input.moveLeft()) {
-        input.in[In.MOVE_LEFT] = false
+      if (input.timerMoveLeft(time, INPUT_RATE)) {
         this.positionC--
         if (this.positionC < 0) this.positionC = 0
+        this.canUpdate = true
       }
 
-      if (input.moveRight()) {
-        input.in[In.MOVE_RIGHT] = false
+      if (input.timerMoveRight(time, INPUT_RATE)) {
         this.positionC++
         if (this.positionC + this.brushSize >= this.canvasZoom) this.positionC = this.canvasZoom - this.brushSize
+        this.canUpdate = true
       }
     }
 
     if (input.leftTrigger()) {
-      if (input.lookLeft()) {
-        input.in[In.LOOK_LEFT] = false
+      if (input.timerLookLeft(time, INPUT_RATE)) {
         this.brushSize--
         if (this.brushSize < 1) this.brushSize = 1
+        this.canUpdate = true
       }
 
-      if (input.lookRight()) {
-        input.in[In.LOOK_RIGHT] = false
+      if (input.timerLookRight(time, INPUT_RATE)) {
         this.brushSize++
         if (this.brushSize > 4) this.brushSize = 4
         if (this.positionR + this.brushSize >= this.canvasZoom) this.positionR = this.canvasZoom - this.brushSize
         if (this.positionC + this.brushSize > this.canvasZoom) this.positionC = this.canvasZoom - this.brushSize
+        this.canUpdate = true
       }
     } else if (input.rightTrigger()) {
-      if (input.lookLeft()) {
-        input.in[In.LOOK_LEFT] = false
+      if (input.timerLookLeft(time, INPUT_RATE)) {
         this.canvasZoom /= 2
         if (this.canvasZoom < 8) this.canvasZoom = 8
         if (this.positionR + this.brushSize >= this.canvasZoom) this.positionR = this.canvasZoom - this.brushSize
         if (this.positionC + this.brushSize > this.canvasZoom) this.positionC = this.canvasZoom - this.brushSize
+        this.canUpdate = true
       }
 
-      if (input.lookRight()) {
-        input.in[In.LOOK_RIGHT] = false
+      if (input.timerLookRight(time, INPUT_RATE)) {
         this.canvasZoom *= 2
         if (this.canvasZoom > 64) this.canvasZoom = 64
         if (this.positionOffsetR + this.canvasZoom >= this.sheetRows) this.positionOffsetR = this.sheetRows - this.canvasZoom
         if (this.positionOffsetC + this.canvasZoom >= this.sheetColumns) this.positionOffsetC = this.sheetColumns - this.canvasZoom
+        this.canUpdate = true
       }
     } else {
-      if (input.lookUp()) {
-        input.in[In.LOOK_UP] = false
+      if (input.timerLookUp(time, INPUT_RATE)) {
         this.paletteR--
         if (this.paletteR < 0) this.paletteR = 0
+        this.canUpdate = true
       }
 
-      if (input.lookDown()) {
-        input.in[In.LOOK_DOWN] = false
+      if (input.timerLookDown(time, INPUT_RATE)) {
         this.paletteR++
         if (this.paletteR >= this.paletteRows) this.paletteR = this.paletteRows - 1
+        this.canUpdate = true
       }
 
-      if (input.lookLeft()) {
-        input.in[In.LOOK_LEFT] = false
+      if (input.timerLookLeft(time, INPUT_RATE)) {
         this.paletteC--
         if (this.paletteC < 0) this.paletteC = 0
+        this.canUpdate = true
       }
 
-      if (input.lookRight()) {
-        input.in[In.LOOK_RIGHT] = false
+      if (input.timerLookRight(time, INPUT_RATE)) {
         this.paletteC++
         if (this.paletteC >= this.paletteColumns) this.paletteC = this.paletteColumns - 1
+        this.canUpdate = true
+      }
+    }
+
+    if (input.buttonA()) {
+      if (this.canUpdate) {
+        let columns = this.sheetColumns
+        let index = this.positionC + this.positionOffsetC + (this.positionR + this.positionOffsetR) * columns
+        let paletteIndex = this.paletteC + this.paletteR * this.paletteColumns
+        for (let h = 0; h < this.brushSize; h++) {
+          for (let c = 0; c < this.brushSize; c++) {
+            this.sheet[c + h * columns + index] = paletteIndex
+          }
+        }
+        this.hasUpdates = true
+        this.canUpdate = false
       }
     }
   }

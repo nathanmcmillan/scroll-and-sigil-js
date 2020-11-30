@@ -161,10 +161,11 @@ function referenceLinesFromVec(vec, lines) {
   return list
 }
 
-export class Editor {
+export class MapEdit {
   constructor(width, height, callbacks) {
     this.width = width
     this.height = height
+    this.scale = 1
     this.callbacks = callbacks
     this.input = new In.EditorInput()
     this.camera = new Camera(0.0, 1.0, 0.0, 0.0, 0.0)
@@ -198,9 +199,10 @@ export class Editor {
     this.doPaint = true
   }
 
-  resize(width, height) {
+  resize(width, height, scale) {
     this.width = width
     this.height = height
+    this.scale = scale
   }
 
   async load(file) {
@@ -467,8 +469,7 @@ export class Editor {
     }
 
     if (this.toolSelectionActive) {
-      if (input.buttonA()) {
-        input.in[In.BUTTON_A] = false
+      if (input.pressButtonA()) {
         this.toolSelectionActive = false
       } else if (input.moveForward() || input.lookUp()) {
         input.in[In.MOVE_FORWARD] = false

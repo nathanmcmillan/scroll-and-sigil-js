@@ -7,8 +7,10 @@ import {drawWall, drawFloorCeil} from '/src/client/render-sector.js'
 import {orthographic, perspective} from '/src/math/matrix.js'
 import {saveSound, saveMusic, pauseMusic, resumeMusic} from '/src/assets/sounds.js'
 import {saveEntity, saveTile, saveTexture, waitForResources, createNewTexturesAndSpriteSheets} from '/src/assets/assets.js'
-import {EditorState} from '/src/client/editor-state.js'
-import {PainterState} from '/src/client/painter-state.js'
+import {PaintState} from '/src/client/paint-state.js'
+import {SfxState} from '/src/client/sfx-state.js'
+import {MusicState} from '/src/client/music-state.js'
+import {MapState} from '/src/client/map-state.js'
 import {GameState} from '/src/client/game-state.js'
 import {MainMenuState} from '/src/client/main-menu-state.js'
 import * as Wad from '/src/wad/wad.js'
@@ -88,7 +90,12 @@ export class Client {
     let near = 0.01
     let far = 200.0
     perspective(this.perspective, fov, near, far, ratio)
-    this.state.resize(width, height)
+
+    let x = Math.ceil(width / 800)
+    let y = Math.ceil(height / 600)
+    let scale = Math.min(x, y)
+
+    this.state.resize(width, height, scale)
   }
 
   getSectorBuffer(texture) {
@@ -229,17 +236,23 @@ export class Client {
     let file = null
 
     switch (main.get('open')) {
+      case 'paint':
+        this.state = new PaintState(this)
+        if (main.has('image')) file = '/pack/default/textures/' + main.get('image') + '.image'
+        break
+      case 'sfx':
+        this.state = new SfxState(this)
+        break
+      case 'music':
+        this.state = new MusicState(this)
+        break
+      case 'maps':
+        this.state = new MapState(this)
+        if (main.has('map')) file = '/maps/' + main.get('map') + '.map'
+        break
       case 'game':
         this.state = new GameState(this)
         if (main.has('map')) file = '/maps/' + main.get('map') + '.map'
-        break
-      case 'editor':
-        this.state = new EditorState(this)
-        if (main.has('map')) file = '/maps/' + main.get('map') + '.map'
-        break
-      case 'painter':
-        this.state = new PainterState(this)
-        if (main.has('image')) file = '/pack/default/textures/' + main.get('image') + '.image'
         break
       default:
         this.state = new MainMenuState(this)

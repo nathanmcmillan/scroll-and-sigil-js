@@ -9,7 +9,7 @@
       (set-status self dead)
       (update-sprite self)
       (red-blood-explode self)
-   )
+    )
     (
       (play-sound 'monster-pain')
       (red-blood-towards self source)
