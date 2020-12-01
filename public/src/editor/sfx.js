@@ -1,11 +1,11 @@
-import * as In from '/src/editor/editor-input.js'
+import * as In from '/src/input/input.js'
 
 export class SfxEdit {
   constructor(width, height) {
     this.width = width
     this.height = height
     this.scale = 1
-    this.input = new In.EditorInput()
+    this.input = new In.Input()
     this.shadowInput = true
     this.doPaint = true
     this.hasUpdates = false

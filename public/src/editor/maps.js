@@ -6,7 +6,7 @@ import {WORLD_SCALE} from '/src/world/world.js'
 import {computeSectors} from '/src/editor/map-edit-sectors.js'
 import {sectorLineNeighbors, sectorInsideOutside} from '/src/map/sector.js'
 import {sectorTriangulateForEditor} from '/src/map/triangulate.js'
-import * as In from '/src/editor/editor-input.js'
+import * as In from '/src/input/input.js'
 
 export const TOP_MODE = 0
 export const VIEW_MODE = 1
@@ -167,7 +167,7 @@ export class MapEdit {
     this.height = height
     this.scale = 1
     this.callbacks = callbacks
-    this.input = new In.EditorInput()
+    this.input = new In.Input()
     this.camera = new Camera(0.0, 1.0, 0.0, 0.0, 0.0)
     this.mode = TOP_MODE
     this.tool = DRAW_TOOL
@@ -524,32 +524,28 @@ export class MapEdit {
 
     if (this.snapToGrid) {
       const grid = 10
-      if (input.lookLeft()) {
-        input.in[In.LOOK_LEFT] = false
+      if (input.pressLookLeft()) {
         let x = Math.floor(cursor.x)
         let modulo = x % grid
         if (modulo == 0) cursor.x -= grid
         else cursor.x -= modulo
         if (cursor.x < 0.0) cursor.x = 0.0
       }
-      if (input.lookRight()) {
-        input.in[In.LOOK_RIGHT] = false
+      if (input.pressLookRight()) {
         let x = Math.floor(cursor.x)
         let modulo = x % grid
         if (modulo == 0) cursor.x += grid
         else cursor.x += grid - modulo
         if (cursor.x > this.width) cursor.x = this.width
       }
-      if (input.lookUp()) {
-        input.in[In.LOOK_UP] = false
+      if (input.pressLookUp()) {
         let y = Math.floor(cursor.y)
         let modulo = y % grid
         if (modulo == 0) cursor.y += grid
         else cursor.y += grid - modulo
         if (cursor.y > this.height) cursor.y = this.height
       }
-      if (input.lookDown()) {
-        input.in[In.LOOK_DOWN] = false
+      if (input.pressLookDown()) {
         let y = Math.floor(cursor.y)
         let modulo = y % grid
         if (modulo == 0) cursor.y -= grid
@@ -557,29 +553,25 @@ export class MapEdit {
         if (cursor.y < 0.0) cursor.y = 0.0
       }
 
-      if (input.moveLeft()) {
-        input.in[In.MOVE_LEFT] = false
+      if (input.pressMoveLeft()) {
         let x = Math.floor(camera.x)
         let modulo = x % grid
         if (modulo == 0) camera.x -= grid
         else camera.x -= modulo
       }
-      if (input.moveRight()) {
-        input.in[In.MOVE_RIGHT] = false
+      if (input.pressMoveRight()) {
         let x = Math.floor(camera.x)
         let modulo = x % grid
         if (modulo == 0) camera.x += grid
         else camera.x += grid - modulo
       }
-      if (input.moveForward()) {
-        input.in[In.MOVE_FORWARD] = false
+      if (input.pressMoveForward()) {
         let z = Math.floor(camera.z)
         let modulo = z % grid
         if (modulo == 0) camera.z += grid
         else camera.z += grid - modulo
       }
-      if (input.moveBackward()) {
-        input.in[In.MOVE_BACKWARD] = false
+      if (input.pressMoveBackward()) {
         let z = Math.floor(camera.z)
         let modulo = z % grid
         if (modulo == 0) camera.z -= grid

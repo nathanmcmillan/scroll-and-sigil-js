@@ -1,15 +1,10 @@
 import {TwoWayMap} from '/src/util/collections.js'
 import {exportSheetPixels, exportSheetToCanvas, PaintEdit} from '/src/editor/paint.js'
 import {textureByName} from '/src/assets/assets.js'
-import {drawText, drawRectangle, drawHollowRectangle, drawImage, FONT_HEIGHT} from '/src/render/render.js'
+import {drawTextSpecial, drawRectangle, drawHollowRectangle, drawImage, FONT_HEIGHT} from '/src/render/render.js'
 import {identity, multiply} from '/src/math/matrix.js'
 import {darkbluef, whitef} from '/src/editor/palette.js'
-import * as In from '/src/editor/editor-input.js'
-
-function drawTextSpecial(b, x, y, text, scale, red, green, blue) {
-  drawText(b, x + scale, y - scale, text, scale, 0.0, 0.0, 0.0, 1.0)
-  drawText(b, x, y, text, scale, red, green, blue, 1.0)
-}
+import * as In from '/src/input/input.js'
 
 function newPixelsToTexture(gl, width, height, pixels) {
   let texture = gl.createTexture()
@@ -79,9 +74,7 @@ export class PaintState {
   }
 
   keyEvent(code, down) {
-    if (this.keys.has(code)) {
-      this.painter.input.set(this.keys.get(code), down)
-    }
+    if (this.keys.has(code)) this.painter.input.set(this.keys.get(code), down)
     if (down && code === 'Digit0') {
       let painter = this.painter
       let blob = painter.export()
@@ -108,6 +101,33 @@ export class PaintState {
       download.href = blob
       download.download = 'sheet' + painter.sheetIndex + '.png'
       download.click()
+    } else if (down && code === 'Digit7') {
+      let button = document.createElement('input')
+      button.type = 'file'
+      button.onchange = (e) => {
+        let file = e.target.files[0]
+        console.log(file)
+        let reader = new FileReader()
+        if (file.type === 'image/png') {
+          reader.readAsDataURL(file)
+          reader.onload = (event) => {
+            let content = event.target.result
+            let image = new Image()
+            image.src = content
+            image.onload = () => {
+              console.log(image)
+            }
+          }
+        } else {
+          reader.readAsText(file, 'UTF-8')
+          reader.onload = (event) => {
+            let content = event.target.result
+            this.painter.read(content, 0)
+            this.updateTexture()
+          }
+        }
+      }
+      button.click()
     }
   }
 
@@ -130,9 +150,9 @@ export class PaintState {
     updatePixelsToTexture(this.client.gl, this.texture, columns, rows, pixels)
   }
 
-  update() {
+  update(timestamp) {
     let painter = this.painter
-    painter.update()
+    painter.update(timestamp)
     if (painter.hasUpdates) this.updateTexture()
   }
 
@@ -214,7 +234,7 @@ export class PaintState {
     magnify = 2 * scale
     height = sheetRows * magnify
     top = canvasHeight - 100 - height
-    left = 100
+    left = painter.displaySheetLeft
 
     drawImage(client.bufferGUI, left, top, sheetColumns * magnify, height, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0)
 

@@ -2,7 +2,7 @@ import {TwoWayMap} from '/src/util/collections.js'
 import {renderMapEditTopMode} from '/src/client/map-edit-top-mode.js'
 import {renderMapEditViewMode, updateMapEditViewSectorBuffer} from '/src/client/map-edit-view-mode.js'
 import {MapEdit, TOP_MODE, VIEW_MODE, SWITCH_MODE_CALLBACK} from '/src/editor/maps.js'
-import * as In from '/src/editor/editor-input.js'
+import * as In from '/src/input/input.js'
 
 export class MapState {
   constructor(client) {

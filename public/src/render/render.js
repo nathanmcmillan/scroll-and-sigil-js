@@ -282,6 +282,11 @@ export function drawText(b, x, y, text, scale, red, green, blue, alpha) {
   }
 }
 
+export function drawTextSpecial(b, x, y, text, scale, red, green, blue) {
+  drawText(b, x + scale, y - scale, text, scale, 0.0, 0.0, 0.0, 1.0)
+  drawText(b, x, y, text, scale, red, green, blue, 1.0)
+}
+
 export function drawCubeSide(b, side, x, y, z, size) {
   let pos = b.vertexPosition
   let vertices = b.vertices

@@ -261,8 +261,8 @@ export class Client {
     await this.state.initialize(file)
   }
 
-  update() {
-    this.state.update()
+  update(timestamp) {
+    this.state.update(timestamp)
   }
 
   render() {

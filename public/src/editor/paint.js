@@ -1,5 +1,5 @@
 import {fetchText} from '/src/client/net.js'
-import * as In from '/src/editor/editor-input.js'
+import * as In from '/src/input/input.js'
 
 export const PENCIL_TOOL = 0
 export const ERASE_TOOL = 1
@@ -9,14 +9,14 @@ export const DESCRIBE_TOOL = new Array(TOOL_COUNT)
 DESCRIBE_TOOL[PENCIL_TOOL] = 'Pencil'
 DESCRIBE_TOOL[ERASE_TOOL] = 'Eraser'
 
-const INPUT_RATE = 72
+const INPUT_RATE = 128
 
 export class PaintEdit {
   constructor(width, height) {
     this.width = width
     this.height = height
     this.scale = 1
-    this.input = new In.EditorInput()
+    this.input = new In.Input()
     this.shadowInput = true
     this.doPaint = true
     this.hasUpdates = false
@@ -60,23 +60,35 @@ export class PaintEdit {
     this.shadowInput = true
     this.doPaint = true
 
-    // let middle = 0.5 * width
+    let sheetMagnify = 2 * scale
+    let sheetWidth = this.sheetColumns * sheetMagnify
+    // let sheetHeight = this.sheetRows * sheetMagnify
+
+    let minimumWidth = sheetWidth
+
+    let middle = 0.5 * width
     // let center = 0.5 * height
 
+    // let sheetBox = {
+    //   left: null,
+    //   top: null,
+    //   padtop: 0,
+    //   padbottom: 0,
+    //   padleft: 0,
+    //   padright: 0,
+    // }
+
+    this.canvasLeft = Math.floor(middle - 0.5 * minimumWidth)
+    this.canvasWidth = minimumWidth
+
     this.canvasTop = 0
-    this.canvasLeft = 0
-    this.canvasWidth = 0
     this.canvasHeight = 0
+
+    this.displaySheetLeft = this.canvasLeft
   }
 
-  async load(file) {
-    let image = null
-    if (file === null) image = localStorage.getItem('paint-sheet')
-    else image = await fetchText(file)
-
-    if (image === null || image === undefined) return
-
-    image = image.split('\n')
+  read(content, into) {
+    let image = content.split('\n')
     let index = 0
 
     let dimensions = image[index].split(' ')
@@ -84,7 +96,7 @@ export class PaintEdit {
     let height = parseInt(dimensions[1])
     index++
 
-    let sheet = this.sheet
+    let sheet = this.sheets[into]
 
     for (let h = 0; h < height; h++) {
       let row = image[index].split(' ')
@@ -93,9 +105,20 @@ export class PaintEdit {
       }
       index++
     }
+
+    this.shadowInput = true
+    this.doPaint = true
   }
 
-  update() {
+  async load(file) {
+    let image = null
+    if (file === null) image = localStorage.getItem('paint-sheet')
+    else image = await fetchText(file)
+    if (image === null || image === undefined) return
+    this.read(image, 0)
+  }
+
+  update(timestamp) {
     this.doPaint = false
     if (this.input.nothingOn()) {
       if (this.shadowInput) this.shadowInput = false
@@ -105,54 +128,53 @@ export class PaintEdit {
     this.hasUpdates = false
 
     let input = this.input
-    let time = new Date().getTime()
 
     if (input.leftTrigger()) {
       const move = 8
 
-      if (input.timerMoveForward(time, INPUT_RATE)) {
+      if (input.timerMoveForward(timestamp, INPUT_RATE)) {
         this.positionOffsetR -= move
         if (this.positionOffsetR < 0) this.positionOffsetR = 0
         this.canUpdate = true
       }
 
-      if (input.timerMoveBackward(time, INPUT_RATE)) {
+      if (input.timerMoveBackward(timestamp, INPUT_RATE)) {
         this.positionOffsetR += move
         if (this.positionOffsetR + this.canvasZoom >= this.sheetRows) this.positionOffsetR = this.sheetRows - this.canvasZoom
         this.canUpdate = true
       }
 
-      if (input.timerMoveLeft(time, INPUT_RATE)) {
+      if (input.timerMoveLeft(timestamp, INPUT_RATE)) {
         this.positionOffsetC -= move
         if (this.positionOffsetC < 0) this.positionOffsetC = 0
         this.canUpdate = true
       }
 
-      if (input.timerMoveRight(time, INPUT_RATE)) {
+      if (input.timerMoveRight(timestamp, INPUT_RATE)) {
         this.positionOffsetC += move
         if (this.positionOffsetC + this.canvasZoom >= this.sheetColumns) this.positionOffsetC = this.sheetColumns - this.canvasZoom
         this.canUpdate = true
       }
     } else {
-      if (input.timerMoveForward(time, INPUT_RATE)) {
+      if (input.timerMoveForward(timestamp, INPUT_RATE)) {
         this.positionR--
         if (this.positionR < 0) this.positionR = 0
         this.canUpdate = true
       }
 
-      if (input.timerMoveBackward(time, INPUT_RATE)) {
+      if (input.timerMoveBackward(timestamp, INPUT_RATE)) {
         this.positionR++
         if (this.positionR + this.brushSize >= this.canvasZoom) this.positionR = this.canvasZoom - this.brushSize
         this.canUpdate = true
       }
 
-      if (input.timerMoveLeft(time, INPUT_RATE)) {
+      if (input.timerMoveLeft(timestamp, INPUT_RATE)) {
         this.positionC--
         if (this.positionC < 0) this.positionC = 0
         this.canUpdate = true
       }
 
-      if (input.timerMoveRight(time, INPUT_RATE)) {
+      if (input.timerMoveRight(timestamp, INPUT_RATE)) {
         this.positionC++
         if (this.positionC + this.brushSize >= this.canvasZoom) this.positionC = this.canvasZoom - this.brushSize
         this.canUpdate = true
@@ -160,13 +182,13 @@ export class PaintEdit {
     }
 
     if (input.leftTrigger()) {
-      if (input.timerLookLeft(time, INPUT_RATE)) {
+      if (input.timerLookLeft(timestamp, INPUT_RATE)) {
         this.brushSize--
         if (this.brushSize < 1) this.brushSize = 1
         this.canUpdate = true
       }
 
-      if (input.timerLookRight(time, INPUT_RATE)) {
+      if (input.timerLookRight(timestamp, INPUT_RATE)) {
         this.brushSize++
         if (this.brushSize > 4) this.brushSize = 4
         if (this.positionR + this.brushSize >= this.canvasZoom) this.positionR = this.canvasZoom - this.brushSize
@@ -174,7 +196,7 @@ export class PaintEdit {
         this.canUpdate = true
       }
     } else if (input.rightTrigger()) {
-      if (input.timerLookLeft(time, INPUT_RATE)) {
+      if (input.timerLookLeft(timestamp, INPUT_RATE)) {
         this.canvasZoom /= 2
         if (this.canvasZoom < 8) this.canvasZoom = 8
         if (this.positionR + this.brushSize >= this.canvasZoom) this.positionR = this.canvasZoom - this.brushSize
@@ -182,7 +204,7 @@ export class PaintEdit {
         this.canUpdate = true
       }
 
-      if (input.timerLookRight(time, INPUT_RATE)) {
+      if (input.timerLookRight(timestamp, INPUT_RATE)) {
         this.canvasZoom *= 2
         if (this.canvasZoom > 64) this.canvasZoom = 64
         if (this.positionOffsetR + this.canvasZoom >= this.sheetRows) this.positionOffsetR = this.sheetRows - this.canvasZoom
@@ -190,25 +212,25 @@ export class PaintEdit {
         this.canUpdate = true
       }
     } else {
-      if (input.timerLookUp(time, INPUT_RATE)) {
+      if (input.timerLookUp(timestamp, INPUT_RATE)) {
         this.paletteR--
         if (this.paletteR < 0) this.paletteR = 0
         this.canUpdate = true
       }
 
-      if (input.timerLookDown(time, INPUT_RATE)) {
+      if (input.timerLookDown(timestamp, INPUT_RATE)) {
         this.paletteR++
         if (this.paletteR >= this.paletteRows) this.paletteR = this.paletteRows - 1
         this.canUpdate = true
       }
 
-      if (input.timerLookLeft(time, INPUT_RATE)) {
+      if (input.timerLookLeft(timestamp, INPUT_RATE)) {
         this.paletteC--
         if (this.paletteC < 0) this.paletteC = 0
         this.canUpdate = true
       }
 
-      if (input.timerLookRight(time, INPUT_RATE)) {
+      if (input.timerLookRight(timestamp, INPUT_RATE)) {
         this.paletteC++
         if (this.paletteC >= this.paletteColumns) this.paletteC = this.paletteColumns - 1
         this.canUpdate = true

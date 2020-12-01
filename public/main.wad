@@ -12,5 +12,6 @@ open: sfx
 open: music
 open: maps
 open: paint
+open: menu
 map: test
 x-image: test

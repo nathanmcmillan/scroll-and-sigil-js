@@ -44,3 +44,34 @@ function monster_on_damage(self, source, health)
     red_blood_towards(self, source)
   end
 end
+
+function monster_on_damage(self, source, health)
+  if self.status is STATUS_DEAD or self.status is STATUS_FINAL {
+    return
+  }
+  self.health_add(-health)
+  if self.health() <= 0 {
+    play_sound('monster-death')
+    self.set_status_dead()
+    thing_update_sprite(self)
+    red_blood_explode(self)
+  } else {
+    play_sound('monster-pain')
+    red_blood_towards(self, source)
+  }
+}
+
+(function monster-on-damage ($ self source health) (
+  (if (or (eq (status self) STATUS_DEAD) (eq (status self) STATUS_FINAL))
+    return
+  )
+  (health-add self -damage)
+  (if (le health 0)
+    ((play-sound 'monster-death')
+      (set-status self dead)
+      (update-sprite self)
+      (red-blood-explode self))
+    ((play-sound 'monster-pain')
+      (red-blood-towards self source))
+  )
+))

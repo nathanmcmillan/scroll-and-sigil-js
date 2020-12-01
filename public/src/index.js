@@ -23,12 +23,12 @@ let perfStart = 0.0
 let active = true
 let client = null
 
-function tick() {
+function tick(timestamp) {
   if (active) {
     let perf
     if (PERFORMANCE) perf = performance.now()
 
-    client.update()
+    client.update(timestamp)
     client.render()
 
     if (PERFORMANCE) {
