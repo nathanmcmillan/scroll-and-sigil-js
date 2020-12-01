@@ -62,27 +62,19 @@ export class PaintEdit {
 
     let sheetMagnify = 2 * scale
     let sheetWidth = this.sheetColumns * sheetMagnify
-    // let sheetHeight = this.sheetRows * sheetMagnify
+    let sheetHeight = this.sheetRows * sheetMagnify
 
     let minimumWidth = sheetWidth
+    let minimumHeight = sheetHeight
 
     let middle = 0.5 * width
-    // let center = 0.5 * height
-
-    // let sheetBox = {
-    //   left: null,
-    //   top: null,
-    //   padtop: 0,
-    //   padbottom: 0,
-    //   padleft: 0,
-    //   padright: 0,
-    // }
+    let center = 0.5 * height
 
     this.canvasLeft = Math.floor(middle - 0.5 * minimumWidth)
     this.canvasWidth = minimumWidth
 
-    this.canvasTop = 0
-    this.canvasHeight = 0
+    this.canvasTop = Math.floor(center - 0.5 * minimumHeight)
+    this.canvasHeight = minimumHeight
 
     this.displaySheetLeft = this.canvasLeft
   }
@@ -96,12 +88,17 @@ export class PaintEdit {
     let height = parseInt(dimensions[1])
     index++
 
-    let sheet = this.sheets[into]
+    const sheet = this.sheets[into]
+    const rows = this.sheetRows
+    const columns = this.sheetColumns
+
+    if (height > rows) height = rows
+    if (width > columns) width = columns
 
     for (let h = 0; h < height; h++) {
       let row = image[index].split(' ')
       for (let c = 0; c < width; c++) {
-        sheet[c + h * width] = parseInt(row[c])
+        sheet[c + h * columns] = parseInt(row[c])
       }
       index++
     }

@@ -25,6 +25,26 @@ function updatePixelsToTexture(gl, texture, width, height, pixels) {
   return texture
 }
 
+function guessColor(red, green, blue) {}
+
+function convertImageToText(image) {
+  const width = image.width
+  const height = image.height
+  const pixels = image.data
+  let text = width + ' ' + height
+  for (let h = 0; h < height; h++) {
+    text += '\n'
+    for (let c = 0; c < width; c++) {
+      let index = c + h * width
+      let red = pixels[index]
+      let green = pixels[index + 1]
+      let blue = pixels[index + 2]
+      text += guessColor(red, green, blue) + ' '
+    }
+  }
+  return text
+}
+
 export class PaintState {
   constructor(client) {
     this.client = client
@@ -116,6 +136,10 @@ export class PaintState {
             image.src = content
             image.onload = () => {
               console.log(image)
+              content = convertImageToText(image)
+              console.log(content)
+              this.painter.read(content, 0)
+              this.updateTexture()
             }
           }
         } else {
