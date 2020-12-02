@@ -162,10 +162,10 @@ function referenceLinesFromVec(vec, lines) {
 }
 
 export class MapEdit {
-  constructor(width, height, callbacks) {
+  constructor(width, height, scale, callbacks) {
     this.width = width
     this.height = height
-    this.scale = 1
+    this.scale = scale
     this.callbacks = callbacks
     this.input = new In.Input()
     this.camera = new Camera(0.0, 1.0, 0.0, 0.0, 0.0)

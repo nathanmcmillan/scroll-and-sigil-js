@@ -4,7 +4,7 @@ export class SfxState {
   constructor(client) {
     this.client = client
 
-    let sfx = new SfxEdit(client.width, client.height)
+    let sfx = new SfxEdit(client.width, client.height, client.scale)
     this.sfx = sfx
   }
 

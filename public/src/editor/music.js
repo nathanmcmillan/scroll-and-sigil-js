@@ -1,10 +1,10 @@
 import * as In from '/src/input/input.js'
 
 export class MusicEdit {
-  constructor(width, height) {
+  constructor(width, height, scale) {
     this.width = width
     this.height = height
-    this.scale = 1
+    this.scale = scale
     this.input = new In.Input()
     this.shadowInput = true
     this.doPaint = true

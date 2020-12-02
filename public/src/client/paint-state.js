@@ -25,7 +25,10 @@ function updatePixelsToTexture(gl, texture, width, height, pixels) {
   return texture
 }
 
-function guessColor(red, green, blue) {}
+function guessColor(red, green, blue) {
+  let lumin = 0.2126 * red + 0.7152 * green + 0.0722 * blue
+  console.log('lumin', lumin)
+}
 
 function convertImageToText(image) {
   const width = image.width
@@ -80,7 +83,7 @@ export class PaintState {
     this.view = new Float32Array(16)
     this.projection = new Float32Array(16)
 
-    let painter = new PaintEdit(client.width, client.height)
+    let painter = new PaintEdit(client.width, client.height, client.scale)
     this.painter = painter
 
     let rows = painter.sheetRows
@@ -258,7 +261,8 @@ export class PaintState {
     magnify = 2 * scale
     height = sheetRows * magnify
     top = canvasHeight - 100 - height
-    left = painter.displaySheetLeft
+    left = 100
+    // left = painter.displaySheetLeft
 
     drawImage(client.bufferGUI, left, top, sheetColumns * magnify, height, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0)
 

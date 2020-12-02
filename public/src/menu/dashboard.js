@@ -1,6 +1,8 @@
 import * as In from '/src/input/input.js'
 
-export class SfxEdit {
+const INPUT_RATE = 128
+
+export class Dashboard {
   constructor(width, height, scale) {
     this.width = width
     this.height = height
@@ -8,7 +10,9 @@ export class SfxEdit {
     this.input = new In.Input()
     this.shadowInput = true
     this.doPaint = true
-    this.hasUpdates = false
+
+    this.column = 0
+    this.yes = false
   }
 
   resize(width, height, scale) {
@@ -21,15 +25,26 @@ export class SfxEdit {
 
   async load() {}
 
-  update() {
+  update(timestamp) {
     this.doPaint = false
     if (this.input.nothingOn()) {
       if (this.shadowInput) this.shadowInput = false
       else return
     } else this.shadowInput = true
     this.doPaint = true
-    this.hasUpdates = false
-  }
 
-  export() {}
+    let input = this.input
+
+    if (input.timerMoveLeft(timestamp, INPUT_RATE)) {
+      this.column--
+      if (this.column < 0) this.column = 0
+    }
+
+    if (input.timerMoveRight(timestamp, INPUT_RATE)) {
+      this.column++
+      if (this.column > 3) this.column = 3
+    }
+
+    if (input.pressButtonA()) this.yes = true
+  }
 }

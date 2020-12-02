@@ -3,10 +3,11 @@ import {textureByName} from '/src/assets/assets.js'
 import {drawTextSpecial, FONT_WIDTH, FONT_HEIGHT} from '/src/render/render.js'
 import {identity, multiply} from '/src/math/matrix.js'
 import {darkbluef, whitef} from '/src/editor/palette.js'
-import {MainMenu} from '/src/menu/menu.js'
+import {flexBox, flexSolve} from '/src/flex/flex.js'
+import {Home} from '/src/menu/home.js'
 import * as In from '/src/input/input.js'
 
-export class MainMenuState {
+export class HomeState {
   constructor(client) {
     this.client = client
 
@@ -41,15 +42,15 @@ export class MainMenuState {
     this.view = new Float32Array(16)
     this.projection = new Float32Array(16)
 
-    this.menu = new MainMenu(client.width, client.height)
+    this.home = new Home(client.width, client.height, client.scale)
   }
 
   resize(width, height, scale) {
-    this.menu.resize(width, height, scale)
+    this.home.resize(width, height, scale)
   }
 
   keyEvent(code, down) {
-    if (this.keys.has(code)) this.menu.input.set(this.keys.get(code), down)
+    if (this.keys.has(code)) this.home.input.set(this.keys.get(code), down)
   }
 
   mouseEvent() {}
@@ -58,20 +59,31 @@ export class MainMenuState {
 
   async initialize() {}
 
-  update() {
-    this.menu.update()
+  update(timestamp) {
+    let home = this.home
+    home.update(timestamp)
+    if (home.yes) {
+      let client = this.client
+      if (home.row === 0) {
+        client.openState('game')
+      } else if (home.row === 1) {
+        client.openState('game')
+      } else if (home.row === 2) {
+        client.openState('dashboard')
+      }
+    }
   }
 
   render() {
-    const menu = this.menu
-    if (!menu.doPaint) return
+    const home = this.home
+    if (!home.doPaint) return
 
     const client = this.client
     const gl = client.gl
     const rendering = client.rendering
     const view = this.view
     const projection = this.projection
-    const scale = menu.scale
+    const scale = home.scale
     const width = client.width
     const height = client.height
     const fontWidth = scale * FONT_WIDTH
@@ -102,66 +114,58 @@ export class MainMenuState {
     rendering.setView(0, 0, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
 
-    let text = 'main menu'
-    let mainMenu = {
-      x: 0,
-      y: 0,
-      left: 'center',
-      top: '75p',
-      padtop: 0,
-      padbottom: 0,
-      padleft: 0,
-      padright: 0,
-      width: fontWidth * text.length,
-      height: fontHeight,
-    }
+    let text = 'Scroll and Sigil'
+    let mainMenu = flexBox(fontWidth * text.length, fontHeight)
+    mainMenu.bottomSpace = fontHeight
+    mainMenu.funX = 'center'
+    mainMenu.funY = '%'
+    mainMenu.argY = 75
     flexSolve(width, height, mainMenu)
     drawTextSpecial(client.bufferGUI, mainMenu.x, mainMenu.y, text, scale, white0, white1, white2)
 
     text = 'continue game'
-    let continueGame = {
-      x: 0,
-      y: 0,
-      align: mainMenu,
-      below: mainMenu,
-      padtop: 0,
-      padbottom: 0,
-      padleft: 0,
-      padright: 0,
-      width: fontWidth * text.length,
-      height: fontHeight,
-    }
+    let continueGame = flexBox(fontWidth * text.length, fontHeight)
+    continueGame.leftSpace = fontWidth
+    continueGame.funX = 'center'
+    continueGame.fromX = mainMenu
+    continueGame.funY = 'below'
+    continueGame.fromY = mainMenu
     flexSolve(width, height, continueGame)
     drawTextSpecial(client.bufferGUI, continueGame.x, continueGame.y, text, scale, white0, white1, white2)
 
+    text = 'start new game'
+    let startNewGame = flexBox(fontWidth * text.length, fontHeight)
+    startNewGame.leftSpace = fontWidth
+    startNewGame.funX = 'center'
+    startNewGame.fromX = continueGame
+    startNewGame.funY = 'below'
+    startNewGame.fromY = continueGame
+    flexSolve(width, height, startNewGame)
+    drawTextSpecial(client.bufferGUI, startNewGame.x, startNewGame.y, text, scale, white0, white1, white2)
+
     text = 'open editor'
-    let openEditor = {
-      x: 0,
-      y: 0,
-      align: continueGame,
-      below: continueGame,
-      padtop: 0,
-      padbottom: 0,
-      padleft: 0,
-      padright: 0,
-      width: fontWidth * text.length,
-      height: fontHeight,
-    }
+    let openEditor = flexBox(fontWidth * text.length, fontHeight)
+    openEditor.leftSpace = fontWidth
+    openEditor.funX = 'center'
+    openEditor.fromX = startNewGame
+    openEditor.funY = 'below'
+    openEditor.fromY = startNewGame
     flexSolve(width, height, openEditor)
     drawTextSpecial(client.bufferGUI, openEditor.x, openEditor.y, text, scale, white0, white1, white2)
 
-    text = '()'
-    let indicator = {
-      x: 0,
-      y: 0,
-      align: continueGame,
-      below: continueGame,
-      padtop: 0,
-      padbottom: 0,
-      padleft: 0,
-      padright: 0,
-      width: fontWidth * text.length,
-      height: fontHeight,
+    text = ')'
+    let indicator = flexBox(fontWidth * text.length, fontHeight)
+    indicator.funX = 'left-of'
+    indicator.funY = 'center'
+    if (home.row === 0) {
+      indicator.fromX = continueGame
+      indicator.fromY = continueGame
+    } else if (home.row === 1) {
+      indicator.fromX = startNewGame
+      indicator.fromY = startNewGame
+    } else if (home.row === 2) {
+      indicator.fromX = openEditor
+      indicator.fromY = openEditor
     }
     flexSolve(width, height, indicator)
     drawTextSpecial(client.bufferGUI, indicator.x, indicator.y, text, scale, white0, white1, white2)
@@ -169,35 +173,4 @@ export class MainMenuState {
     rendering.bindTexture(gl.TEXTURE0, textureByName('font').texture)
     rendering.updateAndDraw(client.bufferGUI)
   }
-}
-
-function flexSolve(width, height, flex) {
-  if (flex.left) {
-    if (flex.left === 'center') {
-      flex.x = Math.floor(0.5 * width - 0.5 * flex.width)
-    } else if (flex.left.endsWith('p')) {
-      let percent = parseFloat(flex.left.substring(0, flex.left.length - 1)) / 100.0
-      flex.x = Math.floor(percent * width)
-    } else {
-      flex.x = parseFloat(flex.left)
-    }
-  } else if (flex.align) {
-    console.log('align...', flex.align)
-    flex.x = flex.align.x
-  }
-  if (flex.top) {
-    if (flex.top === 'center') {
-      flex.y = Math.floor(0.5 * height - 0.5 * flex.height)
-    } else if (flex.top.endsWith('p')) {
-      let percent = parseFloat(flex.top.substring(0, flex.top.length - 1)) / 100.0
-      flex.y = Math.floor(percent * height)
-    } else {
-      flex.y = parseFloat(flex.top)
-    }
-  } else if (flex.below) {
-    console.log('below...', flex.below)
-    flex.y = flex.below.y - flex.below.padbottom - flex.height
-  }
-  console.log(flex)
-  return flex
 }

@@ -45,7 +45,7 @@ export class MapState {
     this.view = new Float32Array(16)
     this.projection = new Float32Array(16)
 
-    this.editor = new MapEdit(client.width, client.height, callbacks)
+    this.editor = new MapEdit(client.width, client.height, client.scale, callbacks)
   }
 
   resize(width, height, scale) {

@@ -11,8 +11,9 @@ import {PaintState} from '/src/client/paint-state.js'
 import {SfxState} from '/src/client/sfx-state.js'
 import {MusicState} from '/src/client/music-state.js'
 import {MapState} from '/src/client/map-state.js'
+import {DashboardState} from '/src/client/dashboard-state.js'
 import {GameState} from '/src/client/game-state.js'
-import {MainMenuState} from '/src/client/main-menu-state.js'
+import {HomeState} from '/src/client/home-state.js'
 import * as Wad from '/src/wad/wad.js'
 
 export class Client {
@@ -26,6 +27,7 @@ export class Client {
     this.mouseRight = false
     this.mouseX = 0
     this.mouseY = 0
+    this.scale = 1
     this.orthographic = new Float32Array(16)
     this.perspective = new Float32Array(16)
     this.rendering = null
@@ -93,9 +95,9 @@ export class Client {
 
     let x = Math.ceil(width / 800)
     let y = Math.ceil(height / 600)
-    let scale = Math.min(x, y)
+    this.scale = Math.min(x, y)
 
-    this.state.resize(width, height, scale)
+    this.state.resize(width, height, this.scale)
   }
 
   getSectorBuffer(texture) {
@@ -149,6 +151,8 @@ export class Client {
     let pack = main.get('package')
     let directory = '/pack/' + pack
     let contents = Wad.parse(await fetchText(directory + '/' + pack + '.wad'))
+
+    this.ini = main
 
     for (const entity of contents.get('entities')) {
       saveEntity(entity, directory, '/entities/' + entity + '.wad')
@@ -233,12 +237,16 @@ export class Client {
 
     rendering.updateVAO(this.bufferSky, gl.STATIC_DRAW)
 
-    let file = null
+    await this.openState(main.get('open'))
+  }
 
-    switch (main.get('open')) {
+  async openState(open) {
+    let ini = this.ini
+    let file = null
+    switch (open) {
       case 'paint':
         this.state = new PaintState(this)
-        if (main.has('image')) file = '/pack/default/textures/' + main.get('image') + '.image'
+        if (ini.has('image')) file = '/pack/default/textures/' + ini.get('image') + '.image'
         break
       case 'sfx':
         this.state = new SfxState(this)
@@ -248,16 +256,18 @@ export class Client {
         break
       case 'maps':
         this.state = new MapState(this)
-        if (main.has('map')) file = '/maps/' + main.get('map') + '.map'
+        if (ini.has('map')) file = '/maps/' + ini.get('map') + '.map'
+        break
+      case 'dashboard':
+        this.state = new DashboardState(this)
         break
       case 'game':
         this.state = new GameState(this)
-        if (main.has('map')) file = '/maps/' + main.get('map') + '.map'
+        if (ini.has('map')) file = '/maps/' + ini.get('map') + '.map'
         break
       default:
-        this.state = new MainMenuState(this)
+        this.state = new HomeState(this)
     }
-
     await this.state.initialize(file)
   }
 
