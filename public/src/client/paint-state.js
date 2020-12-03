@@ -1,10 +1,8 @@
-import {TwoWayMap} from '/src/util/collections.js'
 import {exportSheetPixels, exportSheetToCanvas, PaintEdit} from '/src/editor/paint.js'
 import {textureByName} from '/src/assets/assets.js'
 import {drawTextSpecial, drawRectangle, drawHollowRectangle, drawImage, FONT_HEIGHT} from '/src/render/render.js'
 import {identity, multiply} from '/src/math/matrix.js'
-import {darkbluef, whitef} from '/src/editor/palette.js'
-import * as In from '/src/input/input.js'
+import {darkbluef, whitef, luminTable} from '/src/editor/palette.js'
 
 function newPixelsToTexture(gl, width, height, pixels) {
   let texture = gl.createTexture()
@@ -25,15 +23,29 @@ function updatePixelsToTexture(gl, texture, width, height, pixels) {
   return texture
 }
 
-function guessColor(red, green, blue) {
-  let lumin = 0.2126 * red + 0.7152 * green + 0.0722 * blue
+function luminosity(red, green, blue) {
+  return 0.2126 * red + 0.7152 * green + 0.0722 * blue
+}
+
+function guessColor(table, red, green, blue) {
+  let lumin = luminosity(red, green, blue)
   console.log('lumin', lumin)
+  return 0
 }
 
 function convertImageToText(image) {
   const width = image.width
   const height = image.height
-  const pixels = image.data
+
+  let canvas = document.createElement('canvas')
+  let context = canvas.getContext('2d')
+  canvas.width = width
+  canvas.height = height
+  context.drawImage(image, 0, 0)
+  let pixels = context.getImageData(0, 0, width, height).data
+
+  let table = luminTable()
+
   let text = width + ' ' + height
   for (let h = 0; h < height; h++) {
     text += '\n'
@@ -42,7 +54,7 @@ function convertImageToText(image) {
       let red = pixels[index]
       let green = pixels[index + 1]
       let blue = pixels[index + 2]
-      text += guessColor(red, green, blue) + ' '
+      text += guessColor(table, red, green, blue) + ' '
     }
   }
   return text
@@ -51,39 +63,12 @@ function convertImageToText(image) {
 export class PaintState {
   constructor(client) {
     this.client = client
-
-    let keys = new TwoWayMap()
-    keys.set('KeyW', In.MOVE_FORWARD)
-    keys.set('KeyA', In.MOVE_LEFT)
-    keys.set('KeyS', In.MOVE_BACKWARD)
-    keys.set('KeyD', In.MOVE_RIGHT)
-    keys.set('KeyQ', In.MOVE_UP)
-    keys.set('KeyE', In.MOVE_DOWN)
-    keys.set('ArrowLeft', In.LOOK_LEFT)
-    keys.set('ArrowRight', In.LOOK_RIGHT)
-    keys.set('ArrowUp', In.LOOK_UP)
-    keys.set('ArrowDown', In.LOOK_DOWN)
-    keys.set('Enter', In.BUTTON_A)
-    keys.set('KeyC', In.BUTTON_B)
-    keys.set('KeyN', In.BUTTON_X)
-    keys.set('KeyM', In.BUTTON_Y)
-    keys.set('KeyI', In.OPEN_MENU)
-    keys.set('KeyM', In.OPEN_TOOL_MENU)
-    keys.set('KeyV', In.SWITCH_MODE)
-    keys.set('KeyZ', In.ZOOM_IN)
-    keys.set('KeyX', In.ZOOM_OUT)
-    keys.set('KeyU', In.UNDO)
-    keys.set('KeyR', In.REDO)
-    keys.set('KeyG', In.SNAP_TO_GRID)
-    keys.set('ShiftLeft', In.LEFT_TRIGGER)
-    keys.set('ShiftRight', In.RIGHT_TRIGGER)
-
-    this.keys = keys
+    this.keys = client.keys
 
     this.view = new Float32Array(16)
     this.projection = new Float32Array(16)
 
-    let painter = new PaintEdit(client.width, client.height, client.scale)
+    let painter = new PaintEdit(client.width, client.height, client.scale, client.input)
     this.painter = painter
 
     let rows = painter.sheetRows

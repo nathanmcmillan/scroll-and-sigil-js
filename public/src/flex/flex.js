@@ -17,8 +17,23 @@ class FlexBox {
   }
 }
 
+class FlexText extends FlexBox {
+  constructor() {
+    super()
+    this.text = ''
+  }
+}
+
 export function flexBox(width = 0, height = 0) {
   let flex = new FlexBox()
+  flex.width = width
+  flex.height = height
+  return flex
+}
+
+export function flexText(text, width = 0, height = 0) {
+  let flex = new FlexText()
+  flex.text = text
   flex.width = width
   flex.height = height
   return flex

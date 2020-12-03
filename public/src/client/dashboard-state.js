@@ -1,48 +1,19 @@
-import {TwoWayMap} from '/src/util/collections.js'
 import {textureByName} from '/src/assets/assets.js'
 import {drawTextSpecial, FONT_WIDTH, FONT_HEIGHT} from '/src/render/render.js'
 import {identity, multiply} from '/src/math/matrix.js'
 import {darkbluef, whitef} from '/src/editor/palette.js'
 import {flexBox, flexSolve} from '/src/flex/flex.js'
 import {Dashboard} from '/src/menu/dashboard.js'
-import * as In from '/src/input/input.js'
 
 export class DashboardState {
   constructor(client) {
     this.client = client
-
-    let keys = new TwoWayMap()
-    keys.set('KeyW', In.MOVE_FORWARD)
-    keys.set('KeyA', In.MOVE_LEFT)
-    keys.set('KeyS', In.MOVE_BACKWARD)
-    keys.set('KeyD', In.MOVE_RIGHT)
-    keys.set('KeyQ', In.MOVE_UP)
-    keys.set('KeyE', In.MOVE_DOWN)
-    keys.set('ArrowLeft', In.LOOK_LEFT)
-    keys.set('ArrowRight', In.LOOK_RIGHT)
-    keys.set('ArrowUp', In.LOOK_UP)
-    keys.set('ArrowDown', In.LOOK_DOWN)
-    keys.set('Enter', In.BUTTON_A)
-    keys.set('KeyC', In.BUTTON_B)
-    keys.set('KeyN', In.BUTTON_X)
-    keys.set('KeyM', In.BUTTON_Y)
-    keys.set('KeyI', In.OPEN_MENU)
-    keys.set('KeyM', In.OPEN_TOOL_MENU)
-    keys.set('KeyV', In.SWITCH_MODE)
-    keys.set('KeyZ', In.ZOOM_IN)
-    keys.set('KeyX', In.ZOOM_OUT)
-    keys.set('KeyU', In.UNDO)
-    keys.set('KeyR', In.REDO)
-    keys.set('KeyG', In.SNAP_TO_GRID)
-    keys.set('ShiftLeft', In.LEFT_TRIGGER)
-    keys.set('ShiftRight', In.RIGHT_TRIGGER)
-
-    this.keys = keys
+    this.keys = client.keys
 
     this.view = new Float32Array(16)
     this.projection = new Float32Array(16)
 
-    this.dashboard = new Dashboard(client.width, client.height, client.scale)
+    this.dashboard = new Dashboard(client.width, client.height, client.scale, client.input)
   }
 
   resize(width, height, scale) {

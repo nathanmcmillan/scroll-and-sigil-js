@@ -1,13 +1,11 @@
-import * as In from '/src/input/input.js'
-
 const INPUT_RATE = 128
 
 export class Dashboard {
-  constructor(width, height, scale) {
+  constructor(width, height, scale, input) {
     this.width = width
     this.height = height
     this.scale = scale
-    this.input = new In.Input()
+    this.input = input
     this.shadowInput = true
     this.doPaint = true
 
@@ -35,16 +33,16 @@ export class Dashboard {
 
     let input = this.input
 
-    if (input.timerMoveLeft(timestamp, INPUT_RATE)) {
+    if (input.timerLeftLeft(timestamp, INPUT_RATE)) {
       this.column--
       if (this.column < 0) this.column = 0
     }
 
-    if (input.timerMoveRight(timestamp, INPUT_RATE)) {
+    if (input.timerLeftRight(timestamp, INPUT_RATE)) {
       this.column++
       if (this.column > 3) this.column = 3
     }
 
-    if (input.pressButtonA()) this.yes = true
+    if (input.pressA()) this.yes = true
   }
 }

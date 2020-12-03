@@ -1,11 +1,9 @@
-import * as In from '/src/input/input.js'
-
 export class MusicEdit {
-  constructor(width, height, scale) {
+  constructor(width, height, scale, input) {
     this.width = width
     this.height = height
     this.scale = scale
-    this.input = new In.Input()
+    this.input = input
     this.shadowInput = true
     this.doPaint = true
     this.hasUpdates = false

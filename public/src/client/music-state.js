@@ -4,7 +4,7 @@ export class MusicState {
   constructor(client) {
     this.client = client
 
-    let music = new MusicEdit(client.width, client.height, client.scale)
+    let music = new MusicEdit(client.width, client.height, client.scale, client.input)
     this.music = music
   }
 

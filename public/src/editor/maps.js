@@ -463,24 +463,23 @@ export class MapEdit {
     const cursor = this.cursor
     const camera = this.camera
 
-    if (input.openToolMenu()) {
-      input.in[In.OPEN_TOOL_MENU] = false
+    if (input.pressPadDown()) {
       this.toolSelectionActive = !this.toolSelectionActive
     }
 
     if (this.toolSelectionActive) {
-      if (input.pressButtonA()) {
+      if (input.pressA()) {
         this.toolSelectionActive = false
-      } else if (input.moveForward() || input.lookUp()) {
-        input.in[In.MOVE_FORWARD] = false
-        input.in[In.LOOK_UP] = false
+      } else if (input.leftUp() || input.rightUp()) {
+        input.in[In.LEFT_STICK_UP] = false
+        input.in[In.RIGHT_STICK_UP] = false
         if (this.tool > 0) {
           this.tool--
           this.switchTool()
         }
-      } else if (input.moveBackward() || input.lookDown()) {
-        input.in[In.MOVE_BACKWARD] = false
-        input.in[In.LOOK_DOWN] = false
+      } else if (input.leftDown() || input.rightDown()) {
+        input.in[In.LEFT_STICK_DOWN] = false
+        input.in[In.RIGHT_STICK_DOWN] = false
         if (this.tool + 1 < TOOL_COUNT) {
           this.tool++
           this.switchTool()
@@ -489,8 +488,7 @@ export class MapEdit {
       return
     }
 
-    if (input.switchMode()) {
-      input.in[In.SWITCH_MODE] = false
+    if (input.pressPadLeft()) {
       this.mode = VIEW_MODE
       this.camera.x += cursor.x / this.zoom
       this.camera.z += cursor.y / this.zoom
@@ -498,25 +496,23 @@ export class MapEdit {
       return
     }
 
-    if (input.openMenu()) {
-      input.in[In.OPEN_MENU] = false
+    if (input.pressPadRight()) {
       this.menuActive = !this.menuActive
       return
     }
 
-    if (input.snapToGrid()) {
-      input.in[In.SNAP_TO_GRID] = false
+    if (input.pressPadUp()) {
       this.snapToGrid = !this.snapToGrid
       return
     }
 
-    if (input.zoomIn()) {
+    if (input.leftClick()) {
       this.zoom += 0.25
       this.camera.x -= 1.0 / this.zoom
       this.camera.z -= 1.0 / this.zoom
     }
 
-    if (input.zoomOut()) {
+    if (input.rightClick()) {
       this.zoom -= 0.25
       this.camera.x += 1.0 / this.zoom
       this.camera.z += 1.0 / this.zoom
@@ -524,28 +520,28 @@ export class MapEdit {
 
     if (this.snapToGrid) {
       const grid = 10
-      if (input.pressLookLeft()) {
+      if (input.pressRightLeft()) {
         let x = Math.floor(cursor.x)
         let modulo = x % grid
         if (modulo == 0) cursor.x -= grid
         else cursor.x -= modulo
         if (cursor.x < 0.0) cursor.x = 0.0
       }
-      if (input.pressLookRight()) {
+      if (input.pressRightight()) {
         let x = Math.floor(cursor.x)
         let modulo = x % grid
         if (modulo == 0) cursor.x += grid
         else cursor.x += grid - modulo
         if (cursor.x > this.width) cursor.x = this.width
       }
-      if (input.pressLookUp()) {
+      if (input.pressRightUp()) {
         let y = Math.floor(cursor.y)
         let modulo = y % grid
         if (modulo == 0) cursor.y += grid
         else cursor.y += grid - modulo
         if (cursor.y > this.height) cursor.y = this.height
       }
-      if (input.pressLookDown()) {
+      if (input.pressRightDown()) {
         let y = Math.floor(cursor.y)
         let modulo = y % grid
         if (modulo == 0) cursor.y -= grid
@@ -553,25 +549,25 @@ export class MapEdit {
         if (cursor.y < 0.0) cursor.y = 0.0
       }
 
-      if (input.pressMoveLeft()) {
+      if (input.pressLeftLeft()) {
         let x = Math.floor(camera.x)
         let modulo = x % grid
         if (modulo == 0) camera.x -= grid
         else camera.x -= modulo
       }
-      if (input.pressMoveRight()) {
+      if (input.pressLeftRight()) {
         let x = Math.floor(camera.x)
         let modulo = x % grid
         if (modulo == 0) camera.x += grid
         else camera.x += grid - modulo
       }
-      if (input.pressMoveForward()) {
+      if (input.pressLeftUp()) {
         let z = Math.floor(camera.z)
         let modulo = z % grid
         if (modulo == 0) camera.z += grid
         else camera.z += grid - modulo
       }
-      if (input.pressMoveBackward()) {
+      if (input.pressLeftDown()) {
         let z = Math.floor(camera.z)
         let modulo = z % grid
         if (modulo == 0) camera.z -= grid
@@ -579,34 +575,34 @@ export class MapEdit {
       }
     } else {
       const look = input.leftTrigger() ? 5.0 : 1.0
-      if (input.lookLeft()) {
+      if (input.rightLeft()) {
         cursor.x -= look
         if (cursor.x < 0.0) cursor.x = 0.0
       }
-      if (input.lookRight()) {
+      if (input.rightRight()) {
         cursor.x += look
         if (cursor.x > this.width) cursor.x = this.width
       }
-      if (input.lookUp()) {
+      if (input.rightUp()) {
         cursor.y += look
         if (cursor.y > this.height) cursor.y = this.height
       }
-      if (input.lookDown()) {
+      if (input.rightDown()) {
         cursor.y -= look
         if (cursor.y < 0.0) cursor.y = 0.0
       }
 
       const speed = input.leftTrigger() ? 2.0 : 0.5
-      if (input.moveLeft()) {
+      if (input.leftLeft()) {
         camera.x -= speed
       }
-      if (input.moveRight()) {
+      if (input.leftRight()) {
         camera.x += speed
       }
-      if (input.moveForward()) {
+      if (input.leftUp()) {
         camera.z += speed
       }
-      if (input.moveBackward()) {
+      if (input.leftDown()) {
         camera.z -= speed
       }
     }
@@ -822,8 +818,7 @@ export class MapEdit {
     let input = this.input
     let camera = this.camera
 
-    if (input.switchMode()) {
-      input.in[In.SWITCH_MODE] = false
+    if (input.pressPadRight()) {
       this.mode = TOP_MODE
       let cursor = this.cursor
       this.camera.x -= cursor.x / this.zoom
@@ -831,22 +826,22 @@ export class MapEdit {
       return
     }
 
-    if (input.lookLeft()) {
+    if (input.rightLeft()) {
       camera.ry -= 0.05
       if (camera.ry < 0.0) camera.ry += 2.0 * Math.PI
     }
 
-    if (input.lookRight()) {
+    if (input.rightRight()) {
       camera.ry += 0.05
       if (camera.ry >= 2.0 * Math.PI) camera.ry -= 2.0 * Math.PI
     }
 
-    if (input.lookUp()) {
+    if (input.rightUp()) {
       camera.rx -= 0.05
       if (camera.rx < 0.0) camera.rx += 2.0 * Math.PI
     }
 
-    if (input.lookDown()) {
+    if (input.rightDown()) {
       camera.rx += 0.05
       if (camera.rx >= 2.0 * Math.PI) camera.rx -= 2.0 * Math.PI
     }
@@ -864,12 +859,12 @@ export class MapEdit {
     let direction = null
     let rotation = null
 
-    if (input.moveForward()) {
+    if (input.leftUp()) {
       direction = 'w'
       rotation = camera.ry
     }
 
-    if (input.moveBackward()) {
+    if (input.leftDown()) {
       if (direction === null) {
         direction = 's'
         rotation = camera.ry + Math.PI
@@ -879,7 +874,7 @@ export class MapEdit {
       }
     }
 
-    if (input.moveLeft()) {
+    if (input.leftLeft()) {
       if (direction === null) {
         direction = 'a'
         rotation = camera.ry - 0.5 * Math.PI
@@ -892,7 +887,7 @@ export class MapEdit {
       }
     }
 
-    if (input.moveRight()) {
+    if (input.leftRight()) {
       if (direction === null) {
         rotation = camera.ry + 0.5 * Math.PI
       } else if (direction === 'a') {

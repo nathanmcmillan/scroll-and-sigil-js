@@ -1,18 +1,27 @@
-import * as In from '/src/input/input.js'
+import {flexText, flexSolve} from '/src/flex/flex.js'
+import {FONT_WIDTH, FONT_HEIGHT} from '/src/render/render.js'
+import {playSound} from '/src/assets/sounds.js'
 
 const INPUT_RATE = 128
 
 export class Home {
-  constructor(width, height, scale) {
+  constructor(width, height, scale, input) {
     this.width = width
     this.height = height
     this.scale = scale
-    this.input = new In.Input()
+    this.input = input
     this.shadowInput = true
     this.doPaint = true
 
     this.row = 0
     this.yes = false
+
+    this.titleBox = null
+    this.continueGameBox = null
+    this.newGameBox = null
+    this.editorBox = null
+    this.optionsBox = null
+    this.creditsBox = null
   }
 
   resize(width, height, scale) {
@@ -21,9 +30,77 @@ export class Home {
     this.scale = scale
     this.shadowInput = true
     this.doPaint = true
+
+    this.layout()
   }
 
   async load() {}
+
+  layout() {
+    const width = this.width
+    const height = this.height
+    const fontWidth = this.scale * FONT_WIDTH
+    const fontHeight = this.scale * FONT_HEIGHT
+
+    let text = 'Scroll and Sigil'
+    let titleBox = flexText(text, fontWidth * text.length, fontHeight)
+    titleBox.bottomSpace = fontHeight
+    titleBox.funX = 'center'
+    titleBox.funY = '%'
+    titleBox.argY = 75
+    flexSolve(width, height, titleBox)
+    this.titleBox = titleBox
+
+    text = 'continue'
+    let continueGameBox = flexText(text, fontWidth * text.length, fontHeight)
+    continueGameBox.leftSpace = fontWidth
+    continueGameBox.funX = 'center'
+    continueGameBox.fromX = titleBox
+    continueGameBox.funY = 'below'
+    continueGameBox.fromY = titleBox
+    flexSolve(width, height, continueGameBox)
+    this.continueGameBox = continueGameBox
+
+    text = 'new game'
+    let newGameBox = flexText(text, fontWidth * text.length, fontHeight)
+    newGameBox.leftSpace = fontWidth
+    newGameBox.funX = 'center'
+    newGameBox.fromX = continueGameBox
+    newGameBox.funY = 'below'
+    newGameBox.fromY = continueGameBox
+    flexSolve(width, height, newGameBox)
+    this.newGameBox = newGameBox
+
+    text = 'editor'
+    let editorBox = flexText(text, fontWidth * text.length, fontHeight)
+    editorBox.leftSpace = fontWidth
+    editorBox.funX = 'center'
+    editorBox.fromX = newGameBox
+    editorBox.funY = 'below'
+    editorBox.fromY = newGameBox
+    flexSolve(width, height, editorBox)
+    this.editorBox = editorBox
+
+    text = 'options'
+    let optionsBox = flexText(text, fontWidth * text.length, fontHeight)
+    optionsBox.leftSpace = fontWidth
+    optionsBox.funX = 'center'
+    optionsBox.fromX = editorBox
+    optionsBox.funY = 'below'
+    optionsBox.fromY = editorBox
+    flexSolve(width, height, optionsBox)
+    this.optionsBox = optionsBox
+
+    text = 'credits'
+    let creditsBox = flexText(text, fontWidth * text.length, fontHeight)
+    creditsBox.leftSpace = fontWidth
+    creditsBox.funX = 'center'
+    creditsBox.fromX = optionsBox
+    creditsBox.funY = 'below'
+    creditsBox.fromY = optionsBox
+    flexSolve(width, height, creditsBox)
+    this.creditsBox = creditsBox
+  }
 
   update(timestamp) {
     this.doPaint = false
@@ -35,16 +112,18 @@ export class Home {
 
     let input = this.input
 
-    if (input.timerMoveForward(timestamp, INPUT_RATE)) {
+    if (input.timerLeftUp(timestamp, INPUT_RATE)) {
       this.row--
       if (this.row < 0) this.row = 0
+      else playSound('baron-pain')
     }
 
-    if (input.timerMoveBackward(timestamp, INPUT_RATE)) {
+    if (input.timerLeftDown(timestamp, INPUT_RATE)) {
       this.row++
-      if (this.row > 2) this.row = 2
+      if (this.row > 4) this.row = 4
+      else playSound('baron-pain')
     }
 
-    if (input.pressButtonA()) this.yes = true
+    if (input.pressA()) this.yes = true
   }
 }

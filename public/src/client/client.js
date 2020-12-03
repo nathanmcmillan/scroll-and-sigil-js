@@ -14,7 +14,9 @@ import {MapState} from '/src/client/map-state.js'
 import {DashboardState} from '/src/client/dashboard-state.js'
 import {GameState} from '/src/client/game-state.js'
 import {HomeState} from '/src/client/home-state.js'
+import {TwoWayMap} from '/src/util/collections.js'
 import * as Wad from '/src/wad/wad.js'
+import * as In from '/src/input/input.js'
 
 export class Client {
   constructor(canvas, gl) {
@@ -38,6 +40,8 @@ export class Client {
     this.spriteBuffers = new Map()
     this.music = null
     this.state = null
+    this.keys = null
+    this.input = null
   }
 
   keyEvent(code, down) {
@@ -236,6 +240,48 @@ export class Client {
     rendering.makeVAO(this.bufferSky)
 
     rendering.updateVAO(this.bufferSky, gl.STATIC_DRAW)
+
+    let keys = new TwoWayMap()
+
+    keys.set('Enter', In.BUTTON_START)
+    keys.set('Backslash', In.BUTTON_SELECT)
+
+    keys.set('KeyW', In.LEFT_STICK_UP)
+    keys.set('KeyA', In.LEFT_STICK_LEFT)
+    keys.set('KeyS', In.LEFT_STICK_DOWN)
+    keys.set('KeyD', In.LEFT_STICK_RIGHT)
+
+    keys.set('ArrowUp', In.RIGHT_STICK_UP)
+    keys.set('ArrowDown', In.RIGHT_STICK_DOWN)
+    keys.set('ArrowLeft', In.RIGHT_STICK_LEFT)
+    keys.set('ArrowRight', In.RIGHT_STICK_RIGHT)
+
+    keys.set('KeyI', In.RIGHT_STICK_UP)
+    keys.set('KeyK', In.RIGHT_STICK_DOWN)
+    keys.set('KeyJ', In.RIGHT_STICK_LEFT)
+    keys.set('KeyL', In.RIGHT_STICK_RIGHT)
+
+    keys.set('KeyT', In.DPAD_UP)
+    keys.set('KeyF', In.DPAD_DOWN)
+    keys.set('KeyG', In.DPAD_LEFT)
+    keys.set('KeyH', In.DPAD_RIGHT)
+
+    keys.set('KeyZ', In.BUTTON_A)
+    keys.set('KeyX', In.BUTTON_B)
+    keys.set('KeyC', In.BUTTON_X)
+    keys.set('KeyV', In.BUTTON_Y)
+
+    keys.set('KeyQ', In.LEFT_STICK_CLICK)
+    keys.set('KeyE', In.RIGHT_STICK_CLICK)
+
+    keys.set('KeyO', In.LEFT_TRIGGER)
+    keys.set('KeyP', In.RIGHT_TRIGGER)
+
+    keys.set('ShiftLeft', In.LEFT_BUMPER)
+    keys.set('ShiftRight', In.RIGHT_BUMPER)
+
+    this.keys = keys
+    this.input = new In.Input()
 
     await this.openState(main.get('open'))
   }

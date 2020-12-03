@@ -1,27 +1,34 @@
-export const LOOK_LEFT = 0
-export const LOOK_RIGHT = 1
-export const LOOK_UP = 2
-export const LOOK_DOWN = 3
-export const MOVE_FORWARD = 4
-export const MOVE_BACKWARD = 5
-export const MOVE_LEFT = 6
-export const MOVE_RIGHT = 7
-export const MOVE_UP = 8
-export const MOVE_DOWN = 9
-export const BUTTON_A = 10
-export const BUTTON_B = 11
-export const BUTTON_X = 12
-export const BUTTON_Y = 13
-export const OPEN_MENU = 14
-export const OPEN_TOOL_MENU = 15
-export const UNDO = 16
-export const REDO = 17
-export const SWITCH_MODE = 18
-export const ZOOM_IN = 19
-export const ZOOM_OUT = 20
-export const SNAP_TO_GRID = 21
-export const LEFT_TRIGGER = 22
-export const RIGHT_TRIGGER = 23
+export const BUTTON_START = 0
+export const BUTTON_SELECT = 1
+
+export const LEFT_STICK_UP = 2
+export const LEFT_STICK_DOWN = 3
+export const LEFT_STICK_LEFT = 4
+export const LEFT_STICK_RIGHT = 5
+
+export const RIGHT_STICK_UP = 6
+export const RIGHT_STICK_DOWN = 7
+export const RIGHT_STICK_LEFT = 8
+export const RIGHT_STICK_RIGHT = 9
+
+export const DPAD_UP = 10
+export const DPAD_DOWN = 11
+export const DPAD_LEFT = 12
+export const DPAD_RIGHT = 13
+
+export const BUTTON_A = 14
+export const BUTTON_B = 15
+export const BUTTON_X = 16
+export const BUTTON_Y = 17
+
+export const LEFT_STICK_CLICK = 18
+export const RIGHT_STICK_CLICK = 19
+
+export const LEFT_TRIGGER = 20
+export const RIGHT_TRIGGER = 21
+
+export const LEFT_BUMPER = 22
+export const RIGHT_BUMPER = 23
 
 export class Input {
   constructor() {
@@ -55,211 +62,291 @@ export class Input {
     return down
   }
 
-  lookLeft() {
-    return this.in[LOOK_LEFT]
+  start() {
+    return this.in[BUTTON_START]
   }
 
-  pressLookLeft() {
-    return this.press(LOOK_LEFT)
+  pressStart() {
+    return this.press(BUTTON_START)
   }
 
-  timerLookLeft(now, rate) {
-    return this.timer(now, rate, LOOK_LEFT)
+  timerStart(now, rate) {
+    return this.timer(now, rate, BUTTON_START)
   }
 
-  lookRight() {
-    return this.in[LOOK_RIGHT]
+  select() {
+    return this.in[BUTTON_SELECT]
   }
 
-  pressLookRight() {
-    return this.press(LOOK_RIGHT)
+  pressSelect() {
+    return this.press(BUTTON_SELECT)
   }
 
-  timerLookRight(now, rate) {
-    return this.timer(now, rate, LOOK_RIGHT)
+  timerSelect(now, rate) {
+    return this.timer(now, rate, BUTTON_SELECT)
   }
 
-  lookUp() {
-    return this.in[LOOK_UP]
+  leftUp() {
+    return this.in[LEFT_STICK_UP]
   }
 
-  pressLookUp() {
-    return this.press(LOOK_UP)
+  pressLeftUp() {
+    return this.press(LEFT_STICK_UP)
   }
 
-  timerLookUp(now, rate) {
-    return this.timer(now, rate, LOOK_UP)
+  timerLeftUp(now, rate) {
+    return this.timer(now, rate, LEFT_STICK_UP)
   }
 
-  lookDown() {
-    return this.in[LOOK_DOWN]
+  leftDown() {
+    return this.in[LEFT_STICK_DOWN]
   }
 
-  pressLookDown() {
-    return this.press(LOOK_DOWN)
+  pressLeftDown() {
+    return this.press(LEFT_STICK_DOWN)
   }
 
-  timerLookDown(now, rate) {
-    return this.timer(now, rate, LOOK_DOWN)
+  timerLeftDown(now, rate) {
+    return this.timer(now, rate, LEFT_STICK_DOWN)
   }
 
-  moveForward() {
-    return this.in[MOVE_FORWARD]
+  leftLeft() {
+    return this.in[LEFT_STICK_LEFT]
   }
 
-  pressMoveForward() {
-    return this.press(MOVE_FORWARD)
+  pressLeftLeft() {
+    return this.press(LEFT_STICK_LEFT)
   }
 
-  timerMoveForward(now, rate) {
-    return this.timer(now, rate, MOVE_FORWARD)
+  timerLeftLeft(now, rate) {
+    return this.timer(now, rate, LEFT_STICK_LEFT)
   }
 
-  moveBackward() {
-    return this.in[MOVE_BACKWARD]
+  leftRight() {
+    return this.in[LEFT_STICK_RIGHT]
   }
 
-  pressMoveBackward() {
-    return this.press(MOVE_BACKWARD)
+  pressLeftRight() {
+    return this.press(LEFT_STICK_RIGHT)
   }
 
-  timerMoveBackward(now, rate) {
-    return this.timer(now, rate, MOVE_BACKWARD)
+  timerLeftRight(now, rate) {
+    return this.timer(now, rate, LEFT_STICK_RIGHT)
   }
 
-  moveLeft() {
-    return this.in[MOVE_LEFT]
+  rightUp() {
+    return this.in[RIGHT_STICK_UP]
   }
 
-  pressMoveLeft() {
-    return this.press(MOVE_LEFT)
+  pressRightUp() {
+    return this.press(RIGHT_STICK_UP)
   }
 
-  timerMoveLeft(now, rate) {
-    return this.timer(now, rate, MOVE_LEFT)
+  timerRightUp(now, rate) {
+    return this.timer(now, rate, RIGHT_STICK_UP)
   }
 
-  moveRight() {
-    return this.in[MOVE_RIGHT]
+  rightDown() {
+    return this.in[RIGHT_STICK_DOWN]
   }
 
-  pressMoveRight() {
-    return this.press(MOVE_RIGHT)
+  pressRightDown() {
+    return this.press(RIGHT_STICK_DOWN)
   }
 
-  timerMoveRight(now, rate) {
-    return this.timer(now, rate, MOVE_RIGHT)
+  timerRightDown(now, rate) {
+    return this.timer(now, rate, RIGHT_STICK_DOWN)
   }
 
-  moveUp() {
-    return this.in[MOVE_UP]
+  rightLeft() {
+    return this.in[RIGHT_STICK_LEFT]
   }
 
-  pressMoveUp() {
-    return this.press(MOVE_UP)
+  pressRightLeft() {
+    return this.press(RIGHT_STICK_LEFT)
   }
 
-  timerMoveUp(now, rate) {
-    return this.timer(now, rate, MOVE_UP)
+  timerRightLeft(now, rate) {
+    return this.timer(now, rate, RIGHT_STICK_LEFT)
   }
 
-  moveDown() {
-    return this.in[MOVE_DOWN]
+  rightRight() {
+    return this.in[RIGHT_STICK_RIGHT]
   }
 
-  pressMoveDown() {
-    return this.press(MOVE_DOWN)
+  pressRightRight() {
+    return this.press(RIGHT_STICK_RIGHT)
   }
 
-  timerMoveDown(now, rate) {
-    return this.timer(now, rate, MOVE_DOWN)
+  timerRightRight(now, rate) {
+    return this.timer(now, rate, RIGHT_STICK_RIGHT)
   }
 
-  buttonA() {
+  padUp() {
+    return this.in[DPAD_UP]
+  }
+
+  pressPadUp() {
+    return this.press(DPAD_UP)
+  }
+
+  timerPadUp(now, rate) {
+    return this.timer(now, rate, DPAD_UP)
+  }
+
+  padDown() {
+    return this.in[DPAD_DOWN]
+  }
+
+  pressPadDown() {
+    return this.press(DPAD_DOWN)
+  }
+
+  timerPadDown(now, rate) {
+    return this.timer(now, rate, DPAD_DOWN)
+  }
+
+  padLeft() {
+    return this.in[DPAD_LEFT]
+  }
+
+  pressPadLeft() {
+    return this.press(DPAD_LEFT)
+  }
+
+  timerPadLeft(now, rate) {
+    return this.timer(now, rate, DPAD_LEFT)
+  }
+
+  padRight() {
+    return this.in[DPAD_RIGHT]
+  }
+
+  pressPadRight() {
+    return this.press(DPAD_RIGHT)
+  }
+
+  timerPadRight(now, rate) {
+    return this.timer(now, rate, DPAD_RIGHT)
+  }
+
+  a() {
     return this.in[BUTTON_A]
   }
 
-  pressButtonA() {
+  pressA() {
     return this.press(BUTTON_A)
   }
 
-  timerButtonA(now, rate) {
+  timerA(now, rate) {
     return this.timer(now, rate, BUTTON_A)
   }
 
-  buttonB() {
+  b() {
     return this.in[BUTTON_B]
   }
 
-  pressButtonB() {
+  pressB() {
     return this.press(BUTTON_B)
   }
 
-  timerButtonB(now, rate) {
+  timerB(now, rate) {
     return this.timer(now, rate, BUTTON_B)
   }
 
-  buttonX() {
+  x() {
     return this.in[BUTTON_X]
   }
 
-  pressButtonX() {
+  pressX() {
     return this.press(BUTTON_X)
   }
 
-  timerButtonX(now, rate) {
+  timerX(now, rate) {
     return this.timer(now, rate, BUTTON_X)
   }
 
-  buttonY() {
+  y() {
     return this.in[BUTTON_Y]
   }
 
-  pressButtonY() {
+  pressY() {
     return this.press(BUTTON_Y)
   }
 
-  timerButtonY(now, rate) {
+  timerY(now, rate) {
     return this.timer(now, rate, BUTTON_Y)
+  }
+
+  leftClick() {
+    return this.in[LEFT_STICK_CLICK]
+  }
+
+  pressLeftClick() {
+    return this.press(LEFT_STICK_CLICK)
+  }
+
+  timerLeftClick(now, rate) {
+    return this.timer(now, rate, LEFT_STICK_CLICK)
+  }
+
+  rightClick() {
+    return this.in[RIGHT_STICK_CLICK]
+  }
+
+  pressRightClick() {
+    return this.press(RIGHT_STICK_CLICK)
+  }
+
+  timerRightClick(now, rate) {
+    return this.timer(now, rate, RIGHT_STICK_CLICK)
   }
 
   leftTrigger() {
     return this.in[LEFT_TRIGGER]
   }
 
+  pressLeftTrigger() {
+    return this.press(LEFT_TRIGGER)
+  }
+
+  timerLeftTrigger(now, rate) {
+    return this.timer(now, rate, LEFT_TRIGGER)
+  }
+
   rightTrigger() {
     return this.in[RIGHT_TRIGGER]
   }
 
-  openMenu() {
-    return this.in[OPEN_MENU]
+  pressRightTrigger() {
+    return this.press(RIGHT_TRIGGER)
   }
 
-  openToolMenu() {
-    return this.in[OPEN_TOOL_MENU]
+  timerRightTrigger(now, rate) {
+    return this.timer(now, rate, RIGHT_TRIGGER)
   }
 
-  undo() {
-    return this.in[UNDO]
+  leftBumper() {
+    return this.in[LEFT_BUMPER]
   }
 
-  redo() {
-    return this.in[REDO]
+  pressLeftBumper() {
+    return this.press(LEFT_BUMPER)
   }
 
-  switchMode() {
-    return this.in[SWITCH_MODE]
+  timerLeftBumper(now, rate) {
+    return this.timer(now, rate, LEFT_BUMPER)
   }
 
-  zoomIn() {
-    return this.in[ZOOM_IN]
+  rightBumper() {
+    return this.in[RIGHT_BUMPER]
   }
 
-  zoomOut() {
-    return this.in[ZOOM_OUT]
+  pressRightBumper() {
+    return this.press(RIGHT_BUMPER)
   }
 
-  snapToGrid() {
-    return this.in[SNAP_TO_GRID]
+  timerRightBumper(now, rate) {
+    return this.timer(now, rate, RIGHT_BUMPER)
   }
 }

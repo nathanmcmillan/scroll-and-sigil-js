@@ -1,48 +1,19 @@
-import {TwoWayMap} from '/src/util/collections.js'
 import {textureByName} from '/src/assets/assets.js'
 import {drawTextSpecial, FONT_WIDTH, FONT_HEIGHT} from '/src/render/render.js'
 import {identity, multiply} from '/src/math/matrix.js'
 import {darkbluef, whitef} from '/src/editor/palette.js'
-import {flexBox, flexSolve} from '/src/flex/flex.js'
+import {flexText, flexSolve} from '/src/flex/flex.js'
 import {Home} from '/src/menu/home.js'
-import * as In from '/src/input/input.js'
 
 export class HomeState {
   constructor(client) {
     this.client = client
-
-    let keys = new TwoWayMap()
-    keys.set('KeyW', In.MOVE_FORWARD)
-    keys.set('KeyA', In.MOVE_LEFT)
-    keys.set('KeyS', In.MOVE_BACKWARD)
-    keys.set('KeyD', In.MOVE_RIGHT)
-    keys.set('KeyQ', In.MOVE_UP)
-    keys.set('KeyE', In.MOVE_DOWN)
-    keys.set('ArrowLeft', In.LOOK_LEFT)
-    keys.set('ArrowRight', In.LOOK_RIGHT)
-    keys.set('ArrowUp', In.LOOK_UP)
-    keys.set('ArrowDown', In.LOOK_DOWN)
-    keys.set('Enter', In.BUTTON_A)
-    keys.set('KeyC', In.BUTTON_B)
-    keys.set('KeyN', In.BUTTON_X)
-    keys.set('KeyM', In.BUTTON_Y)
-    keys.set('KeyI', In.OPEN_MENU)
-    keys.set('KeyM', In.OPEN_TOOL_MENU)
-    keys.set('KeyV', In.SWITCH_MODE)
-    keys.set('KeyZ', In.ZOOM_IN)
-    keys.set('KeyX', In.ZOOM_OUT)
-    keys.set('KeyU', In.UNDO)
-    keys.set('KeyR', In.REDO)
-    keys.set('KeyG', In.SNAP_TO_GRID)
-    keys.set('ShiftLeft', In.LEFT_TRIGGER)
-    keys.set('ShiftRight', In.RIGHT_TRIGGER)
-
-    this.keys = keys
+    this.keys = client.keys
 
     this.view = new Float32Array(16)
     this.projection = new Float32Array(16)
 
-    this.home = new Home(client.width, client.height, client.scale)
+    this.home = new Home(client.width, client.height, client.scale, client.input)
   }
 
   resize(width, height, scale) {
@@ -70,6 +41,10 @@ export class HomeState {
         client.openState('game')
       } else if (home.row === 2) {
         client.openState('dashboard')
+      } else if (home.row === 3) {
+        client.openState('game')
+      } else if (home.row === 4) {
+        client.openState('game')
       }
     }
   }
@@ -114,61 +89,47 @@ export class HomeState {
     rendering.setView(0, 0, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
 
-    let text = 'Scroll and Sigil'
-    let mainMenu = flexBox(fontWidth * text.length, fontHeight)
-    mainMenu.bottomSpace = fontHeight
-    mainMenu.funX = 'center'
-    mainMenu.funY = '%'
-    mainMenu.argY = 75
-    flexSolve(width, height, mainMenu)
-    drawTextSpecial(client.bufferGUI, mainMenu.x, mainMenu.y, text, scale, white0, white1, white2)
+    let titleBox = home.titleBox
+    drawTextSpecial(client.bufferGUI, titleBox.x, titleBox.y, titleBox.text, scale, white0, white1, white2)
 
-    text = 'continue game'
-    let continueGame = flexBox(fontWidth * text.length, fontHeight)
-    continueGame.leftSpace = fontWidth
-    continueGame.funX = 'center'
-    continueGame.fromX = mainMenu
-    continueGame.funY = 'below'
-    continueGame.fromY = mainMenu
-    flexSolve(width, height, continueGame)
-    drawTextSpecial(client.bufferGUI, continueGame.x, continueGame.y, text, scale, white0, white1, white2)
+    let continueGameBox = home.continueGameBox
+    drawTextSpecial(client.bufferGUI, continueGameBox.x, continueGameBox.y, continueGameBox.text, scale, white0, white1, white2)
 
-    text = 'start new game'
-    let startNewGame = flexBox(fontWidth * text.length, fontHeight)
-    startNewGame.leftSpace = fontWidth
-    startNewGame.funX = 'center'
-    startNewGame.fromX = continueGame
-    startNewGame.funY = 'below'
-    startNewGame.fromY = continueGame
-    flexSolve(width, height, startNewGame)
-    drawTextSpecial(client.bufferGUI, startNewGame.x, startNewGame.y, text, scale, white0, white1, white2)
+    let newGameBox = home.newGameBox
+    drawTextSpecial(client.bufferGUI, newGameBox.x, newGameBox.y, newGameBox.text, scale, white0, white1, white2)
 
-    text = 'open editor'
-    let openEditor = flexBox(fontWidth * text.length, fontHeight)
-    openEditor.leftSpace = fontWidth
-    openEditor.funX = 'center'
-    openEditor.fromX = startNewGame
-    openEditor.funY = 'below'
-    openEditor.fromY = startNewGame
-    flexSolve(width, height, openEditor)
-    drawTextSpecial(client.bufferGUI, openEditor.x, openEditor.y, text, scale, white0, white1, white2)
+    let editorBox = home.editorBox
+    drawTextSpecial(client.bufferGUI, editorBox.x, editorBox.y, editorBox.text, scale, white0, white1, white2)
 
-    text = ')'
-    let indicator = flexBox(fontWidth * text.length, fontHeight)
-    indicator.funX = 'left-of'
-    indicator.funY = 'center'
+    let optionsBox = home.optionsBox
+    drawTextSpecial(client.bufferGUI, optionsBox.x, optionsBox.y, optionsBox.text, scale, white0, white1, white2)
+
+    let creditsBox = home.creditsBox
+    drawTextSpecial(client.bufferGUI, creditsBox.x, creditsBox.y, creditsBox.text, scale, white0, white1, white2)
+
+    let text = ')'
+    let indicatorBox = flexText(text, fontWidth * text.length, fontHeight)
+    indicatorBox.funX = 'left-of'
+    indicatorBox.funY = 'center'
     if (home.row === 0) {
-      indicator.fromX = continueGame
-      indicator.fromY = continueGame
+      indicatorBox.fromX = continueGameBox
+      indicatorBox.fromY = continueGameBox
     } else if (home.row === 1) {
-      indicator.fromX = startNewGame
-      indicator.fromY = startNewGame
+      indicatorBox.fromX = newGameBox
+      indicatorBox.fromY = newGameBox
     } else if (home.row === 2) {
-      indicator.fromX = openEditor
-      indicator.fromY = openEditor
+      indicatorBox.fromX = editorBox
+      indicatorBox.fromY = editorBox
+    } else if (home.row === 3) {
+      indicatorBox.fromX = optionsBox
+      indicatorBox.fromY = optionsBox
+    } else if (home.row === 4) {
+      indicatorBox.fromX = creditsBox
+      indicatorBox.fromY = creditsBox
     }
-    flexSolve(width, height, indicator)
-    drawTextSpecial(client.bufferGUI, indicator.x, indicator.y, text, scale, white0, white1, white2)
+    flexSolve(width, height, indicatorBox)
+
+    drawTextSpecial(client.bufferGUI, indicatorBox.x, indicatorBox.y, indicatorBox.text, scale, white0, white1, white2)
 
     rendering.bindTexture(gl.TEXTURE0, textureByName('font').texture)
     rendering.updateAndDraw(client.bufferGUI)

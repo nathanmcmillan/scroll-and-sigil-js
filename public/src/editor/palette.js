@@ -27,3 +27,7 @@ export function white(i) {
 export function whitef(i) {
   return white(i) / 255.0
 }
+
+export function lumenTable() {
+  return [[0.0], [0]]
+}

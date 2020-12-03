@@ -1,40 +1,11 @@
-import {TwoWayMap} from '/src/util/collections.js'
 import {renderMapEditTopMode} from '/src/client/map-edit-top-mode.js'
 import {renderMapEditViewMode, updateMapEditViewSectorBuffer} from '/src/client/map-edit-view-mode.js'
 import {MapEdit, TOP_MODE, VIEW_MODE, SWITCH_MODE_CALLBACK} from '/src/editor/maps.js'
-import * as In from '/src/input/input.js'
 
 export class MapState {
   constructor(client) {
     this.client = client
-
-    let keys = new TwoWayMap()
-    keys.set('KeyW', In.MOVE_FORWARD)
-    keys.set('KeyA', In.MOVE_LEFT)
-    keys.set('KeyS', In.MOVE_BACKWARD)
-    keys.set('KeyD', In.MOVE_RIGHT)
-    keys.set('KeyQ', In.MOVE_UP)
-    keys.set('KeyE', In.MOVE_DOWN)
-    keys.set('ArrowLeft', In.LOOK_LEFT)
-    keys.set('ArrowRight', In.LOOK_RIGHT)
-    keys.set('ArrowUp', In.LOOK_UP)
-    keys.set('ArrowDown', In.LOOK_DOWN)
-    keys.set('Enter', In.BUTTON_A)
-    keys.set('KeyC', In.BUTTON_B)
-    keys.set('KeyN', In.BUTTON_X)
-    keys.set('KeyM', In.BUTTON_Y)
-    keys.set('KeyI', In.OPEN_MENU)
-    keys.set('KeyM', In.OPEN_TOOL_MENU)
-    keys.set('KeyV', In.SWITCH_MODE)
-    keys.set('KeyZ', In.ZOOM_IN)
-    keys.set('KeyX', In.ZOOM_OUT)
-    keys.set('KeyU', In.UNDO)
-    keys.set('KeyR', In.REDO)
-    keys.set('KeyG', In.SNAP_TO_GRID)
-    keys.set('ShiftLeft', In.LEFT_TRIGGER)
-    keys.set('ShiftRight', In.RIGHT_TRIGGER)
-
-    this.keys = keys
+    this.keys = client.keys
 
     let self = this
     let callbacks = []
