@@ -244,7 +244,9 @@ export class Client {
     let keys = new TwoWayMap()
 
     keys.set('Enter', In.BUTTON_START)
-    keys.set('Backslash', In.BUTTON_SELECT)
+
+    keys.set('Escape', In.BUTTON_SELECT)
+    keys.set('Backspace', In.BUTTON_SELECT)
 
     keys.set('KeyW', In.LEFT_STICK_UP)
     keys.set('KeyA', In.LEFT_STICK_LEFT)

@@ -31,12 +31,12 @@ export class Home {
     this.shadowInput = true
     this.doPaint = true
 
-    this.layout()
+    this.plan()
   }
 
   async load() {}
 
-  layout() {
+  plan() {
     const width = this.width
     const height = this.height
     const fontWidth = this.scale * FONT_WIDTH
@@ -44,27 +44,27 @@ export class Home {
 
     let text = 'Scroll and Sigil'
     let titleBox = flexText(text, fontWidth * text.length, fontHeight)
-    titleBox.bottomSpace = fontHeight
-    titleBox.funX = 'center'
+    titleBox.funX = '%'
+    titleBox.argX = 15
     titleBox.funY = '%'
-    titleBox.argY = 75
+    titleBox.argY = 90
     flexSolve(width, height, titleBox)
     this.titleBox = titleBox
 
     text = 'continue'
     let continueGameBox = flexText(text, fontWidth * text.length, fontHeight)
     continueGameBox.leftSpace = fontWidth
-    continueGameBox.funX = 'center'
-    continueGameBox.fromX = titleBox
-    continueGameBox.funY = 'below'
-    continueGameBox.fromY = titleBox
+    continueGameBox.funX = '%'
+    continueGameBox.argX = 15
+    continueGameBox.funY = '%'
+    continueGameBox.argY = 25
     flexSolve(width, height, continueGameBox)
     this.continueGameBox = continueGameBox
 
     text = 'new game'
     let newGameBox = flexText(text, fontWidth * text.length, fontHeight)
     newGameBox.leftSpace = fontWidth
-    newGameBox.funX = 'center'
+    newGameBox.funX = 'align-left'
     newGameBox.fromX = continueGameBox
     newGameBox.funY = 'below'
     newGameBox.fromY = continueGameBox
@@ -74,7 +74,7 @@ export class Home {
     text = 'editor'
     let editorBox = flexText(text, fontWidth * text.length, fontHeight)
     editorBox.leftSpace = fontWidth
-    editorBox.funX = 'center'
+    editorBox.funX = 'align-left'
     editorBox.fromX = newGameBox
     editorBox.funY = 'below'
     editorBox.fromY = newGameBox
@@ -84,7 +84,7 @@ export class Home {
     text = 'options'
     let optionsBox = flexText(text, fontWidth * text.length, fontHeight)
     optionsBox.leftSpace = fontWidth
-    optionsBox.funX = 'center'
+    optionsBox.funX = 'align-left'
     optionsBox.fromX = editorBox
     optionsBox.funY = 'below'
     optionsBox.fromY = editorBox
@@ -94,7 +94,7 @@ export class Home {
     text = 'credits'
     let creditsBox = flexText(text, fontWidth * text.length, fontHeight)
     creditsBox.leftSpace = fontWidth
-    creditsBox.funX = 'center'
+    creditsBox.funX = 'align-left'
     creditsBox.fromX = optionsBox
     creditsBox.funY = 'below'
     creditsBox.fromY = optionsBox

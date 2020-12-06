@@ -1,4 +1,7 @@
 import {fetchText} from '/src/client/net.js'
+import {newPalette, newPaletteFloat} from '/src/editor/palette.js'
+import {flexBox, flexSolve, flexSize} from '/src/flex/flex.js'
+import {FONT_WIDTH, FONT_HEIGHT} from '/src/render/render.js'
 
 export const PENCIL_TOOL = 0
 export const ERASE_TOOL = 1
@@ -23,8 +26,8 @@ export class PaintEdit {
 
     this.paletteRows = 4
     this.paletteColumns = 4
-    this.palette = new Uint8Array(this.paletteRows * this.paletteColumns * 3)
-    this.paletteFloat = new Float32Array(this.paletteRows * this.paletteColumns * 3)
+    this.palette = newPalette()
+    this.paletteFloat = newPaletteFloat(this.palette)
 
     this.sheetRows = 128
     this.sheetColumns = 128
@@ -48,8 +51,11 @@ export class PaintEdit {
     this.positionC = 0
     this.positionR = 0
 
-    setPalette(this.palette)
-    setPaletteFloat(this.palette, this.paletteFloat)
+    this.sheetBox = null
+    this.viewBox = null
+    this.paletteBox = null
+
+    this.resize(width, height, scale)
   }
 
   resize(width, height, scale) {
@@ -59,23 +65,60 @@ export class PaintEdit {
     this.shadowInput = true
     this.doPaint = true
 
-    let sheetMagnify = 2 * scale
-    let sheetWidth = this.sheetColumns * sheetMagnify
-    let sheetHeight = this.sheetRows * sheetMagnify
+    this.plan()
+  }
 
-    let minimumWidth = sheetWidth
-    let minimumHeight = sheetHeight
+  plan() {
+    const width = this.width
+    const height = this.height
+    const scale = this.scale
+    const canvasZoom = this.canvasZoom
+    const sheetRows = this.sheetRows
+    const sheetColumns = this.sheetColumns
+    const paletteRows = this.paletteRows
+    const paletteColumns = this.paletteColumns
+    const fontWidth = this.scale * FONT_WIDTH
+    const fontHeight = this.scale * FONT_HEIGHT
 
-    let middle = 0.5 * width
-    let center = 0.5 * height
+    let magnify = 2 * scale
+    let sheetBox = flexBox(magnify * sheetColumns, magnify * sheetRows)
+    sheetBox.rightSpace = fontWidth
+    sheetBox.funX = '%'
+    sheetBox.argX = 5
+    // sheetBox.argX = Math.floor(0.5 * width - 0.5 * (magnify * sheetColumns + canvasZoom * magnify))
+    sheetBox.funY = 'center'
+    // flexSolve(width, height, sheetBox)
+    this.sheetBox = sheetBox
 
-    this.canvasLeft = Math.floor(middle - 0.5 * minimumWidth)
-    this.canvasWidth = minimumWidth
+    magnify = scale
+    if (canvasZoom === 8) magnify *= 16
+    if (canvasZoom === 16) magnify *= 8
+    if (canvasZoom === 32) magnify *= 4
+    if (canvasZoom === 64) magnify *= 2
+    let viewBox = flexBox(canvasZoom * magnify, canvasZoom * magnify)
+    viewBox.bottomSpace = fontHeight
+    viewBox.funX = 'right-of'
+    viewBox.fromX = sheetBox
+    viewBox.funY = 'align-top'
+    viewBox.fromY = sheetBox
+    // flexSolve(width, height, viewBox)
+    this.viewBox = viewBox
 
-    this.canvasTop = Math.floor(center - 0.5 * minimumHeight)
-    this.canvasHeight = minimumHeight
+    magnify = 16 * scale
+    let paletteBox = flexBox(paletteColumns * magnify, paletteRows * magnify)
+    paletteBox.funX = 'center'
+    paletteBox.fromX = viewBox
+    paletteBox.funY = 'below'
+    paletteBox.fromY = viewBox
+    // flexSolve(width, height, paletteBox)
+    this.paletteBox = paletteBox
 
-    // this.displaySheetLeft = this.canvasLeft
+    flexSolve(width, height, sheetBox, viewBox, paletteBox)
+
+    console.log(flexSize(sheetBox, viewBox, paletteBox))
+
+    // let canvas = flexBox(x, y)
+    // flexResolve()
   }
 
   read(content, into) {
@@ -309,92 +352,4 @@ export function exportSheetToCanvas(painter, index, out) {
       }
     }
   }
-}
-
-function setPalette(palette) {
-  let index = 0
-
-  palette[index] = 0
-  palette[index + 1] = 0
-  palette[index + 2] = 0
-  index += 3
-
-  palette[index] = 29
-  palette[index + 1] = 43
-  palette[index + 2] = 83
-  index += 3
-
-  palette[index] = 126
-  palette[index + 1] = 37
-  palette[index + 2] = 83
-  index += 3
-
-  palette[index] = 0
-  palette[index + 1] = 135
-  palette[index + 2] = 81
-  index += 3
-
-  palette[index] = 171
-  palette[index + 1] = 82
-  palette[index + 2] = 54
-  index += 3
-
-  palette[index] = 95
-  palette[index + 1] = 87
-  palette[index + 2] = 79
-  index += 3
-
-  palette[index] = 194
-  palette[index + 1] = 195
-  palette[index + 2] = 199
-  index += 3
-
-  palette[index] = 255
-  palette[index + 1] = 241
-  palette[index + 2] = 232
-  index += 3
-
-  palette[index] = 255
-  palette[index + 1] = 0
-  palette[index + 2] = 77
-  index += 3
-
-  palette[index] = 255
-  palette[index + 1] = 163
-  palette[index + 2] = 0
-  index += 3
-
-  palette[index] = 255
-  palette[index + 1] = 236
-  palette[index + 2] = 39
-  index += 3
-
-  palette[index] = 0
-  palette[index + 1] = 228
-  palette[index + 2] = 54
-  index += 3
-
-  palette[index] = 41
-  palette[index + 1] = 173
-  palette[index + 2] = 255
-  index += 3
-
-  palette[index] = 131
-  palette[index + 1] = 118
-  palette[index + 2] = 156
-  index += 3
-
-  palette[index] = 255
-  palette[index + 1] = 119
-  palette[index + 2] = 168
-  index += 3
-
-  palette[index] = 255
-  palette[index + 1] = 204
-  palette[index + 2] = 170
-}
-
-function setPaletteFloat(source, destination) {
-  let i = source.length
-  while (i--) destination[i] = source[i] / 255.0
 }
