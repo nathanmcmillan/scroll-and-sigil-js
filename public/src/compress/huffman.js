@@ -1,5 +1,3 @@
-import {chartreuse} from 'color-name'
-
 class Node {
   constructor(ch, freq, left = null, right = null) {
     this.ch = ch
@@ -9,10 +7,20 @@ class Node {
   }
 }
 
-class PriorityQueue {}
+class PriorityQueue {
+  constructor() {
+    this.items = []
+  }
+
+  pop() {
+    return this.items.shift()
+  }
+
+  add() {}
+}
 
 function priority(a, b) {
-  return a.freq - b.freg
+  return a.freq - b.freq
 }
 
 export function compress(src) {
