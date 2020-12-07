@@ -51,8 +51,11 @@ export class PaintEdit {
     this.positionC = 0
     this.positionR = 0
 
+    this.toolColumns = 3
+
     this.sheetBox = null
     this.viewBox = null
+    this.toolBox = null
     this.paletteBox = null
 
     this.resize(width, height, scale)
@@ -77,17 +80,17 @@ export class PaintEdit {
     const sheetColumns = this.sheetColumns
     const paletteRows = this.paletteRows
     const paletteColumns = this.paletteColumns
+    const toolColumns = this.toolColumns
     const fontWidth = this.scale * FONT_WIDTH
     const fontHeight = this.scale * FONT_HEIGHT
 
     let magnify = 2 * scale
     let sheetBox = flexBox(magnify * sheetColumns, magnify * sheetRows)
-    sheetBox.rightSpace = fontWidth
+    sheetBox.rightSpace = 4 * fontWidth
     sheetBox.funX = '%'
     sheetBox.argX = 5
     // sheetBox.argX = Math.floor(0.5 * width - 0.5 * (magnify * sheetColumns + canvasZoom * magnify))
     sheetBox.funY = 'center'
-    // flexSolve(width, height, sheetBox)
     this.sheetBox = sheetBox
 
     magnify = scale
@@ -96,26 +99,32 @@ export class PaintEdit {
     if (canvasZoom === 32) magnify *= 4
     if (canvasZoom === 64) magnify *= 2
     let viewBox = flexBox(canvasZoom * magnify, canvasZoom * magnify)
-    viewBox.bottomSpace = fontHeight
+    viewBox.bottomSpace = 2 * fontHeight
     viewBox.funX = 'right-of'
     viewBox.fromX = sheetBox
     viewBox.funY = 'align-top'
     viewBox.fromY = sheetBox
-    // flexSolve(width, height, viewBox)
     this.viewBox = viewBox
+
+    let toolBox = flexBox(toolColumns * fontWidth, 2 * fontHeight)
+    toolBox.bottomSpace = 2 * fontHeight
+    toolBox.funX = 'center'
+    toolBox.fromX = viewBox
+    toolBox.funY = 'below'
+    toolBox.fromY = viewBox
+    this.toolBox = toolBox
 
     magnify = 16 * scale
     let paletteBox = flexBox(paletteColumns * magnify, paletteRows * magnify)
     paletteBox.funX = 'center'
-    paletteBox.fromX = viewBox
+    paletteBox.fromX = toolBox
     paletteBox.funY = 'below'
-    paletteBox.fromY = viewBox
-    // flexSolve(width, height, paletteBox)
+    paletteBox.fromY = toolBox
     this.paletteBox = paletteBox
 
-    flexSolve(width, height, sheetBox, viewBox, paletteBox)
+    flexSolve(width, height, sheetBox, viewBox, toolBox, paletteBox)
 
-    console.log(flexSize(sheetBox, viewBox, paletteBox))
+    console.log(flexSize(sheetBox, viewBox, toolBox, paletteBox))
 
     // let canvas = flexBox(x, y)
     // flexResolve()
@@ -196,26 +205,26 @@ export class PaintEdit {
       }
     } else {
       if (input.timerLeftUp(timestamp, INPUT_RATE)) {
-        this.positionR--
-        if (this.positionR < 0) this.positionR = 0
+        this.paletteR--
+        if (this.paletteR < 0) this.paletteR = 0
         this.canUpdate = true
       }
 
       if (input.timerLeftDown(timestamp, INPUT_RATE)) {
-        this.positionR++
-        if (this.positionR + this.brushSize >= this.canvasZoom) this.positionR = this.canvasZoom - this.brushSize
+        this.paletteR++
+        if (this.paletteR >= this.paletteRows) this.paletteR = this.paletteRows - 1
         this.canUpdate = true
       }
 
       if (input.timerLeftLeft(timestamp, INPUT_RATE)) {
-        this.positionC--
-        if (this.positionC < 0) this.positionC = 0
+        this.paletteC--
+        if (this.paletteC < 0) this.paletteC = 0
         this.canUpdate = true
       }
 
       if (input.timerLeftRight(timestamp, INPUT_RATE)) {
-        this.positionC++
-        if (this.positionC + this.brushSize >= this.canvasZoom) this.positionC = this.canvasZoom - this.brushSize
+        this.paletteC++
+        if (this.paletteC >= this.paletteColumns) this.paletteC = this.paletteColumns - 1
         this.canUpdate = true
       }
     }
@@ -252,26 +261,26 @@ export class PaintEdit {
       }
     } else {
       if (input.timerRightUp(timestamp, INPUT_RATE)) {
-        this.paletteR--
-        if (this.paletteR < 0) this.paletteR = 0
+        this.positionR--
+        if (this.positionR < 0) this.positionR = 0
         this.canUpdate = true
       }
 
       if (input.timerRightDown(timestamp, INPUT_RATE)) {
-        this.paletteR++
-        if (this.paletteR >= this.paletteRows) this.paletteR = this.paletteRows - 1
+        this.positionR++
+        if (this.positionR + this.brushSize >= this.canvasZoom) this.positionR = this.canvasZoom - this.brushSize
         this.canUpdate = true
       }
 
       if (input.timerRightLeft(timestamp, INPUT_RATE)) {
-        this.paletteC--
-        if (this.paletteC < 0) this.paletteC = 0
+        this.positionC--
+        if (this.positionC < 0) this.positionC = 0
         this.canUpdate = true
       }
 
       if (input.timerRightRight(timestamp, INPUT_RATE)) {
-        this.paletteC++
-        if (this.paletteC >= this.paletteColumns) this.paletteC = this.paletteColumns - 1
+        this.positionC++
+        if (this.positionC + this.brushSize >= this.canvasZoom) this.positionC = this.canvasZoom - this.brushSize
         this.canUpdate = true
       }
     }

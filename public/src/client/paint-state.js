@@ -2,7 +2,7 @@ import {exportSheetPixels, exportSheetToCanvas, PaintEdit} from '/src/editor/pai
 import {textureByName} from '/src/assets/assets.js'
 import {drawTextSpecial, drawRectangle, drawHollowRectangle, drawImage, FONT_HEIGHT} from '/src/render/render.js'
 import {identity, multiply} from '/src/math/matrix.js'
-import {darkbluef, whitef, luminosity, luminosityTable} from '/src/editor/palette.js'
+import {darkbluef, whitef, redf, lightgreyf, luminosity, luminosityTable} from '/src/editor/palette.js'
 
 function newPixelsToTexture(gl, width, height, pixels) {
   let texture = gl.createTexture()
@@ -95,7 +95,7 @@ export class PaintState {
       let blob = painter.export()
       let download = document.createElement('a')
       download.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(blob)
-      download.download = 'sheet' + painter.sheetIndex + '.image'
+      download.download = 'sheet' + painter.sheetIndex + '.txt'
       download.click()
     } else if (down && code === 'Digit9') {
       let canvas = document.createElement('canvas')
@@ -192,11 +192,12 @@ export class PaintState {
     let buffer = client.bufferColor
     buffer.zero()
 
-    let fontHeight = scale * FONT_HEIGHT
+    const fontHeight = scale * FONT_HEIGHT
 
-    let thickness = scale
-    let doubleThick = 2 * thickness
-    let fourThick = 2 * doubleThick
+    const thickness = scale
+    const doubleThick = 2 * thickness
+    const fourThick = 2 * doubleThick
+    const pad = 2 * scale
 
     let canvasWidth = client.width
     let canvasHeight = client.height
@@ -218,6 +219,8 @@ export class PaintState {
     let sheetColumns = painter.sheetColumns
     let sheetIndex = painter.sheetIndex
 
+    let toolColumns = painter.toolColumns
+
     let magnify, top, left, width, height, box, x, y
 
     let black0 = 0.0
@@ -236,6 +239,7 @@ export class PaintState {
 
     let sheetBox = painter.sheetBox
     let viewBox = painter.viewBox
+    let toolBox = painter.toolBox
     let paletteBox = painter.paletteBox
 
     // sheet
@@ -330,8 +334,21 @@ export class PaintState {
     drawHollowRectangle(buffer, x - thickness, y - thickness, magnify + doubleThick, magnify + doubleThick, thickness, black0, black1, black2, 1.0)
     drawHollowRectangle(buffer, x - doubleThick, y - doubleThick, magnify + fourThick, magnify + fourThick, thickness, white0, white1, white2, 1.0)
 
+    // tools
+    magnify = 16 * scale
+    width = toolBox.width
+    height = toolBox.height
+    left = toolBox.x
+    top = toolBox.y
+    for (let c = 0; c < toolColumns; c++) {
+      let x = left + c * magnify
+      let y = top
+      drawRectangle(buffer, x, y, magnify, magnify, lightgreyf(0), lightgreyf(1), lightgreyf(2), 1.0)
+    }
+
     // top bar
-    drawRectangle(buffer, 0, canvasHeight - fontHeight, canvasWidth, fontHeight, 1.0, 241.0 / 255.0, 232.0 / 255.0, 1.0)
+    let topBarHeight = fontHeight + 2 * pad
+    drawRectangle(buffer, 0, canvasHeight - topBarHeight, canvasWidth, topBarHeight, redf(0), redf(1), redf(2), 1.0)
 
     rendering.updateAndDraw(buffer)
 
@@ -344,8 +361,8 @@ export class PaintState {
 
     let displayC = posC < 10 ? '0' + posC : '' + posC
     let displayR = posR < 10 ? '0' + posR : '' + posR
-    let text = 'x = ' + displayC + ' y =' + displayR
-    drawTextSpecial(client.bufferGUI, 10, canvasHeight - fontHeight, text, scale, white0, white1, white2)
+    let text = 'x=' + displayC + ' y=' + displayR
+    drawTextSpecial(client.bufferGUI, 10, canvasHeight - topBarHeight + pad, text, scale, white0, white1, white2)
 
     let displaySheet = '#' + sheetIndex < 10 ? '00' + sheetIndex : sheetIndex < 100 ? '0' + sheetIndex : '' + sheetIndex
     drawTextSpecial(client.bufferGUI, 10, canvasHeight - fontHeight * 3, displaySheet, scale, white0, white1, white2)
