@@ -343,7 +343,8 @@ export class PaintState {
     for (let c = 0; c < toolColumns; c++) {
       let x = left + c * magnify
       let y = top
-      drawRectangle(buffer, x, y, magnify, magnify, lightgreyf(0), lightgreyf(1), lightgreyf(2), 1.0)
+      if (c === painter.tool) drawRectangle(buffer, x, y, magnify, magnify, whitef(0), whitef(1), whitef(2), 1.0)
+      else drawRectangle(buffer, x, y, magnify, magnify, lightgreyf(0), lightgreyf(1), lightgreyf(2), 1.0)
     }
 
     // top bar

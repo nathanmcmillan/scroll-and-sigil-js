@@ -10,7 +10,6 @@ class Reader {
     if (pos >= src.length) throw 'Reader out of bounds: ' + pos
     let value = src[pos]
     this.pos = pos + 1
-    console.log('bool', value, '=>', value === '1')
     return value === '1'
   }
 
@@ -21,7 +20,6 @@ class Reader {
     let value = ''
     for (let i = 0; i < 8; i++) value += src[pos + i]
     this.pos = pos + 8
-    console.log('char', value, '=>', parseInt(value, 2), '=>', String.fromCharCode(parseInt(value, 2)))
     return String.fromCharCode(parseInt(value, 2))
   }
 
@@ -32,7 +30,6 @@ class Reader {
     let value = ''
     for (let i = 0; i < 32; i++) value += src[pos + i]
     this.pos = pos + 32
-    console.log('int', value, '=>', parseInt(value, 2))
     return parseInt(value, 2)
   }
 }
@@ -102,18 +99,42 @@ function write(node) {
   return out
 }
 
-function code(lookup, node, str) {
+function codes(lookup, node, str) {
   if (node.leaf()) {
     lookup.set(node.ch, str)
   } else {
-    code(lookup, node.left, str + '0')
-    code(lookup, node.right, str + '1')
+    codes(lookup, node.left, str + '0')
+    codes(lookup, node.right, str + '1')
   }
+}
+
+function binary(src) {
+  let len = src.length
+  let array = new Uint8Array(Math.ceil(len / 8))
+  let i = 0
+  let pos = 0
+  while (true) {
+    if (i + 8 > len) {
+      let value = ''
+      while (i < len) value += src[i++]
+      while (value.length < 8) value += '0'
+      let u8 = parseInt(value, 2)
+      array[pos] = u8
+      break
+    } else {
+      let value = ''
+      for (let k = 0; k < 8; k++) value += src[i + k]
+      let u8 = parseInt(value, 2)
+      array[pos] = u8
+      pos++
+      i += 8
+    }
+  }
+  return array
 }
 
 export function compress(src) {
   let len = src.length
-  console.log('len', len)
   if (len < 1) return null
   let map = new Map()
   let i = len
@@ -132,12 +153,11 @@ export function compress(src) {
   }
   let tree = queue.dequeue()
   let lookup = new Map()
-  code(lookup, tree, '')
-  for (const [k, v] of lookup) console.log('ch', k, '=>', v)
+  codes(lookup, tree, '')
   let out = write(tree)
   out += int32(len)
   for (let i = 0; i < len; i++) out += lookup.get(src[i])
-  return out
+  return binary(out)
 }
 
 function read(reader) {
@@ -145,13 +165,26 @@ function read(reader) {
   return new Node('\0', -1, read(reader), read(reader))
 }
 
+function text(src) {
+  let len = src.length
+  let str = ''
+  for (let i = 0; i < len; i++) {
+    let u8 = src[i]
+    for (let k = 7; k >= 0; k--) {
+      str += ((u8 >> k) & 1) === 1 ? '1' : '0'
+    }
+  }
+  return str
+}
+
 export function decompress(src) {
-  let reader = new Reader(src)
-  let node = read(reader)
-  console.log('tree', node)
+  let str = text(src)
+  let reader = new Reader(str)
+  let tree = read(reader)
   let len = reader.int()
   let out = ''
   for (let i = 0; i < len; i++) {
+    let node = tree
     while (!node.leaf()) {
       let bool = reader.bool()
       if (bool) node = node.right

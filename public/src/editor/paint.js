@@ -3,15 +3,22 @@ import {newPalette, newPaletteFloat} from '/src/editor/palette.js'
 import {flexBox, flexSolve, flexSize} from '/src/flex/flex.js'
 import {FONT_WIDTH, FONT_HEIGHT} from '/src/render/render.js'
 
-export const PENCIL_TOOL = 0
-export const ERASE_TOOL = 1
-export const TOOL_COUNT = 2
-
-export const DESCRIBE_TOOL = new Array(TOOL_COUNT)
-DESCRIBE_TOOL[PENCIL_TOOL] = 'Pencil'
-DESCRIBE_TOOL[ERASE_TOOL] = 'Eraser'
+const PENCIL = 0
+const FILL = 1
+const DROPLET = 2
 
 const INPUT_RATE = 128
+
+// TODO
+// TOP BAR
+// - FILE
+// --- IMPORT
+// --- SAVE
+// --- EXPORT
+// - EDIT
+// --- UNDO
+// --- REDO
+// - HELP
 
 export class PaintEdit {
   constructor(width, height, scale, input) {
@@ -52,6 +59,9 @@ export class PaintEdit {
     this.positionR = 0
 
     this.toolColumns = 3
+    this.tool = 0
+
+    this.paletteFocus = true
 
     this.sheetBox = null
     this.viewBox = null
@@ -183,49 +193,63 @@ export class PaintEdit {
       if (input.timerLeftUp(timestamp, INPUT_RATE)) {
         this.positionOffsetR -= move
         if (this.positionOffsetR < 0) this.positionOffsetR = 0
-        this.canUpdate = true
+        else this.canUpdate = true
       }
 
       if (input.timerLeftDown(timestamp, INPUT_RATE)) {
         this.positionOffsetR += move
         if (this.positionOffsetR + this.canvasZoom >= this.sheetRows) this.positionOffsetR = this.sheetRows - this.canvasZoom
-        this.canUpdate = true
+        else this.canUpdate = true
       }
 
       if (input.timerLeftLeft(timestamp, INPUT_RATE)) {
         this.positionOffsetC -= move
         if (this.positionOffsetC < 0) this.positionOffsetC = 0
-        this.canUpdate = true
+        else this.canUpdate = true
       }
 
       if (input.timerLeftRight(timestamp, INPUT_RATE)) {
         this.positionOffsetC += move
         if (this.positionOffsetC + this.canvasZoom >= this.sheetColumns) this.positionOffsetC = this.sheetColumns - this.canvasZoom
-        this.canUpdate = true
+        else this.canUpdate = true
       }
     } else {
-      if (input.timerLeftUp(timestamp, INPUT_RATE)) {
-        this.paletteR--
-        if (this.paletteR < 0) this.paletteR = 0
-        this.canUpdate = true
-      }
+      if (this.paletteFocus) {
+        if (input.timerLeftUp(timestamp, INPUT_RATE)) {
+          this.paletteR--
+          if (this.paletteR < 0) this.paletteR = 0
+          else this.canUpdate = true
+        }
 
-      if (input.timerLeftDown(timestamp, INPUT_RATE)) {
-        this.paletteR++
-        if (this.paletteR >= this.paletteRows) this.paletteR = this.paletteRows - 1
-        this.canUpdate = true
-      }
+        if (input.timerLeftDown(timestamp, INPUT_RATE)) {
+          this.paletteR++
+          if (this.paletteR >= this.paletteRows) this.paletteR = this.paletteRows - 1
+          else this.canUpdate = true
+        }
 
-      if (input.timerLeftLeft(timestamp, INPUT_RATE)) {
-        this.paletteC--
-        if (this.paletteC < 0) this.paletteC = 0
-        this.canUpdate = true
-      }
+        if (input.timerLeftLeft(timestamp, INPUT_RATE)) {
+          this.paletteC--
+          if (this.paletteC < 0) this.paletteC = 0
+          else this.canUpdate = true
+        }
 
-      if (input.timerLeftRight(timestamp, INPUT_RATE)) {
-        this.paletteC++
-        if (this.paletteC >= this.paletteColumns) this.paletteC = this.paletteColumns - 1
-        this.canUpdate = true
+        if (input.timerLeftRight(timestamp, INPUT_RATE)) {
+          this.paletteC++
+          if (this.paletteC >= this.paletteColumns) this.paletteC = this.paletteColumns - 1
+          else this.canUpdate = true
+        }
+      } else {
+        if (input.timerLeftLeft(timestamp, INPUT_RATE)) {
+          this.tool--
+          if (this.tool < 0) this.tool = 0
+          else this.canUpdate = true
+        }
+
+        if (input.timerLeftRight(timestamp, INPUT_RATE)) {
+          this.tool++
+          if (this.tool >= this.toolColumns) this.tool = this.toolColumns - 1
+          else this.canUpdate = true
+        }
       }
     }
 
@@ -233,7 +257,7 @@ export class PaintEdit {
       if (input.timerRightLeft(timestamp, INPUT_RATE)) {
         this.brushSize--
         if (this.brushSize < 1) this.brushSize = 1
-        this.canUpdate = true
+        else this.canUpdate = true
       }
 
       if (input.timerRightRight(timestamp, INPUT_RATE)) {
@@ -263,25 +287,25 @@ export class PaintEdit {
       if (input.timerRightUp(timestamp, INPUT_RATE)) {
         this.positionR--
         if (this.positionR < 0) this.positionR = 0
-        this.canUpdate = true
+        else this.canUpdate = true
       }
 
       if (input.timerRightDown(timestamp, INPUT_RATE)) {
         this.positionR++
         if (this.positionR + this.brushSize >= this.canvasZoom) this.positionR = this.canvasZoom - this.brushSize
-        this.canUpdate = true
+        else this.canUpdate = true
       }
 
       if (input.timerRightLeft(timestamp, INPUT_RATE)) {
         this.positionC--
         if (this.positionC < 0) this.positionC = 0
-        this.canUpdate = true
+        else this.canUpdate = true
       }
 
       if (input.timerRightRight(timestamp, INPUT_RATE)) {
         this.positionC++
         if (this.positionC + this.brushSize >= this.canvasZoom) this.positionC = this.canvasZoom - this.brushSize
-        this.canUpdate = true
+        else this.canUpdate = true
       }
     }
 
@@ -289,16 +313,49 @@ export class PaintEdit {
       if (this.canUpdate) {
         let columns = this.sheetColumns
         let index = this.positionC + this.positionOffsetC + (this.positionR + this.positionOffsetR) * columns
-        let paletteIndex = this.paletteC + this.paletteR * this.paletteColumns
-        for (let h = 0; h < this.brushSize; h++) {
-          for (let c = 0; c < this.brushSize; c++) {
-            this.sheet[c + h * columns + index] = paletteIndex
-          }
-        }
+        let color = this.paletteC + this.paletteR * this.paletteColumns
+        if (this.tool === PENCIL) this.pencil(index, color)
+        else if (this.tool === FILL) this.fill(index, color)
+        else if (this.tool === DROPLET) this.droplet(index)
         this.hasUpdates = true
         this.canUpdate = false
       }
     }
+
+    if (input.pressB()) this.paletteFocus = !this.paletteFocus
+  }
+
+  pencil(index, color) {
+    let columns = this.sheetColumns
+    for (let h = 0; h < this.brushSize; h++) {
+      for (let c = 0; c < this.brushSize; c++) {
+        this.sheet[c + h * columns + index] = color
+      }
+    }
+  }
+
+  fill(start, color) {
+    let match = this.sheet[start]
+    if (match === color) return
+    let rows = this.sheetRows
+    let columns = this.sheetColumns
+    let queue = [start]
+    while (queue.length > 0) {
+      let index = queue.shift()
+      this.sheet[index] = color
+      let c = index % columns
+      let r = Math.floor(index / columns)
+      if (c > 0 && this.sheet[index - 1] === match && !queue.includes(index - 1)) queue.push(index - 1)
+      if (r > 0 && this.sheet[index - columns] === match && !queue.includes(index - columns)) queue.push(index - columns)
+      if (c < columns - 1 && this.sheet[index + 1] === match && !queue.includes(index + 1)) queue.push(index + 1)
+      if (r < rows - 1 && this.sheet[index + columns] === match && !queue.includes(index + columns)) queue.push(index + columns)
+    }
+  }
+
+  droplet(index) {
+    let color = this.sheet[index]
+    this.paletteC = color % this.paletteColumns
+    this.paletteR = Math.floor(color / this.paletteColumns)
   }
 
   export() {
