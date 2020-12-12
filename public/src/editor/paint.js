@@ -8,6 +8,7 @@ const FILL = 1
 const DROPLET = 2
 
 const INPUT_RATE = 128
+const HISTORY_LIMIT = 50
 
 // TODO
 // TOP BAR
@@ -63,6 +64,9 @@ export class PaintEdit {
 
     this.paletteFocus = true
 
+    this.history = []
+    this.historyPosition = 0
+
     this.sheetBox = null
     this.viewBox = null
     this.toolBox = null
@@ -96,6 +100,8 @@ export class PaintEdit {
 
     let magnify = 2 * scale
     let sheetBox = flexBox(magnify * sheetColumns, magnify * sheetRows)
+    sheetBox.topSpace = Math.ceil(0.5 * fontHeight)
+    sheetBox.bottomSpace = Math.ceil(0.5 * fontHeight)
     sheetBox.rightSpace = 4 * fontWidth
     sheetBox.funX = '%'
     sheetBox.argX = 5
@@ -109,6 +115,7 @@ export class PaintEdit {
     if (canvasZoom === 32) magnify *= 4
     if (canvasZoom === 64) magnify *= 2
     let viewBox = flexBox(canvasZoom * magnify, canvasZoom * magnify)
+    viewBox.topSpace = Math.ceil(0.5 * fontHeight)
     viewBox.bottomSpace = 2 * fontHeight
     viewBox.funX = 'right-of'
     viewBox.fromX = sheetBox
@@ -292,7 +299,7 @@ export class PaintEdit {
 
       if (input.timerRightDown(timestamp, INPUT_RATE)) {
         this.positionR++
-        if (this.positionR + this.brushSize >= this.canvasZoom) this.positionR = this.canvasZoom - this.brushSize
+        if (this.positionR + this.brushSize > this.canvasZoom) this.positionR = this.canvasZoom - this.brushSize
         else this.canUpdate = true
       }
 
@@ -304,7 +311,7 @@ export class PaintEdit {
 
       if (input.timerRightRight(timestamp, INPUT_RATE)) {
         this.positionC++
-        if (this.positionC + this.brushSize >= this.canvasZoom) this.positionC = this.canvasZoom - this.brushSize
+        if (this.positionC + this.brushSize > this.canvasZoom) this.positionC = this.canvasZoom - this.brushSize
         else this.canUpdate = true
       }
     }
@@ -323,13 +330,22 @@ export class PaintEdit {
     }
 
     if (input.pressB()) this.paletteFocus = !this.paletteFocus
+    if (input.pressX()) this.undo()
+    if (input.pressY()) this.redo()
   }
 
-  pencil(index, color) {
+  pencil(start, color) {
+    let saved = false
     let columns = this.sheetColumns
     for (let h = 0; h < this.brushSize; h++) {
       for (let c = 0; c < this.brushSize; c++) {
-        this.sheet[c + h * columns + index] = color
+        let index = c + h * columns + start
+        if (this.sheet[index] === color) continue
+        if (!saved) {
+          this.saveHistory()
+          saved = true
+        }
+        this.sheet[index] = color
       }
     }
   }
@@ -337,6 +353,7 @@ export class PaintEdit {
   fill(start, color) {
     let match = this.sheet[start]
     if (match === color) return
+    this.saveHistory()
     let rows = this.sheetRows
     let columns = this.sheetColumns
     let queue = [start]
@@ -356,6 +373,50 @@ export class PaintEdit {
     let color = this.sheet[index]
     this.paletteC = color % this.paletteColumns
     this.paletteR = Math.floor(color / this.paletteColumns)
+  }
+
+  undo() {
+    if (this.historyPosition > 0) {
+      console.debug('undo', this.historyPosition, this.history)
+      if (this.historyPosition === this.history.length) {
+        this.saveHistory()
+        this.historyPosition--
+      }
+      this.historyPosition--
+      this.sheet.set(this.history[this.historyPosition])
+      this.hasUpdates = true
+      this.canUpdate = true
+    }
+  }
+
+  redo() {
+    if (this.historyPosition < this.history.length - 1) {
+      console.debug('redo', this.historyPosition, this.history)
+      this.historyPosition++
+      this.sheet.set(this.history[this.historyPosition])
+      this.hasUpdates = true
+      this.canUpdate = true
+    }
+  }
+
+  saveHistory() {
+    let sheet = this.sheet
+    let history = this.history
+    console.debug('history', this.historyPosition, history)
+    if (this.historyPosition >= history.length) {
+      if (history.length === HISTORY_LIMIT) {
+        let last = history[0]
+        last.set(sheet)
+        for (let i = 0; i < HISTORY_LIMIT - 1; i++) history[i] = history[i + 1]
+        history[HISTORY_LIMIT - 1] = last
+      } else {
+        history.push(sheet.slice())
+        this.historyPosition++
+      }
+    } else {
+      history[this.historyPosition].set(sheet)
+      this.historyPosition++
+    }
   }
 
   export() {

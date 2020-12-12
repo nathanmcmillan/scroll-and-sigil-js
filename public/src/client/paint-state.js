@@ -1,8 +1,9 @@
 import {exportSheetPixels, exportSheetToCanvas, PaintEdit} from '/src/editor/paint.js'
 import {textureByName} from '/src/assets/assets.js'
-import {drawTextSpecial, drawRectangle, drawHollowRectangle, drawImage, FONT_HEIGHT} from '/src/render/render.js'
+import {drawTextSpecial, drawRectangle, drawHollowRectangle, drawImage, FONT_WIDTH, FONT_HEIGHT} from '/src/render/render.js'
 import {identity, multiply} from '/src/math/matrix.js'
 import {darkbluef, whitef, redf, lightgreyf, luminosity, luminosityTable} from '/src/editor/palette.js'
+import {flexBox, flexSolve} from '/src/flex/flex.js'
 
 function newPixelsToTexture(gl, width, height, pixels) {
   let texture = gl.createTexture()
@@ -192,6 +193,7 @@ export class PaintState {
     let buffer = client.bufferColor
     buffer.zero()
 
+    const fontWidth = scale * FONT_WIDTH
     const fontHeight = scale * FONT_HEIGHT
 
     const thickness = scale
@@ -363,16 +365,44 @@ export class PaintState {
     let displayC = posC < 10 ? '0' + posC : '' + posC
     let displayR = posR < 10 ? '0' + posR : '' + posR
     let text = 'x=' + displayC + ' y=' + displayR
-    drawTextSpecial(client.bufferGUI, 10, canvasHeight - topBarHeight + pad, text, scale, white0, white1, white2)
+    let posBox = flexBox(fontWidth * text.length, fontHeight)
+    posBox.funX = 'center'
+    posBox.fromX = viewBox
+    posBox.funY = 'above'
+    posBox.fromY = viewBox
+    flexSolve(0, 0, posBox)
+    drawTextSpecial(client.bufferGUI, posBox.x, posBox.y, text, scale, white0, white1, white2)
 
-    let displaySheet = '#' + sheetIndex < 10 ? '00' + sheetIndex : sheetIndex < 100 ? '0' + sheetIndex : '' + sheetIndex
-    drawTextSpecial(client.bufferGUI, 10, canvasHeight - fontHeight * 3, displaySheet, scale, white0, white1, white2)
+    let displaySheet = 'sheet #' + (sheetIndex < 10 ? '00' + sheetIndex : sheetIndex < 100 ? '0' + sheetIndex : '' + sheetIndex)
+    let sheetNumBox = flexBox(fontWidth * displaySheet.length, fontHeight)
+    sheetNumBox.funX = 'align-left'
+    sheetNumBox.fromX = sheetBox
+    sheetNumBox.funY = 'above'
+    sheetNumBox.fromY = sheetBox
+    flexSolve(0, 0, sheetNumBox)
+    drawTextSpecial(client.bufferGUI, sheetNumBox.x, sheetNumBox.y, displaySheet, scale, white0, white1, white2)
+
+    let displayPC = '' + (posOffsetC + posC)
+    let displayPR = '' + (posOffsetR + posR)
+    while (displayPC.length < 3) displayPC = '0' + displayPC
+    while (displayPR.length < 3) displayPR = '0' + displayPR
+    let displayPosition = 'x=' + displayPC + ' y=' + displayPR
+    let positionBox = flexBox(fontWidth * displayPosition.length, fontHeight)
+    positionBox.funX = 'center'
+    positionBox.fromX = sheetBox
+    positionBox.funY = 'above'
+    positionBox.fromY = sheetBox
+    flexSolve(0, 0, positionBox)
+    drawTextSpecial(client.bufferGUI, positionBox.x, positionBox.y, displayPosition, scale, white0, white1, white2)
 
     let displaySize = 'brush size ' + brushSize
     drawTextSpecial(client.bufferGUI, 10, 10 + fontHeight * 2, displaySize, scale, white0, white1, white2)
 
     let displayZoom = 'canvas zoom ' + canvasZoom
     drawTextSpecial(client.bufferGUI, 10, 10, displayZoom, scale, white0, white1, white2)
+
+    let topBarText = 'File Edit View Help'
+    drawTextSpecial(client.bufferGUI, 10, canvasHeight - topBarHeight + pad, topBarText, scale, white0, white1, white2)
 
     rendering.bindTexture(gl.TEXTURE0, textureByName('font').texture)
     rendering.updateAndDraw(client.bufferGUI)
