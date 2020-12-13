@@ -155,7 +155,7 @@ export class DashboardState {
     flexSolve(width, height, indicator)
     drawTextSpecial(client.bufferGUI, indicator.x, indicator.y, text, scale, white0, white1, white2)
 
-    rendering.bindTexture(gl.TEXTURE0, textureByName('font').texture)
+    rendering.bindTexture(gl.TEXTURE0, textureByName('tic-80-wide-font').texture)
     rendering.updateAndDraw(client.bufferGUI)
   }
 }

@@ -178,6 +178,6 @@ export function renderMapEditTopMode(state) {
     drawTextSpecial(client.bufferGUI, x, y, text, 2.0, 1.0, 0.0, 0.0)
   }
 
-  rendering.bindTexture(gl.TEXTURE0, textureByName('font').texture)
+  rendering.bindTexture(gl.TEXTURE0, textureByName('tic-80-wide-font').texture)
   rendering.updateAndDraw(client.bufferGUI)
 }

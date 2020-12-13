@@ -1,7 +1,7 @@
 export const FONT_WIDTH = 6
-export const FONT_HEIGHT = 8
+export const FONT_HEIGHT = 6
 
-const FONT = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789:()'
+const FONT = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,""\'\'"\'?!@_*#$%&()+-/:;<=>[]\\^`{}|~'
 const FONT_GRID = Math.floor(128.0 / FONT_WIDTH)
 const FONT_COLUMN = FONT_WIDTH / 128.0
 const FONT_ROW = FONT_HEIGHT / 128.0

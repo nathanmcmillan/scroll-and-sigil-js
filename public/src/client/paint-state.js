@@ -2,20 +2,9 @@ import {exportSheetPixels, exportSheetToCanvas, PaintEdit} from '/src/editor/pai
 import {textureByName} from '/src/assets/assets.js'
 import {drawTextSpecial, drawRectangle, drawHollowRectangle, drawImage, FONT_WIDTH, FONT_HEIGHT} from '/src/render/render.js'
 import {identity, multiply} from '/src/math/matrix.js'
-import {darkbluef, whitef, redf, lightgreyf, luminosity, luminosityTable} from '/src/editor/palette.js'
+import {blackf, whitef, redf, lightgreyf, darkgreyf, luminosity, luminosityTable} from '/src/editor/palette.js'
 import {flexBox, flexSolve} from '/src/flex/flex.js'
-
-function newPixelsToTexture(gl, width, height, pixels) {
-  let texture = gl.createTexture()
-  gl.bindTexture(gl.TEXTURE_2D, texture)
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, width, height, 0, gl.RGB, gl.UNSIGNED_BYTE, pixels, 0)
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-  gl.bindTexture(gl.TEXTURE_2D, null)
-  return texture
-}
+import {createPixelsToTexture} from '/src/webgl/webgl.js'
 
 function updatePixelsToTexture(gl, texture, width, height, pixels) {
   gl.bindTexture(gl.TEXTURE_2D, texture)
@@ -78,7 +67,9 @@ export class PaintState {
     let rows = painter.sheetRows
     let columns = painter.sheetColumns
     let pixels = exportSheetPixels(painter, 0)
-    this.texture = newPixelsToTexture(client.gl, columns, rows, pixels)
+
+    let gl = client.gl
+    this.texture = createPixelsToTexture(gl, columns, rows, pixels, gl.RGB, gl.NEAREST, gl.CLAMP_TO_EDGE).texture
   }
 
   resize(width, height, scale) {
@@ -179,7 +170,7 @@ export class PaintState {
     const projection = this.projection
     const scale = painter.scale
 
-    gl.clearColor(darkbluef(0), darkbluef(1), darkbluef(2), 1.0)
+    gl.clearColor(lightgreyf(0), lightgreyf(1), lightgreyf(2), 1.0)
 
     gl.clear(gl.COLOR_BUFFER_BIT)
     gl.clear(gl.DEPTH_BUFFER_BIT)
@@ -282,6 +273,7 @@ export class PaintState {
     // box around view
     drawHollowRectangle(buffer, left - thickness, top - thickness, width + doubleThick, height + doubleThick, thickness, black0, black1, black2, 1.0)
     drawHollowRectangle(buffer, left - doubleThick, top - doubleThick, width + fourThick, height + fourThick, thickness, white0, white1, white2, 1.0)
+    drawRectangle(buffer, left - doubleThick, top - doubleThick - thickness, width + fourThick, thickness, darkgreyf(0), darkgreyf(1), darkgreyf(2), 1.0)
 
     // box around view focus
     x = left + posC * magnify
@@ -300,6 +292,7 @@ export class PaintState {
     // box around sheet
     drawHollowRectangle(buffer, left - thickness, top - thickness, width + doubleThick, height + doubleThick, thickness, black0, black1, black2, 1.0)
     drawHollowRectangle(buffer, left - doubleThick, top - doubleThick, width + fourThick, height + fourThick, thickness, white0, white1, white2, 1.0)
+    drawRectangle(buffer, left - doubleThick, top - doubleThick - thickness, width + fourThick, thickness, darkgreyf(0), darkgreyf(1), darkgreyf(2), 1.0)
 
     // box around sheet focus
     x = left + posOffsetC * magnify
@@ -329,6 +322,7 @@ export class PaintState {
     // box around palette
     drawHollowRectangle(buffer, left - thickness, top - thickness, width + doubleThick, height + doubleThick, thickness, black0, black1, black2, 1.0)
     drawHollowRectangle(buffer, left - doubleThick, top - doubleThick, width + fourThick, height + fourThick, thickness, white0, white1, white2, 1.0)
+    drawRectangle(buffer, left - doubleThick, top - doubleThick - thickness, width + fourThick, thickness, darkgreyf(0), darkgreyf(1), darkgreyf(2), 1.0)
 
     // box around palette focus
     x = left + painter.paletteC * magnify
@@ -346,17 +340,18 @@ export class PaintState {
       let x = left + c * magnify
       let y = top
       if (c === painter.tool) drawRectangle(buffer, x, y, magnify, magnify, whitef(0), whitef(1), whitef(2), 1.0)
-      else drawRectangle(buffer, x, y, magnify, magnify, lightgreyf(0), lightgreyf(1), lightgreyf(2), 1.0)
+      else drawRectangle(buffer, x, y, magnify, magnify, blackf(0), blackf(1), blackf(2), 1.0)
     }
 
     // top bar
     let topBarHeight = fontHeight + 2 * pad
     drawRectangle(buffer, 0, canvasHeight - topBarHeight, canvasWidth, topBarHeight, redf(0), redf(1), redf(2), 1.0)
+    drawRectangle(buffer, 0, canvasHeight - topBarHeight - thickness, canvasWidth, thickness, darkgreyf(0), darkgreyf(1), darkgreyf(2), 1.0)
 
     rendering.updateAndDraw(buffer)
 
     // fonts
-    rendering.setProgram(1)
+    rendering.setProgram(3)
     rendering.setView(0, 0, canvasWidth, canvasHeight)
     rendering.updateUniformMatrix('u_mvp', projection)
 
@@ -404,7 +399,7 @@ export class PaintState {
     let topBarText = 'File Edit View Help'
     drawTextSpecial(client.bufferGUI, 10, canvasHeight - topBarHeight + pad, topBarText, scale, white0, white1, white2)
 
-    rendering.bindTexture(gl.TEXTURE0, textureByName('font').texture)
+    rendering.bindTexture(gl.TEXTURE0, textureByName('tic-80-wide-font').texture)
     rendering.updateAndDraw(client.bufferGUI)
   }
 }
