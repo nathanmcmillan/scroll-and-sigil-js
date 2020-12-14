@@ -34,17 +34,70 @@ export class Input {
   constructor() {
     this.in = new Array(24).fill(false)
     this.timers = new Array(24).fill(0)
+    this.mouseLeftDown = false
+    this.mouseRightDown = false
+    this.mousePositionX = 0
+    this.mousePositionY = 0
   }
 
   set(index, down) {
     this.in[index] = down
   }
 
+  setStart() {
+    this.in[BUTTON_START] = true
+  }
+
+  setSelect() {
+    this.in[BUTTON_SELECT] = true
+  }
+
+  setA() {
+    this.in[BUTTON_A] = true
+  }
+
+  mouseEvent(left, down) {
+    if (left) this.mouseLeftDown = down
+    else this.mouseRightDown = down
+  }
+
+  mouseMove(x, y) {
+    this.mousePositionX = x
+    this.mousePositionY = y
+  }
+
+  mouseX() {
+    return this.mousePositionX
+  }
+
+  mouseY() {
+    return this.mousePositionY
+  }
+
+  mouseLeft() {
+    return this.mouseLeftDown
+  }
+
+  mouseClickLeft() {
+    let down = this.mouseLeftDown
+    this.mouseLeftDown = false
+    return down
+  }
+
+  mouseRight() {
+    return this.mouseRightDown
+  }
+
+  mouseClickRight() {
+    let down = this.mouseRightDown
+    this.mouseRightDown = false
+    return down
+  }
+
   nothingOn() {
     let i = this.in.length
-    while (i--) {
-      if (this.in[i]) return false
-    }
+    while (i--) if (this.in[i]) return false
+    if (this.mouseLeftDown || this.mouseRightDown) return false
     return true
   }
 

@@ -5,6 +5,9 @@ dir='../scroll-and-sigil-website'
 cp --archive public "$dir"
 cd "$dir"
 
-mv public/index.html game.html
-mv public/* ./.
+cp --archive public/index.html game.html
+rm public/index.html
+
+cp --archive public/* ./.
+
 rm -r public

@@ -95,8 +95,9 @@ export class PaintEdit {
     const paletteRows = this.paletteRows
     const paletteColumns = this.paletteColumns
     const toolColumns = this.toolColumns
-    const fontWidth = this.scale * FONT_WIDTH
-    const fontHeight = this.scale * FONT_HEIGHT
+    const fontScale = Math.floor(1.5 * scale)
+    const fontWidth = fontScale * FONT_WIDTH
+    const fontHeight = fontScale * FONT_HEIGHT
 
     let magnify = 2 * scale
     let sheetBox = flexBox(magnify * sheetColumns, magnify * sheetRows)
@@ -314,6 +315,13 @@ export class PaintEdit {
         if (this.positionC + this.brushSize > this.canvasZoom) this.positionC = this.canvasZoom - this.brushSize
         else this.canUpdate = true
       }
+    }
+
+    if (input.mouseLeft()) {
+      let x = input.mouseX()
+      let y = input.mouseY()
+      let viewBox = this.viewBox
+      if (viewBox.inside(x, y)) console.log('yes!')
     }
 
     if (input.a()) {
