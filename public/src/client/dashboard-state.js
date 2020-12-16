@@ -38,11 +38,11 @@ export class DashboardState {
       if (dashboard.column === 0) {
         client.openState('paint')
       } else if (dashboard.column === 1) {
-        client.openState('paint')
+        client.openState('maps')
       } else if (dashboard.column === 2) {
-        client.openState('paint')
+        client.openState('music')
       } else if (dashboard.column === 3) {
-        client.openState('paint')
+        client.openState('sfx')
       }
     }
   }

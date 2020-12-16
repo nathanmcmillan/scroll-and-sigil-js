@@ -2,7 +2,7 @@ import {exportSheetPixels, exportSheetToCanvas, PaintEdit} from '/src/editor/pai
 import {textureByName} from '/src/assets/assets.js'
 import {drawText, drawTextSpecial, drawRectangle, drawHollowRectangle, drawImage, FONT_WIDTH, FONT_HEIGHT} from '/src/render/render.js'
 import {identity, multiply} from '/src/math/matrix.js'
-import {blackf, whitef, redf, lavenderf, darkbluef, darkpurplef, lightgreyf, darkgreyf, luminosity, luminosityTable} from '/src/editor/palette.js'
+import {blackf, whitef, redf, darkpurplef, darkgreyf, luminosity, luminosityTable} from '/src/editor/palette.js'
 import {flexBox, flexSolve} from '/src/flex/flex.js'
 import {compress, decompress} from '/src/compress/huffman.js'
 import {createPixelsToTexture} from '/src/webgl/webgl.js'
@@ -419,8 +419,10 @@ export class PaintState {
     drawTextSpecial(client.bufferGUI, 10, 10, displayZoom, fontScale, white0, white1, white2, 1.0)
 
     let topBarText = ' File Edit View Help'
+    // let topBarText = 'FILE EDIT VIEW HELP'
+    drawTextSpecial(client.bufferGUI, 0, canvasHeight - topBarHeight + pad, topBarText, fontScale, white0, white1, white2, 1.0)
     // drawTextSpecial(client.bufferGUI, 0, canvasHeight - topBarHeight + pad, topBarText, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
-    drawText(client.bufferGUI, 0, canvasHeight - topBarHeight + pad, topBarText, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
+    // drawText(client.bufferGUI, 0, canvasHeight - topBarHeight + pad, topBarText, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
 
     let topBarSwitch = 'HCLPSM '
     width = topBarSwitch.length * fontWidth

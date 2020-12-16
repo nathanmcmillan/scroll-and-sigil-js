@@ -14,6 +14,10 @@ A 3D adventure game with a strong focus on modding and user crafted content.
 
 # Development
 
+###
+
+- Make home menu a 3D scene using game renderer
+
 ### High Priority
 
 - Equiptable Items
@@ -88,8 +92,8 @@ A 3D adventure game with a strong focus on modding and user crafted content.
 
 # Notes
 
-- Do not depend on camera for entity interaction.  
-  Use the player's entity rotation and proximity instead.  
+- Do not depend on camera for entity interaction.
+  Use the player's entity rotation and proximity instead.
   Otherwise it's hard to be consistent across first person, third person, top down views
 
 # Bundling Sprite Sheets

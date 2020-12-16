@@ -36,6 +36,7 @@ export class Input {
     this.timers = new Array(24).fill(0)
     this.mouseLeftDown = false
     this.mouseRightDown = false
+    this.mouseDidMove = false
     this.mousePositionX = 0
     this.mousePositionY = 0
   }
@@ -64,6 +65,7 @@ export class Input {
   mouseMove(x, y) {
     this.mousePositionX = x
     this.mousePositionY = y
+    this.mouseDidMove = true
   }
 
   mouseX() {
@@ -94,10 +96,18 @@ export class Input {
     return down
   }
 
+  mouseMoved() {
+    return this.mouseDidMove
+  }
+
+  mouseMoveOff() {
+    this.mouseDidMove = false
+  }
+
   nothingOn() {
     let i = this.in.length
     while (i--) if (this.in[i]) return false
-    if (this.mouseLeftDown || this.mouseRightDown) return false
+    if (this.mouseLeftDown || this.mouseRightDown || this.mouseDidMove) return false
     return true
   }
 
