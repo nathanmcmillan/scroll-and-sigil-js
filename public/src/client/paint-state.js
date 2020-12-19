@@ -1,8 +1,9 @@
 import {exportSheetPixels, exportSheetToCanvas, PaintEdit} from '/src/editor/paint.js'
 import {textureByName} from '/src/assets/assets.js'
 import {drawText, drawTextSpecial, drawRectangle, drawHollowRectangle, drawImage, FONT_WIDTH, FONT_HEIGHT} from '/src/render/render.js'
+import {spr, sprcol} from '/src/render/pico.js'
 import {identity, multiply} from '/src/math/matrix.js'
-import {blackf, whitef, redf, darkpurplef, darkgreyf, bluef, luminosity, luminosityTable} from '/src/editor/palette.js'
+import {blackf, whitef, redf, darkpurplef, bluef, luminosity, luminosityTable} from '/src/editor/palette.js'
 import {flexBox, flexSolve} from '/src/flex/flex.js'
 import {compress, decompress} from '/src/compress/huffman.js'
 import {createPixelsToTexture} from '/src/webgl/webgl.js'
@@ -150,6 +151,8 @@ export class PaintState {
         }
       }
       button.click()
+    } else if (down && code === 'Digit1') {
+      this.client.openState('dashboard')
     }
   }
 
@@ -353,19 +356,6 @@ export class PaintState {
     drawHollowRectangle(buffer, x - thickness, y - thickness, magnify + doubleThick, magnify + doubleThick, thickness, black0, black1, black2, 1.0)
     drawHollowRectangle(buffer, x - doubleThick, y - doubleThick, magnify + fourThick, magnify + fourThick, thickness, white0, white1, white2, 1.0)
 
-    // tools
-    magnify = 16 * scale
-    width = toolBox.width
-    height = toolBox.height
-    left = toolBox.x
-    top = toolBox.y
-    for (let c = 0; c < toolColumns; c++) {
-      let x = left + c * magnify
-      let y = top
-      if (c === painter.tool) drawRectangle(buffer, x, y, magnify, magnify, whitef(0), whitef(1), whitef(2), 1.0)
-      else drawRectangle(buffer, x, y, magnify, magnify, blackf(0), blackf(1), blackf(2), 1.0)
-    }
-
     // top bar
     let topBarHeight = fontHeight + 2 * pad
     drawRectangle(buffer, 0, canvasHeight - topBarHeight, canvasWidth, topBarHeight, redf(0), redf(1), redf(2), 1.0)
@@ -376,10 +366,30 @@ export class PaintState {
 
     rendering.updateAndDraw(buffer)
 
-    // text
+    // special textures
     rendering.setProgram(3)
     rendering.setView(0, 0, canvasWidth, canvasHeight)
     rendering.updateUniformMatrix('u_mvp', projection)
+
+    client.bufferGUI.zero()
+
+    // tools
+    let toolMagnify = 16 * scale
+    let toolLeft = toolBox.x
+    let toolTop = toolBox.y
+    for (let c = 0; c < toolColumns; c++) {
+      let x = toolLeft + c * toolMagnify
+      let y = toolTop
+      if (c === painter.tool) {
+        spr(client.bufferGUI, c, 1.0, 1.0, x, y - 2 * scale, toolMagnify, toolMagnify)
+      } else {
+        sprcol(client.bufferGUI, c, 1.0, 1.0, x, y - 2 * scale, toolMagnify, toolMagnify, 0.0, 0.0, 0.0, 1.0)
+        spr(client.bufferGUI, c, 1.0, 1.0, x, y, toolMagnify, toolMagnify)
+      }
+    }
+
+    rendering.bindTexture(gl.TEXTURE0, textureByName('editor-sprites').texture)
+    rendering.updateAndDraw(client.bufferGUI)
 
     client.bufferGUI.zero()
 

@@ -10,17 +10,6 @@ const DROPLET = 2
 const INPUT_RATE = 128
 const HISTORY_LIMIT = 50
 
-// TODO
-// TOP BAR
-// - FILE
-// --- IMPORT
-// --- SAVE
-// --- EXPORT
-// - EDIT
-// --- UNDO
-// --- REDO
-// - HELP
-
 export class PaintEdit {
   constructor(width, height, scale, input) {
     this.width = width
@@ -103,7 +92,7 @@ export class PaintEdit {
     let sheetBox = flexBox(magnify * sheetColumns, magnify * sheetRows)
     sheetBox.topSpace = Math.ceil(0.5 * fontHeight)
     sheetBox.bottomSpace = Math.ceil(0.5 * fontHeight)
-    sheetBox.rightSpace = 4 * fontWidth
+    sheetBox.rightSpace = 2 * fontWidth
     sheetBox.argX = 0
     sheetBox.funY = 'center'
     this.sheetBox = sheetBox
@@ -122,7 +111,8 @@ export class PaintEdit {
     viewBox.fromY = sheetBox
     this.viewBox = viewBox
 
-    let toolBox = flexBox(toolColumns * fontWidth, 2 * fontHeight)
+    magnify = 16 * scale
+    let toolBox = flexBox(toolColumns * magnify, 2 * fontHeight)
     toolBox.bottomSpace = 2 * fontHeight
     toolBox.funX = 'center'
     toolBox.fromX = viewBox

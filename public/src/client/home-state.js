@@ -6,7 +6,6 @@ import {identity, multiply, rotateX, rotateY, translate} from '/src/math/matrix.
 import {whitef} from '/src/editor/palette.js'
 import {flexText, flexSolve} from '/src/flex/flex.js'
 import {Home} from '/src/menu/home.js'
-import {pauseMusic} from '/src/assets/sounds.js'
 
 export class HomeState {
   constructor(client) {
@@ -35,7 +34,7 @@ export class HomeState {
   mouseMove() {}
 
   async initialize() {
-    await this.load('/maps/test.map')
+    await this.load('/maps/home.map')
   }
 
   async load(file) {
@@ -52,8 +51,6 @@ export class HomeState {
     this.loading = false
 
     this.game.update()
-
-    pauseMusic()
   }
 
   update(timestamp) {
