@@ -14,10 +14,6 @@ A 3D adventure game with a strong focus on modding and user crafted content.
 
 # Development
 
-###
-
-- Make home menu a 3D scene using game renderer
-
 ### High Priority
 
 - Equiptable Items

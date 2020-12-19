@@ -7,6 +7,10 @@ export class MusicEdit {
     this.shadowInput = true
     this.doPaint = true
     this.hasUpdates = false
+
+    this.trackRows = 3
+    this.trackColumns = 32
+    this.track = new Uint8Array(this.sheetRows * this.sheetColumns)
   }
 
   resize(width, height, scale) {

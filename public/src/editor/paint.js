@@ -148,6 +148,11 @@ export class PaintEdit {
 
     sheetBox.argX = canvas.x
     flexSolve(width, height, ...collection)
+
+    // let topBarPaint = flexBox(fontWidth, fontHeight)
+    // topBarPaint.argX = 'center'
+    // topBarPaint.argY = viewBox
+    // this.topBarPaint = topBarPaint
   }
 
   read(content, into) {
