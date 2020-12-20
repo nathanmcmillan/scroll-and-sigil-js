@@ -96,6 +96,7 @@ export class MusicState {
     client.bufferGUI.zero()
 
     let track = music.tracks[music.trackIndex]
+    let notes = track.notes
 
     let text = track.name
     let posBox = flexBox(fontWidth * text.length, fontHeight)
@@ -104,33 +105,25 @@ export class MusicState {
     flexSolve(canvasWidth, canvasHeight, posBox)
     drawTextSpecial(client.bufferGUI, posBox.x, posBox.y, text, fontScale, whitef(0), whitef(1), whitef(2), 1.0)
 
-    const staveRows = music.staveRows
-    const staveColumns = music.staveColumns
-    const noteIndex = music.staveC + music.staveR * staveColumns
-
-    // do not print matrix of notes
-    // print note + length of note above it
-    // so it's a sparse list
-    // print 4:4 signature bars somewhere
-
     const fontHalfWidth = Math.floor(0.5 * fontWidth)
+    const noteRows = music.noteRows
+    const noteC = music.noteC
+    const noteR = music.noteR
 
     let x = 20
     let y = canvasHeight - 150
     let noteWidth = Math.floor(2 * fontWidth)
     let noteHeight = fontHeight + scale
-    for (let stave of track.staves) {
-      let notes = stave.notes
-      for (let c = 0; c < staveColumns; c++) {
-        for (let r = 0; r < staveRows; r++) {
-          let index = c + r * staveColumns
-          let num = notes[index]
-          let note = num === 0 ? '-' : '' + num
-          let pos = x + c * noteWidth
-          if (note >= 10) pos -= fontHalfWidth
-          if (index == noteIndex) drawTextSpecial(client.bufferGUI, pos, y - r * noteHeight, note, fontScale, redf(0), redf(1), redf(2), 1.0)
-          else drawTextSpecial(client.bufferGUI, pos, y - r * noteHeight, note, fontScale, whitef(0), whitef(1), whitef(2), 1.0)
-        }
+
+    for (let c = 0; c < notes.length; c++) {
+      let note = notes[c]
+      for (let r = 1; r < noteRows; r++) {
+        let num = note[r]
+        let pitch = num === 0 ? '-' : '' + num
+        let pos = x + c * noteWidth
+        if (pitch >= 10) pos -= fontHalfWidth
+        if (c === noteC && r === noteR) drawTextSpecial(client.bufferGUI, pos, y - r * noteHeight, pitch, fontScale, redf(0), redf(1), redf(2), 1.0)
+        else drawTextSpecial(client.bufferGUI, pos, y - r * noteHeight, pitch, fontScale, whitef(0), whitef(1), whitef(2), 1.0)
       }
     }
 
@@ -144,17 +137,27 @@ export class MusicState {
     let width = topBarSwitch.length * fontWidth
     drawText(client.bufferGUI, canvasWidth - width, canvasHeight - topBarHeight + pad, topBarSwitch, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
 
-    drawTextSpecial(client.bufferGUI, 20, 100, '(z)Pitch down (x)Pitch up (c)Length down (v)Length up (-)Delete note', scale, whitef(0), whitef(1), whitef(2), 1.0)
+    let infoText
+    infoText = noteR === 0 ? '(x)Duration down (z)Duration up ' : '(z)Pitch down (x)Pitch up '
+    infoText += '(-)Delete note '
+    infoText += music.play ? '(c)Stop' : '(c)Play'
+    drawTextSpecial(client.bufferGUI, 20, 100, infoText, scale, whitef(0), whitef(1), whitef(2), 1.0)
 
     rendering.bindTexture(gl.TEXTURE0, textureByName('tic-80-wide-font').texture)
     rendering.updateAndDraw(client.bufferGUI)
 
     client.bufferGUI.zero()
 
-    for (let c = 0; c < staveColumns; c++) {
+    const r = 0
+    for (let c = 0; c < notes.length; c++) {
+      let note = notes[c]
+      let duration = 33 + note[r]
       let pos = x + c * noteWidth
-      sprcol(client.bufferGUI, 32 + 4, 1.0, 1.0, pos, y - 2 * scale + noteHeight + fontHeight, 8 * scale, 8 * scale, 0.0, 0.0, 0.0, 1.0)
-      spr(client.bufferGUI, 32 + 4, 1.0, 1.0, pos, y + noteHeight + fontHeight, 8 * scale, 8 * scale)
+
+      sprcol(client.bufferGUI, duration, 1.0, 1.0, pos, y + noteHeight - scale, 8 * scale, 8 * scale, 0.0, 0.0, 0.0, 1.0)
+
+      if (c === noteC && r === noteR) sprcol(client.bufferGUI, duration, 1.0, 1.0, pos, y + noteHeight, 8 * scale, 8 * scale, redf(0), redf(1), redf(2), 1.0)
+      else spr(client.bufferGUI, duration, 1.0, 1.0, pos, y + noteHeight, 8 * scale, 8 * scale)
     }
 
     rendering.bindTexture(gl.TEXTURE0, textureByName('editor-sprites').texture)

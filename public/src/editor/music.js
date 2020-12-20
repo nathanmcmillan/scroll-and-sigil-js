@@ -8,20 +8,11 @@ import {zzfx} from '/src/external/zzfx.js'
 const INPUT_RATE = 128
 // const HISTORY_LIMIT = 50
 
-class Note {
-  constructor() {
-    this.pitch0 = 0
-    this.pitch1 = 1
-    this.pitch2 = 0
-    this.length = 0
-  }
-}
-
 class Track {
   constructor(name) {
     this.name = name
     this.instrument = null
-    this.notes = [new Note()]
+    this.notes = [[2, 1, 0, 0]]
   }
 }
 
@@ -34,16 +25,18 @@ export class MusicEdit {
     this.shadowInput = true
     this.doPaint = true
 
-    // this.staveRows = 3
-    // this.staveColumns = 32
+    this.pitcheRows = 3
+    this.noteRows = this.pitcheRows + 1
+    this.maxDuration = 6
 
-    // this.staveC = 0
-    // this.staveR = 0
-
-    this.noteIndex = 0
+    this.noteC = 0
+    this.noteR = 0
 
     this.tempo = 120
     this.transpose = 0
+    this.play = false
+    this.timer = 0
+    this.hold = 0
 
     let guitar = new Track('Guitar')
 
@@ -61,7 +54,43 @@ export class MusicEdit {
 
   async load() {}
 
+  playAndCalculateNote() {
+    let note = this.tracks[this.trackIndex].notes[this.noteC]
+    zzfx(1, 0.05, 129, 0.01, 0, 0.15, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 5)
+    this.timer = 0
+    this.hold = (this.tempo / 16) * (1 + note[0])
+  }
+
+  updatePlay() {
+    let input = this.input
+
+    if (input.pressX()) {
+      this.play = false
+      this.doPaint = true
+      return
+    }
+
+    if (this.timer >= this.hold) {
+      this.doPaint = true
+      this.noteC++
+      if (this.noteC === this.tracks[this.trackIndex].notes.length) {
+        this.noteC = 0
+        this.play = false
+      } else {
+        this.playAndCalculateNote()
+      }
+    } else {
+      this.timer++
+      this.doPaint = false
+    }
+  }
+
   update(timestamp) {
+    if (this.play) {
+      this.updatePlay()
+      return
+    }
+
     this.doPaint = false
     if (this.input.nothingOn()) {
       if (this.shadowInput) this.shadowInput = false
@@ -72,41 +101,56 @@ export class MusicEdit {
     let input = this.input
 
     if (input.timerLeftUp(timestamp, INPUT_RATE)) {
-      this.staveR--
-      if (this.staveR < 0) this.staveR = 0
-    }
-
-    if (input.timerLeftDown(timestamp, INPUT_RATE)) {
-      this.staveR++
-      if (this.staveR >= this.staveRows) this.staveR = this.staveRows - 1
+      if (this.noteR > 0) this.noteR--
+    } else if (input.timerLeftDown(timestamp, INPUT_RATE)) {
+      if (this.noteR < this.noteRows - 1) this.noteR++
     }
 
     if (input.timerLeftLeft(timestamp, INPUT_RATE)) {
-      this.staveC--
-      if (this.staveC < 0) this.staveC = 0
-    }
-
-    if (input.timerLeftRight(timestamp, INPUT_RATE)) {
-      this.staveC++
-      if (this.staveC >= this.staveColumns) this.staveC = this.staveColumns - 1
+      if (this.noteC > 0) this.noteC--
+    } else if (input.timerLeftRight(timestamp, INPUT_RATE)) {
+      this.noteC++
+      let notes = this.tracks[this.trackIndex].notes
+      if (this.noteC === notes.length) {
+        notes.push([2, 0, 0, 0])
+      }
     }
 
     if (input.timerA(timestamp, INPUT_RATE)) {
+      let row = this.noteR
       let track = this.tracks[this.trackIndex]
-      let index = this.staveC + this.staveR * this.staveColumns
-      let note = track.staves[0].notes[index]
-      if (note > 0) {
-        track.staves[0].notes[index] = note - 1
-        zzfx(1, 0.05, 129, 0.01, 0, 0.15, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 5)
+      let note = track.notes[this.noteC]
+      if (row === 0) {
+        if (note[row] > 0) {
+          note[row]--
+          zzfx(1, 0.05, 537, 0.02, 0.22, 1, 1.59, -6.98, 4.97, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 5)
+        }
+      } else {
+        if (note[row] > 0) {
+          note[row]--
+          zzfx(1, 0.05, 129, 0.01, 0, 0.15, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 5)
+        }
       }
     } else if (input.timerB(timestamp, INPUT_RATE)) {
+      let row = this.noteR
       let track = this.tracks[this.trackIndex]
-      let index = this.staveC + this.staveR * this.staveColumns
-      let note = track.staves[0].notes[index]
-      if (note < 99) {
-        track.staves[0].notes[index] = note + 1
-        zzfx(1, 0.05, 129, 0.01, 0, 0.15, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 5)
+      let note = track.notes[this.noteC]
+      if (row === 0) {
+        if (note[row] < this.maxDuration - 1) {
+          note[row]++
+          zzfx(1, 0.05, 537, 0.02, 0.22, 1, 1.59, -6.98, 4.97, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 5)
+        }
+      } else {
+        if (note[row] < 99) {
+          note[row]++
+          zzfx(1, 0.05, 129, 0.01, 0, 0.15, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 5)
+        }
       }
+    }
+
+    if (input.pressX()) {
+      this.play = true
+      this.playAndCalculateNote()
     }
   }
 
