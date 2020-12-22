@@ -1,5 +1,5 @@
 import {fetchText} from '/src/client/net.js'
-import {parse, MusicNode} from '/src/audio/audio.js'
+import {parse, MusicNode} from '/src/sound/audio.js'
 
 const SOUNDS = new Map()
 const MUSIC_TABLE = new Map()

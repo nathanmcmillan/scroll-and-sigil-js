@@ -174,7 +174,8 @@ export class HomeState {
     let white1 = whitef(1)
     let white2 = whitef(2)
 
-    rendering.setProgram(1)
+    // text
+    rendering.setProgram(4)
     rendering.setView(0, 0, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
 

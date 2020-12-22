@@ -7,3 +7,5 @@
 [PICO-8 font and pallete](https://www.lexaloffle.com/pico-8.php)
 
 [TIC-80 fonts](https://tic80.com)
+
+[tiny speech synth](https://heckmeck.de/demoscene/tiny-speech-synth-js)

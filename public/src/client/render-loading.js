@@ -6,8 +6,10 @@ export function renderLoadInProgress(client, gl, rendering, view, projection) {
   gl.clear(gl.COLOR_BUFFER_BIT)
   gl.clear(gl.DEPTH_BUFFER_BIT)
 
-  rendering.setProgram(1)
+  // text
+  rendering.setProgram(4)
   rendering.setView(0, 0, client.width, client.height)
+  rendering.updateUniformMatrix('u_mvp', projection)
 
   gl.disable(gl.CULL_FACE)
   gl.disable(gl.DEPTH_TEST)

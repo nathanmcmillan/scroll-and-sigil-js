@@ -391,6 +391,11 @@ export class PaintState {
     rendering.bindTexture(gl.TEXTURE0, textureByName('editor-sprites').texture)
     rendering.updateAndDraw(client.bufferGUI)
 
+    // text
+    rendering.setProgram(4)
+    rendering.setView(0, 0, canvasWidth, canvasHeight)
+    rendering.updateUniformMatrix('u_mvp', projection)
+
     client.bufferGUI.zero()
 
     let displayC = posC < 10 ? '0' + posC : '' + posC

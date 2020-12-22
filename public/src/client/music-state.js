@@ -5,6 +5,7 @@ import {spr, sprcol} from '/src/render/pico.js'
 import {identity, multiply} from '/src/math/matrix.js'
 import {whitef, redf, darkpurplef, darkgreyf} from '/src/editor/palette.js'
 import {flexBox, flexSolve} from '/src/flex/flex.js'
+import {speech, SYNTH_SPEECH_FREQ} from '/src/sound/speech.js'
 
 export class MusicState {
   constructor(client) {
@@ -16,6 +17,28 @@ export class MusicState {
 
     let music = new MusicEdit(client.width, client.height, client.scale, client.input)
     this.music = music
+
+    // let text = 'scroll and sigil'
+    // let shorten = false
+    // let pitch = 1.0
+    // let buffer = animal(text, shorten, pitch)
+
+    let base = 60
+    let speed = 1.5
+    let text = 'scroll and sigil'
+    let seconds = 10
+    let wave = SYNTH_SPEECH_FREQ * 2 * 2 * seconds
+    let buffer = new Int16Array(new ArrayBuffer(wave))
+    speech(buffer, text, base, speed, 0)
+
+    let amp = 22000
+    let str = ''
+    for (var i = 0; i < buffer.length; i++) {
+      var y = (buffer[i] / amp) * 0x7800
+      str += String.fromCharCode(y & 255, (y >> 8) & 255)
+    }
+    let audio = new Audio('data:audio/wav;base64,' + btoa(atob('UklGRti/UABXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YbS/UAA') + str))
+    audio.play()
   }
 
   resize(width, height, scale) {
@@ -89,7 +112,7 @@ export class MusicState {
     rendering.updateAndDraw(buffer)
 
     // text
-    rendering.setProgram(3)
+    rendering.setProgram(4)
     rendering.setView(0, 0, canvasWidth, canvasHeight)
     rendering.updateUniformMatrix('u_mvp', projection)
 
@@ -139,7 +162,7 @@ export class MusicState {
 
     let infoText
     infoText = noteR === 0 ? '(x)Duration down (z)Duration up ' : '(z)Pitch down (x)Pitch up '
-    infoText += '(-)Delete note '
+    infoText += '(+)Insert note (-)Delete note '
     infoText += music.play ? '(c)Stop' : '(c)Play'
     drawTextSpecial(client.bufferGUI, 20, 100, infoText, scale, whitef(0), whitef(1), whitef(2), 1.0)
 
@@ -147,6 +170,14 @@ export class MusicState {
     rendering.updateAndDraw(client.bufferGUI)
 
     client.bufferGUI.zero()
+
+    // TODO
+    // Display octave + diatonic note + hertz for the active selected note
+
+    // sprites
+    rendering.setProgram(3)
+    rendering.setView(0, 0, canvasWidth, canvasHeight)
+    rendering.updateUniformMatrix('u_mvp', projection)
 
     const r = 0
     for (let c = 0; c < notes.length; c++) {
