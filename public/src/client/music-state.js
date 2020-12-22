@@ -1,4 +1,4 @@
-import {MusicEdit} from '/src/editor/music.js'
+import {diatonic, semitoneName, MusicEdit, SEMITONES} from '/src/editor/music.js'
 import {textureByName} from '/src/assets/assets.js'
 import {drawText, drawTextSpecial, drawRectangle, FONT_WIDTH, FONT_HEIGHT} from '/src/render/render.js'
 import {spr, sprcol} from '/src/render/pico.js'
@@ -18,27 +18,29 @@ export class MusicState {
     let music = new MusicEdit(client.width, client.height, client.scale, client.input)
     this.music = music
 
-    // let text = 'scroll and sigil'
-    // let shorten = false
-    // let pitch = 1.0
-    // let buffer = animal(text, shorten, pitch)
+    if (false) {
+      // let text = 'scroll and sigil'
+      // let shorten = false
+      // let pitch = 1.0
+      // let buffer = animal(text, shorten, pitch)
 
-    let base = 60
-    let speed = 1.5
-    let text = 'scroll and sigil'
-    let seconds = 10
-    let wave = SYNTH_SPEECH_FREQ * 2 * 2 * seconds
-    let buffer = new Int16Array(new ArrayBuffer(wave))
-    speech(buffer, text, base, speed, 0)
+      let base = 60
+      let speed = 1.5
+      let text = 'scroll and sigil'
+      let seconds = 10
+      let wave = SYNTH_SPEECH_FREQ * 2 * 2 * seconds
+      let buffer = new Int16Array(new ArrayBuffer(wave))
+      speech(buffer, text, base, speed, 0)
 
-    let amp = 22000
-    let str = ''
-    for (var i = 0; i < buffer.length; i++) {
-      var y = (buffer[i] / amp) * 0x7800
-      str += String.fromCharCode(y & 255, (y >> 8) & 255)
+      let amp = 22000
+      let str = ''
+      for (var i = 0; i < buffer.length; i++) {
+        var y = (buffer[i] / amp) * 0x7800
+        str += String.fromCharCode(y & 255, (y >> 8) & 255)
+      }
+      let audio = new Audio('data:audio/wav;base64,' + btoa(atob('UklGRti/UABXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YbS/UAA') + str))
+      audio.play()
     }
-    let audio = new Audio('data:audio/wav;base64,' + btoa(atob('UklGRti/UABXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YbS/UAA') + str))
-    audio.play()
   }
 
   resize(width, height, scale) {
@@ -166,13 +168,18 @@ export class MusicState {
     infoText += music.play ? '(c)Stop' : '(c)Play'
     drawTextSpecial(client.bufferGUI, 20, 100, infoText, scale, whitef(0), whitef(1), whitef(2), 1.0)
 
+    if (noteR > 0) {
+      let note = notes[noteC][noteR]
+      if (note > 0) {
+        let noteText = semitoneName(note - SEMITONES) + ' (' + Math.round(diatonic(note - SEMITONES)) + ' hz)'
+        drawTextSpecial(client.bufferGUI, 20, 50, noteText, scale, whitef(0), whitef(1), whitef(2), 1.0)
+      }
+    }
+
     rendering.bindTexture(gl.TEXTURE0, textureByName('tic-80-wide-font').texture)
     rendering.updateAndDraw(client.bufferGUI)
 
     client.bufferGUI.zero()
-
-    // TODO
-    // Display octave + diatonic note + hertz for the active selected note
 
     // sprites
     rendering.setProgram(3)
