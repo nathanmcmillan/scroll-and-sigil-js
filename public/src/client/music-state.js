@@ -1,4 +1,4 @@
-import {diatonic, semitoneName, MusicEdit, SEMITONES} from '/src/editor/music.js'
+import {semitoneName, MusicEdit, SEMITONES} from '/src/editor/music.js'
 import {textureByName} from '/src/assets/assets.js'
 import {drawText, drawTextSpecial, drawRectangle, FONT_WIDTH, FONT_HEIGHT} from '/src/render/render.js'
 import {spr, sprcol} from '/src/render/pico.js'
@@ -6,6 +6,7 @@ import {identity, multiply} from '/src/math/matrix.js'
 import {whitef, redf, darkpurplef, darkgreyf} from '/src/editor/palette.js'
 import {flexBox, flexSolve} from '/src/flex/flex.js'
 import {speech, SYNTH_SPEECH_FREQ} from '/src/sound/speech.js'
+import {compress} from '/src/compress/huffman.js'
 
 export class MusicState {
   constructor(client) {
@@ -48,9 +49,30 @@ export class MusicState {
   }
 
   keyEvent(code, down) {
-    if (this.keys.has(code)) this.music.input.set(this.keys.get(code), down)
-    else if (down && code === 'Digit1') {
+    let music = this.music
+    if (this.keys.has(code)) music.input.set(this.keys.get(code), down)
+    if (down && code === 'Digit1') {
       this.client.openState('dashboard')
+    } else if (down && code === 'Digit0') {
+      // local storage
+      let blob = music.export()
+      localStorage.setItem('music-edit', blob)
+      console.info('saved to local storage!')
+      console.info(blob)
+    } else if (down && code === 'Digit6') {
+      // compressed text
+      let blob = compress(music.export())
+      let download = document.createElement('a')
+      download.href = window.URL.createObjectURL(new Blob([blob], {type: 'application/octet-stream'}))
+      download.download = 'music' + music.trackIndex + '.huff'
+      download.click()
+    } else if (down && code === 'Digit8') {
+      // plain text
+      let blob = music.export()
+      let download = document.createElement('a')
+      download.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(blob)
+      download.download = 'music' + music.trackIndex + '.txt'
+      download.click()
     }
   }
 
@@ -111,6 +133,9 @@ export class MusicState {
     let topBarHeight = fontHeight + 2 * pad
     drawRectangle(buffer, 0, canvasHeight - topBarHeight, canvasWidth, topBarHeight, redf(0), redf(1), redf(2), 1.0)
 
+    // bottom bar
+    drawRectangle(buffer, 0, 0, canvasWidth, topBarHeight, redf(0), redf(1), redf(2), 1.0)
+
     rendering.updateAndDraw(buffer)
 
     // text
@@ -126,19 +151,22 @@ export class MusicState {
     let text = track.name
     let posBox = flexBox(fontWidth * text.length, fontHeight)
     posBox.argX = 20
-    posBox.argY = 20
+    posBox.argY = 40
     flexSolve(canvasWidth, canvasHeight, posBox)
     drawTextSpecial(client.bufferGUI, posBox.x, posBox.y, text, fontScale, whitef(0), whitef(1), whitef(2), 1.0)
 
-    const fontHalfWidth = Math.floor(0.5 * fontWidth)
+    const smallFontScale = Math.floor(1.5 * scale)
+    const smallFontWidth = smallFontScale * FONT_WIDTH
+    const smallFontHeight = smallFontScale * FONT_HEIGHT
+    const smallFontHalfWidth = Math.floor(0.5 * smallFontWidth)
     const noteRows = music.noteRows
     const noteC = music.noteC
     const noteR = music.noteR
 
     let x = 20
     let y = canvasHeight - 150
-    let noteWidth = Math.floor(2 * fontWidth)
-    let noteHeight = fontHeight + scale
+    let noteWidth = Math.floor(2.5 * smallFontWidth)
+    let noteHeight = Math.floor(1.2 * smallFontHeight)
 
     for (let c = 0; c < notes.length; c++) {
       let note = notes[c]
@@ -146,34 +174,35 @@ export class MusicState {
         let num = note[r]
         let pitch = num === 0 ? '-' : '' + num
         let pos = x + c * noteWidth
-        if (pitch >= 10) pos -= fontHalfWidth
-        if (c === noteC && r === noteR) drawTextSpecial(client.bufferGUI, pos, y - r * noteHeight, pitch, fontScale, redf(0), redf(1), redf(2), 1.0)
-        else drawTextSpecial(client.bufferGUI, pos, y - r * noteHeight, pitch, fontScale, whitef(0), whitef(1), whitef(2), 1.0)
+        if (pitch >= 10) pos -= smallFontHalfWidth
+        if (c === noteC && r === noteR) drawTextSpecial(client.bufferGUI, pos, y - r * noteHeight, pitch, smallFontScale, redf(0), redf(1), redf(2), 1.0)
+        else drawTextSpecial(client.bufferGUI, pos, y - r * noteHeight, pitch, smallFontScale, whitef(0), whitef(1), whitef(2), 1.0)
       }
     }
 
     let tempoText = 'Tempo:' + music.tempo
     drawTextSpecial(client.bufferGUI, 20, canvasHeight - fontHeight * 3, tempoText, fontScale, whitef(0), whitef(1), whitef(2), 1.0)
 
-    let topBarText = ' File Edit View Help'
-    drawTextSpecial(client.bufferGUI, 0, canvasHeight - topBarHeight + pad, topBarText, fontScale, whitef(0), whitef(1), whitef(2), 1.0)
+    // top info
+    let topBarText = '(+)FILE EDIT VIEW HELP'
+    drawText(client.bufferGUI, 0, canvasHeight - topBarHeight + pad - scale, topBarText, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
 
-    let topBarSwitch = 'HCLPSM '
+    let topBarSwitch = '(-)HCLPSM '
     let width = topBarSwitch.length * fontWidth
-    drawText(client.bufferGUI, canvasWidth - width, canvasHeight - topBarHeight + pad, topBarSwitch, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
+    drawText(client.bufferGUI, canvasWidth - width, canvasHeight - topBarHeight + pad - scale, topBarSwitch, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
 
     let infoText
     infoText = noteR === 0 ? '(x)Duration down (z)Duration up ' : '(z)Pitch down (x)Pitch up '
     infoText += '(+)Insert note (-)Delete note '
     infoText += music.play ? '(c)Stop' : '(c)Play'
-    drawTextSpecial(client.bufferGUI, 20, 100, infoText, scale, whitef(0), whitef(1), whitef(2), 1.0)
+    drawTextSpecial(client.bufferGUI, 20, 100, infoText, fontScale, whitef(0), whitef(1), whitef(2), 1.0)
 
-    if (noteR > 0) {
-      let note = notes[noteC][noteR]
-      if (note > 0) {
-        let noteText = semitoneName(note - SEMITONES) + ' (' + Math.round(diatonic(note - SEMITONES)) + ' hz)'
-        drawTextSpecial(client.bufferGUI, 20, 50, noteText, scale, whitef(0), whitef(1), whitef(2), 1.0)
-      }
+    for (let r = 1; r < noteRows; r++) {
+      let note = notes[noteC][r]
+      let noteText
+      if (note === 0) noteText = '-'
+      else noteText = semitoneName(note - SEMITONES)
+      drawTextSpecial(client.bufferGUI, 20, 200 - r * noteHeight, noteText, smallFontScale, whitef(0), whitef(1), whitef(2), 1.0)
     }
 
     rendering.bindTexture(gl.TEXTURE0, textureByName('tic-80-wide-font').texture)
@@ -186,16 +215,18 @@ export class MusicState {
     rendering.setView(0, 0, canvasWidth, canvasHeight)
     rendering.updateUniformMatrix('u_mvp', projection)
 
+    const spriteScale = Math.floor(1.5 * scale)
+    const spriteSize = 8 * spriteScale
+
+    y += Math.floor(0.5 * noteHeight)
     const r = 0
     for (let c = 0; c < notes.length; c++) {
       let note = notes[c]
       let duration = 33 + note[r]
       let pos = x + c * noteWidth
-
-      sprcol(client.bufferGUI, duration, 1.0, 1.0, pos, y + noteHeight - scale, 8 * scale, 8 * scale, 0.0, 0.0, 0.0, 1.0)
-
-      if (c === noteC && r === noteR) sprcol(client.bufferGUI, duration, 1.0, 1.0, pos, y + noteHeight, 8 * scale, 8 * scale, redf(0), redf(1), redf(2), 1.0)
-      else spr(client.bufferGUI, duration, 1.0, 1.0, pos, y + noteHeight, 8 * scale, 8 * scale)
+      sprcol(client.bufferGUI, duration, 1.0, 1.0, pos, y - spriteScale, spriteSize, spriteSize, 0.0, 0.0, 0.0, 1.0)
+      if (c === noteC && r === noteR) sprcol(client.bufferGUI, duration, 1.0, 1.0, pos, y, spriteSize, spriteSize, redf(0), redf(1), redf(2), 1.0)
+      else spr(client.bufferGUI, duration, 1.0, 1.0, pos, y, spriteSize, spriteSize)
     }
 
     rendering.bindTexture(gl.TEXTURE0, textureByName('editor-sprites').texture)

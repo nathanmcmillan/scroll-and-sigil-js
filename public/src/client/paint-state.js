@@ -84,7 +84,7 @@ export class PaintState {
     if (down && code === 'Digit0') {
       // local storage
       let blob = painter.export()
-      localStorage.setItem('paint-sheet', blob)
+      localStorage.setItem('paint-edit', blob)
       console.info('saved to local storage!')
     } else if (down && code === 'Digit6') {
       // compressed text
@@ -443,12 +443,12 @@ export class PaintState {
     // drawTextSpecial(client.bufferGUI, 0, canvasHeight - topBarHeight + pad, topBarText, fontScale, white0, white1, white2, 1.0)
     drawText(client.bufferGUI, 0, canvasHeight - topBarHeight + pad - scale, topBarText, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
 
-    // buttons info
-    drawText(client.bufferGUI, 0, scale, '(z)Paint (w)(a)(s)(d)Color (i)(j)(k)(l)Move', fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
-
     let topBarSwitch = '(-)HCLPSM '
     width = topBarSwitch.length * fontWidth
     drawText(client.bufferGUI, canvasWidth - width, canvasHeight - topBarHeight + pad - scale, topBarSwitch, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
+
+    // bottom info
+    drawText(client.bufferGUI, 0, scale, '(z)Paint (w)(a)(s)(d)Color (i)(j)(k)(l)Move', fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
 
     rendering.bindTexture(gl.TEXTURE0, textureByName('tic-80-wide-font').texture)
     rendering.updateAndDraw(client.bufferGUI)

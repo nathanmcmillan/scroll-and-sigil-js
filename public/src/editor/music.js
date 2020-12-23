@@ -9,55 +9,21 @@ export const SEMITONES = 49
 
 const INPUT_RATE = 128
 
+const NOTE_NAMES = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'G#', 'A', 'Bb', 'B']
+
 class Track {
   constructor(name) {
     this.name = name
     this.instrument = null
+    this.tuning = 0
     this.notes = [[2, 0, 49, 0]]
   }
 }
 
-// guiar = 49 distinct pitches
-// piano = 88 distinct pitches
-
-// 4 string E bass   freq 41.2 hz to  311 hz
-// 6 string E guitar freq 82.4 hz to 1397 hz
-// 88 key piano      freq 27.5 hz to 4186 hz
-
-// C C# D Eb E F F# G G# A Bb B
-// const notes0 = [16.35, 17.32, 18.35, 19.45, 20.6, 21.83, 23.12, 24.5, 25.96, 27.5, 29.14, 30.87]
-// const notes1 = [32.7, 34.65, 36.71, 38.89, 41.2, 43.65, 46.25, 49.0, 51.91, 55.0, 58.27, 61.74]
-// const notes2 = [65.41, 69.3, 73.42, 77.78, 82.41, 87.31, 92.5, 98.0, 103.8, 110.0, 116.5, 123.5]
-// const notes3 = [130.8, 138.6, 146.8, 155.6, 164.8, 174.6, 185.0, 196.0, 207.7, 220.0, 233.1, 246.9]
-// const notes4 = [261.6, 277.2, 293.7, 311.1, 329.6, 349.2, 370.0, 392.0, 415.3, 440.0, 466.2, 493.9]
-// const notes5 = [523.3, 554.4, 587.3, 622.3, 659.3, 698.5, 740.0, 784.0, 830.6, 880.0, 932.3, 987.8]
-// const notes6 = [1047, 1109, 1175, 1245, 1319, 1397, 1480, 1568, 1661, 1760, 1865, 1976]
-// const notes7 = [2093, 2217, 2349, 2489, 2637, 2794, 2960, 3136, 3322, 3520, 3729, 3951]
-// const notes8 = [4186, 4435, 4699, 4978, 5274, 5588, 5920, 6272, 6645, 7040, 7459, 7902]
-
-// function notefun(octave, note) {
-//   while (note >= 12) {
-//     octave++
-//     note -= 12
-//   }
-//   if (octave == 0) return notes0[note]
-//   else if (octave == 1) return notes1[note]
-//   else if (octave == 2) return notes2[note]
-//   else if (octave == 3) return notes3[note]
-//   else if (octave == 4) return notes4[note]
-//   else if (octave == 5) return notes5[note]
-//   else if (octave == 6) return notes6[note]
-//   else if (octave == 7) return notes7[note]
-//   else return notes8[note]
-// }
-
-const NOTE_NAMES = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'G#', 'A', 'Bb', 'B']
-
 export function semitoneName(semitone) {
-  // 440 = A4
-  // wrong
-  let note = Math.abs(semitone - 9) % 12
-  console.log(semitone, '=>', note)
+  semitone += 9
+  let note = semitone % 12
+  while (note < 0) note += 12
   let octave = 4 + Math.floor(semitone / 12)
   return NOTE_NAMES[note] + octave
 }
@@ -85,8 +51,7 @@ export class MusicEdit {
     this.tempo = 120
     this.transpose = 0 // each instrument should have a base frequency that can be set
     this.play = false
-    this.timer = 0
-    this.hold = 0
+    this.noteTimestamp = 0
 
     let guitar = new Track('Guitar')
 
@@ -104,43 +69,58 @@ export class MusicEdit {
 
   async load() {}
 
-  playAndCalculateNote() {
+  playAndCalculateNote(timestamp) {
     let note = this.tracks[this.trackIndex].notes[this.noteC]
     for (let r = 1; r < this.noteRows; r++) {
       let pitch = diatonic(note[r] - SEMITONES)
       zzfx(1, 0.05, pitch, 0.01, 0, 0.15, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 5)
     }
-    this.timer = 0
-    this.hold = (this.tempo / 16) * (1 + note[0])
+    let duration = note[0]
+    // 16 ms tick update
+    // timestamp is in milliseconds
+    // tempo = 120
+    // 30 whole notes per minute | 1 whole note == 2 seconds
+    // 60 half notes per minute | 1 half note == 1 second
+    // 120 quarter notes per minute | 1 quarter note ==  0.5 seconds
+    // 240 eight notes per minute
+    // 480 sixteenth notes per minute
+    // 960 thirty-second notes per minute
+    let length = 0
+    if (duration === 0) length = this.tempo * 4
+    else if (duration === 1) length = this.tempo * 2
+    else if (duration === 2) length = this.tempo
+    else if (duration === 3) length = this.tempo / 2
+    else if (duration === 4) length = this.tempo / 4
+    else if (duration === 5) length = this.tempo / 8
+    length /= 60
+    length *= 1000
+    this.noteTimestamp = timestamp + length
   }
 
-  updatePlay() {
+  updatePlay(timestamp) {
     let input = this.input
-
     if (input.pressX()) {
       this.play = false
       this.doPaint = true
       return
     }
-
-    if (this.timer >= this.hold) {
+    if (timestamp >= this.noteTimestamp) {
       this.doPaint = true
       this.noteC++
       if (this.noteC === this.tracks[this.trackIndex].notes.length) {
         this.noteC = 0
         this.play = false
       } else {
-        this.playAndCalculateNote()
+        this.playAndCalculateNote(timestamp)
       }
     } else {
-      this.timer++
       this.doPaint = false
     }
   }
 
   update(timestamp) {
     if (this.play) {
-      this.updatePlay()
+      this.updatePlay(timestamp)
       return
     }
 
@@ -187,7 +167,6 @@ export class MusicEdit {
         if (note[row] > 0) {
           note[row]--
           let pitch = diatonic(note[row] - SEMITONES)
-          console.log(note[row], '=>', pitch)
           zzfx(1, 0.05, pitch, 0.01, 0, 0.15, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 5)
         }
       }
@@ -204,7 +183,6 @@ export class MusicEdit {
         if (note[row] < 99) {
           note[row]++
           let pitch = diatonic(note[row] - SEMITONES)
-          console.log(note[row], '=>', pitch)
           zzfx(1, 0.05, pitch, 0.01, 0, 0.15, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 5)
         }
       }
@@ -212,7 +190,7 @@ export class MusicEdit {
 
     if (input.pressX()) {
       this.play = true
-      this.playAndCalculateNote()
+      this.playAndCalculateNote(timestamp)
     }
 
     if (input.pressY()) {
@@ -221,5 +199,25 @@ export class MusicEdit {
     }
   }
 
-  export() {}
+  export() {
+    const noteRows = this.noteRows
+    const tracks = this.tracks
+    let content = tracks.length + '\n'
+    for (let track of tracks) {
+      const notes = track.notes
+      content += track.name + '\n'
+      content += track.tuning + ' ' + notes.length
+      for (let c = 0; c < notes.length; c++) {
+        let note = notes[c]
+        for (let r = 0; r < noteRows; r++) {
+          if (r === 0) content += '\n'
+          else content += ' '
+          let num = note[r]
+          content += num
+        }
+      }
+      content += '\n'
+    }
+    return content
+  }
 }
