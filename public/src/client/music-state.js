@@ -5,7 +5,6 @@ import {spr, sprcol} from '/src/render/pico.js'
 import {identity, multiply} from '/src/math/matrix.js'
 import {whitef, redf, darkpurplef, darkgreyf} from '/src/editor/palette.js'
 import {flexBox, flexSolve} from '/src/flex/flex.js'
-import {speech, SYNTH_SPEECH_FREQ} from '/src/sound/speech.js'
 import {compress} from '/src/compress/huffman.js'
 
 export class MusicState {
@@ -18,30 +17,6 @@ export class MusicState {
 
     let music = new MusicEdit(client.width, client.height, client.scale, client.input)
     this.music = music
-
-    if (false) {
-      // let text = 'scroll and sigil'
-      // let shorten = false
-      // let pitch = 1.0
-      // let buffer = animal(text, shorten, pitch)
-
-      let base = 60
-      let speed = 1.5
-      let text = 'scroll and sigil'
-      let seconds = 10
-      let wave = SYNTH_SPEECH_FREQ * 2 * 2 * seconds
-      let buffer = new Int16Array(new ArrayBuffer(wave))
-      speech(buffer, text, base, speed, 0)
-
-      let amp = 22000
-      let str = ''
-      for (var i = 0; i < buffer.length; i++) {
-        var y = (buffer[i] / amp) * 0x7800
-        str += String.fromCharCode(y & 255, (y >> 8) & 255)
-      }
-      let audio = new Audio('data:audio/wav;base64,' + btoa(atob('UklGRti/UABXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YbS/UAA') + str))
-      audio.play()
-    }
   }
 
   resize(width, height, scale) {

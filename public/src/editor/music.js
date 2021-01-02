@@ -4,12 +4,11 @@
 // import {FONT_WIDTH, FONT_HEIGHT} from '/src/render/render.js'
 
 import {zzfx, zzfxd, zzfxt} from '/src/external/zzfx.js'
-import {sawtooth, noise} from '/src/sound/synth.js'
+import {noise, sawtooth, triangle} from '/src/sound/synth.js'
 
 export const SEMITONES = 49
 
 const INPUT_RATE = 128
-
 const NOTE_NAMES = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'G#', 'A', 'Bb', 'B']
 
 class Track {
@@ -171,8 +170,8 @@ export class MusicEdit {
           note[row]--
           let pitch = diatonic(note[row] - SEMITONES)
           // zzfx(1, 0.05, pitch, 0.01, 0, 0.15, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 5)
-          console.log('noise')
-          noise(pitch, 1)
+          console.log('sawtooth')
+          sawtooth(0.5, pitch, 0.4)
         }
       }
     } else if (input.timerB(timestamp, INPUT_RATE)) {
@@ -189,8 +188,8 @@ export class MusicEdit {
           note[row]++
           let pitch = diatonic(note[row] - SEMITONES)
           // zzfx(1, 0.05, pitch, 0.01, 0, 0.15, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 5)
-          console.log('saw')
-          sawtooth(pitch, 1)
+          console.log('noise')
+          noise(0.5, pitch, 0.4)
         }
       }
     }

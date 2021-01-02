@@ -6,6 +6,8 @@ import {identity, multiply, rotateX, rotateY, translate} from '/src/math/matrix.
 import {whitef} from '/src/editor/palette.js'
 import {flexText, flexSolve} from '/src/flex/flex.js'
 import {Home} from '/src/menu/home.js'
+import {speech} from '/src/sound/speech.js'
+import {animal} from '/src/sound/animal.js'
 
 export class HomeState {
   constructor(client) {
@@ -19,6 +21,20 @@ export class HomeState {
     this.projection = new Float32Array(16)
 
     this.home = new Home(client.width, client.height, client.scale, client.input)
+
+    if (true) {
+      let text = 'scrol and sigil'
+      let base = 60
+      let speed = 1.5
+      speech(text, base, speed)
+    }
+
+    if (false) {
+      let text = 'scroll and sigil'
+      let pitch = 1.0
+      let shorten = false
+      animal(text, pitch, shorten)
+    }
   }
 
   resize(width, height, scale) {
@@ -107,7 +123,7 @@ export class HomeState {
     const camera = game.camera
 
     rendering.setProgram(2)
-    rendering.setView(0, 0, client.width, client.height)
+    rendering.setView(client.left, client.top, width, height)
 
     gl.disable(gl.CULL_FACE)
     gl.disable(gl.DEPTH_TEST)
@@ -176,7 +192,7 @@ export class HomeState {
 
     // text
     rendering.setProgram(4)
-    rendering.setView(0, 0, width, height)
+    rendering.setView(client.left, client.top, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
 
     let titleBox = home.titleBox

@@ -21,6 +21,8 @@ import * as In from '/src/input/input.js'
 
 export class Client {
   constructor(canvas, gl) {
+    this.top = 0
+    this.left = 0
     this.width = canvas.width
     this.height = canvas.height
     this.canvas = canvas
@@ -77,6 +79,8 @@ export class Client {
   }
 
   resize(width, height) {
+    this.top = 0
+    this.left = 0
     this.width = width
     this.height = height
     this.canvas.width = width
@@ -91,6 +95,11 @@ export class Client {
     let x = Math.ceil(width / 800)
     let y = Math.ceil(height / 600)
     this.scale = Math.min(x, y)
+
+    if (ratio < 0.7) {
+      console.log('todo: special phone/touch layout and handling')
+      this.top = Math.floor(0.5 * height)
+    }
 
     this.state.resize(width, height, this.scale)
   }

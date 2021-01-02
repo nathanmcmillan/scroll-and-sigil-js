@@ -11,9 +11,9 @@ export function zzfxt() {
 
 export function zzfxb(...t) {
   let source = context.createBufferSource()
-  let f = context.createBuffer(t.length, t[0].length, zzfxr)
-  t.map((d, i) => f.getChannelData(i).set(d))
-  source.buffer = f
+  let buffer = context.createBuffer(t.length, t[0].length, zzfxr)
+  t.map((d, i) => buffer.getChannelData(i).set(d))
+  source.buffer = buffer
   source.connect(context.destination)
   return source
 }
