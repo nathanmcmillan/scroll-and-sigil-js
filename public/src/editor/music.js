@@ -3,7 +3,8 @@
 // import {flexBox, flexSolve, flexSize} from '/src/flex/flex.js'
 // import {FONT_WIDTH, FONT_HEIGHT} from '/src/render/render.js'
 
-import {zzfx} from '/src/external/zzfx.js'
+import {zzfx, zzfxd, zzfxt} from '/src/external/zzfx.js'
+import {sawtooth, noise} from '/src/sound/synth.js'
 
 export const SEMITONES = 49
 
@@ -70,10 +71,12 @@ export class MusicEdit {
   async load() {}
 
   playAndCalculateNote(timestamp) {
+    const time = zzfxt()
     let note = this.tracks[this.trackIndex].notes[this.noteC]
     for (let r = 1; r < this.noteRows; r++) {
       let pitch = diatonic(note[r] - SEMITONES)
-      zzfx(1, 0.05, pitch, 0.01, 0, 0.15, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 5)
+      let when = time + (1.0 / 1000.0) * 16.0
+      zzfxd(when, 1, 0.05, pitch, 0.01, 0, 0.15, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 5)
     }
     let duration = note[0]
     // 16 ms tick update
@@ -167,7 +170,9 @@ export class MusicEdit {
         if (note[row] > 0) {
           note[row]--
           let pitch = diatonic(note[row] - SEMITONES)
-          zzfx(1, 0.05, pitch, 0.01, 0, 0.15, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 5)
+          // zzfx(1, 0.05, pitch, 0.01, 0, 0.15, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 5)
+          console.log('noise')
+          noise(pitch, 1)
         }
       }
     } else if (input.timerB(timestamp, INPUT_RATE)) {
@@ -183,7 +188,9 @@ export class MusicEdit {
         if (note[row] < 99) {
           note[row]++
           let pitch = diatonic(note[row] - SEMITONES)
-          zzfx(1, 0.05, pitch, 0.01, 0, 0.15, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 5)
+          // zzfx(1, 0.05, pitch, 0.01, 0, 0.15, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 5)
+          console.log('saw')
+          sawtooth(pitch, 1)
         }
       }
     }

@@ -276,43 +276,54 @@ export class Client {
     let keys = new TwoWayMap()
 
     keys.set('Enter', In.BUTTON_START)
-
     keys.set('Escape', In.BUTTON_SELECT)
-    keys.set('Backspace', In.BUTTON_SELECT)
 
     keys.set('KeyW', In.LEFT_STICK_UP)
     keys.set('KeyA', In.LEFT_STICK_LEFT)
     keys.set('KeyS', In.LEFT_STICK_DOWN)
     keys.set('KeyD', In.LEFT_STICK_RIGHT)
 
-    keys.set('ArrowUp', In.RIGHT_STICK_UP)
-    keys.set('ArrowDown', In.RIGHT_STICK_DOWN)
-    keys.set('ArrowLeft', In.RIGHT_STICK_LEFT)
-    keys.set('ArrowRight', In.RIGHT_STICK_RIGHT)
+    keys.set('ArrowUp', In.BUTTON_X)
+    keys.set('ArrowLeft', In.BUTTON_Y)
+    keys.set('ArrowDown', In.BUTTON_B)
+    keys.set('ArrowRight', In.BUTTON_A)
 
-    keys.set('KeyI', In.RIGHT_STICK_UP)
-    keys.set('KeyK', In.RIGHT_STICK_DOWN)
-    keys.set('KeyJ', In.RIGHT_STICK_LEFT)
-    keys.set('KeyL', In.RIGHT_STICK_RIGHT)
+    keys.set('KeyI', In.BUTTON_X)
+    keys.set('KeyJ', In.BUTTON_Y)
+    keys.set('KeyK', In.BUTTON_B)
+    keys.set('KeyL', In.BUTTON_A)
 
-    keys.set('KeyT', In.DPAD_UP)
-    keys.set('KeyF', In.DPAD_DOWN)
-    keys.set('KeyG', In.DPAD_LEFT)
-    keys.set('KeyH', In.DPAD_RIGHT)
+    keys.set('KeyQ', In.LEFT_TRIGGER)
+    keys.set('KeyO', In.RIGHT_TRIGGER)
 
-    keys.set('KeyZ', In.BUTTON_A)
-    keys.set('KeyX', In.BUTTON_B)
-    keys.set('KeyC', In.BUTTON_X)
-    keys.set('KeyV', In.BUTTON_Y)
+    // keys.set('ArrowUp', In.RIGHT_STICK_UP)
+    // keys.set('ArrowDown', In.RIGHT_STICK_DOWN)
+    // keys.set('ArrowLeft', In.RIGHT_STICK_LEFT)
+    // keys.set('ArrowRight', In.RIGHT_STICK_RIGHT)
 
-    keys.set('KeyQ', In.LEFT_STICK_CLICK)
-    keys.set('KeyE', In.RIGHT_STICK_CLICK)
+    // keys.set('KeyI', In.RIGHT_STICK_UP)
+    // keys.set('KeyK', In.RIGHT_STICK_DOWN)
+    // keys.set('KeyJ', In.RIGHT_STICK_LEFT)
+    // keys.set('KeyL', In.RIGHT_STICK_RIGHT)
 
-    keys.set('KeyO', In.LEFT_TRIGGER)
-    keys.set('KeyP', In.RIGHT_TRIGGER)
+    // keys.set('KeyT', In.DPAD_UP)
+    // keys.set('KeyF', In.DPAD_DOWN)
+    // keys.set('KeyG', In.DPAD_LEFT)
+    // keys.set('KeyH', In.DPAD_RIGHT)
 
-    keys.set('ShiftLeft', In.LEFT_BUMPER)
-    keys.set('ShiftRight', In.RIGHT_BUMPER)
+    // keys.set('KeyZ', In.BUTTON_A)
+    // keys.set('KeyX', In.BUTTON_B)
+    // keys.set('KeyC', In.BUTTON_X)
+    // keys.set('KeyV', In.BUTTON_Y)
+
+    // keys.set('KeyQ', In.LEFT_STICK_CLICK)
+    // keys.set('KeyE', In.RIGHT_STICK_CLICK)
+
+    // keys.set('KeyO', In.LEFT_TRIGGER)
+    // keys.set('KeyP', In.RIGHT_TRIGGER)
+
+    // keys.set('ShiftLeft', In.LEFT_BUMPER)
+    // keys.set('ShiftRight', In.RIGHT_BUMPER)
 
     this.keys = keys
     this.input = new In.Input()

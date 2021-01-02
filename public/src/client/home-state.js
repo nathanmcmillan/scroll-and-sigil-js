@@ -197,7 +197,7 @@ export class HomeState {
     let creditsBox = home.creditsBox
     drawTextSpecial(client.bufferGUI, creditsBox.x, creditsBox.y, creditsBox.text, fontScale, white0, white1, white2)
 
-    let text = ')'
+    let text = '>'
     let indicatorBox = flexText(text, fontWidth * text.length, fontHeight)
     indicatorBox.funX = 'left-of'
     indicatorBox.funY = 'center'
