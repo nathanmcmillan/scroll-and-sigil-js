@@ -14,6 +14,25 @@ class Track {
   }
 }
 
+export function lengthName(num) {
+  switch (num) {
+    case 0:
+      return 'whole'
+    case 1:
+      return 'half'
+    case 2:
+      return 'quarter'
+    case 3:
+      return 'eigth'
+    case 4:
+      return 'sixteenth'
+    case 5:
+      return 'thirty second'
+    default:
+      return null
+  }
+}
+
 export function semitoneName(semitone) {
   semitone += 9
   let note = semitone % 12
@@ -50,6 +69,8 @@ export class MusicEdit {
 
     this.tracks = [new Track('Sine')]
     this.trackIndex = 0
+
+    this.subMenu = null
 
     this.sounds = []
   }
@@ -136,7 +157,7 @@ export class MusicEdit {
       let num = note[r]
       if (num === 0) continue
       let pitch = diatonic(num - SEMITONES)
-      waveform(0.25, pitch, seconds, when)
+      this.sounds.push(waveform(0.25, pitch, seconds, when))
     }
     this.noteTimestamp = timestamp + seconds * 1000
   }
@@ -144,6 +165,8 @@ export class MusicEdit {
   updatePlay(timestamp) {
     let input = this.input
     if (input.pressX()) {
+      for (let sound of this.sounds) sound.stop()
+      this.sounds.length = 0
       this.play = false
       this.doPaint = true
       return
@@ -152,8 +175,9 @@ export class MusicEdit {
       this.doPaint = true
       this.noteC++
       if (this.noteC === this.tracks[this.trackIndex].notes.length) {
-        this.noteC = 0
+        this.sounds.length = 0
         this.play = false
+        this.noteC = 0
       } else {
         this.playAndCalculateNote(timestamp)
       }
@@ -200,17 +224,20 @@ export class MusicEdit {
       let row = this.noteR
       let track = this.tracks[this.trackIndex]
       let note = track.notes[this.noteC]
-      if (note[row] > 0) note[row]--
+      if (row === 0) {
+        if (input.leftTrigger()) note[row] = this.maxDuration - 1
+        else if (note[row] < this.maxDuration - 1) note[row]++
+      } else {
+        if (input.leftTrigger()) note[row] = Math.min(note[row] + 12, this.maxPitch)
+        else if (note[row] < this.maxPitch) note[row]++
+      }
       this.playOneNote(this.noteR)
     } else if (input.timerB(timestamp, INPUT_RATE)) {
       let row = this.noteR
       let track = this.tracks[this.trackIndex]
       let note = track.notes[this.noteC]
-      if (row === 0) {
-        if (note[row] < this.maxDuration - 1) note[row]++
-      } else {
-        if (note[row] < this.maxPitch) note[row]++
-      }
+      if (input.leftTrigger()) note[row] = Math.max(note[row] - 12, 0)
+      else if (note[row] > 0) note[row]--
       this.playOneNote(this.noteR)
     }
 
@@ -222,8 +249,31 @@ export class MusicEdit {
     }
 
     if (input.pressY()) {
-      let notes = this.tracks[this.trackIndex].notes
-      notes.splice(this.noteC + 1, 0, [2, 0, 49, 0])
+      // todo
+      // open dialog box with options for insert / delete note
+      //
+      // insert note
+      // let notes = this.tracks[this.trackIndex].notes
+      // notes.splice(this.noteC + 1, 0, [2, 0, 49, 0])
+      // this.noteC++
+    }
+
+    if (input.pressSelect()) {
+      if (this.subMenu !== null) {
+        this.subMenu = null
+      } else {
+        // open submenu
+        // tempo / transpose
+        // new track / delete track
+        // change track name / change track instrument
+        this.subMenu = 'New track'
+      }
+    }
+
+    if (input.pressStart()) {
+      // open main menu
+      // save / import / export
+      // back to home editor screen
     }
   }
 

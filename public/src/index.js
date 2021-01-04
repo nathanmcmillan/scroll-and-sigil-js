@@ -73,7 +73,11 @@ async function main() {
   }
 
   document.onkeydown = (event) => {
-    client.keyDown(event)
+    if (event.code === 'Escape') {
+      if (document.fullscreenElement === null) canvas.requestFullscreen()
+    } else {
+      client.keyDown(event)
+    }
   }
 
   document.onmouseup = (event) => {

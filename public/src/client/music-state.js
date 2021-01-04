@@ -1,4 +1,4 @@
-import {semitoneName, MusicEdit, SEMITONES} from '/src/editor/music.js'
+import {semitoneName, lengthName, MusicEdit, SEMITONES} from '/src/editor/music.js'
 import {textureByName} from '/src/assets/assets.js'
 import {drawText, drawTextSpecial, drawRectangle, FONT_WIDTH, FONT_HEIGHT} from '/src/render/render.js'
 import {spr, sprcol} from '/src/render/pico.js'
@@ -6,6 +6,7 @@ import {identity, multiply} from '/src/math/matrix.js'
 import {whitef, redf, darkpurplef, darkgreyf} from '/src/editor/palette.js'
 import {flexBox, flexSolve} from '/src/flex/flex.js'
 import {compress} from '/src/compress/huffman.js'
+import * as In from '/src/input/input.js'
 
 export class MusicState {
   constructor(client) {
@@ -111,6 +112,21 @@ export class MusicState {
     // bottom bar
     drawRectangle(buffer, 0, 0, canvasWidth, topBarHeight, redf(0), redf(1), redf(2), 1.0)
 
+    // sub menu
+    if (music.subMenu !== null) {
+      drawRectangle(
+        buffer,
+        Math.floor(canvasWidth * 0.1),
+        Math.floor(canvasHeight * 0.1),
+        Math.floor(canvasWidth * 0.8),
+        Math.floor(canvasHeight * 0.8),
+        whitef(0),
+        whitef(1),
+        whitef(2),
+        1.0
+      )
+    }
+
     rendering.updateAndDraw(buffer)
 
     // text
@@ -155,23 +171,45 @@ export class MusicState {
       }
     }
 
+    // keys
+    let startKey = this.keys.reversed(In.BUTTON_START)
+    if (startKey.startsWith('Key')) startKey = startKey.substring(3)
+
+    let selectKey = this.keys.reversed(In.BUTTON_SELECT)
+    if (selectKey.startsWith('Key')) selectKey = selectKey.substring(3)
+
+    let buttonA = this.keys.reversed(In.BUTTON_A)
+    if (buttonA.startsWith('Key')) buttonA = buttonA.substring(3)
+
+    let buttonB = this.keys.reversed(In.BUTTON_B)
+    if (buttonB.startsWith('Key')) buttonB = buttonB.substring(3)
+
+    let buttonX = this.keys.reversed(In.BUTTON_X)
+    if (buttonX.startsWith('Key')) buttonX = buttonX.substring(3)
+
+    let buttonY = this.keys.reversed(In.BUTTON_Y)
+    if (buttonY.startsWith('Key')) buttonY = buttonY.substring(3)
+
     let tempoText = 'Tempo:' + music.tempo
     drawTextSpecial(client.bufferGUI, 20, canvasHeight - fontHeight * 3, tempoText, fontScale, whitef(0), whitef(1), whitef(2), 1.0)
 
     // top info
-    let topBarText = '(+)FILE EDIT VIEW HELP'
+    let topBarText = '(' + startKey + ')FILE EDIT VIEW HELP'
     drawText(client.bufferGUI, 0, canvasHeight - topBarHeight + pad - scale, topBarText, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
 
-    let topBarSwitch = '(-)HCLPSM '
+    let topBarSwitch = '(' + selectKey + ')HCLPSM '
     let width = topBarSwitch.length * fontWidth
     drawText(client.bufferGUI, canvasWidth - width, canvasHeight - topBarHeight + pad - scale, topBarSwitch, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
 
     let infoText
-    infoText = noteR === 0 ? '(x)Duration down (z)Duration up ' : '(z)Pitch down (x)Pitch up '
-    infoText += '(+)Insert note (-)Delete note '
-    infoText += music.play ? '(c)Stop' : '(c)Play'
+    infoText = noteR === 0 ? '(' + buttonB + ')Duration down (' + buttonA + ')Duration up ' : '(' + buttonB + ')Pitch down (' + buttonA + ')Pitch up '
+    infoText += '(' + buttonY + ')Options '
+    infoText += '(' + selectKey + ')Edit track  '
+    infoText += '(' + startKey + ')Menu '
+    infoText += music.play ? '(' + buttonX + ')Stop' : '(' + buttonX + ')Play'
     drawTextSpecial(client.bufferGUI, 20, 100, infoText, fontScale, whitef(0), whitef(1), whitef(2), 1.0)
 
+    drawTextSpecial(client.bufferGUI, 20, 200, lengthName(notes[noteC][0]), smallFontScale, whitef(0), whitef(1), whitef(2), 1.0)
     for (let r = 1; r < noteRows; r++) {
       let note = notes[noteC][r]
       let noteText
