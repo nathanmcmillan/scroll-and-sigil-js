@@ -2,7 +2,7 @@ import {drawText} from '/src/render/render.js'
 import {identity, multiply} from '/src/math/matrix.js'
 import {textureByName} from '/src/assets/assets.js'
 
-export function renderLoadInProgress(client, gl, rendering, view, projection) {
+export function renderLoadingInProgress(client, gl, rendering, view, projection) {
   gl.clear(gl.COLOR_BUFFER_BIT)
   gl.clear(gl.DEPTH_BUFFER_BIT)
 

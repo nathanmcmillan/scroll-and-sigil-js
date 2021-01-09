@@ -1,5 +1,5 @@
 import {Game} from '/src/game/game.js'
-import {renderLoadInProgress} from '/src/client/render-loading.js'
+import {renderLoadingInProgress} from '/src/client/render-loading.js'
 import {textureByName, textureByIndex} from '/src/assets/assets.js'
 import {drawSprite, drawTextSpecial, FONT_WIDTH, FONT_HEIGHT} from '/src/render/render.js'
 import {identity, multiply, rotateX, rotateY, translate} from '/src/math/matrix.js'
@@ -98,7 +98,7 @@ export class HomeState {
     const projection = this.projection
 
     if (this.loading) {
-      renderLoadInProgress(client, gl, rendering, view, projection)
+      renderLoadingInProgress(client, gl, rendering, view, projection)
       return
     }
 

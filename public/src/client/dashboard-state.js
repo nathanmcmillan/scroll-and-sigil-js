@@ -44,6 +44,8 @@ export class DashboardState {
       } else if (dashboard.column === 3) {
         client.openState('sfx')
       }
+    } else if (dashboard.back) {
+      this.client.openState('home')
     }
   }
 
@@ -59,8 +61,10 @@ export class DashboardState {
     const scale = dashboard.scale
     const width = client.width
     const height = client.height
-    const fontWidth = scale * FONT_WIDTH
-    const fontHeight = scale * FONT_HEIGHT
+
+    const fontScale = Math.floor(1.5 * scale)
+    const fontWidth = fontScale * FONT_WIDTH
+    const fontHeight = fontScale * FONT_HEIGHT
 
     gl.clearColor(darkgreyf(0), darkgreyf(1), darkgreyf(2), 1.0)
 
@@ -91,68 +95,156 @@ export class DashboardState {
     mainMenu.funY = '%'
     mainMenu.argY = 75
     flexSolve(width, height, mainMenu)
-    drawTextSpecial(client.bufferGUI, mainMenu.x, mainMenu.y, text, scale, white0, white1, white2)
+    drawTextSpecial(client.bufferGUI, mainMenu.x, mainMenu.y, text, fontScale, white0, white1, white2)
 
-    text = 'Open'
-    let optionOpen = flexBox(fontWidth * text.length, fontHeight)
-    optionOpen.rightSpace = fontWidth
-    optionOpen.funX = 'center'
-    optionOpen.fromX = mainMenu
-    optionOpen.funY = 'below'
-    optionOpen.fromY = mainMenu
-    flexSolve(width, height, optionOpen)
-    drawTextSpecial(client.bufferGUI, optionOpen.x, optionOpen.y, text, scale, white0, white1, white2)
+    if (dashboard.menu === 0) {
+      text = 'Open'
+      let optionOpen = flexBox(fontWidth * text.length, fontHeight)
+      optionOpen.rightSpace = fontWidth
+      optionOpen.funX = 'center'
+      optionOpen.fromX = mainMenu
+      optionOpen.funY = 'below'
+      optionOpen.fromY = mainMenu
+      flexSolve(width, height, optionOpen)
+      drawTextSpecial(client.bufferGUI, optionOpen.x, optionOpen.y, text, fontScale, white0, white1, white2)
 
-    text = 'Export'
-    let optionExport = flexBox(fontWidth * text.length, fontHeight)
-    optionExport.rightSpace = fontWidth
-    optionExport.funX = 'right-of'
-    optionExport.fromX = optionOpen
-    optionExport.funY = 'center'
-    optionExport.fromY = optionOpen
-    flexSolve(width, height, optionExport)
-    drawTextSpecial(client.bufferGUI, optionExport.x, optionExport.y, text, scale, white0, white1, white2)
+      text = 'Export'
+      let optionExport = flexBox(fontWidth * text.length, fontHeight)
+      optionExport.rightSpace = fontWidth
+      optionExport.funX = 'align-left'
+      optionExport.fromX = optionOpen
+      optionExport.funY = 'below'
+      optionExport.fromY = optionOpen
+      flexSolve(width, height, optionExport)
+      drawTextSpecial(client.bufferGUI, optionExport.x, optionExport.y, text, fontScale, white0, white1, white2)
 
-    text = 'New'
-    let optionNew = flexBox(fontWidth * text.length, fontHeight)
-    optionNew.rightSpace = fontWidth
-    optionNew.funX = 'right-of'
-    optionNew.fromX = optionExport
-    optionNew.funY = 'center'
-    optionNew.fromY = optionExport
-    flexSolve(width, height, optionNew)
-    drawTextSpecial(client.bufferGUI, optionNew.x, optionNew.y, text, scale, white0, white1, white2)
+      text = 'New'
+      let optionNew = flexBox(fontWidth * text.length, fontHeight)
+      optionNew.rightSpace = fontWidth
+      optionNew.funX = 'align-left'
+      optionNew.fromX = optionExport
+      optionNew.funY = 'below'
+      optionNew.fromY = optionExport
+      flexSolve(width, height, optionNew)
+      drawTextSpecial(client.bufferGUI, optionNew.x, optionNew.y, text, fontScale, white0, white1, white2)
 
-    text = 'Copy'
-    let optionCopy = flexBox(fontWidth * text.length, fontHeight)
-    optionCopy.funX = 'right-of'
-    optionCopy.fromX = optionNew
-    optionCopy.funY = 'center'
-    optionCopy.fromY = optionNew
-    flexSolve(width, height, optionCopy)
-    drawTextSpecial(client.bufferGUI, optionCopy.x, optionCopy.y, text, scale, white0, white1, white2)
+      text = 'Copy'
+      let optionCopy = flexBox(fontWidth * text.length, fontHeight)
+      optionCopy.funX = 'align-left'
+      optionCopy.fromX = optionNew
+      optionCopy.funY = 'below'
+      optionCopy.fromY = optionNew
+      flexSolve(width, height, optionCopy)
+      drawTextSpecial(client.bufferGUI, optionCopy.x, optionCopy.y, text, fontScale, white0, white1, white2)
 
-    text = 'V'
-    let indicator = flexBox(fontWidth * text.length, fontHeight)
-    indicator.funX = 'center'
-    indicator.funY = 'above'
-    if (dashboard.column === 0) {
-      indicator.fromX = optionOpen
-      indicator.fromY = optionOpen
-    } else if (dashboard.column === 1) {
-      indicator.fromX = optionExport
-      indicator.fromY = optionExport
-    } else if (dashboard.column === 2) {
-      indicator.fromX = optionNew
-      indicator.fromY = optionNew
-    } else if (dashboard.column === 3) {
-      indicator.fromX = optionCopy
-      indicator.fromY = optionCopy
+      text = 'Back'
+      let optionBack = flexBox(fontWidth * text.length, fontHeight)
+      optionBack.funX = 'align-left'
+      optionBack.fromX = optionCopy
+      optionBack.funY = 'below'
+      optionBack.fromY = optionCopy
+      flexSolve(width, height, optionBack)
+      drawTextSpecial(client.bufferGUI, optionBack.x, optionBack.y, text, fontScale, white0, white1, white2)
+
+      text = '>'
+      let indicator = flexBox(fontWidth * text.length, fontHeight)
+      indicator.funX = 'left-of'
+      indicator.funY = 'center'
+      if (dashboard.column === 0) {
+        indicator.fromX = optionOpen
+        indicator.fromY = optionOpen
+      } else if (dashboard.column === 1) {
+        indicator.fromX = optionExport
+        indicator.fromY = optionExport
+      } else if (dashboard.column === 2) {
+        indicator.fromX = optionNew
+        indicator.fromY = optionNew
+      } else if (dashboard.column === 3) {
+        indicator.fromX = optionCopy
+        indicator.fromY = optionCopy
+      } else if (dashboard.column === 4) {
+        indicator.fromX = optionBack
+        indicator.fromY = optionBack
+      }
+      flexSolve(width, height, indicator)
+      drawTextSpecial(client.bufferGUI, indicator.x, indicator.y, text, fontScale, white0, white1, white2)
+
+      rendering.bindTexture(gl.TEXTURE0, textureByName('tic-80-wide-font').texture)
+      rendering.updateAndDraw(client.bufferGUI)
+    } else {
+      text = 'Paint'
+      let optionOpen = flexBox(fontWidth * text.length, fontHeight)
+      optionOpen.rightSpace = fontWidth
+      optionOpen.funX = 'center'
+      optionOpen.fromX = mainMenu
+      optionOpen.funY = 'below'
+      optionOpen.fromY = mainMenu
+      flexSolve(width, height, optionOpen)
+      drawTextSpecial(client.bufferGUI, optionOpen.x, optionOpen.y, text, fontScale, white0, white1, white2)
+
+      text = 'Maps'
+      let optionExport = flexBox(fontWidth * text.length, fontHeight)
+      optionExport.rightSpace = fontWidth
+      optionExport.funX = 'align-left'
+      optionExport.fromX = optionOpen
+      optionExport.funY = 'below'
+      optionExport.fromY = optionOpen
+      flexSolve(width, height, optionExport)
+      drawTextSpecial(client.bufferGUI, optionExport.x, optionExport.y, text, fontScale, white0, white1, white2)
+
+      text = 'Music'
+      let optionNew = flexBox(fontWidth * text.length, fontHeight)
+      optionNew.rightSpace = fontWidth
+      optionNew.funX = 'align-left'
+      optionNew.fromX = optionExport
+      optionNew.funY = 'below'
+      optionNew.fromY = optionExport
+      flexSolve(width, height, optionNew)
+      drawTextSpecial(client.bufferGUI, optionNew.x, optionNew.y, text, fontScale, white0, white1, white2)
+
+      text = 'Sound'
+      let optionCopy = flexBox(fontWidth * text.length, fontHeight)
+      optionCopy.funX = 'align-left'
+      optionCopy.fromX = optionNew
+      optionCopy.funY = 'below'
+      optionCopy.fromY = optionNew
+      flexSolve(width, height, optionCopy)
+      drawTextSpecial(client.bufferGUI, optionCopy.x, optionCopy.y, text, fontScale, white0, white1, white2)
+
+      text = 'Back'
+      let optionBack = flexBox(fontWidth * text.length, fontHeight)
+      optionBack.funX = 'align-left'
+      optionBack.fromX = optionCopy
+      optionBack.funY = 'below'
+      optionBack.fromY = optionCopy
+      flexSolve(width, height, optionBack)
+      drawTextSpecial(client.bufferGUI, optionBack.x, optionBack.y, text, fontScale, white0, white1, white2)
+
+      text = '>'
+      let indicator = flexBox(fontWidth * text.length, fontHeight)
+      indicator.funX = 'left-of'
+      indicator.funY = 'center'
+      if (dashboard.column === 0) {
+        indicator.fromX = optionOpen
+        indicator.fromY = optionOpen
+      } else if (dashboard.column === 1) {
+        indicator.fromX = optionExport
+        indicator.fromY = optionExport
+      } else if (dashboard.column === 2) {
+        indicator.fromX = optionNew
+        indicator.fromY = optionNew
+      } else if (dashboard.column === 3) {
+        indicator.fromX = optionCopy
+        indicator.fromY = optionCopy
+      } else if (dashboard.column === 4) {
+        indicator.fromX = optionBack
+        indicator.fromY = optionBack
+      }
+      flexSolve(width, height, indicator)
+      drawTextSpecial(client.bufferGUI, indicator.x, indicator.y, text, fontScale, white0, white1, white2)
+
+      rendering.bindTexture(gl.TEXTURE0, textureByName('tic-80-wide-font').texture)
+      rendering.updateAndDraw(client.bufferGUI)
     }
-    flexSolve(width, height, indicator)
-    drawTextSpecial(client.bufferGUI, indicator.x, indicator.y, text, scale, white0, white1, white2)
-
-    rendering.bindTexture(gl.TEXTURE0, textureByName('tic-80-wide-font').texture)
-    rendering.updateAndDraw(client.bufferGUI)
   }
 }

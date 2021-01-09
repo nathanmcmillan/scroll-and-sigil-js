@@ -201,8 +201,7 @@ export class MusicState {
     let width = topBarSwitch.length * fontWidth
     drawText(client.bufferGUI, canvasWidth - width, canvasHeight - topBarHeight + pad - scale, topBarSwitch, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
 
-    let infoText
-    infoText = noteR === 0 ? '(' + buttonB + ')Duration down (' + buttonA + ')Duration up ' : '(' + buttonB + ')Pitch down (' + buttonA + ')Pitch up '
+    let infoText = noteR === 0 ? '(' + buttonB + ')Duration down (' + buttonA + ')Duration up ' : '(' + buttonB + ')Pitch down (' + buttonA + ')Pitch up '
     infoText += '(' + buttonY + ')Options '
     infoText += '(' + selectKey + ')Edit track  '
     infoText += '(' + startKey + ')Menu '

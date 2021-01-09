@@ -58,6 +58,8 @@ A 3D adventure game with a strong focus on modding and user crafted content.
 - Top down camera support
 - Terrain slopes
 - Doors and keys
+- Campain / Overworld designer
+  - Persistent & temporary variables settable per map
 
 ## User Interface
 

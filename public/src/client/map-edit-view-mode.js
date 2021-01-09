@@ -29,22 +29,22 @@ function floorCeilRender(client, sector) {
 }
 
 export function updateMapEditViewSectorBuffer(state) {
-  const editor = state.editor
+  const maps = state.maps
   const client = state.client
   const gl = client.gl
 
   for (const buffer of client.sectorBuffers.values()) buffer.zero()
-  for (const line of editor.lines) lineRender(client, line)
-  for (const sector of editor.sectors) floorCeilRender(client, sector)
+  for (const line of maps.lines) lineRender(client, line)
+  for (const sector of maps.sectors) floorCeilRender(client, sector)
   for (const buffer of client.sectorBuffers.values()) client.rendering.updateVAO(buffer, gl.STATIC_DRAW)
 }
 
 export function renderMapEditViewMode(state) {
-  const editor = state.editor
+  const maps = state.maps
   const client = state.client
   const gl = client.gl
   const rendering = client.rendering
-  const camera = editor.camera
+  const camera = maps.camera
   const view = state.view
   const projection = state.projection
 
@@ -91,7 +91,7 @@ export function renderMapEditViewMode(state) {
   let sine = Math.sin(-camera.ry)
   let cosine = Math.cos(-camera.ry)
 
-  let things = editor.things
+  let things = maps.things
   let t = things.length
   while (t--) {
     let thing = things[t]
