@@ -195,62 +195,62 @@ export class PaintEdit {
     if (input.leftTrigger()) {
       const move = 8
 
-      if (input.timerLeftUp(timestamp, INPUT_RATE)) {
+      if (input.timerStickUp(timestamp, INPUT_RATE)) {
         this.positionOffsetR -= move
         if (this.positionOffsetR < 0) this.positionOffsetR = 0
         else this.canUpdate = true
       }
 
-      if (input.timerLeftDown(timestamp, INPUT_RATE)) {
+      if (input.timerStickDown(timestamp, INPUT_RATE)) {
         this.positionOffsetR += move
         if (this.positionOffsetR + this.canvasZoom >= this.sheetRows) this.positionOffsetR = this.sheetRows - this.canvasZoom
         else this.canUpdate = true
       }
 
-      if (input.timerLeftLeft(timestamp, INPUT_RATE)) {
+      if (input.timerStickLeft(timestamp, INPUT_RATE)) {
         this.positionOffsetC -= move
         if (this.positionOffsetC < 0) this.positionOffsetC = 0
         else this.canUpdate = true
       }
 
-      if (input.timerLeftRight(timestamp, INPUT_RATE)) {
+      if (input.timerStickRight(timestamp, INPUT_RATE)) {
         this.positionOffsetC += move
         if (this.positionOffsetC + this.canvasZoom >= this.sheetColumns) this.positionOffsetC = this.sheetColumns - this.canvasZoom
         else this.canUpdate = true
       }
     } else {
       if (this.paletteFocus) {
-        if (input.timerLeftUp(timestamp, INPUT_RATE)) {
+        if (input.timerStickUp(timestamp, INPUT_RATE)) {
           this.paletteR--
           if (this.paletteR < 0) this.paletteR = 0
           else this.canUpdate = true
         }
 
-        if (input.timerLeftDown(timestamp, INPUT_RATE)) {
+        if (input.timerStickDown(timestamp, INPUT_RATE)) {
           this.paletteR++
           if (this.paletteR >= this.paletteRows) this.paletteR = this.paletteRows - 1
           else this.canUpdate = true
         }
 
-        if (input.timerLeftLeft(timestamp, INPUT_RATE)) {
+        if (input.timerStickLeft(timestamp, INPUT_RATE)) {
           this.paletteC--
           if (this.paletteC < 0) this.paletteC = 0
           else this.canUpdate = true
         }
 
-        if (input.timerLeftRight(timestamp, INPUT_RATE)) {
+        if (input.timerStickRight(timestamp, INPUT_RATE)) {
           this.paletteC++
           if (this.paletteC >= this.paletteColumns) this.paletteC = this.paletteColumns - 1
           else this.canUpdate = true
         }
       } else {
-        if (input.timerLeftLeft(timestamp, INPUT_RATE)) {
+        if (input.timerStickLeft(timestamp, INPUT_RATE)) {
           this.tool--
           if (this.tool < 0) this.tool = 0
           else this.canUpdate = true
         }
 
-        if (input.timerLeftRight(timestamp, INPUT_RATE)) {
+        if (input.timerStickRight(timestamp, INPUT_RATE)) {
           this.tool++
           if (this.tool >= this.toolColumns) this.tool = this.toolColumns - 1
           else this.canUpdate = true

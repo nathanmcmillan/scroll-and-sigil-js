@@ -101,6 +101,8 @@ export function renderMapEditTopMode(state) {
   const view = state.view
   const projection = state.projection
   const scale = maps.scale
+  const width = client.width
+  const height = client.height
 
   gl.clearColor(darkgreyf(0), darkgreyf(1), darkgreyf(2), 1.0)
 
@@ -143,6 +145,10 @@ export function renderMapEditTopMode(state) {
   rendering.bindTexture(gl.TEXTURE0, cursor.texture)
   rendering.updateAndDraw(client.bufferGUI)
 
+  rendering.setProgram(4)
+  rendering.setView(0, 0, client.width, client.height)
+  rendering.updateUniformMatrix('u_mvp', projection)
+
   client.bufferGUI.zero()
 
   const fontScale = Math.floor(1.5 * scale)
@@ -174,41 +180,41 @@ export function renderMapEditTopMode(state) {
   for (const [button, option] of options) {
     let key = state.keys.reversed(button)
     if (key.startsWith('Key')) key = key.substring(3)
-    let text = '(' + key + ') ' + DESCRIBE_ACTION[option]
-    drawTextSpecial(client.bufferGUI, x, 10.0, text, 2.0, redf(0), redf(1), redf(2))
-    x += 2.0 * FONT_WIDTH * (text.length + 1)
+    let text = '(' + key + ')' + DESCRIBE_ACTION[option]
+    drawTextSpecial(client.bufferGUI, x, 10.0, text, fontScale, redf(0), redf(1), redf(2))
+    x += fontWidth * (text.length + 1)
   }
 
   if (maps.selectedVec) {
-    let x = 10.0
-    let y = maps.height - 2.0 * FONT_HEIGHT - 10.0
     let text = 'X:' + maps.selectedVec.x + ' Y:' + maps.selectedVec.y
-    drawTextSpecial(client.bufferGUI, x, y, text, 2.0, redf(0), redf(1), redf(2))
+    let x = width - text.length * fontWidth - 10
+    let y = height - fontHeight - 10
+    drawTextSpecial(client.bufferGUI, x, y, text, fontScale, redf(0), redf(1), redf(2))
   }
 
   // keys
-  let startKey = this.keys.reversed(In.BUTTON_START)
+  let startKey = state.keys.reversed(In.BUTTON_START)
   if (startKey.startsWith('Key')) startKey = startKey.substring(3)
 
-  let selectKey = this.keys.reversed(In.BUTTON_SELECT)
+  let selectKey = state.keys.reversed(In.BUTTON_SELECT)
   if (selectKey.startsWith('Key')) selectKey = selectKey.substring(3)
 
-  let buttonA = this.keys.reversed(In.BUTTON_A)
+  let buttonA = state.keys.reversed(In.BUTTON_A)
   if (buttonA.startsWith('Key')) buttonA = buttonA.substring(3)
 
-  let buttonB = this.keys.reversed(In.BUTTON_B)
+  let buttonB = state.keys.reversed(In.BUTTON_B)
   if (buttonB.startsWith('Key')) buttonB = buttonB.substring(3)
 
-  let buttonX = this.keys.reversed(In.BUTTON_X)
+  let buttonX = state.keys.reversed(In.BUTTON_X)
   if (buttonX.startsWith('Key')) buttonX = buttonX.substring(3)
 
-  let buttonY = this.keys.reversed(In.BUTTON_Y)
+  let buttonY = state.keys.reversed(In.BUTTON_Y)
   if (buttonY.startsWith('Key')) buttonY = buttonY.substring(3)
 
   let infoText = '(' + buttonY + ')Options '
   infoText += '(' + selectKey + ')Edit track  '
   infoText += '(' + startKey + ')Menu '
-  drawTextSpecial(client.bufferGUI, 20, 100, infoText, fontScale, whitef(0), whitef(1), whitef(2), 1.0)
+  drawTextSpecial(client.bufferGUI, 10, height - fontHeight - 10, infoText, fontScale, whitef(0), whitef(1), whitef(2), 1.0)
 
   rendering.bindTexture(gl.TEXTURE0, textureByName('tic-80-wide-font').texture)
   rendering.updateAndDraw(client.bufferGUI)

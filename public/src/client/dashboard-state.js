@@ -34,15 +34,14 @@ export class DashboardState {
     let dashboard = this.dashboard
     dashboard.update(timestamp)
     if (dashboard.yes) {
-      let client = this.client
       if (dashboard.column === 0) {
-        client.openState('paint')
+        this.client.openState('maps')
       } else if (dashboard.column === 1) {
-        client.openState('maps')
+        this.client.openState('paint')
       } else if (dashboard.column === 2) {
-        client.openState('music')
+        this.client.openState('music')
       } else if (dashboard.column === 3) {
-        client.openState('sfx')
+        this.client.openState('sfx')
       }
     } else if (dashboard.back) {
       this.client.openState('home')
@@ -65,6 +64,7 @@ export class DashboardState {
     const fontScale = Math.floor(1.5 * scale)
     const fontWidth = fontScale * FONT_WIDTH
     const fontHeight = fontScale * FONT_HEIGHT
+    const fontPad = Math.floor(0.15 * fontHeight)
 
     gl.clearColor(darkgreyf(0), darkgreyf(1), darkgreyf(2), 1.0)
 
@@ -100,7 +100,7 @@ export class DashboardState {
     if (dashboard.menu === 0) {
       text = 'Open'
       let optionOpen = flexBox(fontWidth * text.length, fontHeight)
-      optionOpen.rightSpace = fontWidth
+      optionOpen.bottomSpace = fontPad
       optionOpen.funX = 'center'
       optionOpen.fromX = mainMenu
       optionOpen.funY = 'below'
@@ -110,7 +110,7 @@ export class DashboardState {
 
       text = 'Export'
       let optionExport = flexBox(fontWidth * text.length, fontHeight)
-      optionExport.rightSpace = fontWidth
+      optionExport.bottomSpace = fontPad
       optionExport.funX = 'align-left'
       optionExport.fromX = optionOpen
       optionExport.funY = 'below'
@@ -120,7 +120,7 @@ export class DashboardState {
 
       text = 'New'
       let optionNew = flexBox(fontWidth * text.length, fontHeight)
-      optionNew.rightSpace = fontWidth
+      optionNew.bottomSpace = fontPad
       optionNew.funX = 'align-left'
       optionNew.fromX = optionExport
       optionNew.funY = 'below'
@@ -130,6 +130,7 @@ export class DashboardState {
 
       text = 'Copy'
       let optionCopy = flexBox(fontWidth * text.length, fontHeight)
+      optionCopy.bottomSpace = fontPad
       optionCopy.funX = 'align-left'
       optionCopy.fromX = optionNew
       optionCopy.funY = 'below'
@@ -139,6 +140,7 @@ export class DashboardState {
 
       text = 'Back'
       let optionBack = flexBox(fontWidth * text.length, fontHeight)
+      optionBack.bottomSpace = fontPad
       optionBack.funX = 'align-left'
       optionBack.fromX = optionCopy
       optionBack.funY = 'below'
@@ -172,51 +174,53 @@ export class DashboardState {
       rendering.bindTexture(gl.TEXTURE0, textureByName('tic-80-wide-font').texture)
       rendering.updateAndDraw(client.bufferGUI)
     } else {
-      text = 'Paint'
-      let optionOpen = flexBox(fontWidth * text.length, fontHeight)
-      optionOpen.rightSpace = fontWidth
-      optionOpen.funX = 'center'
-      optionOpen.fromX = mainMenu
-      optionOpen.funY = 'below'
-      optionOpen.fromY = mainMenu
-      flexSolve(width, height, optionOpen)
-      drawTextSpecial(client.bufferGUI, optionOpen.x, optionOpen.y, text, fontScale, white0, white1, white2)
-
       text = 'Maps'
-      let optionExport = flexBox(fontWidth * text.length, fontHeight)
-      optionExport.rightSpace = fontWidth
-      optionExport.funX = 'align-left'
-      optionExport.fromX = optionOpen
-      optionExport.funY = 'below'
-      optionExport.fromY = optionOpen
-      flexSolve(width, height, optionExport)
-      drawTextSpecial(client.bufferGUI, optionExport.x, optionExport.y, text, fontScale, white0, white1, white2)
+      let optionMaps = flexBox(fontWidth * text.length, fontHeight)
+      optionMaps.bottomSpace = fontPad
+      optionMaps.funX = 'center'
+      optionMaps.fromX = mainMenu
+      optionMaps.funY = 'below'
+      optionMaps.fromY = mainMenu
+      flexSolve(width, height, optionMaps)
+      drawTextSpecial(client.bufferGUI, optionMaps.x, optionMaps.y, text, fontScale, white0, white1, white2)
+
+      text = 'Paint'
+      let optionPaint = flexBox(fontWidth * text.length, fontHeight)
+      optionPaint.bottomSpace = fontPad
+      optionPaint.funX = 'align-left'
+      optionPaint.fromX = optionMaps
+      optionPaint.funY = 'below'
+      optionPaint.fromY = optionMaps
+      flexSolve(width, height, optionPaint)
+      drawTextSpecial(client.bufferGUI, optionPaint.x, optionPaint.y, text, fontScale, white0, white1, white2)
 
       text = 'Music'
-      let optionNew = flexBox(fontWidth * text.length, fontHeight)
-      optionNew.rightSpace = fontWidth
-      optionNew.funX = 'align-left'
-      optionNew.fromX = optionExport
-      optionNew.funY = 'below'
-      optionNew.fromY = optionExport
-      flexSolve(width, height, optionNew)
-      drawTextSpecial(client.bufferGUI, optionNew.x, optionNew.y, text, fontScale, white0, white1, white2)
+      let optionMusic = flexBox(fontWidth * text.length, fontHeight)
+      optionMusic.bottomSpace = fontPad
+      optionMusic.funX = 'align-left'
+      optionMusic.fromX = optionPaint
+      optionMusic.funY = 'below'
+      optionMusic.fromY = optionPaint
+      flexSolve(width, height, optionMusic)
+      drawTextSpecial(client.bufferGUI, optionMusic.x, optionMusic.y, text, fontScale, white0, white1, white2)
 
       text = 'Sound'
-      let optionCopy = flexBox(fontWidth * text.length, fontHeight)
-      optionCopy.funX = 'align-left'
-      optionCopy.fromX = optionNew
-      optionCopy.funY = 'below'
-      optionCopy.fromY = optionNew
-      flexSolve(width, height, optionCopy)
-      drawTextSpecial(client.bufferGUI, optionCopy.x, optionCopy.y, text, fontScale, white0, white1, white2)
+      let optionSound = flexBox(fontWidth * text.length, fontHeight)
+      optionSound.bottomSpace = fontPad
+      optionSound.funX = 'align-left'
+      optionSound.fromX = optionMusic
+      optionSound.funY = 'below'
+      optionSound.fromY = optionMusic
+      flexSolve(width, height, optionSound)
+      drawTextSpecial(client.bufferGUI, optionSound.x, optionSound.y, text, fontScale, white0, white1, white2)
 
       text = 'Back'
       let optionBack = flexBox(fontWidth * text.length, fontHeight)
+      optionBack.bottomSpace = fontPad
       optionBack.funX = 'align-left'
-      optionBack.fromX = optionCopy
+      optionBack.fromX = optionSound
       optionBack.funY = 'below'
-      optionBack.fromY = optionCopy
+      optionBack.fromY = optionSound
       flexSolve(width, height, optionBack)
       drawTextSpecial(client.bufferGUI, optionBack.x, optionBack.y, text, fontScale, white0, white1, white2)
 
@@ -225,17 +229,17 @@ export class DashboardState {
       indicator.funX = 'left-of'
       indicator.funY = 'center'
       if (dashboard.column === 0) {
-        indicator.fromX = optionOpen
-        indicator.fromY = optionOpen
+        indicator.fromX = optionMaps
+        indicator.fromY = optionMaps
       } else if (dashboard.column === 1) {
-        indicator.fromX = optionExport
-        indicator.fromY = optionExport
+        indicator.fromX = optionPaint
+        indicator.fromY = optionPaint
       } else if (dashboard.column === 2) {
-        indicator.fromX = optionNew
-        indicator.fromY = optionNew
+        indicator.fromX = optionMusic
+        indicator.fromY = optionMusic
       } else if (dashboard.column === 3) {
-        indicator.fromX = optionCopy
-        indicator.fromY = optionCopy
+        indicator.fromX = optionSound
+        indicator.fromY = optionSound
       } else if (dashboard.column === 4) {
         indicator.fromX = optionBack
         indicator.fromY = optionBack

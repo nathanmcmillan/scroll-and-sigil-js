@@ -36,12 +36,12 @@ export class Dashboard {
     let input = this.input
 
     if (this.menu === 0) {
-      if (input.timerLeftUp(timestamp, INPUT_RATE)) {
+      if (input.timerStickUp(timestamp, INPUT_RATE)) {
         this.column--
         if (this.column < 0) this.column = 0
       }
 
-      if (input.timerLeftDown(timestamp, INPUT_RATE)) {
+      if (input.timerStickDown(timestamp, INPUT_RATE)) {
         this.column++
         if (this.column > 4) this.column = 4
       }
@@ -51,12 +51,12 @@ export class Dashboard {
         else this.menu = 1
       }
     } else {
-      if (input.timerLeftUp(timestamp, INPUT_RATE)) {
+      if (input.timerStickUp(timestamp, INPUT_RATE)) {
         this.column--
         if (this.column < 0) this.column = 0
       }
 
-      if (input.timerLeftDown(timestamp, INPUT_RATE)) {
+      if (input.timerStickDown(timestamp, INPUT_RATE)) {
         this.column++
         if (this.column > 4) this.column = 4
       }

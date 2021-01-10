@@ -16,6 +16,7 @@ import {DashboardState} from '/src/client/dashboard-state.js'
 import {GameState} from '/src/client/game-state.js'
 import {HomeState} from '/src/client/home-state.js'
 import {TwoWayMap} from '/src/util/collections.js'
+import {renderTouch} from '/src/client/render-touch.js'
 import * as Wad from '/src/wad/wad.js'
 import * as In from '/src/input/input.js'
 
@@ -40,6 +41,7 @@ export class Client {
     this.state = null
     this.keys = null
     this.input = null
+    this.touch = false
   }
 
   keyEvent(code, down) {
@@ -97,8 +99,10 @@ export class Client {
     this.scale = Math.min(x, y)
 
     if (ratio < 0.7) {
-      console.log('todo: special phone/touch layout and handling')
+      this.touch = true
       this.top = Math.floor(0.5 * height)
+    } else {
+      this.touch = false
     }
 
     this.state.resize(width, height, this.scale)
@@ -287,10 +291,10 @@ export class Client {
     keys.set('KeyZ', In.BUTTON_START)
     keys.set('Enter', In.BUTTON_SELECT)
 
-    keys.set('KeyW', In.LEFT_STICK_UP)
-    keys.set('KeyA', In.LEFT_STICK_LEFT)
-    keys.set('KeyS', In.LEFT_STICK_DOWN)
-    keys.set('KeyD', In.LEFT_STICK_RIGHT)
+    keys.set('KeyW', In.STICK_UP)
+    keys.set('KeyA', In.STICK_LEFT)
+    keys.set('KeyS', In.STICK_DOWN)
+    keys.set('KeyD', In.STICK_RIGHT)
 
     keys.set('ArrowUp', In.BUTTON_X)
     keys.set('ArrowLeft', In.BUTTON_Y)
@@ -305,39 +309,12 @@ export class Client {
     keys.set('KeyQ', In.LEFT_TRIGGER)
     keys.set('KeyO', In.RIGHT_TRIGGER)
 
-    // keys.set('ArrowUp', In.RIGHT_STICK_UP)
-    // keys.set('ArrowDown', In.RIGHT_STICK_DOWN)
-    // keys.set('ArrowLeft', In.RIGHT_STICK_LEFT)
-    // keys.set('ArrowRight', In.RIGHT_STICK_RIGHT)
-
-    // keys.set('KeyI', In.RIGHT_STICK_UP)
-    // keys.set('KeyK', In.RIGHT_STICK_DOWN)
-    // keys.set('KeyJ', In.RIGHT_STICK_LEFT)
-    // keys.set('KeyL', In.RIGHT_STICK_RIGHT)
-
-    // keys.set('KeyT', In.DPAD_UP)
-    // keys.set('KeyF', In.DPAD_DOWN)
-    // keys.set('KeyG', In.DPAD_LEFT)
-    // keys.set('KeyH', In.DPAD_RIGHT)
-
-    // keys.set('KeyZ', In.BUTTON_A)
-    // keys.set('KeyX', In.BUTTON_B)
-    // keys.set('KeyC', In.BUTTON_X)
-    // keys.set('KeyV', In.BUTTON_Y)
-
-    // keys.set('KeyQ', In.LEFT_STICK_CLICK)
-    // keys.set('KeyE', In.RIGHT_STICK_CLICK)
-
-    // keys.set('KeyO', In.LEFT_TRIGGER)
-    // keys.set('KeyP', In.RIGHT_TRIGGER)
-
-    // keys.set('ShiftLeft', In.LEFT_BUMPER)
-    // keys.set('ShiftRight', In.RIGHT_BUMPER)
-
     this.keys = keys
     this.input = new In.Input()
 
     await this.openState(main.get('open'))
+
+    this.resize(this.width, this.height)
   }
 
   async openState(open) {
@@ -376,6 +353,7 @@ export class Client {
   }
 
   render() {
+    if (this.touch) renderTouch()
     this.state.render()
   }
 }

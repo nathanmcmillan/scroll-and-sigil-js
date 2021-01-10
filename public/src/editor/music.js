@@ -201,15 +201,15 @@ export class MusicEdit {
 
     let input = this.input
 
-    if (input.timerLeftUp(timestamp, INPUT_RATE)) {
+    if (input.timerStickUp(timestamp, INPUT_RATE)) {
       if (this.noteR > 0) this.noteR--
-    } else if (input.timerLeftDown(timestamp, INPUT_RATE)) {
+    } else if (input.timerStickDown(timestamp, INPUT_RATE)) {
       if (this.noteR < this.noteRows - 1) this.noteR++
     }
 
-    if (input.timerLeftLeft(timestamp, INPUT_RATE)) {
+    if (input.timerStickLeft(timestamp, INPUT_RATE)) {
       if (this.noteC > 0) this.noteC--
-    } else if (input.timerLeftRight(timestamp, INPUT_RATE)) {
+    } else if (input.timerStickRight(timestamp, INPUT_RATE)) {
       this.noteC++
       let notes = this.tracks[this.trackIndex].notes
       if (this.noteC === notes.length) {

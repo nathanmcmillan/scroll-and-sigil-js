@@ -321,11 +321,11 @@ function heroMove(self) {
     } else {
       let direction = null
       let rotation = null
-      if (self.input.leftUp()) {
+      if (self.input.stickUp()) {
         direction = 'w'
         rotation = self.rotation
       }
-      if (self.input.leftDown()) {
+      if (self.input.stickDown()) {
         if (direction === null) {
           direction = 's'
           rotation = self.rotation + Math.PI
@@ -334,7 +334,7 @@ function heroMove(self) {
           rotation = null
         }
       }
-      if (self.input.leftLeft()) {
+      if (self.input.stickLeft()) {
         if (direction === null) {
           direction = 'a'
           rotation = self.rotation - 0.5 * Math.PI
@@ -346,7 +346,7 @@ function heroMove(self) {
           rotation += 0.25 * Math.PI
         }
       }
-      if (self.input.leftRight()) {
+      if (self.input.stickRight()) {
         if (direction === null) {
           rotation = self.rotation + 0.5 * Math.PI
         } else if (direction === 'a') {
