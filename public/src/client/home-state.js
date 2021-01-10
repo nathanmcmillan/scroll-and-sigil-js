@@ -1,5 +1,6 @@
 import {Game} from '/src/game/game.js'
 import {renderLoadingInProgress} from '/src/client/render-loading.js'
+import {renderTouch} from '/src/client/render-touch.js'
 import {textureByName, textureByIndex} from '/src/assets/assets.js'
 import {drawSprite, drawTextSpecial, FONT_WIDTH, FONT_HEIGHT} from '/src/render/render.js'
 import {identity, multiply, rotateX, rotateY, translate} from '/src/math/matrix.js'
@@ -64,9 +65,11 @@ export class HomeState {
     for (const sector of world.sectors) client.sectorRender(sector)
     for (const buffer of client.sectorBuffers.values()) client.rendering.updateVAO(buffer, gl.STATIC_DRAW)
 
-    this.loading = false
-
-    this.game.update()
+    // Temporary
+    setTimeout(() => {
+      this.loading = false
+      this.game.update()
+    }, 1000)
   }
 
   update(timestamp) {
@@ -98,7 +101,7 @@ export class HomeState {
     const projection = this.projection
 
     if (this.loading) {
-      renderLoadingInProgress(client, gl, rendering, view, projection)
+      renderLoadingInProgress(client, view, projection)
       return
     }
 
@@ -107,14 +110,13 @@ export class HomeState {
 
     const scale = home.scale
     const width = client.width
-    const height = client.height
+    const height = client.height - client.top
 
     const fontScale = Math.floor(1.5 * scale)
     const fontWidth = fontScale * FONT_WIDTH
     const fontHeight = fontScale * FONT_HEIGHT
 
-    gl.clear(gl.COLOR_BUFFER_BIT)
-    gl.clear(gl.DEPTH_BUFFER_BIT)
+    if (client.touch) renderTouch(client.touchRender)
 
     // render world
 
@@ -123,7 +125,10 @@ export class HomeState {
     const camera = game.camera
 
     rendering.setProgram(2)
-    rendering.setView(client.left, client.top, width, height)
+    rendering.setView(0, client.top, width, height)
+
+    gl.clearColor(0.0, 0.0, 0.0, 1.0)
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
     gl.disable(gl.CULL_FACE)
     gl.disable(gl.DEPTH_TEST)
@@ -192,7 +197,7 @@ export class HomeState {
 
     // text
     rendering.setProgram(4)
-    rendering.setView(client.left, client.top, width, height)
+    rendering.setView(0, client.top, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
 
     let titleBox = home.titleBox

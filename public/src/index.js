@@ -92,8 +92,6 @@ async function main() {
   }
 
   if ('ontouchstart' in window) {
-    console.info('touch input available')
-
     document.ontouchstart = (event) => {
       const touches = event.changedTouches
       for (let i = 0; i < touches.length; i++) {

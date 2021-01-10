@@ -1,5 +1,6 @@
 import {textureByName} from '/src/assets/assets.js'
 import {drawTextSpecial, FONT_WIDTH, FONT_HEIGHT} from '/src/render/render.js'
+import {renderTouch} from '/src/client/render-touch.js'
 import {identity, multiply} from '/src/math/matrix.js'
 import {darkgreyf, whitef} from '/src/editor/palette.js'
 import {flexBox, flexSolve} from '/src/flex/flex.js'
@@ -59,34 +60,35 @@ export class DashboardState {
     const projection = this.projection
     const scale = dashboard.scale
     const width = client.width
-    const height = client.height
+    const height = client.height - client.top
 
     const fontScale = Math.floor(1.5 * scale)
     const fontWidth = fontScale * FONT_WIDTH
     const fontHeight = fontScale * FONT_HEIGHT
     const fontPad = Math.floor(0.15 * fontHeight)
 
-    gl.clearColor(darkgreyf(0), darkgreyf(1), darkgreyf(2), 1.0)
-
-    gl.clear(gl.COLOR_BUFFER_BIT)
-    gl.clear(gl.DEPTH_BUFFER_BIT)
-
-    gl.disable(gl.CULL_FACE)
-    gl.disable(gl.DEPTH_TEST)
+    if (client.touch) renderTouch(client.touchRender)
 
     identity(view)
     multiply(projection, client.orthographic, view)
-
-    client.bufferGUI.zero()
 
     let white0 = whitef(0)
     let white1 = whitef(1)
     let white2 = whitef(2)
 
     // text
+
     rendering.setProgram(4)
-    rendering.setView(0, 0, width, height)
+    rendering.setView(0, client.top, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
+
+    gl.clearColor(darkgreyf(0), darkgreyf(1), darkgreyf(2), 1.0)
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+
+    gl.disable(gl.CULL_FACE)
+    gl.disable(gl.DEPTH_TEST)
+
+    client.bufferGUI.zero()
 
     let text = 'Scroll and Sigil Editor'
     let mainMenu = flexBox(fontWidth * text.length, fontHeight)

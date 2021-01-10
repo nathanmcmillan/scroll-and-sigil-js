@@ -48,8 +48,7 @@ export function renderMapEditViewMode(state) {
   const view = state.view
   const projection = state.projection
 
-  gl.clear(gl.COLOR_BUFFER_BIT)
-  gl.clear(gl.DEPTH_BUFFER_BIT)
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
   rendering.setProgram(2)
   rendering.setView(0, 0, client.width, client.height)

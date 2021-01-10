@@ -106,8 +106,7 @@ export function renderMapEditTopMode(state) {
 
   gl.clearColor(darkgreyf(0), darkgreyf(1), darkgreyf(2), 1.0)
 
-  gl.clear(gl.COLOR_BUFFER_BIT)
-  gl.clear(gl.DEPTH_BUFFER_BIT)
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
   gl.disable(gl.CULL_FACE)
   gl.disable(gl.DEPTH_TEST)
@@ -214,7 +213,7 @@ export function renderMapEditTopMode(state) {
   let infoText = '(' + buttonY + ')Options '
   infoText += '(' + selectKey + ')Edit track  '
   infoText += '(' + startKey + ')Menu '
-  drawTextSpecial(client.bufferGUI, 10, height - fontHeight - 10, infoText, fontScale, whitef(0), whitef(1), whitef(2), 1.0)
+  drawTextSpecial(client.bufferGUI, 10, height - fontHeight - 10, infoText, fontScale, whitef(0), whitef(1), whitef(2))
 
   rendering.bindTexture(gl.TEXTURE0, textureByName('tic-80-wide-font').texture)
   rendering.updateAndDraw(client.bufferGUI)

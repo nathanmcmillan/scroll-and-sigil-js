@@ -71,6 +71,8 @@ export class PaintEdit {
     this.shadowInput = true
     this.doPaint = true
 
+    console.warn('paint size', width, height, scale)
+
     this.plan()
   }
 
@@ -259,13 +261,13 @@ export class PaintEdit {
     }
 
     if (input.leftTrigger()) {
-      if (input.timerRightLeft(timestamp, INPUT_RATE)) {
+      if (input.timerStickLeft(timestamp, INPUT_RATE)) {
         this.brushSize--
         if (this.brushSize < 1) this.brushSize = 1
         else this.canUpdate = true
       }
 
-      if (input.timerRightRight(timestamp, INPUT_RATE)) {
+      if (input.timerStickRight(timestamp, INPUT_RATE)) {
         this.brushSize++
         if (this.brushSize > 4) this.brushSize = 4
         if (this.positionR + this.brushSize >= this.canvasZoom) this.positionR = this.canvasZoom - this.brushSize
@@ -273,7 +275,7 @@ export class PaintEdit {
         this.canUpdate = true
       }
     } else if (input.rightTrigger()) {
-      if (input.timerRightLeft(timestamp, INPUT_RATE)) {
+      if (input.timerStickLeft(timestamp, INPUT_RATE)) {
         this.canvasZoom /= 2
         if (this.canvasZoom < 8) this.canvasZoom = 8
         if (this.positionR + this.brushSize >= this.canvasZoom) this.positionR = this.canvasZoom - this.brushSize
@@ -281,7 +283,7 @@ export class PaintEdit {
         this.canUpdate = true
       }
 
-      if (input.timerRightRight(timestamp, INPUT_RATE)) {
+      if (input.timerStickRight(timestamp, INPUT_RATE)) {
         this.canvasZoom *= 2
         if (this.canvasZoom > 64) this.canvasZoom = 64
         if (this.positionOffsetR + this.canvasZoom >= this.sheetRows) this.positionOffsetR = this.sheetRows - this.canvasZoom
@@ -289,25 +291,25 @@ export class PaintEdit {
         this.canUpdate = true
       }
     } else {
-      if (input.timerRightUp(timestamp, INPUT_RATE)) {
+      if (input.timerStickUp(timestamp, INPUT_RATE)) {
         this.positionR--
         if (this.positionR < 0) this.positionR = 0
         else this.canUpdate = true
       }
 
-      if (input.timerRightDown(timestamp, INPUT_RATE)) {
+      if (input.timerStickDown(timestamp, INPUT_RATE)) {
         this.positionR++
         if (this.positionR + this.brushSize > this.canvasZoom) this.positionR = this.canvasZoom - this.brushSize
         else this.canUpdate = true
       }
 
-      if (input.timerRightLeft(timestamp, INPUT_RATE)) {
+      if (input.timerStickLeft(timestamp, INPUT_RATE)) {
         this.positionC--
         if (this.positionC < 0) this.positionC = 0
         else this.canUpdate = true
       }
 
-      if (input.timerRightRight(timestamp, INPUT_RATE)) {
+      if (input.timerStickRight(timestamp, INPUT_RATE)) {
         this.positionC++
         if (this.positionC + this.brushSize > this.canvasZoom) this.positionC = this.canvasZoom - this.brushSize
         else this.canUpdate = true

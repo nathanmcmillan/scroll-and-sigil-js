@@ -1,7 +1,7 @@
 import {textureByName} from '/src/assets/assets.js'
-import {drawText, drawTextSpecial, drawRectangle, FONT_WIDTH, FONT_HEIGHT} from '/src/render/render.js'
+import {drawTextSpecial} from '/src/render/render.js'
 import {identity, multiply} from '/src/math/matrix.js'
-import {whitef, redf, darkpurplef, darkgreyf} from '/src/editor/palette.js'
+import {whitef, darkgreyf} from '/src/editor/palette.js'
 import {compress} from '/src/compress/huffman.js'
 import {SfxEdit} from '/src/editor/sfx.js'
 import * as In from '/src/input/input.js'
@@ -78,8 +78,7 @@ export class SfxState {
 
     gl.clearColor(darkgreyf(0), darkgreyf(1), darkgreyf(2), 1.0)
 
-    gl.clear(gl.COLOR_BUFFER_BIT)
-    gl.clear(gl.DEPTH_BUFFER_BIT)
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
     gl.disable(gl.CULL_FACE)
     gl.disable(gl.DEPTH_TEST)
@@ -88,8 +87,6 @@ export class SfxState {
     multiply(projection, client.orthographic, view)
 
     const fontScale = Math.floor(1.5 * scale)
-    const fontWidth = fontScale * FONT_WIDTH
-    const fontHeight = fontScale * FONT_HEIGHT
 
     // text
     rendering.setProgram(4)
@@ -119,36 +116,36 @@ export class SfxState {
 
     // sound
     let text = 'Wave: ' + sfx.wave
-    drawTextSpecial(client.bufferGUI, 20, 400, text, fontScale, whitef(0), whitef(1), whitef(2), 1.0)
+    drawTextSpecial(client.bufferGUI, 20, 400, text, fontScale, whitef(0), whitef(1), whitef(2))
     text = 'Frequency: ' + sfx.pitch + ' hz'
-    drawTextSpecial(client.bufferGUI, 20, 380, text, fontScale, whitef(0), whitef(1), whitef(2), 1.0)
+    drawTextSpecial(client.bufferGUI, 20, 380, text, fontScale, whitef(0), whitef(1), whitef(2))
     text = 'Duration: ' + sfx.duration + ' ms'
-    drawTextSpecial(client.bufferGUI, 20, 360, text, fontScale, whitef(0), whitef(1), whitef(2), 1.0)
+    drawTextSpecial(client.bufferGUI, 20, 360, text, fontScale, whitef(0), whitef(1), whitef(2))
 
     text = 'Volume: 1.0'
-    drawTextSpecial(client.bufferGUI, 20, 340, text, fontScale, whitef(0), whitef(1), whitef(2), 1.0)
+    drawTextSpecial(client.bufferGUI, 20, 340, text, fontScale, whitef(0), whitef(1), whitef(2))
     text = 'Attack: 1.0'
-    drawTextSpecial(client.bufferGUI, 20, 320, text, fontScale, whitef(0), whitef(1), whitef(2), 1.0)
+    drawTextSpecial(client.bufferGUI, 20, 320, text, fontScale, whitef(0), whitef(1), whitef(2))
     text = 'Delay: 1.0'
-    drawTextSpecial(client.bufferGUI, 20, 300, text, fontScale, whitef(0), whitef(1), whitef(2), 1.0)
+    drawTextSpecial(client.bufferGUI, 20, 300, text, fontScale, whitef(0), whitef(1), whitef(2))
     text = 'Sustain: 1.0'
-    drawTextSpecial(client.bufferGUI, 20, 280, text, fontScale, whitef(0), whitef(1), whitef(2), 1.0)
+    drawTextSpecial(client.bufferGUI, 20, 280, text, fontScale, whitef(0), whitef(1), whitef(2))
     text = 'Release: 1.0'
-    drawTextSpecial(client.bufferGUI, 20, 260, text, fontScale, whitef(0), whitef(1), whitef(2), 1.0)
+    drawTextSpecial(client.bufferGUI, 20, 260, text, fontScale, whitef(0), whitef(1), whitef(2))
     text = 'Modulation: 1.0'
-    drawTextSpecial(client.bufferGUI, 20, 240, text, fontScale, whitef(0), whitef(1), whitef(2), 1.0)
+    drawTextSpecial(client.bufferGUI, 20, 240, text, fontScale, whitef(0), whitef(1), whitef(2))
     text = 'Noise: 1.0'
-    drawTextSpecial(client.bufferGUI, 20, 220, text, fontScale, whitef(0), whitef(1), whitef(2), 1.0)
+    drawTextSpecial(client.bufferGUI, 20, 220, text, fontScale, whitef(0), whitef(1), whitef(2))
     text = 'Bit Crush: 1.0'
-    drawTextSpecial(client.bufferGUI, 20, 200, text, fontScale, whitef(0), whitef(1), whitef(2), 1.0)
+    drawTextSpecial(client.bufferGUI, 20, 200, text, fontScale, whitef(0), whitef(1), whitef(2))
     text = 'Delay: 1.0'
-    drawTextSpecial(client.bufferGUI, 20, 180, text, fontScale, whitef(0), whitef(1), whitef(2), 1.0)
+    drawTextSpecial(client.bufferGUI, 20, 180, text, fontScale, whitef(0), whitef(1), whitef(2))
     text = 'Tremolo: 1.0'
-    drawTextSpecial(client.bufferGUI, 20, 160, text, fontScale, whitef(0), whitef(1), whitef(2), 1.0)
+    drawTextSpecial(client.bufferGUI, 20, 160, text, fontScale, whitef(0), whitef(1), whitef(2))
 
     // info
     text = '(' + buttonB + ')Duration down (' + buttonA + ')Duration up (' + buttonX + ') Play'
-    drawTextSpecial(client.bufferGUI, 20, 20, text, fontScale, whitef(0), whitef(1), whitef(2), 1.0)
+    drawTextSpecial(client.bufferGUI, 20, 20, text, fontScale, whitef(0), whitef(1), whitef(2))
 
     rendering.bindTexture(gl.TEXTURE0, textureByName('tic-80-wide-font').texture)
     rendering.updateAndDraw(client.bufferGUI)
