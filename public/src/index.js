@@ -74,6 +74,7 @@ async function main() {
   document.onkeydown = (event) => {
     if (event.code === 'Escape') {
       if (document.fullscreenElement === null) canvas.requestFullscreen()
+      else document.exitFullscreen()
     } else {
       client.keyDown(event)
     }
@@ -93,6 +94,8 @@ async function main() {
 
   if ('ontouchstart' in window) {
     document.ontouchstart = (event) => {
+      // if (document.fullscreenElement === null) canvas.requestFullscreen()
+
       const touches = event.changedTouches
       for (let i = 0; i < touches.length; i++) {
         console.log('touch start', touches[i])
