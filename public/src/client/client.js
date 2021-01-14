@@ -86,10 +86,6 @@ export class Client {
     this.canvas.width = width
     this.canvas.height = height
 
-    console.info('requrested size:', this.width, this.height)
-    console.info('canvas     size:', this.canvas.clientWidth, this.canvas.clientHeight)
-    console.info('webgl      size:', this.gl.drawingBufferWidth, this.gl.drawingBufferHeight)
-
     let ratio = width / height
 
     if (ratio < 0.7) {
