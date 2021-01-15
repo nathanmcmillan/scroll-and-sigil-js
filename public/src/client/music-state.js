@@ -144,17 +144,16 @@ export class MusicState {
     const noteSides = 20
 
     let x = noteSides
-    let offset = 0
+    let pos = x
     let y = height - 150
     let noteWidth = Math.floor(2.5 * smallFontWidth)
     let noteHeight = Math.floor(1.2 * smallFontHeight)
 
     for (let c = 0; c < notes.length; c++) {
       let note = notes[c]
-      let pos = x + (c - offset) * noteWidth
       if (pos > width - noteSides) {
-        offset += c
-        y -= 5 * noteHeight
+        pos = x
+        y -= 6 * noteHeight
       }
       for (let r = 1; r < noteRows; r++) {
         let num = note[r]
@@ -164,6 +163,7 @@ export class MusicState {
         if (c === noteC && r === noteR) drawTextSpecial(client.bufferGUI, xx, y - r * noteHeight, pitch, smallFontScale, redf(0), redf(1), redf(2))
         else drawTextSpecial(client.bufferGUI, xx, y - r * noteHeight, pitch, smallFontScale, whitef(0), whitef(1), whitef(2))
       }
+      pos += noteWidth
     }
 
     // keys
@@ -226,21 +226,21 @@ export class MusicState {
     const spriteSize = 8 * spriteScale
 
     x = noteSides
-    offset = 0
+    pos = x
     y = height - 150 + Math.floor(0.5 * noteHeight)
 
     const r = 0
     for (let c = 0; c < notes.length; c++) {
       let note = notes[c]
       let duration = 33 + note[r]
-      let pos = x + c * noteWidth
       if (pos > width - noteSides) {
-        offset += c
-        y -= 5 * noteHeight
+        pos = x
+        y -= 6 * noteHeight
       }
       sprcol(client.bufferGUI, duration, 1.0, 1.0, pos, y - spriteScale, spriteSize, spriteSize, 0.0, 0.0, 0.0, 1.0)
       if (c === noteC && r === noteR) sprcol(client.bufferGUI, duration, 1.0, 1.0, pos, y, spriteSize, spriteSize, redf(0), redf(1), redf(2), 1.0)
       else spr(client.bufferGUI, duration, 1.0, 1.0, pos, y, spriteSize, spriteSize)
+      pos += noteWidth
     }
 
     rendering.bindTexture(gl.TEXTURE0, textureByName('editor-sprites').texture)

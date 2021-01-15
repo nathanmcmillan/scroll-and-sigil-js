@@ -65,11 +65,8 @@ export class HomeState {
     for (const sector of world.sectors) client.sectorRender(sector)
     for (const buffer of client.sectorBuffers.values()) client.rendering.updateVAO(buffer, gl.STATIC_DRAW)
 
-    // Temporary
-    setTimeout(() => {
-      this.loading = false
-      this.game.update()
-    }, 1000)
+    this.loading = false
+    this.game.update()
   }
 
   update(timestamp) {
