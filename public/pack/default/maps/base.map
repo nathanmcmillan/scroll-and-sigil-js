@@ -89,9 +89,10 @@ things 8
 30 40 merchant
 60 42 armor
 80 42 peasant
-triggers 2
+triggers 3
 line 26 begin-cinema
-line 16 goto-map
+line 16 goto-map base entrance-x
+line 17 teleport 100 80
 info 4
 music vampire-killer
 background night-sky
