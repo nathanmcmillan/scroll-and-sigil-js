@@ -7,8 +7,6 @@ import {identity, multiply, rotateX, rotateY, translate} from '/src/math/matrix.
 import {whitef} from '/src/editor/palette.js'
 import {flexText, flexSolve} from '/src/flex/flex.js'
 import {Home} from '/src/menu/home.js'
-import {speech} from '/src/sound/speech.js'
-import {animal} from '/src/sound/animal.js'
 
 export class HomeState {
   constructor(client) {
@@ -22,20 +20,6 @@ export class HomeState {
     this.projection = new Float32Array(16)
 
     this.home = new Home(client.width, client.height, client.scale, client.input)
-
-    if (true) {
-      let text = 'scrol and sigil'
-      let base = 60
-      let speed = 1.5
-      speech(text, base, speed)
-    }
-
-    if (false) {
-      let text = 'scroll and sigil'
-      let pitch = 1.0
-      let shorten = false
-      animal(text, pitch, shorten)
-    }
   }
 
   resize(width, height, scale) {

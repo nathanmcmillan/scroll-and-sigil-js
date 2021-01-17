@@ -16,7 +16,7 @@ import {DashboardState} from '/src/client/dashboard-state.js'
 import {GameState} from '/src/client/game-state.js'
 import {HomeState} from '/src/client/home-state.js'
 import {TwoWayMap} from '/src/util/collections.js'
-import {TouchRender, touchRenderResize} from '/src/client/render-touch.js'
+import {TouchRender, touchRenderEvent, touchRenderResize} from '/src/client/render-touch.js'
 import * as Wad from '/src/wad/wad.js'
 import * as In from '/src/input/input.js'
 
@@ -72,6 +72,24 @@ export class Client {
   mouseMove(event) {
     this.state.mouseMove(event.clientX, this.height - event.clientY)
   }
+
+  touchStart(event) {
+    let input = touchRenderEvent(this.touchRender, event)
+    if (input !== null) {
+      let code = this.keys.reversed(input)
+      this.state.keyEvent(code, true)
+    }
+  }
+
+  touchEnd(event) {
+    let input = touchRenderEvent(this.touchRender, event)
+    if (input !== null) {
+      let code = this.keys.reversed(input)
+      this.state.keyEvent(code, false)
+    }
+  }
+
+  touchMove() {}
 
   pause() {
     pauseMusic()
@@ -342,14 +360,14 @@ export class Client {
         break
       case 'maps':
         this.state = new MapState(this)
-        if (boot.has('map')) file = '/pack/' + this.pack + '/' + boot.get('map') + '.map'
+        if (boot.has('map')) file = '/pack/' + this.pack + '/maps/' + boot.get('map') + '.map'
         break
       case 'dashboard':
         this.state = new DashboardState(this)
         break
       case 'game':
         this.state = new GameState(this)
-        if (boot.has('map')) file = '/pack/' + this.pack + '/' + boot.get('map') + '.map'
+        if (boot.has('map')) file = '/pack/' + this.pack + '/maps/' + boot.get('map') + '.map'
         break
       default:
         this.state = new HomeState(this)
