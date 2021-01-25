@@ -29,3 +29,17 @@ export function calcLongest(list) {
   }
   return high
 }
+
+export class Dialogue {
+  constructor(id, title, options, callbacks = null) {
+    this.id = id
+    this.title = title
+    this.options = options
+    this.callbacks = callbacks
+    this.pos = 0
+  }
+
+  reset() {
+    this.pos = 0
+  }
+}
