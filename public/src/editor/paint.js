@@ -2,7 +2,7 @@ import {fetchText} from '/src/client/net.js'
 import {newPalette, newPaletteFloat, describeColor} from '/src/editor/palette.js'
 import {flexBox, flexSolve, flexSize} from '/src/flex/flex.js'
 import {FONT_WIDTH, FONT_HEIGHT} from '/src/render/render.js'
-import {calcFontScale, Dialogue} from '/src/editor/editor-util.js'
+import {calcFontScale, Dialog} from '/src/editor/editor-util.js'
 
 // TODO: Fullscreen mode (show the sprite sheet in full view)
 // TODO: Need a sprite mode, selection rectangle + name = sprite
@@ -23,6 +23,7 @@ export class PaintEdit {
     this.input = input
     this.shadowInput = true
     this.doPaint = true
+    this.forcePaint = false
     this.hasUpdates = false
     this.canUpdate = true
 
@@ -64,45 +65,75 @@ export class PaintEdit {
     this.toolBox = null
     this.paletteBox = null
 
-    this.dialogue = null
+    this.dialog = null
+    this.dialogStack = []
 
     const self = this
 
-    this.startMenuDialogue = new Dialogue(
-      'start',
-      null,
-      ['new', 'open', 'save', 'export', 'exit'],
-      [
-        null,
-        null,
-        null,
-        () => {
-          self.dialogue = self.exportDialogue
-        },
-        null,
-      ]
-    )
+    const gotoExportDialog = () => {
+      self.dialog = self.exportDialog
+      self.forcePaint = true
+    }
 
-    this.exportDialogue = new Dialogue(
-      'export',
-      null,
-      ['plain text', 'png', 'huffman', 'back'],
-      [
-        null,
-        null,
-        null,
-        () => {
-          self.dialogue = self.startMenuDialogue
-        },
-      ]
-    )
+    const gotoStartMenu = () => {
+      self.dialog = self.startMenuDialog
+      self.forcePaint = true
+    }
+
+    const gotoAskToSave = (id, option) => {
+      if (self.historyPosition === 0) {
+        if (id === 'start' && option === 'open') {
+          this.parent.eventCall(id, option)
+          self.dialog = null
+          self.dialogStack.length = 0
+        }
+      } else {
+        self.dialogStack.push(id + '-' + option)
+        self.dialog = self.askToSaveDialog
+      }
+      self.forcePaint = true
+    }
+
+    const gotoSaveOk = (id, option) => {
+      this.parent.eventCall('start', 'save')
+      self.dialogStack.push(id + '-' + option)
+      self.dialog = self.saveOk
+      self.forcePaint = true
+    }
+
+    const dontSaveAndContinue = (id, option) => {
+      console.log(id, option, '| do not save and continue | ', this.dialogStack)
+    }
+
+    const saveAndContinue = (id, option) => {
+      console.log(id, option, '| save and continue |', this.dialogStack)
+      if (id === 'save' && option === 'save') {
+        if (this.dialogStack[0] === 'start-open') {
+          this.parent.eventCall(id, option)
+        }
+      }
+    }
+
+    const nextPrompt = (id, option) => {
+      console.log(id, option, '| next prompt |', this.dialogStack)
+      if (this.dialogStack[0] === 'start-save') {
+        self.dialog = null
+        self.dialogStack.length = 0
+        self.forcePaint = true
+      }
+    }
+
+    this.startMenuDialog = new Dialog('start', null, ['new', 'open', 'save', 'export', 'exit'], [gotoAskToSave, gotoAskToSave, gotoSaveOk, gotoExportDialog, null])
+    this.exportDialog = new Dialog('export', 'export to file', ['plain text', 'png', 'huffman', 'back'], [null, null, null, gotoStartMenu])
+    this.askToSaveDialog = new Dialog('save', 'save or export', ['save', 'export', 'no'], [saveAndContinue, gotoExportDialog, dontSaveAndContinue])
+    this.saveOk = new Dialog('save-ok', 'file saved', ['ok'], [nextPrompt])
 
     this.resize(width, height, scale)
   }
 
   reset() {
-    this.startMenuDialogue.reset()
-    this.exportDialogue.reset()
+    this.startMenuDialog.reset()
+    this.exportDialog.reset()
   }
 
   resize(width, height, scale) {
@@ -218,7 +249,7 @@ export class PaintEdit {
   }
 
   leftStatusBar() {
-    if (this.dialogue !== null) return null
+    if (this.dialog !== null) return null
     let input = this.input
     if (input.x()) return 'COLOR: ' + describeColor(this.paletteC + this.paletteR * this.paletteColumns).toUpperCase()
     else if (input.y()) {
@@ -231,7 +262,7 @@ export class PaintEdit {
   }
 
   rightStatusBar() {
-    if (this.dialogue !== null) return 'A/OK B/CANCEL'
+    if (this.dialog !== null) return 'A/OK B/CANCEL'
     let input = this.input
     if (input.x()) return 'X/OK'
     else if (input.y()) return 'Y/OK'
@@ -241,22 +272,32 @@ export class PaintEdit {
   }
 
   immediateInput() {
-    if (this.dialogue === null) return
+    if (this.dialog === null) return
     let input = this.input
-    // TODO: Reset nothingOn() so doPaint is true after update
-    if (input.pressB()) this.dialogue = null
+    if (input.pressB()) {
+      this.dialog = null
+      this.dialogStack.length = 0
+      this.forcePaint = true
+    }
     if (input.pressA() || input.pressStart()) {
-      let call = this.dialogue.callbacks[this.dialogue.pos]
-      if (call !== null) call()
+      let id = this.dialog.id
+      let option = this.dialog.options[this.dialog.pos]
+      let call = this.dialog.callbacks[this.dialog.pos]
+      if (call !== null) call(id, option)
       else {
-        this.parent.eventCall(this.dialogue.id, this.dialogue.options[this.dialogue.pos])
-        this.dialogue = null
+        this.parent.eventCall(id, option)
+        this.dialog = null
+        this.dialogStack.length = 0
+        this.forcePaint = true
       }
     }
   }
 
   update(timestamp) {
-    this.doPaint = false
+    if (this.forcePaint) {
+      this.doPaint = true
+      this.forcePaint = false
+    } else this.doPaint = false
     if (this.input.nothingOn()) {
       if (this.shadowInput) this.shadowInput = false
       else return
@@ -266,13 +307,13 @@ export class PaintEdit {
 
     let input = this.input
 
-    if (this.dialogue !== null) {
+    if (this.dialog !== null) {
       if (input.timerStickUp(timestamp, INPUT_RATE)) {
-        if (this.dialogue.pos > 0) this.dialogue.pos--
+        if (this.dialog.pos > 0) this.dialog.pos--
       }
 
       if (input.timerStickDown(timestamp, INPUT_RATE)) {
-        if (this.dialogue.pos < this.dialogue.options.length - 1) this.dialogue.pos++
+        if (this.dialog.pos < this.dialog.options.length - 1) this.dialog.pos++
       }
 
       return
@@ -401,7 +442,7 @@ export class PaintEdit {
     if (input.a()) this.action()
     if (input.pressLeftTrigger()) this.undo()
     if (input.pressRightTrigger()) this.redo()
-    if (input.pressStart()) this.dialogue = this.startMenuDialogue
+    if (input.pressStart()) this.dialog = this.startMenuDialog
 
     if (input.mouseMoved()) {
       input.mouseMoveOff()

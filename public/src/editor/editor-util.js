@@ -30,7 +30,7 @@ export function calcLongest(list) {
   return high
 }
 
-export class Dialogue {
+export class Dialog {
   constructor(id, title, options, callbacks = null) {
     this.id = id
     this.title = title
