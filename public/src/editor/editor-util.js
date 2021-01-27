@@ -31,11 +31,10 @@ export function calcLongest(list) {
 }
 
 export class Dialog {
-  constructor(id, title, options, callbacks = null) {
+  constructor(id, title, options) {
     this.id = id
     this.title = title
     this.options = options
-    this.callbacks = callbacks
     this.pos = 0
   }
 

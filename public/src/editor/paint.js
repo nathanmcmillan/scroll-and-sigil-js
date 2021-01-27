@@ -68,72 +68,76 @@ export class PaintEdit {
     this.dialog = null
     this.dialogStack = []
 
-    const self = this
-
-    const gotoExportDialog = () => {
-      self.dialog = self.exportDialog
-      self.forcePaint = true
-    }
-
-    const gotoStartMenu = () => {
-      self.dialog = self.startMenuDialog
-      self.forcePaint = true
-    }
-
-    const gotoAskToSave = (id, option) => {
-      if (self.historyPosition === 0) {
-        if (id === 'start' && option === 'open') {
-          this.parent.eventCall(id, option)
-          self.dialog = null
-          self.dialogStack.length = 0
-        }
-      } else {
-        self.dialogStack.push(id + '-' + option)
-        self.dialog = self.askToSaveDialog
-      }
-      self.forcePaint = true
-    }
-
-    const gotoSaveOk = (id, option) => {
-      this.parent.eventCall('start', 'save')
-      self.dialogStack.push(id + '-' + option)
-      self.dialog = self.saveOk
-      self.forcePaint = true
-    }
-
-    const dontSaveAndContinue = (id, option) => {
-      console.log(id, option, '| do not save and continue | ', this.dialogStack)
-    }
-
-    const saveAndContinue = (id, option) => {
-      console.log(id, option, '| save and continue |', this.dialogStack)
-      if (id === 'save' && option === 'save') {
-        if (this.dialogStack[0] === 'start-open') {
-          this.parent.eventCall(id, option)
-        }
-      }
-    }
-
-    const nextPrompt = (id, option) => {
-      console.log(id, option, '| next prompt |', this.dialogStack)
-      if (this.dialogStack[0] === 'start-save') {
-        self.dialog = null
-        self.dialogStack.length = 0
-        self.forcePaint = true
-      }
-    }
-
-    this.startMenuDialog = new Dialog('start', null, ['new', 'open', 'save', 'export', 'exit'], [gotoAskToSave, gotoAskToSave, gotoSaveOk, gotoExportDialog, null])
-    this.exportDialog = new Dialog('export', 'export to file', ['plain text', 'png', 'huffman', 'back'], [null, null, null, gotoStartMenu])
-    this.askToSaveDialog = new Dialog('save', 'save or export', ['save', 'export', 'no'], [saveAndContinue, gotoExportDialog, dontSaveAndContinue])
-    this.saveOk = new Dialog('save-ok', 'file saved', ['ok'], [nextPrompt])
+    this.startMenuDialog = new Dialog('start', null, ['new', 'open', 'save', 'export', 'exit'])
+    this.exportDialog = new Dialog('export', 'export to file', ['plain text', 'png', 'huffman', 'back'])
+    this.askToSaveDialog = new Dialog('save', 'save open file?', ['save', 'export', 'no'])
+    this.saveOk = new Dialog('save-ok', 'file saved', ['ok'])
 
     this.resize(width, height, scale)
   }
 
   reset() {
+    this.dialogResetAll()
+  }
+
+  handleDialog(event) {
+    console.debug('event :=', event, '|', this.dialogStack)
+    const poll = this.dialogStack[0]
+    if (event === 'save-ok-ok') {
+      if (poll === 'start-exit') this.parent.eventCall(poll)
+      this.dialogEnd()
+    } else if (event === 'save-save') {
+      if (poll === 'start-open') {
+        this.parent.eventCall(event)
+      } else if (poll === 'start-exit') {
+        this.parent.eventCall('start-save')
+        this.dialogStack.push(event)
+        this.dialog = this.saveOk
+        this.forcePaint = true
+      }
+    } else if (event === 'start-export' || event === 'save-export') {
+      this.dialogStack.push(event)
+      this.dialog = this.exportDialog
+      this.forcePaint = true
+    } else if (event === 'save-no') {
+      this.parent.eventCall(poll)
+      this.dialogEnd()
+    } else if (event === 'export-back') {
+      this.dialogStack.push(event)
+      this.dialog = this.startMenuDialog
+      this.forcePaint = true
+    } else if (event === 'export-plain text' || event === 'export-png' || event === 'export-huffman') {
+      this.parent.eventCall(event)
+      this.dialogEnd()
+    } else if (event === 'start-save') {
+      this.parent.eventCall('start-save')
+      this.dialogStack.push(event)
+      this.dialog = this.saveOk
+      this.forcePaint = true
+    } else if (event === 'start-new' || event === 'start-open' || event === 'start-exit') {
+      if (this.historyPosition === 0) {
+        this.parent.eventCall(event)
+        this.dialogEnd()
+      } else {
+        this.dialogStack.push(event)
+        this.dialog = this.askToSaveDialog
+        this.forcePaint = true
+      }
+    }
+  }
+
+  dialogResetAll() {
     this.startMenuDialog.reset()
     this.exportDialog.reset()
+    this.askToSaveDialog.reset()
+    this.saveOk.reset()
+  }
+
+  dialogEnd() {
+    this.dialogResetAll()
+    this.dialog = null
+    this.dialogStack.length = 0
+    this.forcePaint = true
   }
 
   resize(width, height, scale) {
@@ -282,14 +286,7 @@ export class PaintEdit {
     if (input.pressA() || input.pressStart()) {
       let id = this.dialog.id
       let option = this.dialog.options[this.dialog.pos]
-      let call = this.dialog.callbacks[this.dialog.pos]
-      if (call !== null) call(id, option)
-      else {
-        this.parent.eventCall(id, option)
-        this.dialog = null
-        this.dialogStack.length = 0
-        this.forcePaint = true
-      }
+      this.handleDialog(id + '-' + option)
     }
   }
 
@@ -310,12 +307,9 @@ export class PaintEdit {
     if (this.dialog !== null) {
       if (input.timerStickUp(timestamp, INPUT_RATE)) {
         if (this.dialog.pos > 0) this.dialog.pos--
-      }
-
-      if (input.timerStickDown(timestamp, INPUT_RATE)) {
+      } else if (input.timerStickDown(timestamp, INPUT_RATE)) {
         if (this.dialog.pos < this.dialog.options.length - 1) this.dialog.pos++
       }
-
       return
     }
 

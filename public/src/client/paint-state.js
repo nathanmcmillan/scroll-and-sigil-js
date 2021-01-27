@@ -87,8 +87,10 @@ export class PaintState {
 
   keyEvent(code, down) {
     let paint = this.paint
-    if (this.keys.has(code)) paint.input.set(this.keys.get(code), down)
-    paint.immediateInput()
+    if (this.keys.has(code)) {
+      paint.input.set(this.keys.get(code), down)
+      paint.immediateInput()
+    }
   }
 
   mouseEvent(left, down) {
@@ -104,18 +106,14 @@ export class PaintState {
     this.updateTexture()
   }
 
-  eventCall(id, event) {
-    if (id === 'export') {
-      if (event === 'plain text') this.exportPlain()
-      else if (event === 'png') this.exportPng()
-      else if (event === 'huffman') this.exportHuffman()
-    } else if (id === 'save') {
-      if (event === 'save') this.saveSheet()
-    } else if (id === 'start') {
-      if (event === 'open') this.importSheet()
-      else if (event === 'save') this.saveSheet()
-      else if (event === 'exit') this.returnToDashboard()
-    }
+  eventCall(event) {
+    if (event === 'export-plain text') this.exportPlain()
+    else if (event === 'export-png') this.exportPng()
+    else if (event === 'export-huffman') this.exportHuffman()
+    else if (event === 'save-save') this.saveSheet()
+    else if (event === 'start-open') this.importSheet()
+    else if (event === 'start-save') this.saveSheet()
+    else if (event === 'start-exit') this.returnToDashboard()
   }
 
   returnToDashboard() {
