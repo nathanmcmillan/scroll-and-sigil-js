@@ -9,17 +9,6 @@ import {sectorTriangulateForEditor} from '/src/map/triangulate.js'
 import {Dialog} from '/src/editor/editor-util.js'
 import * as In from '/src/input/input.js'
 
-// Input
-// WASD: Move cursor (also need touch edge to move)
-// BUTTON B + WASD: Move camera
-// TRIGGER LEFT: Toggle view mode
-// TRIGGER RIGHT: ?
-// BUTTON A: Start line / Place thing
-// BUTTON B: ?
-// BUTTON Y: ?
-// SELECT: ?
-// START: FILE MENU
-
 export const TOP_MODE = 0
 export const VIEW_MODE = 1
 
@@ -85,7 +74,7 @@ DESCRIBE_ACTION[DO_START_LINE] = 'New at vec'
 DESCRIBE_ACTION[DO_END_LINE] = 'End at vec'
 DESCRIBE_ACTION[DO_END_LINE_NEW_VECTOR] = 'End'
 
-DESCRIBE_ACTION[DO_PLACE_THING] = 'Place thing'
+DESCRIBE_ACTION[DO_PLACE_THING] = 'New thing'
 DESCRIBE_ACTION[DO_MOVE_THING] = 'Move'
 DESCRIBE_ACTION[DO_EDIT_THING] = 'Edit'
 DESCRIBE_ACTION[DO_DELETE_THING] = 'Delete'
@@ -148,8 +137,6 @@ const SECTOR_MODE_OPTIONS = new Map()
 SECTOR_MODE_OPTIONS.set(In.BUTTON_A, DO_EDIT_SECTOR)
 DESCRIBE_OPTIONS[OPTION_SECTOR_MODE_DEFAULT] = SECTOR_MODE_OPTIONS
 
-export const DESCRIBE_MENU = ['Open', 'Save', 'Quit']
-
 const INPUT_RATE = 128
 
 function texture(name) {
@@ -208,7 +195,7 @@ export class MapEdit {
     this.defaultTile = null
     this.entitySet = new Set()
     this.defaultEntity = null
-    this.menuActive = false
+    this.doSectorRefresh = false
 
     this.snapToGrid = false
     this.viewVecs = true
@@ -230,7 +217,6 @@ export class MapEdit {
   }
 
   handleDialog(event) {
-    console.debug('event :=', event, '|', this.dialogStack)
     if (event === 'start-new' || event === 'start-open' || event === 'start-exit') {
       this.parent.eventCall(event)
       this.dialogEnd()
@@ -240,6 +226,10 @@ export class MapEdit {
       else if (event === 'tool-sector mode') this.tool = 2
       this.switchTool()
       this.dialogEnd()
+      if (event === 'tool-sector mode' && this.doSectorRefresh) {
+        computeSectors(this)
+        this.doSectorRefresh = false
+      }
     }
   }
 
@@ -549,126 +539,123 @@ export class MapEdit {
       return
     }
 
-    // if (input.leftTrigger() && input.pressStickRight()) {
-    //   this.menuActive = !this.menuActive
-    //   return
-    // }
-
-    // if (input.leftTrigger() && input.pressStickUp()) {
-    //   this.snapToGrid = !this.snapToGrid
-    //   return
-    // }
-
-    // if (input.leftTrigger() && input.pressA()) {
-    //   this.zoom += 0.25
-    //   this.camera.x -= 1.0 / this.zoom
-    //   this.camera.z -= 1.0 / this.zoom
-    // }
-
-    // if (input.leftTrigger() && input.pressB()) {
-    //   this.zoom -= 0.25
-    //   this.camera.x += 1.0 / this.zoom
-    //   this.camera.z += 1.0 / this.zoom
-    // }
-
-    if (this.snapToGrid) {
-      const grid = 10
-      if (input.pressStickLeft()) {
-        let x = Math.floor(cursor.x)
-        let modulo = x % grid
-        if (modulo == 0) cursor.x -= grid
-        else cursor.x -= modulo
-        if (cursor.x < 0.0) cursor.x = 0.0
+    if (input.rightTrigger()) {
+      if (input.pressX()) {
+        this.snapToGrid = !this.snapToGrid
+        return
       }
-      if (input.pressStickRight()) {
-        let x = Math.floor(cursor.x)
-        let modulo = x % grid
-        if (modulo == 0) cursor.x += grid
-        else cursor.x += grid - modulo
-        if (cursor.x > this.width) cursor.x = this.width
-      }
+
       if (input.pressStickUp()) {
-        let y = Math.floor(cursor.y)
-        let modulo = y % grid
-        if (modulo == 0) cursor.y += grid
-        else cursor.y += grid - modulo
-        if (cursor.y > this.height) cursor.y = this.height
-      }
-      if (input.pressStickDown()) {
-        let y = Math.floor(cursor.y)
-        let modulo = y % grid
-        if (modulo == 0) cursor.y -= grid
-        else cursor.y -= modulo
-        if (cursor.y < 0.0) cursor.y = 0.0
+        this.zoom += 0.25
+        this.camera.x -= 1.0 / this.zoom
+        this.camera.z -= 1.0 / this.zoom
       }
 
-      if (input.pressStickLeft()) {
-        let x = Math.floor(camera.x)
-        let modulo = x % grid
-        if (modulo == 0) camera.x -= grid
-        else camera.x -= modulo
-      }
-      if (input.pressStickRight()) {
-        let x = Math.floor(camera.x)
-        let modulo = x % grid
-        if (modulo == 0) camera.x += grid
-        else camera.x += grid - modulo
-      }
-      if (input.pressStickUp()) {
-        let z = Math.floor(camera.z)
-        let modulo = z % grid
-        if (modulo == 0) camera.z += grid
-        else camera.z += grid - modulo
-      }
       if (input.pressStickDown()) {
-        let z = Math.floor(camera.z)
-        let modulo = z % grid
-        if (modulo == 0) camera.z -= grid
-        else camera.z -= modulo
+        this.zoom -= 0.25
+        this.camera.x += 1.0 / this.zoom
+        this.camera.z += 1.0 / this.zoom
       }
     } else {
-      const look = 4.0
-      const speed = 0.5
-      if (input.b()) {
-        if (input.stickLeft()) {
-          camera.x -= speed
+      if (this.snapToGrid) {
+        const grid = 10
+        if (input.pressStickLeft()) {
+          let x = Math.floor(cursor.x)
+          let modulo = x % grid
+          if (modulo == 0) cursor.x -= grid
+          else cursor.x -= modulo
+          if (cursor.x < 0.0) cursor.x = 0.0
         }
-        if (input.stickRight()) {
-          camera.x += speed
+        if (input.pressStickRight()) {
+          let x = Math.floor(cursor.x)
+          let modulo = x % grid
+          if (modulo == 0) cursor.x += grid
+          else cursor.x += grid - modulo
+          if (cursor.x > this.width) cursor.x = this.width
         }
-        if (input.stickUp()) {
-          camera.z += speed
+        if (input.pressStickUp()) {
+          let y = Math.floor(cursor.y)
+          let modulo = y % grid
+          if (modulo == 0) cursor.y += grid
+          else cursor.y += grid - modulo
+          if (cursor.y > this.height) cursor.y = this.height
         }
-        if (input.stickDown()) {
-          camera.z -= speed
+        if (input.pressStickDown()) {
+          let y = Math.floor(cursor.y)
+          let modulo = y % grid
+          if (modulo == 0) cursor.y -= grid
+          else cursor.y -= modulo
+          if (cursor.y < 0.0) cursor.y = 0.0
+        }
+
+        if (input.pressStickLeft()) {
+          let x = Math.floor(camera.x)
+          let modulo = x % grid
+          if (modulo == 0) camera.x -= grid
+          else camera.x -= modulo
+        }
+        if (input.pressStickRight()) {
+          let x = Math.floor(camera.x)
+          let modulo = x % grid
+          if (modulo == 0) camera.x += grid
+          else camera.x += grid - modulo
+        }
+        if (input.pressStickUp()) {
+          let z = Math.floor(camera.z)
+          let modulo = z % grid
+          if (modulo == 0) camera.z += grid
+          else camera.z += grid - modulo
+        }
+        if (input.pressStickDown()) {
+          let z = Math.floor(camera.z)
+          let modulo = z % grid
+          if (modulo == 0) camera.z -= grid
+          else camera.z -= modulo
         }
       } else {
-        if (input.stickLeft()) {
-          cursor.x -= look
-          if (cursor.x < 0.0) {
-            cursor.x = 0.0
+        const look = 4.0
+        const speed = 0.5
+        if (input.b()) {
+          if (input.stickLeft()) {
             camera.x -= speed
           }
-        }
-        if (input.stickRight()) {
-          cursor.x += look
-          if (cursor.x > this.width) {
-            cursor.x = this.width
+          if (input.stickRight()) {
             camera.x += speed
           }
-        }
-        if (input.stickUp()) {
-          cursor.y += look
-          if (cursor.y > this.height) {
-            cursor.y = this.height
+          if (input.stickUp()) {
             camera.z += speed
           }
-        }
-        if (input.stickDown()) {
-          cursor.y -= look
-          if (cursor.y < 0.0) {
-            cursor.y = 0.0
+          if (input.stickDown()) {
             camera.z -= speed
+          }
+        } else {
+          if (input.stickLeft()) {
+            cursor.x -= look
+            if (cursor.x < 0.0) {
+              cursor.x = 0.0
+              camera.x -= speed
+            }
+          }
+          if (input.stickRight()) {
+            cursor.x += look
+            if (cursor.x > this.width) {
+              cursor.x = this.width
+              camera.x += speed
+            }
+          }
+          if (input.stickUp()) {
+            cursor.y += look
+            if (cursor.y > this.height) {
+              cursor.y = this.height
+              camera.z += speed
+            }
+          }
+          if (input.stickDown()) {
+            cursor.y -= look
+            if (cursor.y < 0.0) {
+              cursor.y = 0.0
+              camera.z -= speed
+            }
           }
         }
       }
@@ -725,7 +712,7 @@ export class MapEdit {
               this.flipSelectedLine()
             } else if (option === DO_DELETE_LINE) {
               this.deleteSelectedLine()
-              computeSectors(this)
+              this.doSectorRefresh = true
             } else if (option === DO_SPLIT_LINE) {
               this.splitSelectedLine()
             }
@@ -763,7 +750,7 @@ export class MapEdit {
               }
               this.deleteSelectedVector()
               this.action = OPTION_VECTOR_UNDER_CURSOR
-              computeSectors(this)
+              this.doSectorRefresh = true
             }
           }
         }
@@ -788,10 +775,10 @@ export class MapEdit {
                 let floor = 0.0
                 let ceil = 10.0
                 let st = Math.sqrt(x * x + y * y) * WORLD_SCALE
-                line.middle.update(floor, ceil, 0.0, floor * WORLD_SCALE, st, ceil * WORLD_SCALE)
+                line.middle.update(floor, ceil, 0.0, floor * WORLD_SCALE, st, ceil * WORLD_SCALE, line.a, line.b)
                 this.lines.push(line)
                 this.action = OPTION_VECTOR_UNDER_CURSOR
-                computeSectors(this)
+                this.doSectorRefresh = true
               }
               this.selectedVec = null
               this.selectedSecondVec = null
@@ -814,11 +801,11 @@ export class MapEdit {
               let floor = 0.0
               let ceil = 10.0
               let st = Math.sqrt(x * x + y * y) * WORLD_SCALE
-              line.middle.update(floor, ceil, 0.0, floor * WORLD_SCALE, st, ceil * WORLD_SCALE)
+              line.middle.update(floor, ceil, 0.0, floor * WORLD_SCALE, st, ceil * WORLD_SCALE, line.a, line.b)
               this.lines.push(line)
               this.selectedVec = null
               this.action = OPTION_VECTOR_UNDER_CURSOR
-              computeSectors(this)
+              this.doSectorRefresh = true
             } else if (option === DO_CANCEL) {
               if (referenceLinesFromVec(this.selectedVec, this.lines).length === 0) {
                 this.deleteSelectedVector()
@@ -861,6 +848,9 @@ export class MapEdit {
               this.action = OPTION_MOVE_THING
             } else if (option === DO_DELETE_THING) {
               this.deleteSelectedThing()
+            } else if (option === DO_EDIT_THING) {
+              this.editThingDialog.title = this.selectedThing.entity.get('_wad')
+              this.dialog = this.editThingDialog
             }
           }
         }
@@ -881,98 +871,107 @@ export class MapEdit {
     }
   }
 
-  view() {
+  view(timestamp) {
     let input = this.input
     let camera = this.camera
 
-    if (input.pressPadRight()) {
+    if (input.pressLeftTrigger()) {
       this.mode = TOP_MODE
-      let cursor = this.cursor
-      this.camera.x -= cursor.x / this.zoom
-      this.camera.z -= cursor.y / this.zoom
+      this.camera.x -= this.cursor.x / this.zoom
+      this.camera.z -= this.cursor.y / this.zoom
       return
     }
 
-    if (input.rightLeft()) {
+    if (input.y()) {
       camera.ry -= 0.05
       if (camera.ry < 0.0) camera.ry += 2.0 * Math.PI
     }
 
-    if (input.rightRight()) {
+    if (input.a()) {
       camera.ry += 0.05
       if (camera.ry >= 2.0 * Math.PI) camera.ry -= 2.0 * Math.PI
     }
 
-    if (input.rightUp()) {
-      camera.rx -= 0.05
-      if (camera.rx < 0.0) camera.rx += 2.0 * Math.PI
-    }
-
-    if (input.rightDown()) {
-      camera.rx += 0.05
-      if (camera.rx >= 2.0 * Math.PI) camera.rx -= 2.0 * Math.PI
-    }
-
     const speed = 0.3
 
-    if (input.moveUp()) {
-      camera.y += speed
-    }
-
-    if (input.moveDown()) {
-      camera.y -= speed
-    }
-
     let direction = null
-    let rotation = null
+    let rotation = 0.0
 
-    if (input.stickUp()) {
-      direction = 'w'
-      rotation = camera.ry
-    }
+    if (input.doubleRightTrigger(timestamp)) camera.rx = 0
 
-    if (input.stickDown()) {
-      if (direction === null) {
-        direction = 's'
-        rotation = camera.ry + Math.PI
-      } else {
-        direction = null
-        rotation = null
+    if (input.rightTrigger()) {
+      if (input.x()) {
+        camera.rx -= 0.05
+        if (camera.rx < 0.0) camera.rx += 2.0 * Math.PI
       }
-    }
 
-    if (input.stickLeft()) {
-      if (direction === null) {
-        direction = 'a'
-        rotation = camera.ry - 0.5 * Math.PI
-      } else if (direction === 'w') {
-        direction = 'wa'
-        rotation -= 0.25 * Math.PI
-      } else if (direction === 's') {
-        direction = 'sa'
-        rotation += 0.25 * Math.PI
+      if (input.b()) {
+        camera.rx += 0.05
+        if (camera.rx >= 2.0 * Math.PI) camera.rx -= 2.0 * Math.PI
       }
-    }
 
-    if (input.stickRight()) {
-      if (direction === null) {
-        rotation = camera.ry + 0.5 * Math.PI
-      } else if (direction === 'a') {
-        rotation = null
-      } else if (direction === 'wa') {
+      if (input.stickUp()) {
+        camera.y += speed
+      }
+
+      if (input.stickDown()) {
+        camera.y -= speed
+      }
+    } else {
+      if (input.stickUp()) {
+        direction = 'w'
         rotation = camera.ry
-      } else if (direction === 'sa') {
-        rotation = camera.ry + Math.PI
-      } else if (direction === 'w') {
-        rotation += 0.25 * Math.PI
-      } else if (direction === 's') {
-        rotation -= 0.25 * Math.PI
       }
-    }
 
-    if (rotation) {
-      camera.x += Math.sin(rotation) * speed
-      camera.z -= Math.cos(rotation) * speed
+      if (input.stickDown()) {
+        if (direction === null) {
+          direction = 's'
+          rotation = camera.ry + Math.PI
+        } else {
+          direction = null
+          rotation = 0.0
+        }
+      }
+
+      if (input.stickLeft()) {
+        if (direction === null) {
+          direction = 'a'
+          rotation = camera.ry - 0.5 * Math.PI
+        } else if (direction === 'w') {
+          direction = 'wa'
+          rotation -= 0.25 * Math.PI
+        } else if (direction === 's') {
+          direction = 'sa'
+          rotation += 0.25 * Math.PI
+        }
+      }
+
+      if (input.stickRight()) {
+        if (direction === null) {
+          direction = 'd'
+          rotation = camera.ry + 0.5 * Math.PI
+        } else if (direction === 'a') {
+          direction = null
+          rotation = 0.0
+        } else if (direction === 'wa') {
+          direction = 'w'
+          rotation = camera.ry
+        } else if (direction === 'sa') {
+          direction = 's'
+          rotation = camera.ry + Math.PI
+        } else if (direction === 'w') {
+          direction = 'wd'
+          rotation += 0.25 * Math.PI
+        } else if (direction === 's') {
+          direction = 'sd'
+          rotation -= 0.25 * Math.PI
+        }
+      }
+
+      if (direction !== null) {
+        camera.x += Math.sin(rotation) * speed
+        camera.z -= Math.cos(rotation) * speed
+      }
     }
   }
 
