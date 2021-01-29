@@ -191,10 +191,11 @@ export class MapEdit {
     this.selectedSector = null
     this.selectedThing = null
     this.selectedSecondVec = null
-    this.tileSet = new Set()
+    this.tileList = null
     this.defaultTile = null
-    this.entitySet = new Set()
+    this.entityList = null
     this.defaultEntity = null
+
     this.doSectorRefresh = false
 
     this.snapToGrid = false
@@ -209,7 +210,9 @@ export class MapEdit {
 
     this.startMenuDialog = new Dialog('start', null, ['new', 'open', 'save', 'export', 'exit'])
     this.toolDialog = new Dialog('tool', null, ['draw mode', 'thing mode', 'sector mode'])
-    this.editThingDialog = new Dialog('thing', null, ['change entity', 'edit triggers', 'new entity type'])
+    this.editThingDialog = new Dialog('thing', null, ['swap entity', 'create new entity', 'set as default'])
+    this.changeEntityDialog = new Dialog('entity', 'swap entity', [])
+    this.createNewEntityDialog = new Dialog('creator', 'create new entity', ['back'])
   }
 
   reset() {
@@ -220,22 +223,48 @@ export class MapEdit {
     if (event === 'start-new' || event === 'start-open' || event === 'start-exit') {
       this.parent.eventCall(event)
       this.dialogEnd()
-    } else if (event.startsWith('tool-')) {
-      if (event === 'tool-draw mode') this.tool = 0
-      else if (event === 'tool-thing mode') this.tool = 1
-      else if (event === 'tool-sector mode') this.tool = 2
+    } else if (event === 'tool-draw mode') {
+      this.tool = 0
       this.switchTool()
       this.dialogEnd()
-      if (event === 'tool-sector mode' && this.doSectorRefresh) {
-        computeSectors(this)
-        this.doSectorRefresh = false
-      }
+    } else if (event === 'tool-thing mode') {
+      this.tool = 1
+      this.switchTool()
+      this.dialogEnd()
+    } else if (event === 'tool-sector mode') {
+      this.tool = 2
+      this.switchTool()
+      this.dialogEnd()
+      computeSectors(this)
+      this.doSectorRefresh = false
+    } else if (event === 'thing-swap entity') {
+      let change = this.changeEntityDialog
+      change.options = this.entityList.slice()
+      this.dialog = change
+      this.forcePaint = true
+    } else if (event === 'thing-create new entity') {
+      this.dialog = this.createNewEntityDialog
+      this.forcePaint = true
+    } else if (event === 'thing-set as default') {
+      this.defaultEntity = this.selectedThing.entity.get('_wad')
+      this.dialogEnd()
+    } else if (event === 'creator-back') {
+      this.dialog = this.editThingDialog
+      this.forcePaint = true
+    } else if (event.startsWith('entity-')) {
+      let dash = event.indexOf('-')
+      let entity = entityByName(event.substring(dash + 1))
+      this.selectedThing.setEntity(entity)
+      this.dialogEnd()
     }
   }
 
   dialogResetAll() {
     this.startMenuDialog.reset()
     this.toolDialog.reset()
+    this.editThingDialog.reset()
+    this.changeEntityDialog.reset()
+    this.createNewEntityDialog.reset()
   }
 
   dialogEnd() {
@@ -252,17 +281,11 @@ export class MapEdit {
   }
 
   async load(file) {
-    let keys = tileList().sort()
-    for (let name of keys) {
-      this.tileSet.add(name)
-    }
-    this.defaultTile = keys[0]
+    this.tileList = tileList().sort()
+    this.defaultTile = this.tileList[0]
 
-    keys = entityList().sort()
-    for (let name of keys) {
-      this.entitySet.add(name)
-    }
-    this.defaultEntity = keys[0]
+    this.entityList = entityList().sort()
+    this.defaultEntity = this.entityList[0]
 
     let map = (await fetchText(file)).split('\n')
     let index = 0
@@ -300,9 +323,7 @@ export class MapEdit {
       let i = 7
       let end = i + count
       let vecs = []
-      for (; i < end; i++) {
-        vecs.push(this.vecs[parseInt(sector[i])])
-      }
+      for (; i < end; i++) vecs.push(this.vecs[parseInt(sector[i])])
       count = parseInt(sector[i])
       i++
       end = i + count

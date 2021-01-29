@@ -283,6 +283,11 @@ export class ThingReference {
     this.x = x
     this.y = 0.0
     this.z = z
+    this.entity = null
+    this.setEntity(entity)
+  }
+
+  setEntity(entity) {
     this.box = entity.box()
     this.height = entity.height()
     this.texture = textureIndexForName(entity.get('sprite'))
