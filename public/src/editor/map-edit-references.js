@@ -147,6 +147,18 @@ export class LineReference {
     return null
   }
 
+  topTextureName() {
+    return this.top ? textureNameFromIndex(this.top.texture) : 'none'
+  }
+
+  middleTextureName() {
+    return this.middle ? textureNameFromIndex(this.middle.texture) : 'none'
+  }
+
+  bottomTextureName() {
+    return this.bottom ? textureNameFromIndex(this.bottom.texture) : 'none'
+  }
+
   export() {
     let content = `${this.a.index} ${this.b.index}`
     content += ` ${this.top ? textureNameFromIndex(this.top.texture) : 'none'}`
@@ -266,10 +278,18 @@ export class SectorReference {
     }
   }
 
+  floorTextureName() {
+    return this.hasFloor() ? textureNameFromIndex(this.floorTexture) : 'none'
+  }
+
+  ceilingTextureName() {
+    return this.hasCeiling() ? textureNameFromIndex(this.ceilingTexture) : 'none'
+  }
+
   export() {
     let content = `${this.bottom} ${this.floor} ${this.ceiling} ${this.top}`
-    content += ` ${this.hasFloor() ? textureNameFromIndex(this.floorTexture) : 'none'}`
-    content += ` ${this.hasCeiling() ? textureNameFromIndex(this.ceilingTexture) : 'none'}`
+    content += ` ${this.floorTextureName()}`
+    content += ` ${this.ceilingTextureName()}`
     content += ` ${this.vecs.length}`
     for (const vec of this.vecs) content += ` ${vec.index}`
     content += ` ${this.lines.length}`

@@ -156,23 +156,25 @@ export function renderMapEditTopMode(state) {
   drawText(client.bufferGUI, fontWidth, height - topBarHeight, DESCRIBE_TOOL[maps.tool].toUpperCase(), fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
 
   const options = DESCRIBE_OPTIONS[maps.action]
-  let x = fontWidth
-  let y = 0
-  for (const [button, option] of options) {
-    let key = state.keys.reversed(button)
-    if (key.startsWith('Key')) key = key.substring(3)
-    let text = key + '/' + DESCRIBE_ACTION[option]
-    drawText(client.bufferGUI, x, y, text, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
-    x += fontWidth * (text.length + 1)
+  if (options) {
+    let rightStatusBar = ''
+    for (const [button, option] of options) {
+      let key = state.keys.reversed(button)
+      if (key.startsWith('Key')) key = key.substring(3)
+      rightStatusBar += key + '/' + DESCRIBE_ACTION[option] + ' '
+    }
+    let x = width - rightStatusBar.length * fontWidth
+    let y = 0
+    drawText(client.bufferGUI, x, y, rightStatusBar, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
   }
 
   if (maps.selectedVec) {
-    let text = 'X:' + maps.selectedVec.x + ' Y:' + maps.selectedVec.y
+    let text = 'X:' + maps.selectedVec.x.toFixed(2) + ' Y:' + maps.selectedVec.y.toFixed(2)
     let x = width - (text.length + 1) * fontWidth
     drawText(client.bufferGUI, x, height - topBarHeight, text, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
   } else if (maps.selectedThing) {
     let thing = maps.selectedThing
-    let text = thing.entity.get('_wad') + ' X:' + thing.x + ' Y:' + thing.y
+    let text = thing.entity.get('_wad') + ' X:' + thing.x.toFixed(2) + ' Y:' + thing.y.toFixed(2)
     let x = width - (text.length + 1) * fontWidth
     drawText(client.bufferGUI, x, height - topBarHeight, text, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
   } else if (maps.selectedSector) {
@@ -180,6 +182,9 @@ export function renderMapEditTopMode(state) {
     let text = 'b:' + sector.bottom + ' f:' + sector.floor + ' c:' + sector.ceiling + ' t:' + sector.top
     let x = width - (text.length + 1) * fontWidth
     drawText(client.bufferGUI, x, height - topBarHeight, text, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
+
+    text = 'f:' + sector.floorTextureName() + ' t:' + sector.ceilingTextureName()
+    drawText(client.bufferGUI, fontWidth, 0, text, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
   }
 
   rendering.bindTexture(gl.TEXTURE0, textureByName('tic-80-wide-font').texture)
