@@ -31,7 +31,8 @@ export const OPTION_MOVE_THING = 8
 export const OPTION_SECTOR_MODE_DEFAULT = 9
 export const OPTION_VECTOR_OVERLAP = 10
 export const OPTION_SECTOR_UNDER_CURSOR = 11
-export const OPTION_COUNT = 12
+export const OPTION_SECTOR_MODE_LINE_UNDER_CURSOR = 12
+export const OPTION_COUNT = 13
 
 export const DO_MOVE_VECTOR = 0
 export const DO_END_MOVING_VECTOR = 1
@@ -83,6 +84,7 @@ DESCRIBE_ACTION[DO_DELETE_THING] = 'Delete'
 DESCRIBE_ACTION[DO_END_MOVING_THING] = 'Stop moving'
 
 DESCRIBE_ACTION[DO_EDIT_SECTOR] = 'Edit sector'
+DESCRIBE_ACTION[DO_EDIT_LINE] = 'Edit line'
 
 DESCRIBE_ACTION[DO_CANCEL] = 'Cancel'
 
@@ -138,6 +140,10 @@ DESCRIBE_OPTIONS[OPTION_MOVE_THING] = MOVING_THING_OPTIONS
 const SECTOR_UNDER_CURSOR_OPTIONS = new Map()
 SECTOR_UNDER_CURSOR_OPTIONS.set(In.BUTTON_A, DO_EDIT_SECTOR)
 DESCRIBE_OPTIONS[OPTION_SECTOR_UNDER_CURSOR] = SECTOR_UNDER_CURSOR_OPTIONS
+
+const SECTOR_MODE_LINE_UNDER_CURSOR_OPTIONS = new Map()
+SECTOR_MODE_LINE_UNDER_CURSOR_OPTIONS.set(In.BUTTON_A, DO_EDIT_LINE)
+DESCRIBE_OPTIONS[OPTION_SECTOR_MODE_LINE_UNDER_CURSOR] = SECTOR_MODE_LINE_UNDER_CURSOR_OPTIONS
 
 const INPUT_RATE = 128
 
@@ -231,15 +237,12 @@ export class MapEdit {
     } else if (event === 'tool-draw mode') {
       this.tool = 0
       this.switchTool()
-      this.dialogEnd()
     } else if (event === 'tool-thing mode') {
       this.tool = 1
       this.switchTool()
-      this.dialogEnd()
     } else if (event === 'tool-sector mode') {
       this.tool = 2
       this.switchTool()
-      this.dialogEnd()
       this.updateSectors()
     } else if (event === 'thing-swap entity') {
       let change = this.changeEntityDialog
@@ -260,7 +263,7 @@ export class MapEdit {
       let entity = entityByName(event.substring(dash + 1))
       this.selectedThing.setEntity(entity)
       this.dialogEnd()
-    } else if (event.startsWith('sector-')) {
+    } else if (event.startsWith('sector-') || event.startsWith('line-')) {
       this.dialogEnd()
     }
   }
@@ -268,43 +271,83 @@ export class MapEdit {
   handleDialogSpecial(left) {
     const event = this.dialog.id + '-' + this.dialog.options[this.dialog.pos]
     if (event.startsWith('sector-bottom:')) {
+      let sector = this.selectedSector
       if (left) {
-        if (this.selectedSector.bottom > 0) this.selectedSector.bottom--
-      } else this.selectedSector.bottom++
-      this.dialog.options[0] = 'bottom:         ' + this.selectedSector.bottom
+        if (sector.bottom > 0) sector.bottom--
+      } else sector.bottom++
+      this.doSectorRefresh = true
+      this.dialog.options[0] = 'bottom:         ' + sector.bottom
     } else if (event.startsWith('sector-floor:')) {
+      let sector = this.selectedSector
       if (left) {
-        if (this.selectedSector.floor > 0) this.selectedSector.floor--
-      } else this.selectedSector.floor++
-      this.dialog.options[1] = 'floor:          ' + this.selectedSector.floor
+        if (sector.floor > 0) sector.floor--
+      } else sector.floor++
+      this.doSectorRefresh = true
+      this.dialog.options[1] = 'floor:          ' + sector.floor
     } else if (event.startsWith('sector-ceiling:')) {
+      let sector = this.selectedSector
       if (left) {
-        if (this.selectedSector.ceiling > 0) this.selectedSector.ceiling--
-      } else this.selectedSector.ceiling++
-      this.dialog.options[2] = 'ceiling:        ' + this.selectedSector.ceiling
+        if (sector.ceiling > 0) sector.ceiling--
+      } else sector.ceiling++
+      this.doSectorRefresh = true
+      this.dialog.options[2] = 'ceiling:        ' + sector.ceiling
     } else if (event.startsWith('sector-top:')) {
+      let sector = this.selectedSector
       if (left) {
-        if (this.selectedSector.top > 0) this.selectedSector.top--
-      } else this.selectedSector.top++
-      this.dialog.options[3] = 'top:            ' + this.selectedSector.top
+        if (sector.top > 0) sector.top--
+      } else sector.top++
+      this.doSectorRefresh = true
+      this.dialog.options[3] = 'top:            ' + sector.top
     } else if (event.startsWith('sector-floor sprite:')) {
       let sector = this.selectedSector
       if (left) {
         if (sector.floorTexture >= 0) sector.floorTexture--
       } else if (sector.floorTexture + 1 < tileCount()) sector.floorTexture++
+      sector.refreshFloorTexture()
       this.dialog.options[4] = 'floor sprite:   ' + sector.floorTextureName().padEnd(6).substring(0, 6)
     } else if (event.startsWith('sector-ceiling sprite:')) {
       let sector = this.selectedSector
       if (left) {
-        if (this.selectedSector.ceilingTexture >= 0) this.selectedSector.ceilingTexture--
-      } else if (sector.ceilingTexture + 1 < tileCount()) this.selectedSector.ceilingTexture++
+        if (sector.ceilingTexture >= 0) sector.ceilingTexture--
+      } else if (sector.ceilingTexture + 1 < tileCount()) sector.ceilingTexture++
+      sector.refreshCeilingTexture()
       this.dialog.options[5] = 'ceiling sprite: ' + sector.ceilingTextureName().padEnd(6).substring(0, 6)
     } else if (event.startsWith('line-top sprite:')) {
+      let wall = this.selectedLine.top
+      if (left) {
+        if (wall.texture >= 0) wall.texture--
+      } else if (wall.texture + 1 < tileCount()) wall.texture++
+      this.dialog.options[0] = 'top sprite:    ' + wall.textureName().padEnd(6).substring(0, 6)
     } else if (event.startsWith('line-middle sprite:')) {
+      let wall = this.selectedLine.middle
+      if (left) {
+        if (wall.texture >= 0) wall.texture--
+      } else if (wall.texture + 1 < tileCount()) wall.texture++
+      this.dialog.options[1] = 'middle sprite: ' + wall.textureName().padEnd(6).substring(0, 6)
     } else if (event.startsWith('line-bottom sprite:')) {
+      let wall = this.selectedLine.bottom
+      if (left) {
+        if (wall.texture >= 0) wall.texture--
+      } else if (wall.texture + 1 < tileCount()) wall.texture++
+      this.dialog.options[2] = 'bottom sprite: ' + wall.textureName().padEnd(6).substring(0, 6)
     } else if (event.startsWith('line-top offset:')) {
+      let wall = this.selectedLine.top
+      if (left) {
+        if (wall.offset > 0) wall.offset--
+      } else wall.offset++
+      this.dialog.options[3] = 'top offset:    ' + wall.offset
     } else if (event.startsWith('line-middle offset:')) {
+      let wall = this.selectedLine.middle
+      if (left) {
+        if (wall.offset > 0) wall.offset--
+      } else wall.offset++
+      this.dialog.options[4] = 'middle offset: ' + wall.offset
     } else if (event.startsWith('line-bottom offset:')) {
+      let wall = this.selectedLine.bottom
+      if (left) {
+        if (wall.offset > 0) wall.offset--
+      } else wall.offset++
+      this.dialog.options[5] = 'bottom offset: ' + wall.offset
     }
   }
 
@@ -599,166 +642,14 @@ export class MapEdit {
     this.selectedSector = null
     this.selectedThing = null
     this.selectedSecondVec = null
+    this.dialogEnd()
+    this.topModeToolUpdate()
   }
 
-  top(timestamp) {
+  topModeToolUpdate() {
     const input = this.input
     const cursor = this.cursor
     const camera = this.camera
-
-    if (this.dialog !== null) {
-      if (input.timerStickUp(timestamp, INPUT_RATE)) {
-        if (this.dialog.pos > 0) this.dialog.pos--
-      } else if (input.timerStickDown(timestamp, INPUT_RATE)) {
-        if (this.dialog.pos < this.dialog.options.length - 1) this.dialog.pos++
-      } else if (input.timerStickLeft(timestamp, INPUT_RATE)) {
-        this.handleDialogSpecial(true)
-      } else if (input.timerStickRight(timestamp, INPUT_RATE)) {
-        this.handleDialogSpecial(false)
-      }
-      return
-    }
-
-    if (input.pressSelect()) {
-      this.dialog = this.toolDialog
-      return
-    }
-
-    if (input.pressStart()) {
-      this.dialog = this.startMenuDialog
-      return
-    }
-
-    if (input.pressLeftTrigger()) {
-      this.updateSectors()
-      this.mode = VIEW_MODE
-      this.camera.x += cursor.x / this.zoom
-      this.camera.z += cursor.y / this.zoom
-      this.callbacks[SWITCH_MODE_CALLBACK]()
-      return
-    }
-
-    if (input.rightTrigger()) {
-      if (input.pressX()) {
-        this.snapToGrid = !this.snapToGrid
-        return
-      }
-
-      if (input.stickUp()) {
-        this.zoom += 0.15
-        this.camera.x -= 1.0 / this.zoom
-        this.camera.z -= 1.0 / this.zoom
-      }
-
-      if (input.stickDown()) {
-        this.zoom -= 0.15
-        this.camera.x += 1.0 / this.zoom
-        this.camera.z += 1.0 / this.zoom
-      }
-    } else {
-      if (this.snapToGrid) {
-        const grid = 10
-        if (input.pressStickLeft()) {
-          let x = Math.floor(cursor.x)
-          let modulo = x % grid
-          if (modulo === 0) cursor.x -= grid
-          else cursor.x -= modulo
-          if (cursor.x < 0.0) cursor.x = 0.0
-        }
-        if (input.pressStickRight()) {
-          let x = Math.floor(cursor.x)
-          let modulo = x % grid
-          if (modulo === 0) cursor.x += grid
-          else cursor.x += grid - modulo
-          if (cursor.x > this.width) cursor.x = this.width
-        }
-        if (input.pressStickUp()) {
-          let y = Math.floor(cursor.y)
-          let modulo = y % grid
-          if (modulo === 0) cursor.y += grid
-          else cursor.y += grid - modulo
-          if (cursor.y > this.height) cursor.y = this.height
-        }
-        if (input.pressStickDown()) {
-          let y = Math.floor(cursor.y)
-          let modulo = y % grid
-          if (modulo === 0) cursor.y -= grid
-          else cursor.y -= modulo
-          if (cursor.y < 0.0) cursor.y = 0.0
-        }
-
-        if (input.pressStickLeft()) {
-          let x = Math.floor(camera.x)
-          let modulo = x % grid
-          if (modulo === 0) camera.x -= grid
-          else camera.x -= modulo
-        }
-        if (input.pressStickRight()) {
-          let x = Math.floor(camera.x)
-          let modulo = x % grid
-          if (modulo === 0) camera.x += grid
-          else camera.x += grid - modulo
-        }
-        if (input.pressStickUp()) {
-          let z = Math.floor(camera.z)
-          let modulo = z % grid
-          if (modulo === 0) camera.z += grid
-          else camera.z += grid - modulo
-        }
-        if (input.pressStickDown()) {
-          let z = Math.floor(camera.z)
-          let modulo = z % grid
-          if (modulo === 0) camera.z -= grid
-          else camera.z -= modulo
-        }
-      } else {
-        const look = 4.0
-        const speed = 0.5
-        if (input.b()) {
-          if (input.stickLeft()) {
-            camera.x -= speed
-          }
-          if (input.stickRight()) {
-            camera.x += speed
-          }
-          if (input.stickUp()) {
-            camera.z += speed
-          }
-          if (input.stickDown()) {
-            camera.z -= speed
-          }
-        } else {
-          if (input.stickLeft()) {
-            cursor.x -= look
-            if (cursor.x < 0.0) {
-              cursor.x = 0.0
-              camera.x -= speed
-            }
-          }
-          if (input.stickRight()) {
-            cursor.x += look
-            if (cursor.x > this.width) {
-              cursor.x = this.width
-              camera.x += speed
-            }
-          }
-          if (input.stickUp()) {
-            cursor.y += look
-            if (cursor.y > this.height) {
-              cursor.y = this.height
-              camera.z += speed
-            }
-          }
-          if (input.stickDown()) {
-            cursor.y -= look
-            if (cursor.y < 0.0) {
-              cursor.y = 0.0
-              camera.z -= speed
-            }
-          }
-        }
-      }
-    }
 
     if (this.tool === DRAW_TOOL) {
       if (this.action === OPTION_DRAW_MODE_DEFAULT || this.action === OPTION_VECTOR_UNDER_CURSOR || this.action === OPTION_LINE_UNDER_CURSOR) {
@@ -956,10 +847,16 @@ export class MapEdit {
         }
       }
     } else if (this.tool === SECTOR_TOOL) {
-      if (this.action === OPTION_SECTOR_MODE_DEFAULT || this.action === OPTION_SECTOR_UNDER_CURSOR) {
+      if (this.action === OPTION_SECTOR_MODE_DEFAULT || this.action === OPTION_SECTOR_UNDER_CURSOR || this.action === OPTION_SECTOR_MODE_LINE_UNDER_CURSOR) {
         this.action = OPTION_SECTOR_MODE_DEFAULT
-        this.selectedSector = this.sectorUnderCursor()
-        if (this.selectedSector) this.action = OPTION_SECTOR_UNDER_CURSOR
+        this.selectedLine = this.lineUnderCursor()
+        if (this.selectedLine) {
+          this.action = OPTION_SECTOR_MODE_LINE_UNDER_CURSOR
+          this.selectedSector = null
+        } else {
+          this.selectedSector = this.sectorUnderCursor()
+          if (this.selectedSector) this.action = OPTION_SECTOR_UNDER_CURSOR
+        }
       }
 
       let options = DESCRIBE_OPTIONS[this.action]
@@ -981,19 +878,19 @@ export class MapEdit {
             }
           }
         }
-      } else if (this.action === OPTION_LINE_UNDER_CURSOR) {
+      } else if (this.action === OPTION_SECTOR_MODE_LINE_UNDER_CURSOR) {
         for (const [button, option] of options) {
           if (input.in[button]) {
             input.in[button] = false
             if (option === DO_EDIT_LINE) {
               let line = this.selectedLine
               let options = this.editLineDialog.options
-              options[2] = 'top sprite:    ' + line.topTextureName().padEnd(6).substring(0, 6)
+              options[0] = 'top sprite:    ' + line.topTextureName().padEnd(6).substring(0, 6)
               options[1] = 'middle sprite: ' + line.middleTextureName().padEnd(6).substring(0, 6)
-              options[0] = 'bottom sprite: ' + line.bottomTextureName().padEnd(6).substring(0, 6)
-              options[5] = 'top offset:    0'
-              options[4] = 'middle offset: 0'
-              options[3] = 'bottom offset: 0'
+              options[2] = 'bottom sprite: ' + line.bottomTextureName().padEnd(6).substring(0, 6)
+              options[3] = 'top offset:    ' + line.topOffset()
+              options[4] = 'middle offset: ' + line.middleOffset()
+              options[5] = 'bottom offset: ' + line.bottomOffset()
               this.dialog = this.editLineDialog
             }
           }
@@ -1002,7 +899,169 @@ export class MapEdit {
     }
   }
 
-  view(timestamp) {
+  top(timestamp) {
+    const input = this.input
+    const cursor = this.cursor
+    const camera = this.camera
+
+    if (this.dialog !== null) {
+      if (input.timerStickUp(timestamp, INPUT_RATE)) {
+        if (this.dialog.pos > 0) this.dialog.pos--
+      } else if (input.timerStickDown(timestamp, INPUT_RATE)) {
+        if (this.dialog.pos < this.dialog.options.length - 1) this.dialog.pos++
+      } else if (input.timerStickLeft(timestamp, INPUT_RATE)) {
+        this.handleDialogSpecial(true)
+      } else if (input.timerStickRight(timestamp, INPUT_RATE)) {
+        this.handleDialogSpecial(false)
+      }
+      return
+    }
+
+    if (input.pressSelect()) {
+      this.dialog = this.toolDialog
+      return
+    }
+
+    if (input.pressStart()) {
+      this.dialog = this.startMenuDialog
+      return
+    }
+
+    if (input.pressLeftTrigger()) {
+      this.updateSectors()
+      this.mode = VIEW_MODE
+      this.camera.x += cursor.x / this.zoom
+      this.camera.z += cursor.y / this.zoom
+      this.callbacks[SWITCH_MODE_CALLBACK]()
+      return
+    }
+
+    if (input.rightTrigger()) {
+      if (input.pressX()) {
+        this.snapToGrid = !this.snapToGrid
+        return
+      }
+
+      if (input.stickUp()) {
+        this.zoom += 0.15
+        this.camera.x -= 1.0 / this.zoom
+        this.camera.z -= 1.0 / this.zoom
+      }
+
+      if (input.stickDown()) {
+        this.zoom -= 0.15
+        this.camera.x += 1.0 / this.zoom
+        this.camera.z += 1.0 / this.zoom
+      }
+    } else {
+      if (this.snapToGrid) {
+        const grid = 10
+        if (input.pressStickLeft()) {
+          let x = Math.floor(cursor.x)
+          let modulo = x % grid
+          if (modulo === 0) cursor.x -= grid
+          else cursor.x -= modulo
+          if (cursor.x < 0.0) cursor.x = 0.0
+        }
+        if (input.pressStickRight()) {
+          let x = Math.floor(cursor.x)
+          let modulo = x % grid
+          if (modulo === 0) cursor.x += grid
+          else cursor.x += grid - modulo
+          if (cursor.x > this.width) cursor.x = this.width
+        }
+        if (input.pressStickUp()) {
+          let y = Math.floor(cursor.y)
+          let modulo = y % grid
+          if (modulo === 0) cursor.y += grid
+          else cursor.y += grid - modulo
+          if (cursor.y > this.height) cursor.y = this.height
+        }
+        if (input.pressStickDown()) {
+          let y = Math.floor(cursor.y)
+          let modulo = y % grid
+          if (modulo === 0) cursor.y -= grid
+          else cursor.y -= modulo
+          if (cursor.y < 0.0) cursor.y = 0.0
+        }
+
+        if (input.pressStickLeft()) {
+          let x = Math.floor(camera.x)
+          let modulo = x % grid
+          if (modulo === 0) camera.x -= grid
+          else camera.x -= modulo
+        }
+        if (input.pressStickRight()) {
+          let x = Math.floor(camera.x)
+          let modulo = x % grid
+          if (modulo === 0) camera.x += grid
+          else camera.x += grid - modulo
+        }
+        if (input.pressStickUp()) {
+          let z = Math.floor(camera.z)
+          let modulo = z % grid
+          if (modulo === 0) camera.z += grid
+          else camera.z += grid - modulo
+        }
+        if (input.pressStickDown()) {
+          let z = Math.floor(camera.z)
+          let modulo = z % grid
+          if (modulo === 0) camera.z -= grid
+          else camera.z -= modulo
+        }
+      } else {
+        const look = 4.0
+        const speed = 0.5
+        if (input.b()) {
+          if (input.stickLeft()) {
+            camera.x -= speed
+          }
+          if (input.stickRight()) {
+            camera.x += speed
+          }
+          if (input.stickUp()) {
+            camera.z += speed
+          }
+          if (input.stickDown()) {
+            camera.z -= speed
+          }
+        } else {
+          if (input.stickLeft()) {
+            cursor.x -= look
+            if (cursor.x < 0.0) {
+              cursor.x = 0.0
+              camera.x -= speed
+            }
+          }
+          if (input.stickRight()) {
+            cursor.x += look
+            if (cursor.x > this.width) {
+              cursor.x = this.width
+              camera.x += speed
+            }
+          }
+          if (input.stickUp()) {
+            cursor.y += look
+            if (cursor.y > this.height) {
+              cursor.y = this.height
+              camera.z += speed
+            }
+          }
+          if (input.stickDown()) {
+            cursor.y -= look
+            if (cursor.y < 0.0) {
+              cursor.y = 0.0
+              camera.z -= speed
+            }
+          }
+        }
+      }
+    }
+
+    this.topModeToolUpdate()
+  }
+
+  view() {
     let input = this.input
     let camera = this.camera
 
@@ -1023,24 +1082,22 @@ export class MapEdit {
       if (camera.ry >= 2.0 * Math.PI) camera.ry -= 2.0 * Math.PI
     }
 
+    if (input.x()) {
+      camera.rx -= 0.05
+      if (camera.rx < 0.0) camera.rx += 2.0 * Math.PI
+    }
+
+    if (input.b()) {
+      camera.rx += 0.05
+      if (camera.rx >= 2.0 * Math.PI) camera.rx -= 2.0 * Math.PI
+    }
+
     const speed = 0.3
 
     let direction = null
     let rotation = 0.0
 
-    if (input.doubleRightTrigger(timestamp)) camera.rx = 0
-
     if (input.rightTrigger()) {
-      if (input.x()) {
-        camera.rx -= 0.05
-        if (camera.rx < 0.0) camera.rx += 2.0 * Math.PI
-      }
-
-      if (input.b()) {
-        camera.rx += 0.05
-        if (camera.rx >= 2.0 * Math.PI) camera.rx -= 2.0 * Math.PI
-      }
-
       if (input.stickUp()) {
         camera.y += speed
       }

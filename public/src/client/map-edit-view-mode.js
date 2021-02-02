@@ -2,23 +2,22 @@ import {drawSprite, drawTextSpecial, FONT_WIDTH, FONT_HEIGHT} from '/src/render/
 import {identity, multiply, rotateX, rotateY, translate} from '/src/math/matrix.js'
 import {textureByName, textureByIndex} from '/src/assets/assets.js'
 import {drawWall, drawFloorCeil} from '/src/client/render-sector.js'
-import {calcFontScale} from '/src/editor/editor-util.js'
 import {renderTouch} from '/src/client/render-touch.js'
 import {redf} from '/src/editor/palette.js'
 
 function lineRender(client, line) {
   let wall = line.top
-  if (wall) {
+  if (wall.inUse()) {
     let buffer = client.getSectorBuffer(wall.texture)
     drawWall(buffer, wall)
   }
   wall = line.middle
-  if (wall) {
+  if (wall.inUse()) {
     let buffer = client.getSectorBuffer(wall.texture)
     drawWall(buffer, wall)
   }
   wall = line.bottom
-  if (wall) {
+  if (wall.inUse()) {
     let buffer = client.getSectorBuffer(wall.texture)
     drawWall(buffer, wall)
   }
@@ -26,7 +25,9 @@ function lineRender(client, line) {
 
 function floorCeilRender(client, sector) {
   for (const triangle of sector.triangles) {
-    let buffer = client.getSectorBuffer(triangle.texture)
+    let texture = triangle.texture
+    if (texture < 0) continue
+    let buffer = client.getSectorBuffer(texture)
     drawFloorCeil(buffer, triangle)
   }
 }

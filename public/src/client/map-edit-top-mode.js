@@ -177,12 +177,18 @@ export function renderMapEditTopMode(state) {
     let text = thing.entity.get('_wad') + ' X:' + thing.x.toFixed(2) + ' Y:' + thing.y.toFixed(2)
     let x = width - (text.length + 1) * fontWidth
     drawText(client.bufferGUI, x, height - topBarHeight, text, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
+  } else if (maps.selectedLine) {
+    let line = maps.selectedLine
+    let text = 'b:' + line.bottom.offset + ' m:' + line.middle.offset + ' t:' + line.top.offset
+    let x = width - (text.length + 1) * fontWidth
+    drawText(client.bufferGUI, x, height - topBarHeight, text, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
+    text = 'b:' + line.bottom.textureName() + ' m:' + line.middle.textureName() + ' t:' + line.top.textureName()
+    drawText(client.bufferGUI, fontWidth, 0, text, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
   } else if (maps.selectedSector) {
     let sector = maps.selectedSector
     let text = 'b:' + sector.bottom + ' f:' + sector.floor + ' c:' + sector.ceiling + ' t:' + sector.top
     let x = width - (text.length + 1) * fontWidth
     drawText(client.bufferGUI, x, height - topBarHeight, text, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
-
     text = 'f:' + sector.floorTextureName() + ' t:' + sector.ceilingTextureName()
     drawText(client.bufferGUI, fontWidth, 0, text, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
   }

@@ -95,6 +95,7 @@ export class Input {
   }
 
   double(now, key) {
+    // fixme: broken
     let down = this.in[key]
     let decide = down && now - DOUBLE_RATE < this.timers[key] && now - DOUBLE_RATE > this.ghost[key]
     if (down) this.timers[key] = now

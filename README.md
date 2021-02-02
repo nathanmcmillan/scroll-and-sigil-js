@@ -16,6 +16,11 @@ A 3D adventure game with a strong focus on modding and user crafted content.
 
 ### High Priority
 
+- Single file format for entire data pack
+- Tiles as sprites specified in regular image. Auto-generate OpenGL single image for repeating
+
+### Low Priority
+
 - Equiptable Items
 - Cinema camera (floating, de-attached from a target)
 - Experience Points
@@ -26,7 +31,7 @@ A 3D adventure game with a strong focus on modding and user crafted content.
     - On enter line
     - On leave line
     - On entity death
-    - On interect with line
+    - On interact with line
     - On interact with entity
   - Conditions
     - Health less than
@@ -47,9 +52,6 @@ A 3D adventure game with a strong focus on modding and user crafted content.
   - Selling
   - Talking
   - Quests
-
-### Low Priority
-
 - Consumable Items
 - Time based effects
   - Extra strength
@@ -58,7 +60,7 @@ A 3D adventure game with a strong focus on modding and user crafted content.
 - Top down camera support
 - Terrain slopes
 - Doors and keys
-- Campain / Overworld designer
+- Campaign / Overworld designer
   - Persistent & temporary variables settable per map
 
 ## User Interface
