@@ -270,48 +270,48 @@ export class MapEdit {
 
   handleDialogSpecial(left) {
     const event = this.dialog.id + '-' + this.dialog.options[this.dialog.pos]
-    if (event.startsWith('sector-bottom:')) {
-      let sector = this.selectedSector
-      if (left) {
-        if (sector.bottom > 0) sector.bottom--
-      } else sector.bottom++
-      this.doSectorRefresh = true
-      this.dialog.options[0] = 'bottom:         ' + sector.bottom
-    } else if (event.startsWith('sector-floor:')) {
-      let sector = this.selectedSector
-      if (left) {
-        if (sector.floor > 0) sector.floor--
-      } else sector.floor++
-      this.doSectorRefresh = true
-      this.dialog.options[1] = 'floor:          ' + sector.floor
-    } else if (event.startsWith('sector-ceiling:')) {
-      let sector = this.selectedSector
-      if (left) {
-        if (sector.ceiling > 0) sector.ceiling--
-      } else sector.ceiling++
-      this.doSectorRefresh = true
-      this.dialog.options[2] = 'ceiling:        ' + sector.ceiling
-    } else if (event.startsWith('sector-top:')) {
-      let sector = this.selectedSector
-      if (left) {
-        if (sector.top > 0) sector.top--
-      } else sector.top++
-      this.doSectorRefresh = true
-      this.dialog.options[3] = 'top:            ' + sector.top
-    } else if (event.startsWith('sector-floor sprite:')) {
+    if (event.startsWith('sector-floor sprite:')) {
       let sector = this.selectedSector
       if (left) {
         if (sector.floorTexture >= 0) sector.floorTexture--
       } else if (sector.floorTexture + 1 < tileCount()) sector.floorTexture++
       sector.refreshFloorTexture()
-      this.dialog.options[4] = 'floor sprite:   ' + sector.floorTextureName().padEnd(6).substring(0, 6)
+      this.dialog.options[0] = 'floor sprite:   ' + sector.floorTextureName().padEnd(6).substring(0, 6)
     } else if (event.startsWith('sector-ceiling sprite:')) {
       let sector = this.selectedSector
       if (left) {
         if (sector.ceilingTexture >= 0) sector.ceilingTexture--
       } else if (sector.ceilingTexture + 1 < tileCount()) sector.ceilingTexture++
       sector.refreshCeilingTexture()
-      this.dialog.options[5] = 'ceiling sprite: ' + sector.ceilingTextureName().padEnd(6).substring(0, 6)
+      this.dialog.options[1] = 'ceiling sprite: ' + sector.ceilingTextureName().padEnd(6).substring(0, 6)
+    } else if (event.startsWith('sector-bottom:')) {
+      let sector = this.selectedSector
+      if (left) {
+        if (sector.bottom > 0) sector.bottom--
+      } else sector.bottom++
+      this.doSectorRefresh = true
+      this.dialog.options[2] = 'bottom:         ' + sector.bottom
+    } else if (event.startsWith('sector-floor:')) {
+      let sector = this.selectedSector
+      if (left) {
+        if (sector.floor > 0) sector.floor--
+      } else sector.floor++
+      this.doSectorRefresh = true
+      this.dialog.options[3] = 'floor:          ' + sector.floor
+    } else if (event.startsWith('sector-ceiling:')) {
+      let sector = this.selectedSector
+      if (left) {
+        if (sector.ceiling > 0) sector.ceiling--
+      } else sector.ceiling++
+      this.doSectorRefresh = true
+      this.dialog.options[4] = 'ceiling:        ' + sector.ceiling
+    } else if (event.startsWith('sector-top:')) {
+      let sector = this.selectedSector
+      if (left) {
+        if (sector.top > 0) sector.top--
+      } else sector.top++
+      this.doSectorRefresh = true
+      this.dialog.options[5] = 'top:            ' + sector.top
     } else if (event.startsWith('line-top sprite:')) {
       let wall = this.selectedLine.top
       if (left) {
@@ -868,12 +868,12 @@ export class MapEdit {
             if (option === DO_EDIT_SECTOR) {
               let sector = this.selectedSector
               let options = this.editSectorDialog.options
-              options[0] = 'bottom:         ' + sector.bottom
-              options[1] = 'floor:          ' + sector.floor
-              options[2] = 'ceiling:        ' + sector.ceiling
-              options[3] = 'top:            ' + sector.top
-              options[4] = 'floor sprite:   ' + sector.floorTextureName().padEnd(6).substring(0, 6)
-              options[5] = 'ceiling sprite: ' + sector.ceilingTextureName().padEnd(6).substring(0, 6)
+              options[0] = 'floor sprite:   ' + sector.floorTextureName().padEnd(6).substring(0, 6)
+              options[1] = 'ceiling sprite: ' + sector.ceilingTextureName().padEnd(6).substring(0, 6)
+              options[2] = 'bottom:         ' + sector.bottom
+              options[3] = 'floor:          ' + sector.floor
+              options[4] = 'ceiling:        ' + sector.ceiling
+              options[5] = 'top:            ' + sector.top
               this.dialog = this.editSectorDialog
             }
           }
@@ -918,6 +918,7 @@ export class MapEdit {
     }
 
     if (input.pressSelect()) {
+      this.toolDialog.pos = this.tool
       this.dialog = this.toolDialog
       return
     }
