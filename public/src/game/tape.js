@@ -1,4 +1,4 @@
-export class Disk {
+export class Tape {
   constructor() {
     this.entities = []
     this.maps = []
@@ -12,7 +12,7 @@ export class Disk {
   read() {}
 
   export() {
-    let content = ''
+    let content = 'tape\n'
     content += `entities ${this.entities.length}\n`
     content += `maps ${this.maps.length}\n`
     content += `music ${this.music.length}\n`

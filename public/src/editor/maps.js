@@ -1,7 +1,7 @@
 import {fetchText} from '/src/client/net.js'
 import {Camera} from '/src/game/camera.js'
 import {VectorReference, LineReference, SectorReference, ThingReference} from '/src/editor/map-edit-references.js'
-import {tileList, entityList, textureIndexForName, tileCount, entityByName} from '/src/assets/assets.js'
+import {tileList, entityList, textureIndexForName, textureNameFromIndex, tileCount, entityByName} from '/src/assets/assets.js'
 import {WORLD_SCALE} from '/src/world/world.js'
 import {computeSectors} from '/src/editor/map-edit-sectors.js'
 import {sectorLineNeighbors, sectorInsideOutside} from '/src/map/sector.js'
@@ -171,6 +171,22 @@ function referenceLinesFromVec(vec, lines) {
   return list
 }
 
+function textureToTileIndex(texture) {
+  if (texture === -1) return -1
+  const name = textureNameFromIndex(texture)
+  const tiles = tileList()
+  for (let i = 0; i < tiles.length; i++) {
+    if (tiles[i] === name) return i
+  }
+  return -1
+}
+
+function tileIndexToTexture(index) {
+  if (index === -1) return -1
+  const name = tileList()[index]
+  return textureIndexForName(name)
+}
+
 export class MapEdit {
   constructor(parent, width, height, scale, input, callbacks) {
     this.parent = parent
@@ -272,17 +288,25 @@ export class MapEdit {
     const event = this.dialog.id + '-' + this.dialog.options[this.dialog.pos]
     if (event.startsWith('sector-floor sprite:')) {
       let sector = this.selectedSector
+      let index = textureToTileIndex(sector.floorTexture)
       if (left) {
-        if (sector.floorTexture >= 0) sector.floorTexture--
-      } else if (sector.floorTexture + 1 < tileCount()) sector.floorTexture++
-      sector.refreshFloorTexture()
+        if (index >= 0) index--
+      } else if (index + 1 < tileCount()) index++
+      let was = sector.floorTexture
+      sector.floorTexture = tileIndexToTexture(index)
+      if ((was === -1 && sector.floorTexture !== -1) || (was !== -1 && sector.floorTexture === -1)) this.doSectorRefresh = true
+      else sector.refreshFloorTexture()
       this.dialog.options[0] = 'floor sprite:   ' + sector.floorTextureName().padEnd(6).substring(0, 6)
     } else if (event.startsWith('sector-ceiling sprite:')) {
       let sector = this.selectedSector
+      let index = textureToTileIndex(sector.ceilingTexture)
       if (left) {
-        if (sector.ceilingTexture >= 0) sector.ceilingTexture--
-      } else if (sector.ceilingTexture + 1 < tileCount()) sector.ceilingTexture++
-      sector.refreshCeilingTexture()
+        if (index >= 0) index--
+      } else if (index + 1 < tileCount()) index++
+      let was = sector.ceilingTexture
+      sector.ceilingTexture = tileIndexToTexture(index)
+      if ((was === -1 && sector.ceilingTexture !== -1) || (was !== -1 && sector.ceilingTexture === -1)) this.doSectorRefresh = true
+      else sector.refreshCeilingTexture()
       this.dialog.options[1] = 'ceiling sprite: ' + sector.ceilingTextureName().padEnd(6).substring(0, 6)
     } else if (event.startsWith('sector-bottom:')) {
       let sector = this.selectedSector
@@ -314,21 +338,33 @@ export class MapEdit {
       this.dialog.options[5] = 'top:            ' + sector.top
     } else if (event.startsWith('line-top sprite:')) {
       let wall = this.selectedLine.top
+      let index = textureToTileIndex(wall.texture)
       if (left) {
-        if (wall.texture >= 0) wall.texture--
-      } else if (wall.texture + 1 < tileCount()) wall.texture++
+        if (index >= 0) index--
+      } else if (index + 1 < tileCount()) index++
+      let was = wall.texture
+      wall.texture = tileIndexToTexture(index)
+      if ((was === -1 && wall.texture !== -1) || (was !== -1 && wall.texture === -1)) this.doSectorRefresh = true
       this.dialog.options[0] = 'top sprite:    ' + wall.textureName().padEnd(6).substring(0, 6)
     } else if (event.startsWith('line-middle sprite:')) {
       let wall = this.selectedLine.middle
+      let index = textureToTileIndex(wall.texture)
       if (left) {
-        if (wall.texture >= 0) wall.texture--
-      } else if (wall.texture + 1 < tileCount()) wall.texture++
+        if (index >= 0) index--
+      } else if (index + 1 < tileCount()) index++
+      let was = wall.texture
+      wall.texture = tileIndexToTexture(index)
+      if ((was === -1 && wall.texture !== -1) || (was !== -1 && wall.texture === -1)) this.doSectorRefresh = true
       this.dialog.options[1] = 'middle sprite: ' + wall.textureName().padEnd(6).substring(0, 6)
     } else if (event.startsWith('line-bottom sprite:')) {
       let wall = this.selectedLine.bottom
+      let index = textureToTileIndex(wall.texture)
       if (left) {
-        if (wall.texture >= 0) wall.texture--
-      } else if (wall.texture + 1 < tileCount()) wall.texture++
+        if (index >= 0) index--
+      } else if (index + 1 < tileCount()) index++
+      let was = wall.texture
+      wall.texture = tileIndexToTexture(index)
+      if ((was === -1 && wall.texture !== -1) || (was !== -1 && wall.texture === -1)) this.doSectorRefresh = true
       this.dialog.options[2] = 'bottom sprite: ' + wall.textureName().padEnd(6).substring(0, 6)
     } else if (event.startsWith('line-top offset:')) {
       let wall = this.selectedLine.top
@@ -909,11 +945,8 @@ export class MapEdit {
         if (this.dialog.pos > 0) this.dialog.pos--
       } else if (input.timerStickDown(timestamp, INPUT_RATE)) {
         if (this.dialog.pos < this.dialog.options.length - 1) this.dialog.pos++
-      } else if (input.timerStickLeft(timestamp, INPUT_RATE)) {
-        this.handleDialogSpecial(true)
-      } else if (input.timerStickRight(timestamp, INPUT_RATE)) {
-        this.handleDialogSpecial(false)
-      }
+      } else if (input.timerStickLeft(timestamp, INPUT_RATE)) this.handleDialogSpecial(true)
+      else if (input.timerStickRight(timestamp, INPUT_RATE)) this.handleDialogSpecial(false)
       return
     }
 
@@ -1062,9 +1095,24 @@ export class MapEdit {
     this.topModeToolUpdate()
   }
 
-  view() {
-    let input = this.input
-    let camera = this.camera
+  view(timestamp) {
+    const input = this.input
+    const camera = this.camera
+
+    if (this.dialog !== null) {
+      if (input.timerStickUp(timestamp, INPUT_RATE)) {
+        if (this.dialog.pos > 0) this.dialog.pos--
+      } else if (input.timerStickDown(timestamp, INPUT_RATE)) {
+        if (this.dialog.pos < this.dialog.options.length - 1) this.dialog.pos++
+      } else if (input.timerStickLeft(timestamp, INPUT_RATE)) this.handleDialogSpecial(true)
+      else if (input.timerStickRight(timestamp, INPUT_RATE)) this.handleDialogSpecial(false)
+      return
+    }
+
+    if (input.pressStart()) {
+      this.dialog = this.startMenuDialog
+      return
+    }
 
     if (input.pressLeftTrigger()) {
       this.mode = TOP_MODE
@@ -1166,13 +1214,13 @@ export class MapEdit {
 
   immediateInput() {
     if (this.dialog === null) return
-    let input = this.input
+    const input = this.input
     if (input.pressB()) {
       this.dialog = null
       this.dialogStack.length = 0
       this.forcePaint = true
     }
-    if (input.pressA() || input.pressStart()) {
+    if (input.pressA() || input.pressStart() || input.pressSelect()) {
       let id = this.dialog.id
       let option = this.dialog.options[this.dialog.pos]
       this.handleDialog(id + '-' + option)

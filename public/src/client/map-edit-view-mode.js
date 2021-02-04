@@ -4,6 +4,7 @@ import {textureByName, textureByIndex} from '/src/assets/assets.js'
 import {drawWall, drawFloorCeil} from '/src/client/render-sector.js'
 import {renderTouch} from '/src/client/render-touch.js'
 import {redf} from '/src/editor/palette.js'
+import {renderDialogBox} from '/src/client/client-util.js'
 
 function lineRender(client, line) {
   let wall = line.top
@@ -138,4 +139,8 @@ export function renderMapEditViewMode(state) {
   drawTextSpecial(client.bufferGUI, fontWidth, fontHeight, text, fontScale, redf(0), redf(1), redf(2))
   rendering.bindTexture(gl.TEXTURE0, textureByName('tic-80-wide-font').texture)
   rendering.updateAndDraw(client.bufferGUI)
+
+  // dialog box
+
+  if (maps.dialog != null) renderDialogBox(state, scale, maps.dialog)
 }

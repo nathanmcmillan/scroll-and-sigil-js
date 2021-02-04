@@ -1,4 +1,5 @@
-import {drawText, drawImage, drawRectangle, drawLine, drawTriangle, FONT_WIDTH} from '/src/render/render.js'
+import {drawText, drawRectangle, drawLine, drawTriangle, FONT_WIDTH} from '/src/render/render.js'
+import {spr} from '/src/render/pico.js'
 import {identity, multiply} from '/src/math/matrix.js'
 import {textureByName} from '/src/assets/assets.js'
 import {vectorSize, thingSize, SECTOR_TOOL, DESCRIBE_TOOL, DESCRIBE_ACTION, DESCRIBE_OPTIONS, OPTION_END_LINE, OPTION_END_LINE_NEW_VECTOR} from '/src/editor/maps.js'
@@ -134,13 +135,14 @@ export function renderMapEditTopMode(state) {
 
   rendering.updateAndDraw(client.bufferColor)
 
-  rendering.setProgram(1)
+  rendering.setProgram(3)
   rendering.setView(0, client.top, width, height)
   rendering.updateUniformMatrix('u_mvp', projection)
 
   client.bufferGUI.zero()
-  let cursor = textureByName('cursor')
-  drawImage(client.bufferGUI, maps.cursor.x - 0.5 * cursor.width, maps.cursor.y - cursor.height, cursor.width, cursor.height, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0)
+  const cursor = textureByName('editor-sprites')
+  const cursorSize = 8 * scale
+  spr(client.bufferGUI, 9, 1.0, 1.0, maps.cursor.x, maps.cursor.y - cursorSize, cursorSize, cursorSize)
   rendering.bindTexture(gl.TEXTURE0, cursor.texture)
   rendering.updateAndDraw(client.bufferGUI)
 
