@@ -74,7 +74,7 @@ export class GameState {
     switch (trigger) {
       case 'hero-goto-map':
         this.loading = true
-        this.load('/pack/' + this.client.pack + '/maps/' + params + '.map')
+        this.load('./pack/' + this.client.pack + '/maps/' + params + '.map')
         return
     }
   }

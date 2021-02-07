@@ -1,0 +1,31 @@
+{
+  "name": "scroll-and-sigil",
+  "version": "1.0.0",
+  "description": "A 3D adventure game with a strong focus on modding and user crafted content.",
+  "main": "bundle.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "dependencies": {
+    "eslint": "^7.9.0",
+    "npm": "^7.5.2"
+  },
+  "devDependencies": {
+    "electron": "^11.2.3"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nathanmcmillan/scroll-and-sigil.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nathanmcmillan/scroll-and-sigil/issues"
+  },
+  "homepage": "https://github.com/nathanmcmillan/scroll-and-sigil#readme"
+}

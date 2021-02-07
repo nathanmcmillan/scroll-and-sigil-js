@@ -190,7 +190,7 @@ export class Client {
 
     const main = Wad.parse(await fetchText('main.wad'))
     const pack = main.get('package')
-    const directory = '/pack/' + pack
+    const directory = './pack/' + pack
     const contents = Wad.parse(await fetchText(directory + '/' + pack + '.wad'))
     const tape = new Tape('tape-1')
 
@@ -218,11 +218,11 @@ export class Client {
 
     for (const sound of contents.get('sounds')) saveSound(sound, directory + '/sounds/' + sound + '.wav')
 
-    let color2d = fetchText('/shaders/color2d.glsl')
-    let texture2d = fetchText('/shaders/texture2d.glsl')
-    let texture3d = fetchText('/shaders/texture3d.glsl')
-    let texture2drgb = fetchText('/shaders/texture2d-rgb.glsl')
-    let texture2dignore = fetchText('/shaders/texture2d-ignore.glsl')
+    let color2d = fetchText('./shaders/color2d.glsl')
+    let texture2d = fetchText('./shaders/texture2d.glsl')
+    let texture3d = fetchText('./shaders/texture3d.glsl')
+    let texture2drgb = fetchText('./shaders/texture2d-rgb.glsl')
+    let texture2dignore = fetchText('./shaders/texture2d-ignore.glsl')
 
     let tiles = []
     let textures = []
@@ -390,7 +390,7 @@ export class Client {
         if (this.game === null) this.game = new GameState(this)
         else this.game.reset()
         this.state = this.game
-        if (boot.has('map')) file = '/pack/' + this.pack + '/maps/' + boot.get('map') + '.map'
+        if (boot.has('map')) file = './pack/' + this.pack + '/maps/' + boot.get('map') + '.map'
         break
       default:
         if (this.home === null) this.home = new HomeState(this)
