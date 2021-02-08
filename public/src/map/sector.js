@@ -22,6 +22,14 @@ export class Sector {
     return this.ceilingTexture >= 0
   }
 
+  getFloorTexture() {
+    return this.floorTexture
+  }
+
+  getCeilingTexture() {
+    return this.ceilingTexture
+  }
+
   contains(x, z) {
     let odd = false
     let len = this.vecs.length

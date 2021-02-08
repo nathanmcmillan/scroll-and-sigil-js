@@ -5,7 +5,7 @@ export function calcFontScale(scale) {
 }
 
 export function calcFontPad(fontHeight) {
-  return Math.floor(0.2 * fontHeight)
+  return Math.floor(0.4 * fontHeight)
 }
 
 export function calcThickness(scale) {

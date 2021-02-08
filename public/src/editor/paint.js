@@ -71,10 +71,17 @@ export class PaintEdit {
 
     this.startMenuDialog = new Dialog('start', null, ['new', 'open', 'save', 'export', 'exit'])
     this.exportDialog = new Dialog('export', 'export to file', ['plain text', 'png', 'huffman', 'back'])
-    this.askToSaveDialog = new Dialog('save', 'save open file?', ['save', 'export', 'no'])
-    this.saveOk = new Dialog('save-ok', 'file saved', ['ok'])
+    this.askToSaveDialog = new Dialog('ask', 'save current file?', ['save', 'export', 'no'])
+    this.saveOkDialog = new Dialog('ok', 'file saved', ['ok'])
 
     this.resize(width, height, scale)
+  }
+
+  clear() {
+    let i = this.sheet.length
+    while (i--) this.sheet[i] = 0
+
+    return null
   }
 
   reset() {
@@ -83,23 +90,23 @@ export class PaintEdit {
 
   handleDialog(event) {
     const poll = this.dialogStack[0]
-    if (event === 'save-ok-ok') {
+    if (event === 'ok-ok') {
       if (poll === 'start-exit') this.parent.eventCall(poll)
       this.dialogEnd()
-    } else if (event === 'save-save') {
+    } else if (event === 'ask-save') {
       if (poll === 'start-open') {
         this.parent.eventCall(event)
       } else if (poll === 'start-exit') {
         this.parent.eventCall('start-save')
         this.dialogStack.push(event)
-        this.dialog = this.saveOk
+        this.dialog = this.saveOkDialog
         this.forcePaint = true
       }
-    } else if (event === 'start-export' || event === 'save-export') {
+    } else if (event === 'start-export' || event === 'ask-export') {
       this.dialogStack.push(event)
       this.dialog = this.exportDialog
       this.forcePaint = true
-    } else if (event === 'save-no') {
+    } else if (event === 'ask-no') {
       this.parent.eventCall(poll)
       this.dialogEnd()
     } else if (event === 'export-back') {
@@ -112,7 +119,7 @@ export class PaintEdit {
     } else if (event === 'start-save') {
       this.parent.eventCall(event)
       this.dialogStack.push(event)
-      this.dialog = this.saveOk
+      this.dialog = this.saveOkDialog
       this.forcePaint = true
     } else if (event === 'start-new' || event === 'start-open' || event === 'start-exit') {
       if (this.historyPosition === 0) {
@@ -130,7 +137,7 @@ export class PaintEdit {
     this.startMenuDialog.reset()
     this.exportDialog.reset()
     this.askToSaveDialog.reset()
-    this.saveOk.reset()
+    this.saveOkDialog.reset()
   }
 
   dialogEnd() {
@@ -214,13 +221,6 @@ export class PaintEdit {
 
     sheetBox.argX = canvas.x
     flexSolve(width, height, ...collection)
-  }
-
-  clear() {
-    let i = this.sheet.length
-    while (i--) this.sheet[i] = 0
-
-    return null
   }
 
   read(content, into) {

@@ -1,4 +1,4 @@
-import {textureNameFromIndex, textureIndexForName} from '../assets/assets.js'
+import {textureIndexForName} from '../assets/assets.js'
 import {Float} from '../math/vector.js'
 
 export class VectorReference {
@@ -31,14 +31,14 @@ export class VectorReference {
 }
 
 export class LineReference {
-  constructor(top, middle, bottom, a, b) {
+  constructor(bottom, middle, top, a, b) {
     this.plus = null
     this.minus = null
     this.a = a
     this.b = b
-    this.top = new WallReference(this, top)
-    this.middle = new WallReference(this, middle)
     this.bottom = new WallReference(this, bottom)
+    this.middle = new WallReference(this, middle)
+    this.top = new WallReference(this, top)
     this.index = 0
   }
 
@@ -70,7 +70,7 @@ export class LineReference {
           top = minus.top
         }
       }
-      if (ceiling >= top) console.error('invalid top wall:', ceiling, top)
+      if (ceiling >= top) console.warn(`invalid top wall: ceiling := ${ceiling}, top := ${top}`)
       if (flip) {
         let temp = a
         a = b
@@ -98,7 +98,7 @@ export class LineReference {
           ceiling = minus.ceiling
         }
       }
-      if (floor >= ceiling) console.error('invalid middle wall:', floor, ceiling)
+      if (floor >= ceiling) console.warn(`invalid middle wall: floor := ${floor}, ceiling := ${ceiling}`)
       if (flip) {
         let temp = a
         a = b
@@ -127,7 +127,7 @@ export class LineReference {
           flip = true
         }
       }
-      if (bottom >= floor) console.error('invalid bottom wall:', bottom, floor)
+      if (bottom >= floor) console.warn(`invalid bottom wall: bottom := ${bottom}, floor := ${floor}`)
       if (flip) {
         let temp = a
         a = b
@@ -186,10 +186,10 @@ export class LineReference {
     let top = line.top ? line.top.texture : -1
     let middle = line.middle ? line.middle.texture : -1
     let bottom = line.bottom ? line.bottom.texture : -1
-    let copy = new LineReference(top, middle, bottom, line.a, line.b)
-    WallReference.transfer(line.top, copy.top)
-    WallReference.transfer(line.middle, copy.middle)
+    let copy = new LineReference(bottom, middle, top, line.a, line.b)
     WallReference.transfer(line.bottom, copy.bottom)
+    WallReference.transfer(line.middle, copy.middle)
+    WallReference.transfer(line.top, copy.top)
     return copy
   }
 }
@@ -211,7 +211,7 @@ export class WallReference {
   }
 
   inUse() {
-    return this.texture >= 0
+    return this.texture
   }
 
   update(floor, ceiling, u, v, s, t, a, b) {
@@ -227,7 +227,7 @@ export class WallReference {
   }
 
   textureName() {
-    return this.inUse() ? textureNameFromIndex(this.texture) : 'none'
+    return this.inUse() ? this.texture : 'none'
   }
 
   static transfer(src, dest) {
@@ -259,11 +259,19 @@ export class SectorReference {
   }
 
   hasFloor() {
-    return this.floorTexture >= 0
+    return this.floorTexture
   }
 
   hasCeiling() {
-    return this.ceilingTexture >= 0
+    return this.ceilingTexture
+  }
+
+  getFloorTexture() {
+    return textureIndexForName(this.floorTexture)
+  }
+
+  getCeilingTexture() {
+    return textureIndexForName(this.ceilingTexture)
   }
 
   contains(x, z) {
@@ -303,26 +311,22 @@ export class SectorReference {
   }
 
   floorTextureName() {
-    return this.hasFloor() ? textureNameFromIndex(this.floorTexture) : 'none'
+    return this.hasFloor() ? this.floorTexture : 'none'
   }
 
   ceilingTextureName() {
-    return this.hasCeiling() ? textureNameFromIndex(this.ceilingTexture) : 'none'
+    return this.hasCeiling() ? this.ceilingTexture : 'none'
   }
 
   refreshFloorTexture() {
     for (const triangle of this.triangles) {
-      if (Float.eq(triangle.height, this.floor)) {
-        triangle.texture = this.floorTexture
-      }
+      if (triangle.normal > 0.0) triangle.texture = this.getFloorTexture()
     }
   }
 
   refreshCeilingTexture() {
     for (const triangle of this.triangles) {
-      if (Float.eq(triangle.height, this.ceiling)) {
-        triangle.texture = this.ceilingTexture
-      }
+      if (triangle.normal < 0.0) triangle.texture = this.getCeilingTexture()
     }
   }
 

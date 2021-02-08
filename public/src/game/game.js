@@ -142,7 +142,7 @@ export class Game {
           let content = map[index].split(' ')
           if (content[0] === 'music') playMusic(content[1])
         }
-      } else throw "unknown map data: '" + top[0] + "'"
+      } else throw `unknown map data: '${top[0]}'`
     }
   }
 

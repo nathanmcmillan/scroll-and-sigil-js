@@ -16,6 +16,8 @@ A 3D adventure game with a strong focus on modding and user crafted content.
 
 ### High Priority
 
+- `render-sector.js` line 7 `wall.a is null`
+- Vector and line selection too big, impossible to select sectors sometimes
 - Single file format for entire data pack
 - Tiles as sprites specified in regular image. Auto-generate OpenGL single image for repeating
 

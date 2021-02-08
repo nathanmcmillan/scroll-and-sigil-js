@@ -4,6 +4,8 @@ import {sectorLineNeighbors, sectorInsideOutside} from '../map/sector.js'
 import {sectorTriangulateForEditor} from '../map/triangulate.js'
 import {SectorReference} from '../editor/map-edit-references.js'
 
+const debug = false
+
 function copy(src, dest) {
   dest.bottom = src.bottom
   dest.floor = src.floor
@@ -147,14 +149,14 @@ function construct(editor, sectors, start) {
       let c = line.other(b)
       if (initial && !topOfSector(a, b, c)) continue
       let angle = clockwiseInterior(a, b, c)
-      console.log('reflex', clockwiseReflex(a, b, c), angle)
+      if (debug) console.debug('reflex', clockwiseReflex(a, b, c), angle)
       let wind = false
       if (initial && angle >= Math.PI) {
         angle = clockwiseInterior(c, b, a)
         wind = true
-        console.log('reversed interior', angle, 'of', a, b, c)
+        if (debug) console.debug('reversed interior', angle, 'of', a, b, c)
       } else {
-        console.log('interior', angle, 'of', a, b, c)
+        if (debug) console.debug('interior', angle, 'of', a, b, c)
       }
       if (angle < best) {
         second = line
@@ -164,7 +166,7 @@ function construct(editor, sectors, start) {
       }
     }
     if (second === null) {
-      console.log('return (not found)')
+      if (debug) console.debug('return (not found)')
       return [null, null]
     }
     if (initial) {
@@ -176,20 +178,20 @@ function construct(editor, sectors, start) {
         lines[0] = second
         second = start
         start = lines[0]
-        console.log('(reversed)')
+        if (debug) console.debug('(reversed)')
       }
       initial = false
-      console.log('a', a.x, a.y)
-      console.log('b', b.x, b.y)
+      if (debug) console.debug('a', a.x, a.y)
+      if (debug) console.debug('b', b.x, b.y)
     }
-    console.log('c', next.x, next.y)
+    if (debug) console.debug('c', next.x, next.y)
     if (next === origin) {
-      console.log('return (good)')
+      if (debug) console.debug('return (good)')
       lines.push(second)
       return [vecs, lines]
     }
     if (vecs.indexOf(next) >= 0) {
-      console.log('return (bad)')
+      if (debug) console.debug('return (bad)')
       return [null, null]
     }
     vecs.push(next)
@@ -201,23 +203,38 @@ function construct(editor, sectors, start) {
 }
 
 export function computeSectors(editor) {
-  console.log('--- begin compute sectors ---')
+  if (debug) console.debug('^ start compute sectors ---')
 
   editor.vecs.sort(vecCompare)
 
   let sectors = []
   for (const line of editor.lines) {
-    console.log('=== begin construct ===')
+    if (debug) console.debug('@ construct sector ===')
     let [vecs, lines] = construct(editor, sectors, line)
     if (vecs === null || lines.length < 3) continue
     if (duplicate(sectors, vecs)) continue
     if (!clockwise(vecs)) continue
-    console.log('sector:')
+    if (debug) console.debug('sector:')
     for (const vec of vecs) {
-      console.log(' ', vec.x, vec.y)
+      if (debug) console.debug(' ', vec.x, vec.y)
     }
-    console.log('----------')
-    sectors.push(new SectorReference(0.0, 0.0, 5.0, 6.0, -1, -1, vecs, lines))
+    if (debug) console.debug('@ push sector')
+    let bottom = 0.0
+    let floor = 0.0
+    let ceiling = 0.0
+    let top = 0.0
+    let floorTexture = null
+    let ceilingTexture = null
+    if (editor.defaultSector) {
+      const sector = editor.defaultSector
+      bottom = sector.bottom
+      floor = sector.floor
+      ceiling = sector.ceiling
+      top = sector.top
+      floorTexture = sector.floorTexture
+      ceilingTexture = sector.ceilingTexture
+    }
+    sectors.push(new SectorReference(bottom, floor, ceiling, top, floorTexture, ceilingTexture, vecs, lines))
   }
 
   transfer(editor.sectors, sectors)
@@ -244,5 +261,5 @@ export function computeSectors(editor) {
   sectorLineNeighbors(sectors, WORLD_SCALE)
 
   editor.sectors = sectors
-  console.log('--- end compute sectors and triangles ', sectors.length, '---')
+  if (debug) console.debug(`$ end compute sectors and triangles (sector count := ${sectors.length})`)
 }

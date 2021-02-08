@@ -1,6 +1,6 @@
 import {drawSprite, drawTextSpecial, FONT_WIDTH, FONT_HEIGHT} from '../render/render.js'
 import {identity, multiply, rotateX, rotateY, translate} from '../math/matrix.js'
-import {textureByName, textureByIndex} from '../assets/assets.js'
+import {textureByName, textureByIndex, textureIndexForName} from '../assets/assets.js'
 import {drawWall, drawFloorCeil} from '../client/render-sector.js'
 import {renderTouch} from '../client/render-touch.js'
 import {redf} from '../editor/palette.js'
@@ -9,17 +9,17 @@ import {renderDialogBox} from '../client/client-util.js'
 function lineRender(client, line) {
   let wall = line.top
   if (wall.inUse()) {
-    let buffer = client.getSectorBuffer(wall.texture)
+    let buffer = client.getSectorBuffer(textureIndexForName(wall.texture))
     drawWall(buffer, wall)
   }
   wall = line.middle
   if (wall.inUse()) {
-    let buffer = client.getSectorBuffer(wall.texture)
+    let buffer = client.getSectorBuffer(textureIndexForName(wall.texture))
     drawWall(buffer, wall)
   }
   wall = line.bottom
   if (wall.inUse()) {
-    let buffer = client.getSectorBuffer(wall.texture)
+    let buffer = client.getSectorBuffer(textureIndexForName(wall.texture))
     drawWall(buffer, wall)
   }
 }
@@ -92,7 +92,7 @@ export function renderMapEditViewMode(state) {
   rendering.updateUniformMatrix('u_mvp', projection)
 
   for (const [index, buffer] of client.sectorBuffers) {
-    rendering.bindTexture(gl.TEXTURE0, textureByIndex(index).texture)
+    rendering.bindTexture(gl.TEXTURE0, textureByIndex(index))
     rendering.bindAndDraw(buffer)
   }
 
