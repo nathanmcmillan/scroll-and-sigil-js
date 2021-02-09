@@ -4,7 +4,7 @@ A 3D adventure game with a strong focus on modding and user crafted content.
 
 [Visit the website here.](https://scrollandsigil.com)
 
-# Goals
+## Goals
 
 - Provide a customizable engine
 - Easy map design
@@ -12,7 +12,7 @@ A 3D adventure game with a strong focus on modding and user crafted content.
 - Extensive modding support
 - Scripting for extending entity actions
 
-# Development
+## Development
 
 ### High Priority
 
@@ -23,6 +23,8 @@ A 3D adventure game with a strong focus on modding and user crafted content.
 
 ### Low Priority
 
+- Forward rendered light shader
+- Forward rendered built-in palette mapper. Reduce incoming final colors to 16 color map
 - Equiptable Items
 - Cinema camera (floating, de-attached from a target)
 - Experience Points
@@ -92,63 +94,8 @@ A 3D adventure game with a strong focus on modding and user crafted content.
     - Exit game to main menu
 - World map
 
-# Notes
-
-- Do not depend on camera for entity interaction.
-  Use the player's entity rotation and proximity instead.
-  Otherwise it's hard to be consistent across first person, third person, top down views
-
-# Bundling Sprite Sheets
+## Bundling Sprite Sheets
 
 `$ bundle.sh`
 
 Collects sprite images and generates sprite sheets.
-
-# Packages
-
-Defines the images, sound files, and entity descriptions.
-
-### Resource Pack
-
-- Sprite sheets
-- Music
-- Sound effects
-
-### Entity Pack
-
-- Depends on resource pack
-- Defines things
-
-### Map Pack
-
-- Depends on resource and entity packs
-- List of connected maps
-
-# Map Editor
-
-A map design tool with a top down view for sector editing and a 3D view paint mode.
-
-### Vertex Mode
-
-- Top down view
-- Drag and drop existing vertices
-
-### Line Mode
-
-- Top down view
-- Connect vectors to create new lines
-
-### Sector Mode
-
-- Top down view
-
-### Paint Mode
-
-- Fly in 3D view
-- Edit textures where camera is pointed
-- Offset texture coordinates
-
-### Thing Mode
-
-- Fly in 3D view
-- Place new things where camera is pointed

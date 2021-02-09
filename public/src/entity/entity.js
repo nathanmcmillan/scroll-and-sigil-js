@@ -70,4 +70,8 @@ export class Entity {
       return map
     }
   }
+
+  export() {
+    return 'todo'
+  }
 }

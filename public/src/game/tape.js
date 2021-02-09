@@ -15,15 +15,18 @@ export class Tape {
   export() {
     let content = `tape ${this.name}\n`
     content += `entities ${this.entities.length}\n`
-    for (const entity of this.entities) content += `${entity}\n`
+    for (const entity of this.entities) content += `${entity.export()}\n`
+    content += `end entities\n`
     content += `maps ${this.maps.length}\n`
     content += `music ${this.music.length}\n`
     for (const music of this.music) content += `${music}\n`
+    content += `end music\n`
     content += `sounds ${this.sounds.length}\n`
     content += `sprites ${this.sprites.length}\n`
     content += `textures ${this.textures.length}\n`
     content += `tiles ${this.tiles.length}\n`
     for (const tile of this.tiles) content += `${tile}\n`
+    content += `end tape\n`
     return content
   }
 }
