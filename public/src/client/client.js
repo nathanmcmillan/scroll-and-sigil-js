@@ -216,7 +216,10 @@ export class Client {
       tape.music.push(music)
     }
 
-    for (const sound of contents.get('sounds')) saveSound(sound, directory + '/sounds/' + sound + '.wav')
+    for (const sound of contents.get('sounds')) {
+      saveSound(sound, directory + '/sounds/' + sound + '.wav')
+      tape.sounds.push(sound)
+    }
 
     let color2d = fetchText('./shaders/color2d.glsl')
     let texture2d = fetchText('./shaders/texture2d.glsl')

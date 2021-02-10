@@ -51,7 +51,7 @@ export class LineReference {
     let uv = 0.0
     let st = uv + Math.sqrt(x * x + y * y) * scale
 
-    if (this.top.inUse()) {
+    if (this.top.use()) {
       let flip = false
       let a = this.a
       let b = this.b
@@ -79,7 +79,7 @@ export class LineReference {
       this.top.update(ceiling, top, uv, ceiling * scale, st, top * scale, a, b)
     }
 
-    if (this.middle.inUse()) {
+    if (this.middle.use()) {
       let flip = false
       let a = this.a
       let b = this.b
@@ -107,7 +107,7 @@ export class LineReference {
       this.middle.update(floor, ceiling, uv, floor * scale, st, ceiling * scale, a, b)
     }
 
-    if (this.bottom.inUse()) {
+    if (this.bottom.use()) {
       let flip = false
       let a = this.a
       let b = this.b
@@ -210,7 +210,11 @@ export class WallReference {
     this.t = 0.0
   }
 
-  inUse() {
+  valid() {
+    return this.a && this.b && this.texture
+  }
+
+  use() {
     return this.texture
   }
 
@@ -227,7 +231,7 @@ export class WallReference {
   }
 
   textureName() {
-    return this.inUse() ? this.texture : 'none'
+    return this.use() ? this.texture : 'none'
   }
 
   static transfer(src, dest) {

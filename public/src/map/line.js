@@ -1,12 +1,5 @@
 import {Wall} from '../map/wall.js'
 
-export function lineNullSectors(lines) {
-  for (const line of lines) {
-    line.plus = null
-    line.minus = null
-  }
-}
-
 export class Line {
   constructor(top, middle, bottom, a, b) {
     this.plus = null
@@ -48,7 +41,7 @@ export class Line {
           top = minus.top
         }
       }
-      if (ceiling >= top) console.error('invalid top wall:', ceiling, top)
+      if (ceiling >= top) console.error(`invalid top wall: ceiling := ${ceiling}, top := ${top}`)
       if (flip) {
         let temp = a
         a = b
@@ -76,7 +69,7 @@ export class Line {
           ceiling = minus.ceiling
         }
       }
-      if (floor >= ceiling) console.error('invalid middle wall:', floor, ceiling)
+      if (floor >= ceiling) console.error(`invalid middle wall: floor := ${floor}, ceiling := ${ceiling}`)
       if (flip) {
         let temp = a
         a = b
@@ -105,7 +98,7 @@ export class Line {
           flip = true
         }
       }
-      if (bottom >= floor) console.error('invalid bottom wall:', bottom, floor)
+      if (bottom >= floor) console.warn(`invalid bottom wall: bottom := ${bottom}, floor := ${floor}`)
       if (flip) {
         let temp = a
         a = b

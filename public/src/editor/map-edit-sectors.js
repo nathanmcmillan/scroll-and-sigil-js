@@ -1,10 +1,24 @@
-import {lineNullSectors} from '../map/line.js'
 import {WORLD_SCALE} from '../world/world.js'
 import {sectorLineNeighbors, sectorInsideOutside} from '../map/sector.js'
 import {sectorTriangulateForEditor} from '../map/triangulate.js'
 import {SectorReference} from '../editor/map-edit-references.js'
 
 const debug = false
+
+function nullLines(lines) {
+  for (const line of lines) {
+    line.plus = null
+    line.minus = null
+  }
+}
+
+function checkLines(lines) {
+  for (const line of lines) {
+    if (line.plus === null && line.minus === null) {
+      console.warn('line not linked between sectors:', line)
+    }
+  }
+}
 
 function copy(src, dest) {
   dest.bottom = src.bottom
@@ -257,8 +271,9 @@ export function computeSectors(editor) {
     }
   }
 
-  lineNullSectors(editor.lines)
+  nullLines(editor.lines)
   sectorLineNeighbors(sectors, WORLD_SCALE)
+  checkLines(editor.lines)
 
   editor.sectors = sectors
   if (debug) console.debug(`$ end compute sectors and triangles (sector count := ${sectors.length})`)

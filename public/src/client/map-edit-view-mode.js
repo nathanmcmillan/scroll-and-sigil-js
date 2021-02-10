@@ -8,17 +8,17 @@ import {renderDialogBox} from '../client/client-util.js'
 
 function lineRender(client, line) {
   let wall = line.top
-  if (wall.inUse()) {
+  if (wall.valid()) {
     let buffer = client.getSectorBuffer(textureIndexForName(wall.texture))
     drawWall(buffer, wall)
   }
   wall = line.middle
-  if (wall.inUse()) {
+  if (wall.valid()) {
     let buffer = client.getSectorBuffer(textureIndexForName(wall.texture))
     drawWall(buffer, wall)
   }
   wall = line.bottom
-  if (wall.inUse()) {
+  if (wall.valid()) {
     let buffer = client.getSectorBuffer(textureIndexForName(wall.texture))
     drawWall(buffer, wall)
   }
@@ -92,7 +92,7 @@ export function renderMapEditViewMode(state) {
   rendering.updateUniformMatrix('u_mvp', projection)
 
   for (const [index, buffer] of client.sectorBuffers) {
-    rendering.bindTexture(gl.TEXTURE0, textureByIndex(index))
+    rendering.bindTexture(gl.TEXTURE0, textureByIndex(index).texture)
     rendering.bindAndDraw(buffer)
   }
 

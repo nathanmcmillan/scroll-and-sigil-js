@@ -571,7 +571,6 @@ export class MapEdit {
             console.error(e)
           }
         }
-
         sectorLineNeighbors(this.sectors, WORLD_SCALE)
       }
 
@@ -1095,20 +1094,25 @@ export class MapEdit {
 
     if (input.rightTrigger()) {
       if (input.pressX()) {
+        // TODO: stickLeft and stickRight to control grid snap size
         this.snapToGrid = !this.snapToGrid
         return
       }
 
       if (input.stickUp()) {
         this.zoom += 0.15
-        this.camera.x -= 1.0 / this.zoom
-        this.camera.z -= 1.0 / this.zoom
+        this.camera.x -= this.cursor.x / this.zoom
+        this.camera.z -= this.cursor.y / this.zoom
+        // this.camera.x -= 1.0 / this.zoom
+        // this.camera.z -= 1.0 / this.zoom
       }
 
       if (input.stickDown()) {
         this.zoom -= 0.15
-        this.camera.x += 1.0 / this.zoom
-        this.camera.z += 1.0 / this.zoom
+        this.camera.x += this.cursor.x / this.zoom
+        this.camera.z += this.cursor.y / this.zoom
+        // this.camera.x += 1.0 / this.zoom
+        // this.camera.z += 1.0 / this.zoom
       }
     } else {
       if (this.snapToGrid) {
@@ -1367,30 +1371,34 @@ export class MapEdit {
 
   export() {
     let content = ''
-    content += `vectors ${this.vecs.length}\n`
+    content += 'vectors\n'
     let index = 0
     for (const vec of this.vecs) {
       vec.index = index++
       content += vec.export() + '\n'
     }
-    content += `lines ${this.lines.length}\n`
+    content += 'end vectors\n'
+    content += 'lines\n'
     index = 0
     for (const line of this.lines) {
       line.index = index++
       content += line.export() + '\n'
     }
-    content += `sectors ${this.sectors.length}\n`
+    content += 'end lines\n'
+    content += 'sectors\n'
     for (const sector of this.sectors) {
       content += sector.export() + '\n'
     }
+    content += 'end sectors\n'
     if (this.things.length > 0) {
-      content += `things ${this.things.length}\n`
+      content += 'things\n'
       for (const thing of this.things) {
         content += thing.export() + '\n'
       }
+      content += 'end things\n'
     }
-    // content += `triggers 0\n`
-    // content += `info 0\n`
+    // content += `triggers\n`
+    // content += `info\n`
     return content
   }
 }

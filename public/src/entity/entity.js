@@ -70,8 +70,12 @@ export class Entity {
       return map
     }
   }
+}
 
-  export() {
-    return 'todo'
+export function entityWadToTape(wad) {
+  let content = ''
+  for (let [key, value] of wad) {
+    content += `${key} ${value}\n`
   }
+  return content
 }
