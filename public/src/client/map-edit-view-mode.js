@@ -1,4 +1,4 @@
-import {drawSprite, drawTextSpecial, FONT_WIDTH, FONT_HEIGHT} from '../render/render.js'
+import {drawSprite, drawTextSpecial, FONT_6x6_WIDTH, FONT_6x6_HEIGHT} from '../render/render.js'
 import {identity, multiply, rotateX, rotateY, translate} from '../math/matrix.js'
 import {textureByName, textureByIndex, textureIndexForName} from '../assets/assets.js'
 import {drawWall, drawFloorCeil} from '../client/render-sector.js'
@@ -131,8 +131,8 @@ export function renderMapEditViewMode(state) {
   rendering.updateUniformMatrix('u_mvp', projection)
 
   const fontScale = scale
-  const fontWidth = fontScale * FONT_WIDTH
-  const fontHeight = fontScale * FONT_HEIGHT
+  const fontWidth = fontScale * FONT_6x6_WIDTH
+  const fontHeight = fontScale * FONT_6x6_HEIGHT
 
   client.bufferGUI.zero()
   let text = 'x:' + camera.x.toFixed(2) + ' y:' + camera.y.toFixed(2) + ' z:' + camera.z.toFixed(2)

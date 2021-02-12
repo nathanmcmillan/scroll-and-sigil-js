@@ -1,6 +1,6 @@
 import {exportSheetPixels, exportSheetToCanvas, PaintEdit} from '../editor/paint.js'
 import {textureByName} from '../assets/assets.js'
-import {drawText, drawRectangle, drawHollowRectangle, drawImage, FONT_WIDTH, FONT_HEIGHT_BASE} from '../render/render.js'
+import {drawText, drawRectangle, drawHollowRectangle, drawImage, FONT_6x6_WIDTH, FONT_6x6_HEIGHT_BASE} from '../render/render.js'
 import {renderTouch} from '../client/render-touch.js'
 import {spr, sprcol} from '../render/pico.js'
 import {identity, multiply} from '../math/matrix.js'
@@ -184,7 +184,7 @@ export class PaintState {
     let blob = this.paint.export()
     let download = document.createElement('a')
     download.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(blob)
-    download.download = 'sheet' + this.paint.sheetIndex + '.txt'
+    download.download = 'paint.txt'
     download.click()
   }
 
@@ -192,7 +192,7 @@ export class PaintState {
     let blob = compress(this.paint.export())
     let download = document.createElement('a')
     download.href = window.URL.createObjectURL(new Blob([blob], {type: 'application/octet-stream'}))
-    download.download = 'sheet' + this.paint.sheetIndex + '.huff'
+    download.download = 'paint.huff'
     download.click()
   }
 
@@ -208,7 +208,7 @@ export class PaintState {
     let blob = canvas.toDataURL('image/png')
     let download = document.createElement('a')
     download.href = blob
-    download.download = 'sheet' + paint.sheetIndex + '.png'
+    download.download = 'paint.png'
     download.click()
   }
 
@@ -243,8 +243,8 @@ export class PaintState {
     multiply(projection, client.orthographic, view)
 
     const fontScale = calcFontScale(scale)
-    const fontWidth = fontScale * FONT_WIDTH
-    const fontHeight = fontScale * FONT_HEIGHT_BASE
+    const fontWidth = fontScale * FONT_6x6_WIDTH
+    const fontHeight = fontScale * FONT_6x6_HEIGHT_BASE
 
     const thickness = calcThickness(scale)
     const doubleThick = 2 * thickness

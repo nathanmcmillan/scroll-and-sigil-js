@@ -1,4 +1,4 @@
-import {drawText, drawRectangle, drawLine, drawTriangle, FONT_WIDTH} from '../render/render.js'
+import {drawText, drawRectangle, drawLine, drawTriangle, FONT_6x6_WIDTH, FONT_6x6_HEIGHT} from '../render/render.js'
 import {spr} from '../render/pico.js'
 import {identity, multiply} from '../math/matrix.js'
 import {textureByName} from '../assets/assets.js'
@@ -6,7 +6,7 @@ import {vectorSize, thingSize, SECTOR_TOOL, DESCRIBE_TOOL, DESCRIBE_ACTION, DESC
 import {colorf, blackf, darkpurplef, darkgreyf, yellowf, whitef, greenf, redf} from '../editor/palette.js'
 import {renderTouch} from '../client/render-touch.js'
 import {calcFontScale, calcTopBarHeight, calcBottomBarHeight} from '../editor/editor-util.js'
-import {renderDialogBox} from '../client/client-util.js'
+import {renderDialogBox, renderTextBox, textBoxWidth, textBoxHeight} from '../client/client-util.js'
 
 function mapX(x, zoom, camera) {
   return zoom * (x - camera.x)
@@ -135,17 +135,6 @@ export function renderMapEditTopMode(state) {
 
   rendering.updateAndDraw(client.bufferColor)
 
-  rendering.setProgram(3)
-  rendering.setView(0, client.top, width, height)
-  rendering.updateUniformMatrix('u_mvp', projection)
-
-  client.bufferGUI.zero()
-  const cursor = textureByName('editor-sprites')
-  const cursorSize = 8 * scale
-  spr(client.bufferGUI, 9, 1.0, 1.0, maps.cursor.x, maps.cursor.y - cursorSize, cursorSize, cursorSize)
-  rendering.bindTexture(gl.TEXTURE0, cursor.texture)
-  rendering.updateAndDraw(client.bufferGUI)
-
   rendering.setProgram(4)
   rendering.setView(0, client.top, width, height)
   rendering.updateUniformMatrix('u_mvp', projection)
@@ -153,7 +142,8 @@ export function renderMapEditTopMode(state) {
   client.bufferGUI.zero()
 
   const fontScale = calcFontScale(scale)
-  const fontWidth = fontScale * FONT_WIDTH
+  const fontWidth = fontScale * FONT_6x6_WIDTH
+  const fontHeight = fontScale * FONT_6x6_HEIGHT
 
   drawText(client.bufferGUI, fontWidth, height - topBarHeight, DESCRIBE_TOOL[maps.tool].toUpperCase(), fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
 
@@ -198,7 +188,28 @@ export function renderMapEditTopMode(state) {
   rendering.bindTexture(gl.TEXTURE0, textureByName('tic-80-wide-font').texture)
   rendering.updateAndDraw(client.bufferGUI)
 
-  // dialog box
+  if (maps.dialog != null) {
+    // dialog box
+    renderDialogBox(state, scale, maps.dialog)
+  } else if (maps.askName) {
+    // text box
+    const box = maps.textBox
+    renderTextBox(state, scale, box, 200, 200)
 
-  if (maps.dialog != null) renderDialogBox(state, scale, maps.dialog)
+    client.bufferGUI.zero()
+    drawText(client.bufferGUI, 10, 10, maps.name, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
+    rendering.updateAndDraw(client.bufferGUI)
+  } else {
+    // cursor
+    rendering.setProgram(3)
+    rendering.setView(0, client.top, width, height)
+    rendering.updateUniformMatrix('u_mvp', projection)
+
+    client.bufferGUI.zero()
+    const cursor = textureByName('editor-sprites')
+    const cursorSize = 8 * scale
+    spr(client.bufferGUI, 9, 1.0, 1.0, maps.cursor.x, maps.cursor.y - cursorSize, cursorSize, cursorSize)
+    rendering.bindTexture(gl.TEXTURE0, cursor.texture)
+    rendering.updateAndDraw(client.bufferGUI)
+  }
 }

@@ -8,6 +8,7 @@ import {sectorLineNeighbors, sectorInsideOutside} from '../map/sector.js'
 import {sectorTriangulateForEditor} from '../map/triangulate.js'
 import {Dialog} from '../gui/dialog.js'
 import {Vector2} from '../math/vector.js'
+import {TextBox} from '../gui/text-box.js'
 import * as In from '../input/input.js'
 
 const debugDisableSector = true
@@ -207,6 +208,8 @@ export class MapEdit {
     this.zoom = 10.0
     this.cursor = new Vector2(0.5 * width, 0.5 * height)
 
+    this.name = 'untitled'
+
     this.vecs = []
     this.lines = []
     this.sectors = []
@@ -236,7 +239,7 @@ export class MapEdit {
     this.dialog = null
     this.dialogStack = []
 
-    this.startMenuDialog = new Dialog('start', null, ['new', 'open', 'save', 'export', 'exit'])
+    this.startMenuDialog = new Dialog('start', null, ['name', 'new', 'open', 'save', 'export', 'exit'])
     this.toolDialog = new Dialog('tool', null, ['draw mode', 'thing mode', 'sector mode'])
     this.editThingDialog = new Dialog('thing', null, ['swap entity', 'create new entity', 'set as default'])
     this.changeEntityDialog = new Dialog('entity', 'swap entity', [])
@@ -246,6 +249,9 @@ export class MapEdit {
     this.askToSaveDialog = new Dialog('ask', 'save current file?', ['save', 'export', 'no'])
     this.saveOkDialog = new Dialog('ok', 'file saved', ['ok'])
     this.errorOkDialog = new Dialog('error', null, ['ok'])
+
+    this.askName = false
+    this.textBox = new TextBox('', 20)
   }
 
   clear() {
@@ -309,6 +315,10 @@ export class MapEdit {
         this.parent.eventCall('start-export')
         this.parent.eventCall('start-exit')
       }
+      this.dialogEnd()
+    } else if (event === 'start-name') {
+      this.textBox.reset(this.name)
+      this.askName = true
       this.dialogEnd()
     } else if (event === 'start-save') {
       this.parent.eventCall(event)
@@ -496,102 +506,218 @@ export class MapEdit {
 
   read(content) {
     this.clear()
+    this.entityList = entityList().sort()
+    this.defaultEntity = this.entityList[0]
     try {
       const map = content.split('\n')
-      let index = 0
 
-      this.entityList = entityList().sort()
-      this.defaultEntity = this.entityList[0]
+      if (map[0].split(' ')[0] === 'map') {
+        const end = map.length - 1
 
-      let vectors = index + parseInt(map[index].split(' ')[1])
-      index++
-      for (; index <= vectors; index++) {
-        let vec = map[index].split(' ')
-        this.vecs.push(new VectorReference(parseFloat(vec[0]), parseFloat(vec[1])))
-      }
+        this.name = map[0].split(' ')[1]
 
-      let lines = index + parseInt(map[index].split(' ')[1])
-      index++
-      for (; index <= lines; index++) {
-        let line = map[index].split(' ')
-        let a = this.vecs[parseInt(line[0])]
-        let b = this.vecs[parseInt(line[1])]
-        let top = texture(line[2])
-        let middle = texture(line[3])
-        let bottom = texture(line[4])
-        this.lines.push(new LineReference(bottom, middle, top, a, b))
-      }
-
-      if (debugDisableSector) {
-        let sectors = index + parseInt(map[index].split(' ')[1])
-        index++
-        for (; index <= sectors; index++);
-      } else {
-        let sectors = index + parseInt(map[index].split(' ')[1])
-        index++
-        for (; index <= sectors; index++) {
-          let sector = map[index].split(' ')
-          let bottom = parseFloat(sector[0])
-          let floor = parseFloat(sector[1])
-          let ceiling = parseFloat(sector[2])
-          let top = parseFloat(sector[3])
-          let floorTexture = texture(sector[4])
-          let ceilingTexture = texture(sector[5])
-          let count = parseInt(sector[6])
-          let i = 7
-          let end = i + count
-          let vecs = []
-          for (; i < end; i++) vecs.push(this.vecs[parseInt(sector[i])])
-          count = parseInt(sector[i])
-          i++
-          end = i + count
-          let lines = []
-          for (; i < end; i++) {
-            lines.push(this.lines[parseInt(sector[i])])
-          }
-          this.sectors.push(new SectorReference(bottom, floor, ceiling, top, floorTexture, ceilingTexture, vecs, lines))
-        }
-
-        let i = 0
-        for (const sector of this.sectors) sector.index = i++
-
-        sectorInsideOutside(this.sectors)
-        this.sectors.sort((a, b) => {
-          // just for debugging
-          if (a.otherIsInside(b)) return 1
-          if (b.otherIsInside(a)) return -1
-          if (a.vecs.length < b.vecs.length) return 1
-          if (b.vecs.length > b.vecs.length) return -1
-          return 0
-        })
-        for (const sector of this.sectors) {
-          try {
-            sectorTriangulateForEditor(sector, WORLD_SCALE)
-          } catch (e) {
-            console.error(e)
-          }
-        }
-        sectorLineNeighbors(this.sectors, WORLD_SCALE)
-      }
-
-      while (index < map.length - 1) {
-        let top = map[index].split(' ')
-        let count = parseInt(top[1])
-        if (top[0] === 'things') {
-          let things = index + count
+        let index = 2
+        while (index < end) {
+          if (map[index] === 'end vectors') break
+          let vec = map[index].split(' ')
+          this.vecs.push(new VectorReference(parseFloat(vec[0]), parseFloat(vec[1])))
           index++
-          for (; index <= things; index++) {
-            let thing = map[index].split(' ')
-            let x = parseFloat(thing[0])
-            let z = parseFloat(thing[1])
-            let entity = entityByName(thing[2])
-            this.things.push(new ThingReference(entity, x, z))
+        }
+        index++
+
+        index++
+        while (index < end) {
+          if (map[index] === 'end lines') break
+          let line = map[index].split(' ')
+          let a = this.vecs[parseInt(line[0])]
+          let b = this.vecs[parseInt(line[1])]
+          let top = texture(line[2])
+          let middle = texture(line[3])
+          let bottom = texture(line[4])
+          this.lines.push(new LineReference(bottom, middle, top, a, b))
+          index++
+        }
+        index++
+
+        index++
+        if (debugDisableSector) {
+          while (index < end) {
+            if (map[index] === 'end sectors') break
+            index++
           }
-        } else if (top[0] === 'triggers') {
-          index += count + 1
-        } else if (top[0] === 'info') {
-          index += count + 1
-        } else throw `unknown map data: '${top[0]}'`
+          index++
+        } else {
+          while (index < end) {
+            if (map[index] === 'end sectors') break
+            let sector = map[index].split(' ')
+            let bottom = parseFloat(sector[0])
+            let floor = parseFloat(sector[1])
+            let ceiling = parseFloat(sector[2])
+            let top = parseFloat(sector[3])
+            let floorTexture = texture(sector[4])
+            let ceilingTexture = texture(sector[5])
+            let count = parseInt(sector[6])
+            let i = 7
+            let end = i + count
+            let vecs = []
+            for (; i < end; i++) vecs.push(this.vecs[parseInt(sector[i])])
+            count = parseInt(sector[i])
+            i++
+            end = i + count
+            let lines = []
+            for (; i < end; i++) {
+              lines.push(this.lines[parseInt(sector[i])])
+            }
+            this.sectors.push(new SectorReference(bottom, floor, ceiling, top, floorTexture, ceilingTexture, vecs, lines))
+            index++
+          }
+          index++
+
+          let i = 0
+          for (const sector of this.sectors) sector.index = i++
+
+          sectorInsideOutside(this.sectors)
+          this.sectors.sort((a, b) => {
+            // just for debugging
+            if (a.otherIsInside(b)) return 1
+            if (b.otherIsInside(a)) return -1
+            if (a.vecs.length < b.vecs.length) return 1
+            if (b.vecs.length > b.vecs.length) return -1
+            return 0
+          })
+          for (const sector of this.sectors) {
+            try {
+              sectorTriangulateForEditor(sector, WORLD_SCALE)
+            } catch (e) {
+              console.error(e)
+            }
+          }
+          sectorLineNeighbors(this.sectors, WORLD_SCALE)
+        }
+
+        while (index < end) {
+          let top = map[index]
+          index++
+          if (top === 'things') {
+            while (index < end) {
+              if (map[index] === 'end things') break
+              let thing = map[index].split(' ')
+              let x = parseFloat(thing[0])
+              let z = parseFloat(thing[1])
+              let entity = entityByName(thing[2])
+              this.things.push(new ThingReference(entity, x, z))
+              index++
+            }
+            index++
+          } else if (top === 'triggers') {
+            while (index < end) {
+              if (map[index] === 'end triggers') break
+              index++
+            }
+            index++
+          } else if (top === 'info') {
+            while (index < end) {
+              if (map[index] === 'end info') break
+              index++
+            }
+            index++
+          } else if (top === 'end map') {
+            break
+          } else throw `unknown map data: '${top[0]}'`
+        }
+      } else {
+        let index = 0
+
+        let vectors = index + parseInt(map[index].split(' ')[1])
+        index++
+        for (; index <= vectors; index++) {
+          let vec = map[index].split(' ')
+          this.vecs.push(new VectorReference(parseFloat(vec[0]), parseFloat(vec[1])))
+        }
+
+        let lines = index + parseInt(map[index].split(' ')[1])
+        index++
+        for (; index <= lines; index++) {
+          let line = map[index].split(' ')
+          let a = this.vecs[parseInt(line[0])]
+          let b = this.vecs[parseInt(line[1])]
+          let top = texture(line[2])
+          let middle = texture(line[3])
+          let bottom = texture(line[4])
+          this.lines.push(new LineReference(bottom, middle, top, a, b))
+        }
+
+        if (debugDisableSector) {
+          let sectors = index + parseInt(map[index].split(' ')[1])
+          index++
+          for (; index <= sectors; index++);
+        } else {
+          let sectors = index + parseInt(map[index].split(' ')[1])
+          index++
+          for (; index <= sectors; index++) {
+            let sector = map[index].split(' ')
+            let bottom = parseFloat(sector[0])
+            let floor = parseFloat(sector[1])
+            let ceiling = parseFloat(sector[2])
+            let top = parseFloat(sector[3])
+            let floorTexture = texture(sector[4])
+            let ceilingTexture = texture(sector[5])
+            let count = parseInt(sector[6])
+            let i = 7
+            let end = i + count
+            let vecs = []
+            for (; i < end; i++) vecs.push(this.vecs[parseInt(sector[i])])
+            count = parseInt(sector[i])
+            i++
+            end = i + count
+            let lines = []
+            for (; i < end; i++) {
+              lines.push(this.lines[parseInt(sector[i])])
+            }
+            this.sectors.push(new SectorReference(bottom, floor, ceiling, top, floorTexture, ceilingTexture, vecs, lines))
+          }
+
+          let i = 0
+          for (const sector of this.sectors) sector.index = i++
+
+          sectorInsideOutside(this.sectors)
+          this.sectors.sort((a, b) => {
+            // just for debugging
+            if (a.otherIsInside(b)) return 1
+            if (b.otherIsInside(a)) return -1
+            if (a.vecs.length < b.vecs.length) return 1
+            if (b.vecs.length > b.vecs.length) return -1
+            return 0
+          })
+          for (const sector of this.sectors) {
+            try {
+              sectorTriangulateForEditor(sector, WORLD_SCALE)
+            } catch (e) {
+              console.error(e)
+            }
+          }
+          sectorLineNeighbors(this.sectors, WORLD_SCALE)
+        }
+
+        while (index < map.length - 1) {
+          let top = map[index].split(' ')
+          let count = parseInt(top[1])
+          if (top[0] === 'things') {
+            let things = index + count
+            index++
+            for (; index <= things; index++) {
+              let thing = map[index].split(' ')
+              let x = parseFloat(thing[0])
+              let z = parseFloat(thing[1])
+              let entity = entityByName(thing[2])
+              this.things.push(new ThingReference(entity, x, z))
+            }
+          } else if (top[0] === 'triggers') {
+            index += count + 1
+          } else if (top[0] === 'info') {
+            index += count + 1
+          } else throw `unknown map data: '${top[0]}'`
+        }
       }
 
       this.updateThingsY()
@@ -1070,6 +1196,12 @@ export class MapEdit {
       } else if (input.timerStickLeft(timestamp, INPUT_RATE)) this.handleDialogSpecial(true)
       else if (input.timerStickRight(timestamp, INPUT_RATE)) this.handleDialogSpecial(false)
       return
+    } else if (this.askName) {
+      if (input.timerStickUp(timestamp, INPUT_RATE)) this.textBox.up()
+      else if (input.timerStickDown(timestamp, INPUT_RATE)) this.textBox.down()
+      else if (input.timerStickLeft(timestamp, INPUT_RATE)) this.textBox.left()
+      else if (input.timerStickRight(timestamp, INPUT_RATE)) this.textBox.right()
+      return
     }
 
     if (input.pressSelect()) {
@@ -1340,8 +1472,25 @@ export class MapEdit {
   }
 
   immediateInput() {
-    if (this.dialog === null) return
     const input = this.input
+    if (this.askName) {
+      if (input.pressY()) {
+        this.textBox.erase()
+        this.name = this.textBox.text
+        this.forcePaint = true
+      } else if (input.pressA()) {
+        if (this.textBox.end()) {
+          this.askName = false
+          this.forcePaint = true
+        } else {
+          this.textBox.apply()
+          this.name = this.textBox.text
+          this.forcePaint = true
+        }
+      }
+      return
+    }
+    if (this.dialog === null) return
     if (input.pressB()) {
       this.dialog = null
       this.dialogStack.length = 0
@@ -1370,7 +1519,7 @@ export class MapEdit {
   }
 
   export() {
-    let content = ''
+    let content = `map ${this.name}\n`
     content += 'vectors\n'
     let index = 0
     for (const vec of this.vecs) {
@@ -1399,6 +1548,7 @@ export class MapEdit {
     }
     // content += `triggers\n`
     // content += `info\n`
+    content += 'end map\n'
     return content
   }
 }

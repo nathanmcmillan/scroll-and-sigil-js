@@ -1,11 +1,20 @@
-export const FONT_WIDTH = 6
-export const FONT_HEIGHT = 6
-export const FONT_HEIGHT_BASE = 5
+export const FONT_6x6_WIDTH = 6
+export const FONT_6x6_HEIGHT = 6
+export const FONT_6x6_HEIGHT_BASE = 5
 
-const FONT = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,""\'\'"\'?!@_*#$%&()+-/:;<=>[]\\^`{}|~'
-const FONT_GRID = Math.floor(128.0 / FONT_WIDTH)
-const FONT_COLUMN = FONT_WIDTH / 128.0
-const FONT_ROW = FONT_HEIGHT / 128.0
+export const FONT_8x8_WIDTH = 9
+export const FONT_8x8_HEIGHT = 9
+export const FONT_8x8_HEIGHT_BASE = 8
+
+export const FONT_8x14_WIDTH = 9
+export const FONT_8x14_HEIGHT = 15
+export const FONT_8x14_HEIGHT_BASE = 14
+
+const FONT = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'
+
+const FONT_6x6_GRID = Math.floor(128.0 / FONT_6x6_WIDTH)
+const FONT_6x6_COLUMN = FONT_6x6_WIDTH / 128.0
+const FONT_6x6_ROW = FONT_6x6_HEIGHT / 128.0
 
 export function index3(b) {
   let pos = b.indexPosition
@@ -261,8 +270,8 @@ export function drawSprite(b, x, y, z, sprite, sine, cosine) {
 export function drawText(b, x, y, text, scale, red, green, blue, alpha) {
   let currentX = x
   let currentY = y
-  const fontWidth = FONT_WIDTH * scale
-  const fontHeight = FONT_HEIGHT * scale
+  const fontWidth = FONT_6x6_WIDTH * scale
+  const fontHeight = FONT_6x6_HEIGHT * scale
   for (let i = 0; i < text.length; i++) {
     let c = text.charAt(i)
     if (c === ' ') {
@@ -274,10 +283,10 @@ export function drawText(b, x, y, text, scale, red, green, blue, alpha) {
       continue
     }
     let index = FONT.indexOf(c)
-    let left = Math.floor(index % FONT_GRID) * FONT_COLUMN
-    let top = Math.floor(index / FONT_GRID) * FONT_ROW
-    let right = left + FONT_COLUMN
-    let bottom = top + FONT_ROW
+    let left = Math.floor(index % FONT_6x6_GRID) * FONT_6x6_COLUMN
+    let top = Math.floor(index / FONT_6x6_GRID) * FONT_6x6_ROW
+    let right = left + FONT_6x6_COLUMN
+    let bottom = top + FONT_6x6_ROW
     drawImage(b, currentX, currentY, fontWidth, fontHeight, red, green, blue, alpha, left, top, right, bottom)
     currentX += fontWidth
   }

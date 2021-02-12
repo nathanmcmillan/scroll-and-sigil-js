@@ -1,6 +1,6 @@
 import {semitoneName, lengthName, MusicEdit, SEMITONES} from '../editor/music.js'
 import {textureByName} from '../assets/assets.js'
-import {drawText, drawTextSpecial, drawRectangle, FONT_WIDTH, FONT_HEIGHT} from '../render/render.js'
+import {drawText, drawTextSpecial, drawRectangle, FONT_6x6_WIDTH, FONT_6x6_HEIGHT} from '../render/render.js'
 import {spr, sprcol} from '../render/pico.js'
 import {identity, multiply} from '../math/matrix.js'
 import {whitef, redf, darkpurplef, darkgreyf} from '../editor/palette.js'
@@ -91,8 +91,8 @@ export class MusicState {
     buffer.zero()
 
     const fontScale = calcFontScale(scale)
-    const fontWidth = fontScale * FONT_WIDTH
-    const fontHeight = fontScale * FONT_HEIGHT
+    const fontWidth = fontScale * FONT_6x6_WIDTH
+    const fontHeight = fontScale * FONT_6x6_HEIGHT
 
     const pad = 2 * scale
 
@@ -137,8 +137,8 @@ export class MusicState {
     drawTextSpecial(client.bufferGUI, posBox.x, posBox.y, text, fontScale, whitef(0), whitef(1), whitef(2))
 
     const smallFontScale = Math.floor(1.5 * scale)
-    const smallFontWidth = smallFontScale * FONT_WIDTH
-    const smallFontHeight = smallFontScale * FONT_HEIGHT
+    const smallFontWidth = smallFontScale * FONT_6x6_WIDTH
+    const smallFontHeight = smallFontScale * FONT_6x6_HEIGHT
     const smallFontHalfWidth = Math.floor(0.5 * smallFontWidth)
     const noteRows = music.noteRows
     const noteC = music.noteC

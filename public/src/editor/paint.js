@@ -1,7 +1,7 @@
 import {fetchText} from '../client/net.js'
 import {newPalette, newPaletteFloat, describeColor} from '../editor/palette.js'
 import {flexBox, flexSolve, flexSize} from '../gui/flex.js'
-import {FONT_WIDTH, FONT_HEIGHT} from '../render/render.js'
+import {FONT_6x6_WIDTH, FONT_6x6_HEIGHT} from '../render/render.js'
 import {calcFontScale} from '../editor/editor-util.js'
 import {Dialog} from '../gui/dialog.js'
 
@@ -168,8 +168,8 @@ export class PaintEdit {
     const paletteColumns = this.paletteColumns
     const toolColumns = this.toolColumns
     const fontScale = calcFontScale(scale)
-    const fontWidth = fontScale * FONT_WIDTH
-    const fontHeight = fontScale * FONT_HEIGHT
+    const fontWidth = fontScale * FONT_6x6_WIDTH
+    const fontHeight = fontScale * FONT_6x6_HEIGHT
 
     let magnify = 2 * scale
     let sheetBox = flexBox(magnify * sheetColumns, magnify * sheetRows)

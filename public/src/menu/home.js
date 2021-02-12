@@ -1,5 +1,5 @@
 import {flexText, flexSolve} from '../gui/flex.js'
-import {FONT_WIDTH, FONT_HEIGHT} from '../render/render.js'
+import {FONT_6x6_WIDTH, FONT_6x6_HEIGHT} from '../render/render.js'
 import {playSound} from '../assets/sounds.js'
 import {calcFontScale, calcFontPad} from '../editor/editor-util.js'
 
@@ -52,8 +52,8 @@ export class Home {
     const height = this.height
 
     const fontScale = calcFontScale(this.scale)
-    const fontWidth = fontScale * FONT_WIDTH
-    const fontHeight = fontScale * FONT_HEIGHT
+    const fontWidth = fontScale * FONT_6x6_WIDTH
+    const fontHeight = fontScale * FONT_6x6_HEIGHT
     const fontPad = calcFontPad(fontHeight)
 
     let text = 'Scroll and Sigil'

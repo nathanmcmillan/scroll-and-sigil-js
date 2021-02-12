@@ -2,7 +2,7 @@ import {Game} from '../game/game.js'
 import {renderLoadingInProgress} from '../client/render-loading.js'
 import {renderTouch} from '../client/render-touch.js'
 import {textureByName, textureByIndex} from '../assets/assets.js'
-import {drawSprite, drawTextSpecial, FONT_WIDTH, FONT_HEIGHT} from '../render/render.js'
+import {drawSprite, drawTextSpecial, FONT_6x6_WIDTH, FONT_6x6_HEIGHT} from '../render/render.js'
 import {identity, multiply, rotateX, rotateY, translate} from '../math/matrix.js'
 import {white0f, white1f, white2f} from '../editor/palette.js'
 import {flexText, flexSolve} from '../gui/flex.js'
@@ -97,8 +97,8 @@ export class HomeState {
     const height = client.height - client.top
 
     const fontScale = calcFontScale(scale)
-    const fontWidth = fontScale * FONT_WIDTH
-    const fontHeight = fontScale * FONT_HEIGHT
+    const fontWidth = fontScale * FONT_6x6_WIDTH
+    const fontHeight = fontScale * FONT_6x6_HEIGHT
 
     if (client.touch) renderTouch(client.touchRender)
 
