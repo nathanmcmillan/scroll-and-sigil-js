@@ -263,7 +263,7 @@ export class PaintEdit {
 
   leftStatusBar() {
     if (this.dialog !== null) return null
-    let input = this.input
+    const input = this.input
     if (input.x()) return 'COLOR: ' + describeColor(this.paletteC + this.paletteR * this.paletteColumns).toUpperCase()
     else if (input.y()) {
       const prefix = 'TOOL: '
@@ -276,7 +276,7 @@ export class PaintEdit {
 
   rightStatusBar() {
     if (this.dialog !== null) return 'A/OK B/CANCEL'
-    let input = this.input
+    const input = this.input
     if (input.x()) return 'X/OK'
     else if (input.y()) return 'Y/OK'
     else if (input.b()) return 'B/OK'
@@ -286,7 +286,7 @@ export class PaintEdit {
 
   immediateInput() {
     if (this.dialog === null) return
-    let input = this.input
+    const input = this.input
     if (input.pressB()) {
       this.dialog = null
       this.dialogStack.length = 0

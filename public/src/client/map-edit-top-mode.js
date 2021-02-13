@@ -3,7 +3,7 @@ import {spr} from '../render/pico.js'
 import {identity, multiply} from '../math/matrix.js'
 import {textureByName} from '../assets/assets.js'
 import {vectorSize, thingSize, SECTOR_TOOL, DESCRIBE_TOOL, DESCRIBE_ACTION, DESCRIBE_OPTIONS, OPTION_END_LINE, OPTION_END_LINE_NEW_VECTOR} from '../editor/maps.js'
-import {colorf, blackf, darkpurplef, darkgreyf, yellowf, whitef, greenf, redf} from '../editor/palette.js'
+import {colorf, blackf, darkpurple0f, darkpurple1f, darkpurple2f, darkgreyf, yellowf, whitef, greenf, redf} from '../editor/palette.js'
 import {renderTouch} from '../client/render-touch.js'
 import {calcFontScale, calcTopBarHeight, calcBottomBarHeight} from '../editor/editor-util.js'
 import {renderDialogBox, renderTextBox, textBoxWidth, textBoxHeight} from '../client/client-util.js'
@@ -145,7 +145,11 @@ export function renderMapEditTopMode(state) {
   const fontWidth = fontScale * FONT_6x6_WIDTH
   const fontHeight = fontScale * FONT_6x6_HEIGHT
 
-  drawText(client.bufferGUI, fontWidth, height - topBarHeight, DESCRIBE_TOOL[maps.tool].toUpperCase(), fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
+  // top left status
+
+  drawText(client.bufferGUI, fontWidth, height - topBarHeight, DESCRIBE_TOOL[maps.tool], fontScale, darkpurple0f, darkpurple1f, darkpurple2f, 1.0)
+
+  // bottom right status
 
   const options = DESCRIBE_OPTIONS[maps.action]
   if (options) {
@@ -157,50 +161,38 @@ export function renderMapEditTopMode(state) {
     }
     let x = width - rightStatusBar.length * fontWidth
     let y = 0
-    drawText(client.bufferGUI, x, y, rightStatusBar, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
+    drawText(client.bufferGUI, x, y, rightStatusBar, fontScale, darkpurple0f, darkpurple1f, darkpurple2f, 1.0)
   }
 
-  if (maps.selectedVec) {
-    let text = 'X:' + maps.selectedVec.x.toFixed(2) + ' Y:' + maps.selectedVec.y.toFixed(2)
-    let x = width - (text.length + 1) * fontWidth
-    drawText(client.bufferGUI, x, height - topBarHeight, text, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
-  } else if (maps.selectedThing) {
-    let thing = maps.selectedThing
-    let text = thing.entity.get('_wad') + ' X:' + thing.x.toFixed(2) + ' Y:' + thing.y.toFixed(2)
-    let x = width - (text.length + 1) * fontWidth
-    drawText(client.bufferGUI, x, height - topBarHeight, text, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
-  } else if (maps.selectedLine) {
-    let line = maps.selectedLine
-    let text = 'b:' + line.bottom.offset + ' m:' + line.middle.offset + ' t:' + line.top.offset
-    let x = width - (text.length + 1) * fontWidth
-    drawText(client.bufferGUI, x, height - topBarHeight, text, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
-    text = 'b:' + line.bottom.textureName() + ' m:' + line.middle.textureName() + ' t:' + line.top.textureName()
-    drawText(client.bufferGUI, fontWidth, 0, text, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
-  } else if (maps.selectedSector) {
-    let sector = maps.selectedSector
-    let text = 'b:' + sector.bottom + ' f:' + sector.floor + ' c:' + sector.ceiling + ' t:' + sector.top
-    let x = width - (text.length + 1) * fontWidth
-    drawText(client.bufferGUI, x, height - topBarHeight, text, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
-    text = 'f:' + sector.floorTextureName() + ' t:' + sector.ceilingTextureName()
-    drawText(client.bufferGUI, fontWidth, 0, text, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
-  }
+  // top right status
+
+  let y = height - topBarHeight
+
+  const topRightStatus = maps.topRightStatus()
+  if (topRightStatus) drawText(client.bufferGUI, width - (topRightStatus.length + 1) * fontWidth, y, topRightStatus, fontScale, darkpurple0f, darkpurple1f, darkpurple2f, 1.0)
+
+  // bottom left status
+
+  y = 0
+
+  const bottomLeftStatus = maps.bottomLeftStatus()
+  if (bottomLeftStatus) drawText(client.bufferGUI, fontWidth, y, bottomLeftStatus, fontScale, darkpurple0f, darkpurple1f, darkpurple2f, 1.0)
 
   rendering.bindTexture(gl.TEXTURE0, textureByName('tic-80-wide-font').texture)
   rendering.updateAndDraw(client.bufferGUI)
 
+  // dialog box, text box, or cursor
+
   if (maps.dialog != null) {
-    // dialog box
     renderDialogBox(state, scale, maps.dialog)
   } else if (maps.askName) {
-    // text box
     const box = maps.textBox
     renderTextBox(state, scale, box, 200, 200)
 
     client.bufferGUI.zero()
-    drawText(client.bufferGUI, 10, 10, maps.name, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
+    drawText(client.bufferGUI, 10, 10, maps.name, fontScale, darkpurple0f, darkpurple1f, darkpurple2f, 1.0)
     rendering.updateAndDraw(client.bufferGUI)
   } else {
-    // cursor
     rendering.setProgram(3)
     rendering.setView(0, client.top, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)

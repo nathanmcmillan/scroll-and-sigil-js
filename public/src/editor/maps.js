@@ -59,9 +59,9 @@ export const DO_CANCEL = 17
 export const ACTION_COUNT = 18
 
 export const DESCRIBE_TOOL = new Array(TOOL_COUNT)
-DESCRIBE_TOOL[DRAW_TOOL] = 'Draw mode'
-DESCRIBE_TOOL[THING_TOOL] = 'Thing mode'
-DESCRIBE_TOOL[SECTOR_TOOL] = 'Sector mode'
+DESCRIBE_TOOL[DRAW_TOOL] = 'DRAW'
+DESCRIBE_TOOL[THING_TOOL] = 'THINGS'
+DESCRIBE_TOOL[SECTOR_TOOL] = 'SECTORS'
 
 const DEFAULT_TOOL_OPTIONS = new Array(TOOL_COUNT)
 DEFAULT_TOOL_OPTIONS[DRAW_TOOL] = OPTION_DRAW_MODE_DEFAULT
@@ -229,7 +229,7 @@ export class MapEdit {
 
     this.doSectorRefresh = false
 
-    this.snapToGrid = false
+    this.snapToGrid = 0
     this.viewVecs = true
     this.viewLines = true
     this.viewSectors = true
@@ -1225,82 +1225,110 @@ export class MapEdit {
     }
 
     if (input.rightTrigger()) {
-      if (input.pressX()) {
-        // TODO: stickLeft and stickRight to control grid snap size
-        this.snapToGrid = !this.snapToGrid
-        return
+      if (input.timerStickLeft(timestamp, INPUT_RATE)) {
+        if (this.snapToGrid > 0) this.snapToGrid -= 5
+      }
+
+      if (input.timerStickRight(timestamp, INPUT_RATE)) {
+        if (this.snapToGrid < 100) this.snapToGrid += 5
       }
 
       if (input.stickUp()) {
-        this.zoom += 0.15
-        this.camera.x -= this.cursor.x / this.zoom
-        this.camera.z -= this.cursor.y / this.zoom
-        // this.camera.x -= 1.0 / this.zoom
-        // this.camera.z -= 1.0 / this.zoom
+        if (this.zoom < 100.0) {
+          // calculate x and y world cursor coordinates pre-zoom
+          let x = this.cursor.x / this.zoom
+          let y = this.cursor.y / this.zoom
+
+          this.zoom += 0.15
+          if (this.zoom > 100.0) this.zoom = 100.0
+
+          // then calculate x and y world middle of screen coordinates post-zoom and diff
+          x -= Math.floor(0.5 * this.width) / this.zoom
+          y -= Math.floor(0.5 * this.height) / this.zoom
+
+          console.log(this.zoom, '|', this.cursor.x, '|', Math.floor(0.5 * this.width), '|', x)
+
+          // this.camera.x += x
+          // this.camera.z += y
+
+          this.camera.x += (this.cursor.x - Math.floor(0.5 * this.width)) / this.zoom
+          this.camera.z += (this.cursor.y - Math.floor(0.5 * this.height)) / this.zoom
+        }
+        // return Math.floor((x + zgrid / 2) / zgrid) * gridscale + xoffset
+
+        // vectorUnderCursor(ignore = null) {
+        //   let x = this.camera.x + this.cursor.x / this.zoom
+        //   let y = this.camera.z + this.cursor.y / this.zoom
+        // }
+
+        // function mapX(x, zoom, camera) {
+        //   return zoom * (x - camera.x)
+        // }
       }
 
       if (input.stickDown()) {
-        this.zoom -= 0.15
-        this.camera.x += this.cursor.x / this.zoom
-        this.camera.z += this.cursor.y / this.zoom
-        // this.camera.x += 1.0 / this.zoom
-        // this.camera.z += 1.0 / this.zoom
+        if (this.zoom > 1.0) {
+          this.zoom -= 0.15
+          if (this.zoom < 1.0) this.zoom = 1.0
+        }
       }
     } else {
-      if (this.snapToGrid) {
-        const grid = 10
-        if (input.pressStickLeft()) {
-          let x = Math.floor(cursor.x)
-          let modulo = x % grid
-          if (modulo === 0) cursor.x -= grid
-          else cursor.x -= modulo
-          if (cursor.x < 0.0) cursor.x = 0.0
-        }
-        if (input.pressStickRight()) {
-          let x = Math.floor(cursor.x)
-          let modulo = x % grid
-          if (modulo === 0) cursor.x += grid
-          else cursor.x += grid - modulo
-          if (cursor.x > this.width) cursor.x = this.width
-        }
-        if (input.pressStickUp()) {
-          let y = Math.floor(cursor.y)
-          let modulo = y % grid
-          if (modulo === 0) cursor.y += grid
-          else cursor.y += grid - modulo
-          if (cursor.y > this.height) cursor.y = this.height
-        }
-        if (input.pressStickDown()) {
-          let y = Math.floor(cursor.y)
-          let modulo = y % grid
-          if (modulo === 0) cursor.y -= grid
-          else cursor.y -= modulo
-          if (cursor.y < 0.0) cursor.y = 0.0
-        }
-
-        if (input.pressStickLeft()) {
-          let x = Math.floor(camera.x)
-          let modulo = x % grid
-          if (modulo === 0) camera.x -= grid
-          else camera.x -= modulo
-        }
-        if (input.pressStickRight()) {
-          let x = Math.floor(camera.x)
-          let modulo = x % grid
-          if (modulo === 0) camera.x += grid
-          else camera.x += grid - modulo
-        }
-        if (input.pressStickUp()) {
-          let z = Math.floor(camera.z)
-          let modulo = z % grid
-          if (modulo === 0) camera.z += grid
-          else camera.z += grid - modulo
-        }
-        if (input.pressStickDown()) {
-          let z = Math.floor(camera.z)
-          let modulo = z % grid
-          if (modulo === 0) camera.z -= grid
-          else camera.z -= modulo
+      if (this.snapToGrid > 0) {
+        const grid = this.snapToGrid
+        if (input.b()) {
+          if (input.pressStickLeft()) {
+            let x = Math.floor(camera.x)
+            let modulo = x % grid
+            if (modulo === 0) camera.x -= grid
+            else camera.x -= modulo
+          }
+          if (input.pressStickRight()) {
+            let x = Math.floor(camera.x)
+            let modulo = x % grid
+            if (modulo === 0) camera.x += grid
+            else camera.x += grid - modulo
+          }
+          if (input.pressStickUp()) {
+            let z = Math.floor(camera.z)
+            let modulo = z % grid
+            if (modulo === 0) camera.z += grid
+            else camera.z += grid - modulo
+          }
+          if (input.pressStickDown()) {
+            let z = Math.floor(camera.z)
+            let modulo = z % grid
+            if (modulo === 0) camera.z -= grid
+            else camera.z -= modulo
+          }
+        } else {
+          if (input.pressStickLeft()) {
+            let x = Math.floor(cursor.x)
+            let modulo = x % grid
+            if (modulo === 0) cursor.x -= grid
+            else cursor.x -= modulo
+            if (cursor.x < 0.0) cursor.x = 0.0
+          }
+          if (input.pressStickRight()) {
+            let x = Math.floor(cursor.x)
+            let modulo = x % grid
+            if (modulo === 0) cursor.x += grid
+            else cursor.x += grid - modulo
+            if (cursor.x > this.width) cursor.x = this.width
+          }
+          if (input.pressStickUp()) {
+            let y = Math.floor(cursor.y)
+            let modulo = y % grid
+            if (modulo === 0) cursor.y += grid
+            else cursor.y += grid - modulo
+            if (cursor.y > this.height) cursor.y = this.height
+          }
+          if (input.pressStickDown()) {
+            let y = Math.floor(cursor.y)
+            let modulo = y % grid
+            if (modulo === 0) cursor.y -= grid
+            else cursor.y -= modulo
+            if (cursor.y < 0.0) cursor.y = 0.0
+          }
         }
       } else {
         const look = 4.0
@@ -1468,6 +1496,37 @@ export class MapEdit {
         camera.x += Math.sin(rotation) * speed
         camera.z -= Math.cos(rotation) * speed
       }
+    }
+  }
+
+  topRightStatus() {
+    if (this.selectedVec) {
+      return 'VEC ' + this.selectedVec.x.toFixed(2) + ', ' + this.selectedVec.y.toFixed(2)
+    } else if (this.selectedThing) {
+      let thing = this.selectedThing
+      return thing.entity.get('_wad').toUpperCase() + ' ' + thing.x.toFixed(2) + ', ' + thing.z.toFixed(2)
+    } else if (this.selectedLine) {
+      let line = this.selectedLine
+      return 'LINE B' + line.bottom.offset + ' M' + line.middle.offset + ' T' + line.top.offset
+    } else if (this.selectedSector) {
+      let sector = this.selectedSector
+      return 'B' + sector.bottom + ' F' + sector.floor + ' C' + sector.ceiling + ' T' + sector.top
+    }
+    return 'CURSOR ' + (this.camera.x + this.cursor.x / this.zoom).toFixed(2) + ', ' + (this.camera.z + this.cursor.y / this.zoom).toFixed(2)
+  }
+
+  bottomLeftStatus() {
+    const input = this.input
+    if (input.rightTrigger()) return 'SNAP TO GRID: ' + this.snapToGrid + ' ZOOM: ' + this.zoom.toFixed(2) + 'X'
+    if (this.selectedLine) {
+      let line = this.selectedLine
+      let bottom = line.bottom.textureName().toUpperCase()
+      let middle = line.middle.textureName().toUpperCase()
+      let top = line.top.textureName().toUpperCase()
+      return 'B:' + bottom + ' M:' + middle + ' T:' + top
+    } else if (this.selectedSector) {
+      let sector = this.selectedSector
+      return 'F:' + sector.floorTextureName().toUpperCase() + ' C:' + sector.ceilingTextureName().toUpperCase()
     }
   }
 
