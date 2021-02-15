@@ -101,7 +101,7 @@ export class PaintState {
   }
 
   keyEvent(code, down) {
-    let paint = this.paint
+    const paint = this.paint
     if (this.keys.has(code)) {
       paint.input.set(this.keys.get(code), down)
       paint.immediateInput()
@@ -485,7 +485,7 @@ export class PaintState {
 
     // left top bar text
 
-    y = canvasHeight - topBarHeight // Math.floor(0.5 * (topBarHeight + fontHeight))
+    y = canvasHeight - topBarHeight
 
     const leftTopBar = 'PAINT'
     drawText(client.bufferGUI, fontWidth, y, leftTopBar, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)

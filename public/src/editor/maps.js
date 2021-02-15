@@ -161,7 +161,7 @@ export function vectorSize(zoom) {
 }
 
 export function thingSize(thing, zoom) {
-  let box = Math.min(0.25, thing.box)
+  const box = Math.min(0.25, thing.box)
   return Math.ceil(box * zoom)
 }
 
@@ -741,9 +741,9 @@ export class MapEdit {
   }
 
   vectorUnderCursor(ignore = null) {
-    let x = this.camera.x + this.cursor.x / this.zoom
-    let y = this.camera.z + this.cursor.y / this.zoom
-    const size = vectorSize(this.zoom)
+    const x = this.camera.x + this.cursor.x / this.zoom
+    const y = this.camera.z + this.cursor.y / this.zoom
+    const size = 1.0
     let best = Number.MAX_VALUE
     let closest = null
     for (const vec of this.vecs) {
@@ -757,9 +757,9 @@ export class MapEdit {
   }
 
   lineUnderCursor() {
-    let x = this.camera.x + this.cursor.x / this.zoom
-    let y = this.camera.z + this.cursor.y / this.zoom
-    const size = vectorSize(this.zoom)
+    const x = this.camera.x + this.cursor.x / this.zoom
+    const y = this.camera.z + this.cursor.y / this.zoom
+    const size = 1.0
     let best = Number.MAX_VALUE
     let closest = null
     for (const line of this.lines) {
@@ -781,16 +781,16 @@ export class MapEdit {
   }
 
   placeVectorAtCursor() {
-    let x = this.camera.x + this.cursor.x / this.zoom
-    let y = this.camera.z + this.cursor.y / this.zoom
-    let vec = new VectorReference(x, y)
+    const x = this.camera.x + this.cursor.x / this.zoom
+    const y = this.camera.z + this.cursor.y / this.zoom
+    const vec = new VectorReference(x, y)
     this.vecs.push(vec)
     return vec
   }
 
   thingUnderCursor() {
-    let x = this.camera.x + this.cursor.x / this.zoom
-    let y = this.camera.z + this.cursor.y / this.zoom
+    const x = this.camera.x + this.cursor.x / this.zoom
+    const y = this.camera.z + this.cursor.y / this.zoom
     for (const thing of this.things) {
       let size = 0.25 * thingSize(thing, this.zoom)
       if (x >= thing.x - size && x <= thing.x + size && y >= thing.z - size && y <= thing.z + size) {
@@ -801,9 +801,9 @@ export class MapEdit {
   }
 
   placeThingAtCursor() {
-    let x = this.camera.x + this.cursor.x / this.zoom
-    let y = this.camera.z + this.cursor.y / this.zoom
-    let thing = new ThingReference(entityByName(this.defaultEntity), x, y)
+    const x = this.camera.x + this.cursor.x / this.zoom
+    const y = this.camera.z + this.cursor.y / this.zoom
+    const thing = new ThingReference(entityByName(this.defaultEntity), x, y)
     this.things.push(thing)
     return thing
   }
@@ -1235,41 +1235,27 @@ export class MapEdit {
 
       if (input.stickUp()) {
         if (this.zoom < 100.0) {
-          // calculate x and y world cursor coordinates pre-zoom
-          let x = this.cursor.x / this.zoom
-          let y = this.cursor.y / this.zoom
+          const x = (0.5 * this.width) / this.zoom
+          const y = (0.5 * this.height) / this.zoom
 
-          this.zoom += 0.15
-          if (this.zoom > 100.0) this.zoom = 100.0
+          this.zoom *= 1.15
+          if (this.zoom > 80.0) this.zoom = 80.0
 
-          // then calculate x and y world middle of screen coordinates post-zoom and diff
-          x -= Math.floor(0.5 * this.width) / this.zoom
-          y -= Math.floor(0.5 * this.height) / this.zoom
-
-          console.log(this.zoom, '|', this.cursor.x, '|', Math.floor(0.5 * this.width), '|', x)
-
-          // this.camera.x += x
-          // this.camera.z += y
-
-          this.camera.x += (this.cursor.x - Math.floor(0.5 * this.width)) / this.zoom
-          this.camera.z += (this.cursor.y - Math.floor(0.5 * this.height)) / this.zoom
+          this.camera.x += x - (0.5 * this.width) / this.zoom
+          this.camera.z += y - (0.5 * this.height) / this.zoom
         }
-        // return Math.floor((x + zgrid / 2) / zgrid) * gridscale + xoffset
-
-        // vectorUnderCursor(ignore = null) {
-        //   let x = this.camera.x + this.cursor.x / this.zoom
-        //   let y = this.camera.z + this.cursor.y / this.zoom
-        // }
-
-        // function mapX(x, zoom, camera) {
-        //   return zoom * (x - camera.x)
-        // }
       }
 
       if (input.stickDown()) {
         if (this.zoom > 1.0) {
-          this.zoom -= 0.15
+          const x = (0.5 * this.width) / this.zoom
+          const y = (0.5 * this.height) / this.zoom
+
+          this.zoom *= 0.85
           if (this.zoom < 1.0) this.zoom = 1.0
+
+          this.camera.x += x - (0.5 * this.width) / this.zoom
+          this.camera.z += y - (0.5 * this.height) / this.zoom
         }
       }
     } else {

@@ -16,10 +16,10 @@ A 3D adventure game with a strong focus on modding and user crafted content.
 
 ### High Priority
 
-- Fix maps zoom in and out
-- Vector and line selection too big, impossible to select sectors sometimes
 - Single file format for entire data pack
 - Tiles as sprites specified in regular image. Auto-generate OpenGL single image for repeating
+- Sector and triangle map generator is broken
+- When saving/exporting a map. Need to include all entity information. When exporting entire tape, can be separate
 
 ### Low Priority
 
