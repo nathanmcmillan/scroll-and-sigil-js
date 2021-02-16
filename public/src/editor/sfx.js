@@ -1,15 +1,16 @@
+import {fetchText} from '../client/net.js'
 import {Dialog} from '../gui/dialog.js'
-import {sawtooth} from '../sound/synth.js'
+import {waveFromName, diatonic, WAVE_LIST, SEMITONES, pulse} from '../sound/synth.js'
 
 // TODO: Every sound effect needs to be chainable e.g. (noise for 1s + sine for 1s + etc)
 
-const INPUT_RATE = 128
+export const WAVE_INDEX = 0
+export const FREQUENCY_INDEX = 1
+export const DURATION_INDEX = 2
+export const VOLUME_INDEX = 3
+export const CYCLE_INDEX = 13
 
-const WAVE_INDEX = 0
-const FREQUENCY_INDEX = 1
-const DURATION_INDEX = 2
-const VOLUME_INDEX = 3
-const ATTACK_INDEX = 4
+const INPUT_RATE = 128
 
 export class SfxEdit {
   constructor(parent, width, height, scale, input) {
@@ -22,10 +23,11 @@ export class SfxEdit {
     this.doPaint = true
     this.forcePaint = false
 
-    this.name = 'untitled'
+    this.row = 0
 
-    this.parameters = ['Wave', 'Frequency', 'Duration', 'Volume', 'Attack', 'Delay', 'Sustain', 'Release', 'Modulation', 'Noise', 'Bit Crush', 'Delay', 'Tremolo']
-    this.arguments = ['Sine', 440, 1016, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    this.name = 'untitled'
+    this.parameters = ['Wave', 'Frequency', 'Duration', 'Volume', 'Attack', 'Delay', 'Sustain', 'Release', 'Modulation', 'Noise', 'Bit Crush', 'Delay', 'Tremolo', 'Pulse Cycle']
+    this.arguments = [0, 49, 1000.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5]
 
     this.sounds = []
 
@@ -89,7 +91,7 @@ export class SfxEdit {
     }
   }
 
-  handleDialogSpecial(left) {}
+  handleDialogSpecial() {}
 
   dialogResetAll() {
     this.startMenuDialog.reset()
@@ -113,7 +115,47 @@ export class SfxEdit {
     this.doPaint = true
   }
 
-  async load() {}
+  read(content) {
+    this.clear()
+    try {
+      const sfx = content.split('\n')
+      let x = 0
+      for (let i = 1; i < sfx.length; i++) {
+        if (sfx[i] === 'end sound') break
+        const line = sfx[i].split(' ')
+        const value = line[line.length - 1]
+        this.arguments[x] = parseFloat(value)
+        x++
+      }
+    } catch (e) {
+      console.error(e)
+      this.errorOkDialog.title = 'Failed reading file'
+      this.dialog = this.errorOkDialog
+    }
+
+    this.shadowInput = true
+    this.doPaint = true
+  }
+
+  async load(file) {
+    let content = null
+    if (file) content = await fetchText(file)
+    else content = localStorage.getItem('sfx.txt')
+    if (content === null || content === undefined) return this.clear()
+    this.read(content)
+  }
+
+  topLeftStatus() {
+    return 'SOUND EFFECTS'
+  }
+
+  topRightStatus() {
+    return null
+  }
+
+  bottomLeftStatus() {
+    return null
+  }
 
   bottomRightStatus() {
     return 'A/INCREASE B/DECREASE X/PLAY'
@@ -166,12 +208,58 @@ export class SfxEdit {
     if (input.pressX()) {
       for (let sound of this.sounds) sound.stop()
       this.sounds.length = 0
-      this.sounds.push(sawtooth(0.25, this.pitch, this.duration / 1000))
+      const waveform = waveFromName(WAVE_LIST[this.arguments[WAVE_INDEX]].toLowerCase())
+      const pitch = diatonic(this.arguments[FREQUENCY_INDEX] - SEMITONES)
+      const seconds = this.arguments[DURATION_INDEX]
+      const amplitude = this.arguments[VOLUME_INDEX]
+      if (waveform === pulse) {
+        const cycle = this.arguments[CYCLE_INDEX]
+        this.sounds.push(waveform(amplitude, pitch, cycle, seconds / 1000.0))
+      } else {
+        this.sounds.push(waveform(amplitude, pitch, seconds / 1000.0))
+      }
+    }
+
+    if (input.timerStickUp(timestamp, INPUT_RATE)) {
+      if (this.row > 0) this.row--
+    } else if (input.timerStickDown(timestamp, INPUT_RATE)) {
+      if (this.row < this.parameters.length - 1) this.row++
+    }
+
+    if (input.timerStickLeft(timestamp, INPUT_RATE)) {
+      const row = this.row
+      if (row === WAVE_INDEX) {
+        if (this.arguments[row] > 0) this.arguments[row]--
+      } else if (row === FREQUENCY_INDEX) {
+        if (this.arguments[row] > 0) this.arguments[row]--
+      } else if (row === DURATION_INDEX) {
+        if (this.arguments[row] > 16) this.arguments[row] -= 16
+      } else if (row === CYCLE_INDEX) {
+        if (this.arguments[row] > 0.1) this.arguments[row] -= 0.05
+      } else {
+        if (this.arguments[row] > 0.2) this.arguments[row] -= 0.2
+      }
+    } else if (input.timerStickRight(timestamp, INPUT_RATE)) {
+      const row = this.row
+      if (row === WAVE_INDEX) {
+        if (this.arguments[row] < WAVE_LIST.length - 1) this.arguments[row]++
+      } else if (row === FREQUENCY_INDEX) {
+        if (this.arguments[row] < 99) this.arguments[row]++
+      } else if (row === DURATION_INDEX) {
+        if (this.arguments[row] < 8172) this.arguments[row] += 16
+      } else if (row === CYCLE_INDEX) {
+        if (this.arguments[row] < 0.95) this.arguments[row] += 0.05
+      } else {
+        if (this.arguments[row] < 10.0) this.arguments[row] += 0.2
+      }
     }
   }
 
   export() {
     let content = `sound ${this.name}\n`
+    for (let i = 0; i < this.parameters.length; i++) {
+      content += `${this.parameters[i].toLowerCase().replace(' ', '_')} ${this.arguments[i]}\n`
+    }
     content += 'end sound\n'
     return content
   }

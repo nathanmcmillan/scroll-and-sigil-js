@@ -1,12 +1,12 @@
-import {drawText, drawRectangle, drawLine, drawTriangle, FONT_6x6_WIDTH, FONT_6x6_HEIGHT} from '../render/render.js'
+import {drawText, drawRectangle, drawLine, drawTriangle, FONT_6x6_WIDTH} from '../render/render.js'
 import {spr} from '../render/pico.js'
 import {identity, multiply} from '../math/matrix.js'
 import {textureByName} from '../assets/assets.js'
-import {vectorSize, thingSize, SECTOR_TOOL, DESCRIBE_TOOL, DESCRIBE_ACTION, DESCRIBE_OPTIONS, OPTION_END_LINE, OPTION_END_LINE_NEW_VECTOR} from '../editor/maps.js'
+import {vectorSize, thingSize, SECTOR_TOOL, OPTION_END_LINE, OPTION_END_LINE_NEW_VECTOR} from '../editor/maps.js'
 import {colorf, blackf, darkpurple0f, darkpurple1f, darkpurple2f, darkgreyf, yellowf, whitef, greenf, redf} from '../editor/palette.js'
 import {renderTouch} from '../client/render-touch.js'
 import {calcFontScale, calcTopBarHeight, calcBottomBarHeight} from '../editor/editor-util.js'
-import {renderDialogBox, renderTextBox, textBoxWidth, textBoxHeight} from '../client/client-util.js'
+import {renderDialogBox, renderTextBox, renderStatus} from '../client/client-util.js'
 
 function mapX(x, zoom, camera) {
   return zoom * (x - camera.x)
@@ -144,40 +144,10 @@ export function renderMapEditTopMode(state) {
 
   const fontScale = calcFontScale(scale)
   const fontWidth = fontScale * FONT_6x6_WIDTH
-  const fontHeight = fontScale * FONT_6x6_HEIGHT
 
-  // top left status
+  //  status text
 
-  drawText(client.bufferGUI, fontWidth, height - topBarHeight, DESCRIBE_TOOL[maps.tool], fontScale, darkpurple0f, darkpurple1f, darkpurple2f, 1.0)
-
-  // bottom right status
-
-  const options = DESCRIBE_OPTIONS[maps.action]
-  if (options) {
-    let rightStatusBar = ''
-    for (const [button, option] of options) {
-      let key = state.keys.reversed(button)
-      if (key.startsWith('Key')) key = key.substring(3)
-      rightStatusBar += key + '/' + DESCRIBE_ACTION[option] + ' '
-    }
-    let x = width - rightStatusBar.length * fontWidth
-    let y = 0
-    drawText(client.bufferGUI, x, y, rightStatusBar, fontScale, darkpurple0f, darkpurple1f, darkpurple2f, 1.0)
-  }
-
-  // top right status
-
-  let y = height - topBarHeight
-
-  const topRightStatus = maps.topRightStatus()
-  if (topRightStatus) drawText(client.bufferGUI, width - (topRightStatus.length + 1) * fontWidth, y, topRightStatus, fontScale, darkpurple0f, darkpurple1f, darkpurple2f, 1.0)
-
-  // bottom left status
-
-  y = 0
-
-  const bottomLeftStatus = maps.bottomLeftStatus()
-  if (bottomLeftStatus) drawText(client.bufferGUI, fontWidth, y, bottomLeftStatus, fontScale, darkpurple0f, darkpurple1f, darkpurple2f, 1.0)
+  renderStatus(client, width, height, fontWidth, fontScale, topBarHeight, maps)
 
   rendering.bindTexture(gl.TEXTURE0, textureByName('tic-80-wide-font').texture)
   rendering.updateAndDraw(client.bufferGUI)

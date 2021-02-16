@@ -734,8 +734,8 @@ export class MapEdit {
 
   async load(file) {
     let content = null
-    if (file === null) content = localStorage.getItem('map.txt')
-    else content = await fetchText(file)
+    if (file) content = await fetchText(file)
+    else content = localStorage.getItem('map.txt')
     if (content === null || content === undefined) return this.clear()
     this.read(content)
   }
@@ -1485,6 +1485,10 @@ export class MapEdit {
     }
   }
 
+  topLeftStatus() {
+    return DESCRIBE_TOOL[this.tool]
+  }
+
   topRightStatus() {
     if (this.selectedVec) {
       return 'VEC ' + this.selectedVec.x.toFixed(2) + ', ' + this.selectedVec.y.toFixed(2)
@@ -1514,6 +1518,21 @@ export class MapEdit {
       let sector = this.selectedSector
       return 'F:' + sector.floorTextureName().toUpperCase() + ' C:' + sector.ceilingTextureName().toUpperCase()
     }
+  }
+
+  bottomRightStatus() {
+    const options = DESCRIBE_OPTIONS[this.action]
+    if (options) {
+      let content = ''
+      let one = true
+      for (const [button, option] of options) {
+        if (one) one = false
+        else content += ' '
+        content += `${this.input.name(button).toUpperCase()}/${DESCRIBE_ACTION[option]}`
+      }
+      return content
+    }
+    return null
   }
 
   immediateInput() {

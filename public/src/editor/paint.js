@@ -255,13 +255,21 @@ export class PaintEdit {
 
   async load(file) {
     let content = null
-    if (file === null) content = localStorage.getItem('paint.txt')
-    else content = await fetchText(file)
+    if (file) content = await fetchText(file)
+    else content = localStorage.getItem('paint.txt')
     if (content === null || content === undefined) return this.clear()
     this.read(content, 0)
   }
 
-  leftStatusBar() {
+  topLeftStatus() {
+    return 'PAINT'
+  }
+
+  topRightStatus() {
+    return null
+  }
+
+  bottomLeftStatus() {
     if (this.dialog !== null) return null
     const input = this.input
     if (input.x()) return 'COLOR: ' + describeColor(this.paletteC + this.paletteR * this.paletteColumns).toUpperCase()
@@ -274,7 +282,7 @@ export class PaintEdit {
     else return 'X:' + (this.positionOffsetC + this.positionC) + ' Y:' + (this.positionOffsetR + this.positionR)
   }
 
-  rightStatusBar() {
+  bottomRightStatus() {
     if (this.dialog !== null) return 'A/OK B/CANCEL'
     const input = this.input
     if (input.x()) return 'X/OK'

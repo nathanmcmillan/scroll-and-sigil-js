@@ -1,13 +1,13 @@
-import {semitoneName, lengthName, MusicEdit, SEMITONES} from '../editor/music.js'
+import {semitoneName, SEMITONES} from '../sound/synth.js'
+import {lengthName, MusicEdit} from '../editor/music.js'
 import {textureByName} from '../assets/assets.js'
-import {drawText, drawTextSpecial, drawRectangle, FONT_6x6_WIDTH, FONT_6x6_HEIGHT} from '../render/render.js'
+import {drawTextSpecial, drawRectangle, FONT_6x6_WIDTH, FONT_6x6_HEIGHT} from '../render/render.js'
 import {spr, sprcol} from '../render/pico.js'
 import {identity, multiply} from '../math/matrix.js'
-import {whitef, redf, darkpurplef, darkgreyf} from '../editor/palette.js'
+import {whitef, redf, darkgreyf} from '../editor/palette.js'
 import {flexBox, flexSolve} from '../gui/flex.js'
-import {compress} from '../compress/huffman.js'
 import {calcFontScale} from '../editor/editor-util.js'
-import * as In from '../input/input.js'
+import {renderDialogBox, renderStatus} from '../client/client-util.js'
 
 export class MusicState {
   constructor(client) {
@@ -17,7 +17,7 @@ export class MusicState {
     this.view = new Float32Array(16)
     this.projection = new Float32Array(16)
 
-    let music = new MusicEdit(client.width, client.height - client.top, client.scale, client.input)
+    let music = new MusicEdit(this, client.width, client.height - client.top, client.scale, client.input)
     this.music = music
   }
 
@@ -28,30 +28,10 @@ export class MusicState {
   }
 
   keyEvent(code, down) {
-    let music = this.music
-    if (this.keys.has(code)) music.input.set(this.keys.get(code), down)
-    if (down && code === 'Digit1') {
-      this.client.openState('dashboard')
-    } else if (down && code === 'Digit0') {
-      // local storage
-      let blob = music.export()
-      localStorage.setItem('music.txt', blob)
-      console.info('saved to local storage!')
-      console.info(blob)
-    } else if (down && code === 'Digit6') {
-      // compressed text
-      let blob = compress(music.export())
-      let download = document.createElement('a')
-      download.href = window.URL.createObjectURL(new Blob([blob], {type: 'application/octet-stream'}))
-      download.download = 'music' + music.trackIndex + '.huff'
-      download.click()
-    } else if (down && code === 'Digit8') {
-      // plain text
-      let blob = music.export()
-      let download = document.createElement('a')
-      download.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(blob)
-      download.download = 'music' + music.trackIndex + '.txt'
-      download.click()
+    const music = this.music
+    if (this.keys.has(code)) {
+      music.input.set(this.keys.get(code), down)
+      music.immediateInput()
     }
   }
 
@@ -63,9 +43,51 @@ export class MusicState {
     await this.music.load()
   }
 
+  eventCall(event) {
+    if (event === 'start-export') this.export()
+    else if (event === 'save-save') this.save()
+    else if (event === 'start-open') this.import()
+    else if (event === 'start-save') this.save()
+    else if (event === 'start-exit') this.returnToDashboard()
+  }
+
+  returnToDashboard() {
+    this.client.openState('dashboard')
+  }
+
+  import() {
+    let button = document.createElement('input')
+    button.type = 'file'
+    button.onchange = (e) => {
+      let file = e.target.files[0]
+      console.info(file)
+      let reader = new FileReader()
+      reader.readAsText(file, 'UTF-8')
+      reader.onload = (event) => {
+        let content = event.target.result
+        this.music.read(content, 0)
+      }
+    }
+    button.click()
+  }
+
+  save() {
+    let blob = this.music.export()
+    localStorage.setItem('music.txt', blob)
+    console.info(blob)
+    console.info('saved to local storage!')
+  }
+
+  export() {
+    let blob = this.music.export()
+    let download = document.createElement('a')
+    download.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(blob)
+    download.download = 'music.txt'
+    download.click()
+  }
+
   update(timestamp) {
-    let music = this.music
-    music.update(timestamp)
+    this.music.update(timestamp)
   }
 
   render() {
@@ -106,20 +128,18 @@ export class MusicState {
     client.bufferGUI.zero()
 
     // top bar
+
     let topBarHeight = fontHeight + 2 * pad
     drawRectangle(buffer, 0, height - topBarHeight, width, topBarHeight, redf(0), redf(1), redf(2), 1.0)
 
     // bottom bar
-    drawRectangle(buffer, 0, 0, width, topBarHeight, redf(0), redf(1), redf(2), 1.0)
 
-    // sub menu
-    if (music.subMenu !== null) {
-      drawRectangle(buffer, Math.floor(width * 0.1), Math.floor(height * 0.1), Math.floor(width * 0.8), Math.floor(height * 0.8), whitef(0), whitef(1), whitef(2), 1.0)
-    }
+    drawRectangle(buffer, 0, 0, width, topBarHeight, redf(0), redf(1), redf(2), 1.0)
 
     rendering.updateAndDraw(buffer)
 
     // text
+
     rendering.setProgram(4)
     rendering.setView(0, client.top, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
@@ -169,42 +189,8 @@ export class MusicState {
       pos += noteWidth
     }
 
-    // keys
-    let startKey = this.keys.reversed(In.BUTTON_START)
-    if (startKey.startsWith('Key')) startKey = startKey.substring(3)
-
-    let selectKey = this.keys.reversed(In.BUTTON_SELECT)
-    if (selectKey.startsWith('Key')) selectKey = selectKey.substring(3)
-
-    let buttonA = this.keys.reversed(In.BUTTON_A)
-    if (buttonA.startsWith('Key')) buttonA = buttonA.substring(3)
-
-    let buttonB = this.keys.reversed(In.BUTTON_B)
-    if (buttonB.startsWith('Key')) buttonB = buttonB.substring(3)
-
-    let buttonX = this.keys.reversed(In.BUTTON_X)
-    if (buttonX.startsWith('Key')) buttonX = buttonX.substring(3)
-
-    let buttonY = this.keys.reversed(In.BUTTON_Y)
-    if (buttonY.startsWith('Key')) buttonY = buttonY.substring(3)
-
     let tempoText = 'Tempo:' + music.tempo
     drawTextSpecial(client.bufferGUI, 20, height - fontHeight * 3, tempoText, fontScale, whitef(0), whitef(1), whitef(2))
-
-    // top info
-    let topBarText = '(' + startKey + ')FILE EDIT VIEW HELP'
-    drawText(client.bufferGUI, 0, height - topBarHeight + pad - scale, topBarText, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
-
-    let topBarSwitch = '(' + selectKey + ')HCLPSM '
-    let topBarWidth = topBarSwitch.length * fontWidth
-    drawText(client.bufferGUI, width - topBarWidth, height - topBarHeight + pad - scale, topBarSwitch, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
-
-    let infoText = noteR === 0 ? '(' + buttonB + ')Duration down (' + buttonA + ')Duration up ' : '(' + buttonB + ')Pitch down (' + buttonA + ')Pitch up '
-    infoText += '(' + buttonY + ')Options '
-    infoText += '(' + selectKey + ')Edit track  '
-    infoText += '(' + startKey + ')Menu '
-    infoText += music.play ? '(' + buttonX + ')Stop' : '(' + buttonX + ')Play'
-    drawTextSpecial(client.bufferGUI, 20, 100, infoText, fontScale, whitef(0), whitef(1), whitef(2))
 
     drawTextSpecial(client.bufferGUI, 20, 200, lengthName(notes[noteC][0]), smallFontScale, whitef(0), whitef(1), whitef(2))
     for (let r = 1; r < noteRows; r++) {
@@ -214,6 +200,10 @@ export class MusicState {
       else noteText = semitoneName(note - SEMITONES)
       drawTextSpecial(client.bufferGUI, 20, 200 - r * noteHeight, noteText, smallFontScale, whitef(0), whitef(1), whitef(2))
     }
+
+    //  status text
+
+    renderStatus(client, width, height, fontWidth, fontScale, topBarHeight, music)
 
     rendering.bindTexture(gl.TEXTURE0, textureByName('tic-80-wide-font').texture)
     rendering.updateAndDraw(client.bufferGUI)
@@ -249,5 +239,9 @@ export class MusicState {
 
     rendering.bindTexture(gl.TEXTURE0, textureByName('editor-sprites').texture)
     rendering.updateAndDraw(client.bufferGUI)
+
+    // dialog box
+
+    if (music.dialog != null) renderDialogBox(this, scale, music.dialog)
   }
 }

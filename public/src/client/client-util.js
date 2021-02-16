@@ -1,6 +1,22 @@
 import {textureByName} from '../assets/assets.js'
 import {drawText, drawRectangle, drawHollowRectangle, FONT_6x6_WIDTH, FONT_6x6_HEIGHT_BASE, drawTextSpecial} from '../render/render.js'
-import {white0f, white1f, white2f, lightpeach0f, lightpeach1f, lightpeach2f, orange0f, orange1f, orange2f, darkgrey0f, darkgrey1f, darkgrey2f} from '../editor/palette.js'
+import {
+  white0f,
+  white1f,
+  white2f,
+  darkpurple0f,
+  darkpurple1f,
+  darkpurple2f,
+  lightpeach0f,
+  lightpeach1f,
+  lightpeach2f,
+  orange0f,
+  orange1f,
+  orange2f,
+  darkgrey0f,
+  darkgrey1f,
+  darkgrey2f,
+} from '../editor/palette.js'
 import {calcFontScale, calcThickness, calcFontPad, calcLongest} from '../editor/editor-util.js'
 
 export function renderDialogBox(state, scale, dialog) {
@@ -146,4 +162,19 @@ export function renderTextBox(state, scale, box, x, y) {
 
   rendering.bindTexture(gl.TEXTURE0, textureByName('tic-80-wide-font').texture)
   rendering.updateAndDraw(client.bufferGUI)
+}
+
+export function renderStatus(client, width, height, fontWidth, fontScale, topBarHeight, edit) {
+  const topLeftStatus = edit.topLeftStatus()
+  drawText(client.bufferGUI, fontWidth, height - topBarHeight, topLeftStatus, fontScale, darkpurple0f, darkpurple1f, darkpurple2f, 1.0)
+
+  const topRightStatus = edit.topRightStatus()
+  if (topRightStatus)
+    drawText(client.bufferGUI, width - (topRightStatus.length + 1) * fontWidth, height - topBarHeight, topRightStatus, fontScale, darkpurple0f, darkpurple1f, darkpurple2f, 1.0)
+
+  const bottmRightStatus = edit.bottomRightStatus()
+  if (bottmRightStatus) drawText(client.bufferGUI, width - (bottmRightStatus.length + 1) * fontWidth, 0, bottmRightStatus, fontScale, darkpurple0f, darkpurple1f, darkpurple2f, 1.0)
+
+  const bottomLeftStatus = edit.bottomLeftStatus()
+  if (bottomLeftStatus) drawText(client.bufferGUI, fontWidth, 0, bottomLeftStatus, fontScale, darkpurple0f, darkpurple1f, darkpurple2f, 1.0)
 }

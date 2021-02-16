@@ -8,23 +8,8 @@ import {flexBox, flexSolve} from '../gui/flex.js'
 import {compress, decompress} from '../compress/huffman.js'
 import {createPixelsToTexture} from '../webgl/webgl.js'
 import {calcFontScale, calcThickness, calcTopBarHeight, calcBottomBarHeight} from '../editor/editor-util.js'
-import {renderDialogBox} from '../client/client-util.js'
-import {
-  black0f,
-  black1f,
-  black2f,
-  white0f,
-  white1f,
-  white2f,
-  lightgreyf,
-  lavenderf,
-  lightpeachf,
-  redf,
-  darkpurplef,
-  darkgreyf,
-  luminosity,
-  luminosityTable,
-} from '../editor/palette.js'
+import {renderDialogBox, renderStatus} from '../client/client-util.js'
+import {black0f, black1f, black2f, white0f, white1f, white2f, lightgreyf, lavenderf, redf, darkgreyf, luminosity, luminosityTable} from '../editor/palette.js'
 
 function updatePixelsToTexture(gl, texture, width, height, pixels) {
   gl.bindTexture(gl.TEXTURE_2D, texture)
@@ -249,8 +234,8 @@ export class PaintState {
     const thickness = calcThickness(scale)
     const doubleThick = 2 * thickness
 
-    const canvasWidth = client.width
-    const canvasHeight = client.height - client.top
+    const width = client.width
+    const height = client.height - client.top
 
     let brushSize = paint.brushSize
     let canvasZoom = paint.canvasZoom
@@ -271,10 +256,10 @@ export class PaintState {
 
     let toolColumns = paint.toolColumns
 
-    let magnify, top, left, width, height, box, x, y
+    let magnify, top, left, boxWidth, boxHeight, box, x, y
 
     rendering.setProgram(1)
-    rendering.setView(0, client.top, canvasWidth, canvasHeight)
+    rendering.setView(0, client.top, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
 
     gl.clearColor(darkgreyf(0), darkgreyf(1), darkgreyf(2), 1.0)
@@ -295,10 +280,10 @@ export class PaintState {
     magnify = 2 * scale
     left = sheetBox.x
     top = sheetBox.y
-    width = sheetBox.width
-    height = sheetBox.height
+    boxWidth = sheetBox.width
+    boxHeight = sheetBox.height
 
-    drawImage(client.bufferGUI, left, top, width, height, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0)
+    drawImage(client.bufferGUI, left, top, boxWidth, boxHeight, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0)
 
     // mini view
 
@@ -307,12 +292,12 @@ export class PaintState {
     let sr = (posOffsetC + canvasZoom) / sheetColumns
     let sb = (posOffsetR + canvasZoom) / sheetRows
 
-    width = 16 * scale
-    height = 16 * scale
+    boxWidth = 16 * scale
+    boxHeight = 16 * scale
     left = viewBox.x
     top = toolBox.y
 
-    drawImage(client.bufferGUI, left, top, width, height, 1.0, 1.0, 1.0, 1.0, sl, st, sr, sb)
+    drawImage(client.bufferGUI, left, top, boxWidth, boxHeight, 1.0, 1.0, 1.0, 1.0, sl, st, sr, sb)
 
     // view
 
@@ -324,28 +309,28 @@ export class PaintState {
 
     left = viewBox.x
     top = viewBox.y
-    width = viewBox.width
-    height = viewBox.height
+    boxWidth = viewBox.width
+    boxHeight = viewBox.height
 
-    drawImage(client.bufferGUI, left, top, width, height, 1.0, 1.0, 1.0, 1.0, sl, st, sr, sb)
+    drawImage(client.bufferGUI, left, top, boxWidth, boxHeight, 1.0, 1.0, 1.0, 1.0, sl, st, sr, sb)
 
     rendering.bindTexture(gl.TEXTURE0, this.texture)
     rendering.updateAndDraw(client.bufferGUI)
 
     rendering.setProgram(0)
-    rendering.setView(0, client.top, canvasWidth, canvasHeight)
+    rendering.setView(0, client.top, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
 
     // box around view
 
     client.bufferColor.zero()
 
-    drawHollowRectangle(client.bufferColor, left - thickness, top - thickness, width + doubleThick, height + doubleThick, thickness, black0f, black1f, black2f, 1.0)
+    drawHollowRectangle(client.bufferColor, left - thickness, top - thickness, boxWidth + doubleThick, boxHeight + doubleThick, thickness, black0f, black1f, black2f, 1.0)
 
     // focus box around view
 
     x = left + posC * magnify
-    y = top + height - posR * magnify
+    y = top + boxHeight - posR * magnify
     box = magnify * brushSize
     drawHollowRectangle(client.bufferColor, x, y - box, box, box, thickness, black0f, black1f, black2f, 1.0)
     drawHollowRectangle(client.bufferColor, x - thickness, y - thickness - box, box + doubleThick, box + doubleThick, thickness, white0f, white1f, white2f, 1.0)
@@ -355,31 +340,31 @@ export class PaintState {
     magnify = 2 * scale
     left = sheetBox.x
     top = sheetBox.y
-    width = sheetBox.width
-    height = sheetBox.height
+    boxWidth = sheetBox.width
+    boxHeight = sheetBox.height
 
     // box around sheet
 
-    drawHollowRectangle(client.bufferColor, left - thickness, top - thickness, width + doubleThick, height + doubleThick, thickness, black0f, black1f, black2f, 1.0)
+    drawHollowRectangle(client.bufferColor, left - thickness, top - thickness, boxWidth + doubleThick, boxHeight + doubleThick, thickness, black0f, black1f, black2f, 1.0)
 
     // focus box around sheet
 
     x = left + posOffsetC * magnify
-    y = top + height - posOffsetR * magnify
+    y = top + boxHeight - posOffsetR * magnify
     box = canvasZoom * magnify
     drawHollowRectangle(client.bufferColor, x - thickness, y - thickness - box, box + doubleThick, box + doubleThick, thickness, white0f, white1f, white2f, 1.0)
 
     // pallete
 
     magnify = 16 * scale
-    width = paletteBox.width
-    height = paletteBox.height
+    boxWidth = paletteBox.width
+    boxHeight = paletteBox.height
     left = paletteBox.x
     top = paletteBox.y
     for (let r = 0; r < paletteRows; r++) {
       for (let c = 0; c < paletteColumns; c++) {
         let x = left + c * magnify
-        let y = top + height - (r + 1) * magnify
+        let y = top + boxHeight - (r + 1) * magnify
         let index = (c + r * paletteColumns) * 3
         let red = palette[index]
         let green = palette[index + 1]
@@ -390,29 +375,29 @@ export class PaintState {
 
     // box around palette
 
-    drawHollowRectangle(client.bufferColor, left - thickness, top - thickness, width + doubleThick, height + doubleThick, thickness, black0f, black1f, black2f, 1.0)
+    drawHollowRectangle(client.bufferColor, left - thickness, top - thickness, boxWidth + doubleThick, boxHeight + doubleThick, thickness, black0f, black1f, black2f, 1.0)
 
     // focus box around palette
 
     x = left + paint.paletteC * magnify
-    y = top + height - (paint.paletteR + 1) * magnify
+    y = top + boxHeight - (paint.paletteR + 1) * magnify
     drawHollowRectangle(client.bufferColor, x, y, magnify, magnify, thickness, black0f, black1f, black2f, 1.0)
     drawHollowRectangle(client.bufferColor, x - thickness, y - thickness, magnify + doubleThick, magnify + doubleThick, thickness, white0f, white1f, white2f, 1.0)
 
     // top and bottom bar
 
     const topBarHeight = calcTopBarHeight(scale)
-    drawRectangle(client.bufferColor, 0, canvasHeight - topBarHeight, canvasWidth, topBarHeight, redf(0), redf(1), redf(2), 1.0)
+    drawRectangle(client.bufferColor, 0, height - topBarHeight, width, topBarHeight, redf(0), redf(1), redf(2), 1.0)
 
     const bottomBarHeight = calcBottomBarHeight(scale)
-    drawRectangle(client.bufferColor, 0, 0, canvasWidth, bottomBarHeight, redf(0), redf(1), redf(2), 1.0)
+    drawRectangle(client.bufferColor, 0, 0, width, bottomBarHeight, redf(0), redf(1), redf(2), 1.0)
 
     rendering.updateAndDraw(client.bufferColor)
 
     // special textures
 
     rendering.setProgram(3)
-    rendering.setView(0, client.top, canvasWidth, canvasHeight)
+    rendering.setView(0, client.top, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
 
     client.bufferGUI.zero()
@@ -432,23 +417,13 @@ export class PaintState {
       }
     }
 
-    // right top bar
-
-    let spriteSize = 16 * scale
-    x = canvasWidth - fontWidth
-    y = canvasHeight - topBarHeight - Math.floor(0.2 * spriteSize)
-    for (let c = 17; c < 21; c++) {
-      if (c === 17) sprcol(client.bufferGUI, c, 1.0, 1.0, x - (21 - c) * spriteSize, y, spriteSize, spriteSize, lightpeachf(0), lightpeachf(1), lightpeachf(2), 1.0)
-      else sprcol(client.bufferGUI, c, 1.0, 1.0, x - (21 - c) * spriteSize, y, spriteSize, spriteSize, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
-    }
-
     rendering.bindTexture(gl.TEXTURE0, textureByName('editor-sprites').texture)
     rendering.updateAndDraw(client.bufferGUI)
 
     // text
 
     rendering.setProgram(4)
-    rendering.setView(0, client.top, canvasWidth, canvasHeight)
+    rendering.setView(0, client.top, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
 
     client.bufferGUI.zero()
@@ -483,23 +458,9 @@ export class PaintState {
     flexSolve(0, 0, positionBox)
     drawText(client.bufferGUI, positionBox.x, positionBox.y, displayIndex, fontScale, lightgreyf(0), lightgreyf(1), lightgreyf(2), 1.0)
 
-    // left top bar text
+    //  status text
 
-    y = canvasHeight - topBarHeight
-
-    const leftTopBar = 'PAINT'
-    drawText(client.bufferGUI, fontWidth, y, leftTopBar, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
-
-    // bottom bar text
-
-    y = 0
-
-    const leftStatusBar = paint.leftStatusBar()
-    if (leftStatusBar) drawText(client.bufferGUI, fontWidth, y, leftStatusBar, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
-
-    const rightStatusBar = paint.rightStatusBar()
-    if (rightStatusBar)
-      drawText(client.bufferGUI, canvasWidth - (rightStatusBar.length + 1) * fontWidth, y, rightStatusBar, fontScale, darkpurplef(0), darkpurplef(1), darkpurplef(2), 1.0)
+    renderStatus(client, width, height, fontWidth, fontScale, topBarHeight, paint)
 
     rendering.bindTexture(gl.TEXTURE0, textureByName('tic-80-wide-font').texture)
     rendering.updateAndDraw(client.bufferGUI)

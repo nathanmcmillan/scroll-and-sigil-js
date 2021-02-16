@@ -256,4 +256,34 @@ export class Input {
   doubleRightTrigger(now) {
     return this.double(now, RIGHT_TRIGGER)
   }
+
+  name(button) {
+    switch (button) {
+      case BUTTON_START:
+        return 'start'
+      case BUTTON_SELECT:
+        return 'select'
+      case STICK_UP:
+        return 'up'
+      case STICK_DOWN:
+        return 'down'
+      case STICK_LEFT:
+        return 'left'
+      case STICK_RIGHT:
+        return 'right'
+      case BUTTON_X:
+        return 'x'
+      case BUTTON_Y:
+        return 'y'
+      case BUTTON_A:
+        return 'a'
+      case BUTTON_B:
+        return 'b'
+      case LEFT_TRIGGER:
+        return 'left trigger'
+      case RIGHT_TRIGGER:
+        return 'right trigger'
+    }
+    return null
+  }
 }

@@ -188,6 +188,8 @@ export class Client {
   async initialize() {
     const gl = this.gl
 
+    for (let i = 0; i < localStorage.length; i++) console.debug(localStorage.key(i))
+
     const main = Wad.parse(await fetchText('main.wad'))
     const pack = main.get('package')
     const directory = './pack/' + pack

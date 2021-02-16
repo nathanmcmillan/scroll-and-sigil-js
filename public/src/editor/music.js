@@ -1,9 +1,7 @@
-import {noise, sine, square, pulse, triangle, sawtooth, synthTime} from '../sound/synth.js'
-
-export const SEMITONES = 49
+import {Dialog} from '../gui/dialog.js'
+import {waveFromName, synthTime, SEMITONES, diatonic} from '../sound/synth.js'
 
 const INPUT_RATE = 128
-const NOTE_NAMES = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'G#', 'A', 'Bb', 'B']
 
 class Track {
   constructor(name) {
@@ -33,26 +31,16 @@ export function lengthName(num) {
   }
 }
 
-export function semitoneName(semitone) {
-  semitone += 9
-  let note = semitone % 12
-  while (note < 0) note += 12
-  let octave = 4 + Math.floor(semitone / 12)
-  return NOTE_NAMES[note] + octave
-}
-
-export function diatonic(semitone) {
-  return 440 * 2 ** (semitone / 12)
-}
-
 export class MusicEdit {
-  constructor(width, height, scale, input) {
+  constructor(parent, width, height, scale, input) {
+    this.parent = parent
     this.width = width
     this.height = height
     this.scale = scale
     this.input = input
     this.shadowInput = true
     this.doPaint = true
+    this.forcePaint = false
 
     this.pitcheRows = 3
     this.noteRows = this.pitcheRows + 1
@@ -67,12 +55,88 @@ export class MusicEdit {
     this.play = false
     this.noteTimestamp = 0
 
+    this.name = 'untitled'
+
     this.tracks = [new Track('Sine')]
     this.trackIndex = 0
 
-    this.subMenu = null
-
     this.sounds = []
+
+    this.dialog = null
+    this.dialogStack = []
+
+    this.startMenuDialog = new Dialog('start', null, ['name', 'new', 'open', 'save', 'export', 'exit'])
+    this.subMenuDialog = new Dialog('sub', null, ['new track', 'edit track', 'tempo', 'transpose'])
+    this.askToSaveDialog = new Dialog('ask', 'save current file?', ['save', 'export', 'no'])
+    this.saveOkDialog = new Dialog('ok', 'file saved', ['ok'])
+    this.errorOkDialog = new Dialog('error', null, ['ok'])
+  }
+
+  clear() {}
+
+  reset() {
+    this.dialogResetAll()
+  }
+
+  handleDialog(event) {
+    if (event === 'ask-no') {
+      const poll = this.dialogStack[0]
+      if (poll === 'start-new') this.clear()
+      else this.parent.eventCall(poll)
+      this.dialogEnd()
+    } else if (event === 'ask-save') {
+      const poll = this.dialogStack[0]
+      if (poll === 'start-exit') {
+        this.parent.eventCall('start-save')
+        this.dialogStack.push(event)
+        this.dialog = this.saveOkDialog
+        this.forcePaint = true
+      } else this.dialogEnd()
+    } else if (event === 'ask-export') {
+      const poll = this.dialogStack[0]
+      if (poll === 'start-exit') {
+        this.parent.eventCall('start-export')
+        this.parent.eventCall('start-exit')
+      }
+      this.dialogEnd()
+    } else if (event === 'start-name') {
+      this.textBox.reset(this.name)
+      this.askName = true
+      this.dialogEnd()
+    } else if (event === 'start-save') {
+      this.parent.eventCall(event)
+      this.dialog = this.saveOkDialog
+      this.forcePaint = true
+    } else if (event === 'start-new' || event === 'start-open' || event === 'start-exit') {
+      this.dialogStack.push(event)
+      this.dialog = this.askToSaveDialog
+      this.forcePaint = true
+    } else if (event === 'start-export') {
+      this.parent.eventCall(event)
+      this.dialogEnd()
+    } else if (event === 'ok-ok') {
+      const poll = this.dialogStack[0]
+      if (poll === 'start-exit') this.parent.eventCall(poll)
+      this.dialogEnd()
+    } else if (event === 'error-ok') {
+      this.dialogEnd()
+    }
+  }
+
+  handleDialogSpecial() {}
+
+  dialogResetAll() {
+    this.startMenuDialog.reset()
+    this.askToSaveDialog.reset()
+    this.saveOkDialog.reset()
+    this.errorOkDialog.reset()
+  }
+
+  dialogEnd() {
+    this.dialogResetAll()
+    this.dialog = null
+    this.dialogStack.length = 0
+    this.forcePaint = true
   }
 
   resize(width, height, scale) {
@@ -84,24 +148,6 @@ export class MusicEdit {
   }
 
   async load() {}
-
-  noteWaveform(name) {
-    switch (name) {
-      case 'noise':
-        return noise
-      case 'sine':
-        return sine
-      case 'square':
-        return square
-      case 'pulse':
-        return pulse
-      case 'triangle':
-        return triangle
-      case 'sawtooth':
-        return sawtooth
-    }
-    return sine
-  }
 
   noteSeconds(duration) {
     // 16 ms tick update
@@ -127,7 +173,7 @@ export class MusicEdit {
     for (let sound of this.sounds) sound.stop()
     this.sounds.length = 0
     let track = this.tracks[this.trackIndex]
-    let waveform = this.noteWaveform(track.instrument)
+    let waveform = waveFromName(track.instrument)
     let note = track.notes[this.noteC]
     let seconds = this.noteSeconds(note[0])
     if (row === 0) {
@@ -150,7 +196,7 @@ export class MusicEdit {
     const time = synthTime()
     const when = time + (1.0 / 1000.0) * 16.0
     let track = this.tracks[this.trackIndex]
-    let waveform = this.noteWaveform(track.instrument)
+    let waveform = waveFromName(track.instrument)
     let note = track.notes[this.noteC]
     let seconds = this.noteSeconds(note[0])
     for (let r = 1; r < this.noteRows; r++) {
@@ -163,7 +209,7 @@ export class MusicEdit {
   }
 
   updatePlay(timestamp) {
-    let input = this.input
+    const input = this.input
     if (input.pressX()) {
       for (let sound of this.sounds) sound.stop()
       this.sounds.length = 0
@@ -186,20 +232,77 @@ export class MusicEdit {
     }
   }
 
+  topLeftStatus() {
+    return 'MUSIC'
+  }
+
+  topRightStatus() {
+    return null
+  }
+
+  bottomLeftStatus() {
+    return null
+  }
+
+  bottomRightStatus() {
+    let content = this.noteR === 0 ? 'A/DURATION UP B/DURATION DOWN ' : 'A/PITCH UP B/PITCH DOWN '
+    content += 'Y/OPTIONS'
+    content += this.play ? 'X/STOP' : 'X/PLAY'
+    return content
+  }
+
+  immediateInput() {
+    if (this.dialog === null) return
+    const input = this.input
+    if (input.pressB()) {
+      this.dialog = null
+      this.dialogStack.length = 0
+      this.forcePaint = true
+    }
+    if (input.pressA() || input.pressStart() || input.pressSelect()) {
+      let id = this.dialog.id
+      let option = this.dialog.options[this.dialog.pos]
+      this.handleDialog(id + '-' + option)
+    }
+  }
+
   update(timestamp) {
     if (this.play) {
       this.updatePlay(timestamp)
       return
     }
 
-    this.doPaint = false
+    if (this.forcePaint) {
+      this.doPaint = true
+      this.forcePaint = false
+    } else this.doPaint = false
     if (this.input.nothingOn()) {
       if (this.shadowInput) this.shadowInput = false
       else return
     } else this.shadowInput = true
     this.doPaint = true
 
-    let input = this.input
+    const input = this.input
+
+    if (this.dialog !== null) {
+      if (input.timerStickUp(timestamp, INPUT_RATE)) {
+        if (this.dialog.pos > 0) this.dialog.pos--
+      } else if (input.timerStickDown(timestamp, INPUT_RATE)) {
+        if (this.dialog.pos < this.dialog.options.length - 1) this.dialog.pos++
+      } else if (input.timerStickLeft(timestamp, INPUT_RATE)) this.handleDialogSpecial(true)
+      else if (input.timerStickRight(timestamp, INPUT_RATE)) this.handleDialogSpecial(false)
+      return
+    }
+
+    if (input.pressStart()) {
+      this.dialog = this.startMenuDialog
+      return
+    }
+
+    if (input.pressSelect()) {
+      this.dialog = this.subMenuDialog
+      return
+    }
 
     if (input.timerStickUp(timestamp, INPUT_RATE)) {
       if (this.noteR > 0) this.noteR--
@@ -257,44 +360,25 @@ export class MusicEdit {
       // notes.splice(this.noteC + 1, 0, [2, 0, 49, 0])
       // this.noteC++
     }
-
-    if (input.pressSelect()) {
-      if (this.subMenu !== null) {
-        this.subMenu = null
-      } else {
-        // open submenu
-        // tempo / transpose
-        // new track / delete track
-        // change track name / change track instrument
-        this.subMenu = 'New track'
-      }
-    }
-
-    if (input.pressStart()) {
-      // open main menu
-      // save / import / export
-      // back to home editor screen
-    }
   }
 
   export() {
     const noteRows = this.noteRows
     const tracks = this.tracks
-    let content = tracks.length + '\n'
+    let content = `music ${this.name}\n`
     for (let track of tracks) {
       const notes = track.notes
-      content += track.name + '\n'
-      content += track.tuning + ' ' + notes.length
+      content += `track ${track.name}\n`
+      content += `tuning ${track.tuning}`
       for (let c = 0; c < notes.length; c++) {
         let note = notes[c]
         for (let r = 0; r < noteRows; r++) {
           if (r === 0) content += '\n'
           else content += ' '
-          let num = note[r]
-          content += num
+          content += note[r]
         }
       }
-      content += '\n'
+      content += '\nend track\n'
     }
     return content
   }
