@@ -1,6 +1,6 @@
 import {exportSheetPixels, exportSheetToCanvas, PaintEdit} from '../editor/paint.js'
 import {textureByName} from '../assets/assets.js'
-import {drawText, drawRectangle, drawHollowRectangle, drawImage, FONT_6x6_WIDTH, FONT_6x6_HEIGHT_BASE} from '../render/render.js'
+import {drawText, drawRectangle, drawHollowRectangle, drawImage, TIC_FONT_WIDTH, TIC_FONT_HEIGHT_BASE} from '../render/render.js'
 import {renderTouch} from '../client/render-touch.js'
 import {spr, sprcol} from '../render/pico.js'
 import {identity, multiply} from '../math/matrix.js'
@@ -228,8 +228,8 @@ export class PaintState {
     multiply(projection, client.orthographic, view)
 
     const fontScale = calcFontScale(scale)
-    const fontWidth = fontScale * FONT_6x6_WIDTH
-    const fontHeight = fontScale * FONT_6x6_HEIGHT_BASE
+    const fontWidth = fontScale * TIC_FONT_WIDTH
+    const fontHeight = fontScale * TIC_FONT_HEIGHT_BASE
 
     const thickness = calcThickness(scale)
     const doubleThick = 2 * thickness

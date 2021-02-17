@@ -3,7 +3,7 @@ import {textureByName} from '../assets/assets.js'
 import {identity, multiply} from '../math/matrix.js'
 import {darkgreyf, red0f, red1f, red2f, lightgrey0f, lightgrey1f, lightgrey2f, orange0f, orange1f, orange2f} from '../editor/palette.js'
 import {SfxEdit, WAVE_INDEX, FREQUENCY_INDEX, DURATION_INDEX} from '../editor/sfx.js'
-import {drawText, drawRectangle, FONT_6x6_WIDTH, FONT_6x6_HEIGHT_BASE} from '../render/render.js'
+import {drawText, drawRectangle, TIC_FONT_WIDTH, TIC_FONT_HEIGHT_BASE} from '../render/render.js'
 import {calcFontScale, calcTopBarHeight, calcBottomBarHeight, calcFontPad} from '../editor/editor-util.js'
 import {renderDialogBox, renderStatus} from '../client/client-util.js'
 
@@ -105,8 +105,8 @@ export class SfxState {
     multiply(projection, client.orthographic, view)
 
     const fontScale = calcFontScale(scale)
-    const fontWidth = fontScale * FONT_6x6_WIDTH
-    const fontHeight = fontScale * FONT_6x6_HEIGHT_BASE
+    const fontWidth = fontScale * TIC_FONT_WIDTH
+    const fontHeight = fontScale * TIC_FONT_HEIGHT_BASE
     const fontPad = calcFontPad(fontHeight)
     const fontHeightAndPad = fontHeight + fontPad
 

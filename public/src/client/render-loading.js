@@ -1,4 +1,4 @@
-import {drawTextSpecial, FONT_6x6_WIDTH, FONT_6x6_HEIGHT} from '../render/render.js'
+import {drawTextSpecial, TIC_FONT_WIDTH, TIC_FONT_HEIGHT} from '../render/render.js'
 import {identity, multiply} from '../math/matrix.js'
 import {whitef, blackf} from '../editor/palette.js'
 import {flexText, flexSolve} from '../gui/flex.js'
@@ -16,8 +16,8 @@ export function renderLoadingInProgress(client, view, projection) {
   if (client.touch) renderTouch(client.touchRender)
 
   const fontScale = calcFontScale(scale)
-  const fontWidth = fontScale * FONT_6x6_WIDTH
-  const fontHeight = fontScale * FONT_6x6_HEIGHT
+  const fontWidth = fontScale * TIC_FONT_WIDTH
+  const fontHeight = fontScale * TIC_FONT_HEIGHT
 
   rendering.setProgram(4)
   rendering.setView(0, client.top, width, height)

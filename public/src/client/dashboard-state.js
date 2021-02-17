@@ -1,5 +1,5 @@
 import {textureByName} from '../assets/assets.js'
-import {drawTextSpecial, FONT_6x6_WIDTH, FONT_6x6_HEIGHT} from '../render/render.js'
+import {drawTextSpecial, TIC_FONT_WIDTH, TIC_FONT_HEIGHT} from '../render/render.js'
 import {renderTouch} from '../client/render-touch.js'
 import {identity, multiply} from '../math/matrix.js'
 import {darkgrey0f, darkgrey1f, darkgrey2f, white0f, white1f, white2f} from '../editor/palette.js'
@@ -77,8 +77,8 @@ export class DashboardState {
     const height = client.height - client.top
 
     const fontScale = calcFontScale(scale)
-    const fontWidth = fontScale * FONT_6x6_WIDTH
-    const fontHeight = fontScale * FONT_6x6_HEIGHT
+    const fontWidth = fontScale * TIC_FONT_WIDTH
+    const fontHeight = fontScale * TIC_FONT_HEIGHT
     const fontPad = calcFontPad(fontHeight)
 
     if (client.touch) renderTouch(client.touchRender)

@@ -2,7 +2,7 @@ import {Game} from '../game/game.js'
 import {drawDecal} from '../client/render-sector.js'
 import {renderLoadingInProgress} from '../client/render-loading.js'
 import {renderTouch} from '../client/render-touch.js'
-import {drawRectangle, drawSprite, drawText, FONT_6x6_WIDTH, FONT_6x6_HEIGHT} from '../render/render.js'
+import {drawRectangle, drawSprite, drawText, TIC_FONT_WIDTH, TIC_FONT_HEIGHT} from '../render/render.js'
 import {identity, multiply, rotateX, rotateY, translate, multiplyVector3} from '../math/matrix.js'
 import {textureByName, textureByIndex} from '../assets/assets.js'
 import {speech} from '../sound/speech.js'
@@ -105,8 +105,8 @@ export class GameState {
     const world = game.world
     const camera = game.camera
 
-    const fontWidth = scale * FONT_6x6_WIDTH
-    const fontHeight = scale * FONT_6x6_HEIGHT
+    const fontWidth = scale * TIC_FONT_WIDTH
+    const fontHeight = scale * TIC_FONT_HEIGHT
 
     const pad = 10.0
 

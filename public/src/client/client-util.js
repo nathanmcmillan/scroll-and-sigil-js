@@ -1,5 +1,5 @@
 import {textureByName} from '../assets/assets.js'
-import {drawText, drawRectangle, drawHollowRectangle, FONT_6x6_WIDTH, FONT_6x6_HEIGHT_BASE, drawTextSpecial} from '../render/render.js'
+import {drawText, drawRectangle, drawHollowRectangle, TIC_FONT_WIDTH, TIC_FONT_HEIGHT_BASE, drawTextSpecial} from '../render/render.js'
 import {
   white0f,
   white1f,
@@ -26,8 +26,8 @@ export function renderDialogBox(state, scale, dialog) {
   const projection = state.projection
 
   const fontScale = calcFontScale(scale)
-  const fontWidth = fontScale * FONT_6x6_WIDTH
-  const fontHeight = fontScale * FONT_6x6_HEIGHT_BASE
+  const fontWidth = fontScale * TIC_FONT_WIDTH
+  const fontHeight = fontScale * TIC_FONT_HEIGHT_BASE
 
   const thickness = calcThickness(scale)
   const doubleThick = 2 * thickness
@@ -113,8 +113,8 @@ export function renderTextBox(state, scale, box, x, y) {
   const projection = state.projection
 
   const fontScale = calcFontScale(scale)
-  const fontWidth = fontScale * FONT_6x6_WIDTH
-  const fontHeight = fontScale * FONT_6x6_HEIGHT_BASE
+  const fontWidth = fontScale * TIC_FONT_WIDTH
+  const fontHeight = fontScale * TIC_FONT_HEIGHT_BASE
 
   const thickness = calcThickness(scale)
   const doubleThick = 2 * thickness

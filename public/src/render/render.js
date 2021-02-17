@@ -1,20 +1,25 @@
-export const FONT_6x6_WIDTH = 6
-export const FONT_6x6_HEIGHT = 6
-export const FONT_6x6_HEIGHT_BASE = 5
-
-export const FONT_8x8_WIDTH = 9
-export const FONT_8x8_HEIGHT = 9
-export const FONT_8x8_HEIGHT_BASE = 8
-
-export const FONT_8x14_WIDTH = 9
-export const FONT_8x14_HEIGHT = 15
-export const FONT_8x14_HEIGHT_BASE = 14
-
 const FONT = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'
 
-const FONT_6x6_GRID = Math.floor(128.0 / FONT_6x6_WIDTH)
-const FONT_6x6_COLUMN = FONT_6x6_WIDTH / 128.0
-const FONT_6x6_ROW = FONT_6x6_HEIGHT / 128.0
+class Font {
+  constructor(width, height, base) {
+    this.width = width
+    this.height = height
+    this.base = base
+    this.grid = Math.floor(128.0 / width)
+    this.column = width / 128.0
+    this.row = height / 128.0
+  }
+}
+
+export const TIC_FONT_WIDTH = 6
+export const TIC_FONT_HEIGHT = 6
+export const TIC_FONT_HEIGHT_BASE = 5
+
+export const TIC_FONT = new Font(TIC_FONT_WIDTH, TIC_FONT_HEIGHT, TIC_FONT_HEIGHT_BASE)
+
+export const DINA_FONT = new Font(8, 15, 14)
+
+export const WIN_FONT = new Font(8, 15, 14)
 
 export function index3(b) {
   let pos = b.indexPosition
@@ -267,11 +272,11 @@ export function drawSprite(b, x, y, z, sprite, sine, cosine) {
   index4(b)
 }
 
-export function drawText(b, x, y, text, scale, red, green, blue, alpha) {
+export function drawTextFont(b, x, y, text, scale, red, green, blue, alpha, font) {
   let currentX = x
   let currentY = y
-  const fontWidth = FONT_6x6_WIDTH * scale
-  const fontHeight = FONT_6x6_HEIGHT * scale
+  const fontWidth = font.width * scale
+  const fontHeight = font.height * scale
   for (let i = 0; i < text.length; i++) {
     let c = text.charAt(i)
     if (c === ' ') {
@@ -283,18 +288,22 @@ export function drawText(b, x, y, text, scale, red, green, blue, alpha) {
       continue
     }
     let index = FONT.indexOf(c)
-    let left = Math.floor(index % FONT_6x6_GRID) * FONT_6x6_COLUMN
-    let top = Math.floor(index / FONT_6x6_GRID) * FONT_6x6_ROW
-    let right = left + FONT_6x6_COLUMN
-    let bottom = top + FONT_6x6_ROW
+    let left = Math.floor(index % font.grid) * font.column
+    let top = Math.floor(index / font.grid) * font.row
+    let right = left + font.column
+    let bottom = top + font.row
     drawImage(b, currentX, currentY, fontWidth, fontHeight, red, green, blue, alpha, left, top, right, bottom)
     currentX += fontWidth
   }
 }
 
+export function drawText(b, x, y, text, scale, red, green, blue, alpha) {
+  drawTextFont(b, x, y, text, scale, red, green, blue, alpha, TIC_FONT)
+}
+
 export function drawTextSpecial(b, x, y, text, scale, red, green, blue) {
-  drawText(b, x, y - scale, text, scale, 0.0, 0.0, 0.0, 1.0)
-  drawText(b, x, y, text, scale, red, green, blue, 1.0)
+  drawTextFont(b, x, y - scale, text, scale, 0.0, 0.0, 0.0, 1.0, TIC_FONT)
+  drawTextFont(b, x, y, text, scale, red, green, blue, 1.0, TIC_FONT)
 }
 
 export function drawCubeSide(b, side, x, y, z, size) {

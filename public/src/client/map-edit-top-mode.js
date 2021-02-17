@@ -1,4 +1,4 @@
-import {drawText, drawRectangle, drawLine, drawTriangle, FONT_6x6_WIDTH} from '../render/render.js'
+import {drawText, drawRectangle, drawLine, drawTriangle, TIC_FONT_WIDTH} from '../render/render.js'
 import {spr} from '../render/pico.js'
 import {identity, multiply} from '../math/matrix.js'
 import {textureByName} from '../assets/assets.js'
@@ -143,7 +143,7 @@ export function renderMapEditTopMode(state) {
   client.bufferGUI.zero()
 
   const fontScale = calcFontScale(scale)
-  const fontWidth = fontScale * FONT_6x6_WIDTH
+  const fontWidth = fontScale * TIC_FONT_WIDTH
 
   //  status text
 
