@@ -67,7 +67,7 @@ export class MapState {
       reader.readAsText(file, 'UTF-8')
       reader.onload = (event) => {
         let content = event.target.result
-        this.maps.read(content, 0)
+        this.maps.read(content)
       }
     }
     button.click()

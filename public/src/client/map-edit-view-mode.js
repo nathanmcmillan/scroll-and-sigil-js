@@ -1,10 +1,11 @@
-import {drawSprite, drawTextSpecial, TIC_FONT_WIDTH, TIC_FONT_HEIGHT} from '../render/render.js'
+import {drawSprite, drawTextFontSpecial} from '../render/render.js'
 import {identity, multiply, rotateX, rotateY, translate} from '../math/matrix.js'
 import {textureByName, textureByIndex, textureIndexForName} from '../assets/assets.js'
 import {drawWall, drawFloorCeil} from '../client/render-sector.js'
 import {renderTouch} from '../client/render-touch.js'
 import {redf} from '../editor/palette.js'
 import {renderDialogBox} from '../client/client-util.js'
+import {defaultFont, calcFontScale} from '../editor/editor-util.js'
 
 function lineRender(client, line) {
   let wall = line.top
@@ -130,17 +131,18 @@ export function renderMapEditViewMode(state) {
   multiply(projection, client.orthographic, view)
   rendering.updateUniformMatrix('u_mvp', projection)
 
-  const fontScale = scale
-  const fontWidth = fontScale * TIC_FONT_WIDTH
-  const fontHeight = fontScale * TIC_FONT_HEIGHT
+  const font = defaultFont()
+  const fontScale = calcFontScale(scale)
+  const fontWidth = fontScale * font.width
+  const fontHeight = fontScale * font.base
 
   client.bufferGUI.zero()
   let text = 'x:' + camera.x.toFixed(2) + ' y:' + camera.y.toFixed(2) + ' z:' + camera.z.toFixed(2)
-  drawTextSpecial(client.bufferGUI, fontWidth, fontHeight, text, fontScale, redf(0), redf(1), redf(2))
-  rendering.bindTexture(gl.TEXTURE0, textureByName('tic-80-wide-font').texture)
+  drawTextFontSpecial(client.bufferGUI, fontWidth, fontHeight, text, fontScale, redf(0), redf(1), redf(2), font)
+  rendering.bindTexture(gl.TEXTURE0, textureByName(font.name).texture)
   rendering.updateAndDraw(client.bufferGUI)
 
   // dialog box
 
-  if (maps.dialog != null) renderDialogBox(state, scale, maps.dialog)
+  if (maps.dialog != null) renderDialogBox(state, scale, font, maps.dialog)
 }

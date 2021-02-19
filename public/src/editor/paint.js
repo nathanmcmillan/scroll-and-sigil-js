@@ -36,15 +36,14 @@ export class PaintEdit {
     this.sheetRows = 128
     this.sheetColumns = 128
 
+    this.name = 'untitled'
+
     this.sheet = new Uint8Array(this.sheetRows * this.sheetColumns)
     let i = this.sheet.length
     while (i--) this.sheet[i] = 0
-    this.sheets = [this.sheet]
 
     this.paletteC = 0
     this.paletteR = 0
-
-    this.sheetIndex = 0
 
     this.brushSize = 1
     this.canvasZoom = 8
@@ -223,7 +222,7 @@ export class PaintEdit {
     flexSolve(width, height, ...collection)
   }
 
-  read(content, into) {
+  read(content) {
     this.clear()
 
     const image = content.split('\n')
@@ -234,7 +233,7 @@ export class PaintEdit {
     let height = parseInt(dimensions[1])
     index++
 
-    const sheet = this.sheets[into]
+    const sheet = this.sheet
     const rows = this.sheetRows
     const columns = this.sheetColumns
 
@@ -258,7 +257,7 @@ export class PaintEdit {
     if (file) content = await fetchText(file)
     else content = localStorage.getItem('paint.txt')
     if (content === null || content === undefined) return this.clear()
-    this.read(content, 0)
+    this.read(content)
   }
 
   topLeftStatus() {
@@ -629,11 +628,11 @@ export class PaintEdit {
   }
 }
 
-export function exportSheetPixels(painter, index) {
-  let sheet = painter.sheets[index]
-  let rows = painter.sheetRows
-  let columns = painter.sheetColumns
-  let palette = painter.palette
+export function exportPixels(paint) {
+  let sheet = paint.sheet
+  let rows = paint.sheetRows
+  let columns = paint.sheetColumns
+  let palette = paint.palette
   let pixels = new Uint8Array(rows * columns * 3)
   for (let r = 0; r < rows; r++) {
     let row = r * columns
@@ -649,28 +648,21 @@ export function exportSheetPixels(painter, index) {
   return pixels
 }
 
-export function exportSheetToCanvas(painter, index, out) {
-  let sheet = painter.sheets[index]
-  let rows = painter.sheetRows
-  let columns = painter.sheetColumns
-  let palette = painter.palette
+export function exportToCanvas(paint, out) {
+  let sheet = paint.sheet
+  let rows = paint.sheetRows
+  let columns = paint.sheetColumns
+  let palette = paint.palette
   for (let r = 0; r < rows; r++) {
     let row = r * columns
     for (let c = 0; c < columns; c++) {
       let i = c + row
       let p = sheet[i] * 3
       i *= 4
-      if (p === 0) {
-        out[i] = 0
-        out[i + 1] = 0
-        out[i + 2] = 0
-        out[i + 3] = 0
-      } else {
-        out[i] = palette[p]
-        out[i + 1] = palette[p + 1]
-        out[i + 2] = palette[p + 2]
-        out[i + 3] = 255
-      }
+      out[i] = palette[p]
+      out[i + 1] = palette[p + 1]
+      out[i + 2] = palette[p + 2]
+      out[i + 3] = 255
     }
   }
 }

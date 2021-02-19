@@ -1,11 +1,11 @@
-import {drawText, drawRectangle, drawLine, drawTriangle, TIC_FONT_WIDTH} from '../render/render.js'
+import {drawRectangle, drawLine, drawTriangle, drawTextFontSpecial} from '../render/render.js'
 import {spr} from '../render/pico.js'
 import {identity, multiply} from '../math/matrix.js'
 import {textureByName} from '../assets/assets.js'
 import {vectorSize, thingSize, SECTOR_TOOL, OPTION_END_LINE, OPTION_END_LINE_NEW_VECTOR} from '../editor/maps.js'
-import {colorf, blackf, darkpurple0f, darkpurple1f, darkpurple2f, darkgreyf, yellowf, whitef, greenf, redf} from '../editor/palette.js'
+import {colorf, blackf, darkgreyf, yellowf, whitef, greenf, redf, white0f, white1f, white2f} from '../editor/palette.js'
 import {renderTouch} from '../client/render-touch.js'
-import {calcFontScale, calcTopBarHeight, calcBottomBarHeight} from '../editor/editor-util.js'
+import {defaultFont, calcFontScale, calcTopBarHeight, calcBottomBarHeight} from '../editor/editor-util.js'
 import {renderDialogBox, renderTextBox, renderStatus} from '../client/client-util.js'
 
 function mapX(x, zoom, camera) {
@@ -142,26 +142,27 @@ export function renderMapEditTopMode(state) {
 
   client.bufferGUI.zero()
 
+  const font = defaultFont()
   const fontScale = calcFontScale(scale)
-  const fontWidth = fontScale * TIC_FONT_WIDTH
+  const fontWidth = fontScale * font.width
 
   //  status text
 
-  renderStatus(client, width, height, fontWidth, fontScale, topBarHeight, maps)
+  renderStatus(client, width, height, font, fontWidth, fontScale, topBarHeight, maps)
 
-  rendering.bindTexture(gl.TEXTURE0, textureByName('tic-80-wide-font').texture)
+  rendering.bindTexture(gl.TEXTURE0, textureByName(font.name).texture)
   rendering.updateAndDraw(client.bufferGUI)
 
   // dialog box, text box, or cursor
 
   if (maps.dialog != null) {
-    renderDialogBox(state, scale, maps.dialog)
+    renderDialogBox(state, scale, font, maps.dialog)
   } else if (maps.askName) {
     const box = maps.textBox
-    renderTextBox(state, scale, box, 200, 200)
+    renderTextBox(state, scale, font, box, 200, 200)
 
     client.bufferGUI.zero()
-    drawText(client.bufferGUI, 10, 10, maps.name, fontScale, darkpurple0f, darkpurple1f, darkpurple2f, 1.0)
+    drawTextFontSpecial(client.bufferGUI, 200, 500, maps.name, fontScale, white0f, white1f, white2f, font)
     rendering.updateAndDraw(client.bufferGUI)
   } else {
     rendering.setProgram(3)

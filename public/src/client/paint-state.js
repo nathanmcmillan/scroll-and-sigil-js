@@ -1,13 +1,13 @@
-import {exportSheetPixels, exportSheetToCanvas, PaintEdit} from '../editor/paint.js'
+import {exportPixels, exportToCanvas, PaintEdit} from '../editor/paint.js'
 import {textureByName} from '../assets/assets.js'
-import {drawText, drawRectangle, drawHollowRectangle, drawImage, TIC_FONT_WIDTH, TIC_FONT_HEIGHT_BASE} from '../render/render.js'
+import {drawTextFont, drawRectangle, drawHollowRectangle, drawImage} from '../render/render.js'
 import {renderTouch} from '../client/render-touch.js'
 import {spr, sprcol} from '../render/pico.js'
 import {identity, multiply} from '../math/matrix.js'
 import {flexBox, flexSolve} from '../gui/flex.js'
 import {compress, decompress} from '../compress/huffman.js'
 import {createPixelsToTexture} from '../webgl/webgl.js'
-import {calcFontScale, calcThickness, calcTopBarHeight, calcBottomBarHeight} from '../editor/editor-util.js'
+import {defaultFont, calcFontScale, calcThickness, calcTopBarHeight, calcBottomBarHeight} from '../editor/editor-util.js'
 import {renderDialogBox, renderStatus} from '../client/client-util.js'
 import {black0f, black1f, black2f, white0f, white1f, white2f, lightgreyf, lavenderf, redf, darkgreyf, luminosity, luminosityTable} from '../editor/palette.js'
 
@@ -71,7 +71,7 @@ export class PaintState {
 
     let rows = paint.sheetRows
     let columns = paint.sheetColumns
-    let pixels = exportSheetPixels(paint, 0)
+    let pixels = exportPixels(paint)
 
     let gl = client.gl
     this.texture = createPixelsToTexture(gl, columns, rows, pixels, gl.RGB, gl.NEAREST, gl.CLAMP_TO_EDGE).texture
@@ -135,7 +135,7 @@ export class PaintState {
           image.src = content
           image.onload = () => {
             content = convertImageToText(this.paint.palette, image)
-            this.paint.read(content, 0)
+            this.paint.read(content)
             this.updateTexture()
           }
         }
@@ -143,14 +143,14 @@ export class PaintState {
         reader.readAsArrayBuffer(file)
         reader.onload = (event) => {
           let content = new Uint8Array(event.target.result)
-          this.paint.read(decompress(content), 0)
+          this.paint.read(decompress(content))
           this.updateTexture()
         }
       } else {
         reader.readAsText(file, 'UTF-8')
         reader.onload = (event) => {
           let content = event.target.result
-          this.paint.read(content, 0)
+          this.paint.read(content)
           this.updateTexture()
         }
       }
@@ -188,7 +188,7 @@ export class PaintState {
     canvas.width = paint.sheetColumns
     canvas.height = paint.sheetRows
     let data = context.createImageData(canvas.width, canvas.height)
-    exportSheetToCanvas(paint, paint.sheetIndex, data.data)
+    exportToCanvas(paint, data.data)
     context.putImageData(data, 0, 0)
     let blob = canvas.toDataURL('image/png')
     let download = document.createElement('a')
@@ -201,7 +201,7 @@ export class PaintState {
     let paint = this.paint
     let rows = paint.sheetRows
     let columns = paint.sheetColumns
-    let pixels = exportSheetPixels(paint, 0)
+    let pixels = exportPixels(paint)
     updatePixelsToTexture(this.client.gl, this.texture, columns, rows, pixels)
   }
 
@@ -227,9 +227,10 @@ export class PaintState {
     identity(view)
     multiply(projection, client.orthographic, view)
 
+    const font = defaultFont()
     const fontScale = calcFontScale(scale)
-    const fontWidth = fontScale * TIC_FONT_WIDTH
-    const fontHeight = fontScale * TIC_FONT_HEIGHT_BASE
+    const fontWidth = fontScale * font.width
+    const fontHeight = fontScale * font.base
 
     const thickness = calcThickness(scale)
     const doubleThick = 2 * thickness
@@ -252,7 +253,6 @@ export class PaintState {
 
     let sheetRows = paint.sheetRows
     let sheetColumns = paint.sheetColumns
-    let sheetIndex = paint.sheetIndex
 
     let toolColumns = paint.toolColumns
 
@@ -437,16 +437,16 @@ export class PaintState {
     posBox.funY = 'above'
     posBox.fromY = viewBox
     flexSolve(0, 0, posBox)
-    drawText(client.bufferGUI, posBox.x, posBox.y, text, fontScale, lightgreyf(0), lightgreyf(1), lightgreyf(2), 1.0)
+    drawTextFont(client.bufferGUI, posBox.x, posBox.y, text, fontScale, lightgreyf(0), lightgreyf(1), lightgreyf(2), 1.0, font)
 
-    let displaySheet = 'sheet #' + (sheetIndex < 10 ? '00' + sheetIndex : sheetIndex < 100 ? '0' + sheetIndex : '' + sheetIndex)
+    let displaySheet = paint.name
     let sheetNumBox = flexBox(fontWidth * displaySheet.length, fontHeight)
     sheetNumBox.funX = 'align-left'
     sheetNumBox.fromX = sheetBox
     sheetNumBox.funY = 'above'
     sheetNumBox.fromY = sheetBox
     flexSolve(0, 0, sheetNumBox)
-    drawText(client.bufferGUI, sheetNumBox.x, sheetNumBox.y, displaySheet, fontScale, lightgreyf(0), lightgreyf(1), lightgreyf(2), 1.0)
+    drawTextFont(client.bufferGUI, sheetNumBox.x, sheetNumBox.y, displaySheet, fontScale, lightgreyf(0), lightgreyf(1), lightgreyf(2), 1.0, font)
 
     let spriteIndex = posOffsetC / 8 + 2 * posOffsetR
     let displayIndex = ' index:' + (spriteIndex < 10 ? '00' + spriteIndex : spriteIndex < 100 ? '0' + spriteIndex : '' + spriteIndex)
@@ -456,17 +456,17 @@ export class PaintState {
     positionBox.funY = 'above'
     positionBox.fromY = sheetBox
     flexSolve(0, 0, positionBox)
-    drawText(client.bufferGUI, positionBox.x, positionBox.y, displayIndex, fontScale, lightgreyf(0), lightgreyf(1), lightgreyf(2), 1.0)
+    drawTextFont(client.bufferGUI, positionBox.x, positionBox.y, displayIndex, fontScale, lightgreyf(0), lightgreyf(1), lightgreyf(2), 1.0, font)
 
     //  status text
 
-    renderStatus(client, width, height, fontWidth, fontScale, topBarHeight, paint)
+    renderStatus(client, width, height, font, fontWidth, fontScale, topBarHeight, paint)
 
-    rendering.bindTexture(gl.TEXTURE0, textureByName('tic-80-wide-font').texture)
+    rendering.bindTexture(gl.TEXTURE0, textureByName(font.name).texture)
     rendering.updateAndDraw(client.bufferGUI)
 
     // dialog box
 
-    if (paint.dialog != null) renderDialogBox(this, scale, paint.dialog)
+    if (paint.dialog != null) renderDialogBox(this, scale, font, paint.dialog)
   }
 }

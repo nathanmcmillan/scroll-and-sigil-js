@@ -1,12 +1,12 @@
 import {semitoneName, SEMITONES} from '../sound/synth.js'
 import {lengthName, MusicEdit} from '../editor/music.js'
 import {textureByName} from '../assets/assets.js'
-import {drawTextSpecial, drawRectangle, TIC_FONT_WIDTH, TIC_FONT_HEIGHT} from '../render/render.js'
+import {drawTextFontSpecial, drawRectangle} from '../render/render.js'
 import {spr, sprcol} from '../render/pico.js'
 import {identity, multiply} from '../math/matrix.js'
 import {whitef, redf, darkgreyf} from '../editor/palette.js'
 import {flexBox, flexSolve} from '../gui/flex.js'
-import {calcFontScale} from '../editor/editor-util.js'
+import {defaultFont, calcFontScale} from '../editor/editor-util.js'
 import {renderDialogBox, renderStatus} from '../client/client-util.js'
 
 export class MusicState {
@@ -65,7 +65,7 @@ export class MusicState {
       reader.readAsText(file, 'UTF-8')
       reader.onload = (event) => {
         let content = event.target.result
-        this.music.read(content, 0)
+        this.music.read(content)
       }
     }
     button.click()
@@ -112,9 +112,10 @@ export class MusicState {
     let buffer = client.bufferColor
     buffer.zero()
 
+    const font = defaultFont()
     const fontScale = calcFontScale(scale)
-    const fontWidth = fontScale * TIC_FONT_WIDTH
-    const fontHeight = fontScale * TIC_FONT_HEIGHT
+    const fontWidth = fontScale * font.width
+    const fontHeight = fontScale * font.height
 
     const pad = 2 * scale
 
@@ -154,11 +155,11 @@ export class MusicState {
     posBox.argX = 20
     posBox.argY = 40
     flexSolve(width, height, posBox)
-    drawTextSpecial(client.bufferGUI, posBox.x, posBox.y, text, fontScale, whitef(0), whitef(1), whitef(2))
+    drawTextFontSpecial(client.bufferGUI, posBox.x, posBox.y, text, fontScale, whitef(0), whitef(1), whitef(2), font)
 
     const smallFontScale = Math.floor(1.5 * scale)
-    const smallFontWidth = smallFontScale * TIC_FONT_WIDTH
-    const smallFontHeight = smallFontScale * TIC_FONT_HEIGHT
+    const smallFontWidth = smallFontScale * font.width
+    const smallFontHeight = smallFontScale * font.height
     const smallFontHalfWidth = Math.floor(0.5 * smallFontWidth)
     const noteRows = music.noteRows
     const noteC = music.noteC
@@ -183,29 +184,29 @@ export class MusicState {
         let pitch = num === 0 ? '-' : '' + num
         let xx = pos
         if (pitch >= 10) xx -= smallFontHalfWidth
-        if (c === noteC && r === noteR) drawTextSpecial(client.bufferGUI, xx, y - r * noteHeight, pitch, smallFontScale, redf(0), redf(1), redf(2))
-        else drawTextSpecial(client.bufferGUI, xx, y - r * noteHeight, pitch, smallFontScale, whitef(0), whitef(1), whitef(2))
+        if (c === noteC && r === noteR) drawTextFontSpecial(client.bufferGUI, xx, y - r * noteHeight, pitch, smallFontScale, redf(0), redf(1), redf(2), font)
+        else drawTextFontSpecial(client.bufferGUI, xx, y - r * noteHeight, pitch, smallFontScale, whitef(0), whitef(1), whitef(2), font)
       }
       pos += noteWidth
     }
 
     let tempoText = 'Tempo:' + music.tempo
-    drawTextSpecial(client.bufferGUI, 20, height - fontHeight * 3, tempoText, fontScale, whitef(0), whitef(1), whitef(2))
+    drawTextFontSpecial(client.bufferGUI, 20, height - fontHeight * 3, tempoText, fontScale, whitef(0), whitef(1), whitef(2), font)
 
-    drawTextSpecial(client.bufferGUI, 20, 200, lengthName(notes[noteC][0]), smallFontScale, whitef(0), whitef(1), whitef(2))
+    drawTextFontSpecial(client.bufferGUI, 20, 200, lengthName(notes[noteC][0]), smallFontScale, whitef(0), whitef(1), whitef(2), font)
     for (let r = 1; r < noteRows; r++) {
       let note = notes[noteC][r]
       let noteText
       if (note === 0) noteText = '-'
       else noteText = semitoneName(note - SEMITONES)
-      drawTextSpecial(client.bufferGUI, 20, 200 - r * noteHeight, noteText, smallFontScale, whitef(0), whitef(1), whitef(2))
+      drawTextFontSpecial(client.bufferGUI, 20, 200 - r * noteHeight, noteText, smallFontScale, whitef(0), whitef(1), whitef(2), font)
     }
 
     //  status text
 
-    renderStatus(client, width, height, fontWidth, fontScale, topBarHeight, music)
+    renderStatus(client, width, height, font, fontWidth, fontScale, topBarHeight, music)
 
-    rendering.bindTexture(gl.TEXTURE0, textureByName('tic-80-wide-font').texture)
+    rendering.bindTexture(gl.TEXTURE0, textureByName(font.name).texture)
     rendering.updateAndDraw(client.bufferGUI)
 
     client.bufferGUI.zero()
@@ -242,6 +243,6 @@ export class MusicState {
 
     // dialog box
 
-    if (music.dialog != null) renderDialogBox(this, scale, music.dialog)
+    if (music.dialog != null) renderDialogBox(this, scale, font, music.dialog)
   }
 }

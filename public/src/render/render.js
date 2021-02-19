@@ -1,7 +1,8 @@
 const FONT = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'
 
 class Font {
-  constructor(width, height, base) {
+  constructor(name, width, height, base) {
+    this.name = name
     this.width = width
     this.height = height
     this.base = base
@@ -15,11 +16,14 @@ export const TIC_FONT_WIDTH = 6
 export const TIC_FONT_HEIGHT = 6
 export const TIC_FONT_HEIGHT_BASE = 5
 
-export const TIC_FONT = new Font(TIC_FONT_WIDTH, TIC_FONT_HEIGHT, TIC_FONT_HEIGHT_BASE)
-
-export const DINA_FONT = new Font(8, 15, 14)
-
-export const WIN_FONT = new Font(8, 15, 14)
+export const TIC_FONT = new Font('tic-80-wide-font', 6, 6, 5)
+export const WIN_FONT = new Font('win-9-font', 8, 15, 14)
+export const EGA_FONT = new Font('ega-8-font', 9, 8, 8)
+export const VGA_FONT = new Font('vga-437-font', 9, 16, 15)
+export const DINA_FONT = new Font('dina-10-font', 8, 16, 15)
+export const SUPER_FONT = new Font('super-font', 8, 9, 8)
+export const SUPER_OUTLINE_FONT = new Font('super-outline-font', 8, 8, 8)
+export const SUPER_TITLE_FONT = new Font('super-title-font', 8, 16, 15)
 
 export function index3(b) {
   let pos = b.indexPosition
@@ -304,6 +308,11 @@ export function drawText(b, x, y, text, scale, red, green, blue, alpha) {
 export function drawTextSpecial(b, x, y, text, scale, red, green, blue) {
   drawTextFont(b, x, y - scale, text, scale, 0.0, 0.0, 0.0, 1.0, TIC_FONT)
   drawTextFont(b, x, y, text, scale, red, green, blue, 1.0, TIC_FONT)
+}
+
+export function drawTextFontSpecial(b, x, y, text, scale, red, green, blue, font) {
+  drawTextFont(b, x, y - scale, text, scale, 0.0, 0.0, 0.0, 1.0, font)
+  drawTextFont(b, x, y, text, scale, red, green, blue, 1.0, font)
 }
 
 export function drawCubeSide(b, side, x, y, z, size) {

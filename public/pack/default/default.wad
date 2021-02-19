@@ -31,12 +31,18 @@ sounds [
   baron-death
   plasma-impact
   pickup-item
+  beep.txt
 ]
 textures [
   {name:tic-80-font.txt, wrap:clamp}
   {name:tic-80-wide-font.txt, wrap:clamp}
   {name:dina-10-font.txt, wrap:clamp}
   {name:win-9-font.txt, wrap:clamp}
+  {name:ega-8-font.txt, wrap:clamp}
+  {name:vga-437-font.txt, wrap:clamp}
+  {name:super-font.txt, wrap:clamp}
+  {name:super-outline-font.txt, wrap:clamp}
+  {name:super-title-font.txt, wrap:clamp}
   {name:editor-sprites.txt, wrap:clamp}
   {name:sky-box-1.txt, wrap:clamp}
 ]

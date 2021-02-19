@@ -3,8 +3,8 @@ import {textureByName} from '../assets/assets.js'
 import {identity, multiply} from '../math/matrix.js'
 import {darkgreyf, red0f, red1f, red2f, lightgrey0f, lightgrey1f, lightgrey2f, orange0f, orange1f, orange2f} from '../editor/palette.js'
 import {SfxEdit, WAVE_INDEX, FREQUENCY_INDEX, DURATION_INDEX} from '../editor/sfx.js'
-import {drawText, drawRectangle, TIC_FONT_WIDTH, TIC_FONT_HEIGHT_BASE} from '../render/render.js'
-import {calcFontScale, calcTopBarHeight, calcBottomBarHeight, calcFontPad} from '../editor/editor-util.js'
+import {drawRectangle, drawTextFont} from '../render/render.js'
+import {calcFontScale, calcTopBarHeight, calcBottomBarHeight, calcFontPad, defaultFont} from '../editor/editor-util.js'
 import {renderDialogBox, renderStatus} from '../client/client-util.js'
 
 export class SfxState {
@@ -63,7 +63,7 @@ export class SfxState {
       reader.readAsText(file, 'UTF-8')
       reader.onload = (event) => {
         let content = event.target.result
-        this.sfx.read(content, 0)
+        this.sfx.read(content)
       }
     }
     button.click()
@@ -104,9 +104,10 @@ export class SfxState {
     identity(view)
     multiply(projection, client.orthographic, view)
 
+    const font = defaultFont()
     const fontScale = calcFontScale(scale)
-    const fontWidth = fontScale * TIC_FONT_WIDTH
-    const fontHeight = fontScale * TIC_FONT_HEIGHT_BASE
+    const fontWidth = fontScale * font.width
+    const fontHeight = fontScale * font.base
     const fontPad = calcFontPad(fontHeight)
     const fontHeightAndPad = fontHeight + fontPad
 
@@ -142,7 +143,7 @@ export class SfxState {
 
     client.bufferGUI.zero()
 
-    renderStatus(client, width, height, fontWidth, fontScale, topBarHeight, sfx)
+    renderStatus(client, width, height, font, fontWidth, fontScale, topBarHeight, sfx)
 
     // sound
 
@@ -155,16 +156,16 @@ export class SfxState {
       else if (i === FREQUENCY_INDEX) text += diatonic(sfx.arguments[i] - SEMITONES).toFixed(2) + ' (' + semitoneName(sfx.arguments[i] - SEMITONES) + ')'
       else if (i === DURATION_INDEX) text += sfx.arguments[i] + ' ms'
       else text += sfx.arguments[i].toFixed(2)
-      if (i === sfx.row) drawText(client.bufferGUI, x, y, text, fontScale, orange0f, orange1f, orange2f, 1.0)
-      else drawText(client.bufferGUI, x, y, text, fontScale, lightgrey0f, lightgrey1f, lightgrey2f, 1.0)
+      if (i === sfx.row) drawTextFont(client.bufferGUI, x, y, text, fontScale, orange0f, orange1f, orange2f, 1.0, font)
+      else drawTextFont(client.bufferGUI, x, y, text, fontScale, lightgrey0f, lightgrey1f, lightgrey2f, 1.0, font)
       y -= fontHeightAndPad
     }
 
-    rendering.bindTexture(gl.TEXTURE0, textureByName('tic-80-wide-font').texture)
+    rendering.bindTexture(gl.TEXTURE0, textureByName(font.name).texture)
     rendering.updateAndDraw(client.bufferGUI)
 
     // dialog box
 
-    if (sfx.dialog != null) renderDialogBox(this, scale, sfx.dialog)
+    if (sfx.dialog != null) renderDialogBox(this, scale, font, sfx.dialog)
   }
 }

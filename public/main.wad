@@ -2,8 +2,8 @@ package: default
 map: test
 open: music
 open: game
-open: paint
 open: dashboard
 open: home
-open: maps
 open: sfx
+open: maps
+open: paint

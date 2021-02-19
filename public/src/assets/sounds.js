@@ -1,23 +1,42 @@
 import {fetchText} from '../client/net.js'
-import {parse, MusicNode} from '../sound/audio.js'
+import {parse, MusicNode, SynthSound} from '../sound/audio.js'
 
 const SOUNDS = new Map()
 const MUSIC_TABLE = new Map()
 
 let MUSIC = null
 
-export function saveSound(name, path) {
+export async function saveSound(name, path) {
+  let dot = name.lastIndexOf('.')
+  if (dot > 0) {
+    path += name
+    name = name.substring(0, dot)
+  } else {
+    path += name + '.wav'
+  }
   if (SOUNDS.has(name)) return
-  SOUNDS.set(name, new Audio(path))
+  if (path.endsWith('.wav')) SOUNDS.set(name, new Audio(path))
+  else {
+    let contents = await fetchText(path)
+    SOUNDS.set(name, new SynthSound(contents))
+  }
 }
 
 export function playSound(name) {
   let sound = SOUNDS.get(name)
-  sound.pause()
-  sound.volume = 0.25
-  sound.currentTime = 0
-  let promise = sound.play()
-  if (promise) promise.then(() => {}).catch(() => {})
+  if (!sound) {
+    console.error('Sound not loaded:', name)
+    return
+  }
+  if (sound.constructor === Audio) {
+    sound.pause()
+    sound.volume = 0.25
+    sound.currentTime = 0
+    let promise = sound.play()
+    if (promise) promise.then(() => {}).catch(() => {})
+  } else {
+    sound.play()
+  }
 }
 
 export async function saveMusic(name, path) {
@@ -36,7 +55,7 @@ export async function saveMusic(name, path) {
 export function playMusic(name) {
   let music = MUSIC_TABLE.get(name)
   if (!music) {
-    console.error('Music not loaded yet:', name)
+    console.error('Music not loaded:', name)
     return
   }
   pauseMusic()
