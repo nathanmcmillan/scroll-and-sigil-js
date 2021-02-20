@@ -127,6 +127,25 @@ function safeDiagonal(polygon, a, b) {
   return true
 }
 
+function triangleContains(a, b, c, p) {
+  const x = p.x - a.x
+  const y = p.y - a.y
+  const pab = (b.x - a.x) * y - (b.y - a.y) * x > 0
+  if ((c.x - a.x) * y - (c.y - a.y) * x > 0 == pab) return false
+  if ((c.x - b.x) * (p.y - b.y) - (c.y - b.y) * (p.x - b.x) > 0 != pab) return false
+  return true
+}
+
+function safeTriangle(verts, a, b, c) {
+  let i = verts.length
+  while (i--) {
+    let p = verts[i].vec
+    if (p == a || p == b || p == c) continue
+    if (triangleContains(a, b, c, p)) return false
+  }
+  return true
+}
+
 function add(sector, floor, scale, triangles, a, b, c) {
   let triangle = null
   if (floor) triangle = new Triangle(sector.floor, sector.getFloorTexture(), c, b, a, floor, scale)
@@ -134,14 +153,10 @@ function add(sector, floor, scale, triangles, a, b, c) {
   triangles.push(triangle)
 }
 
-function adjacent(a, b) {
-  return a.next === b || b.next === a
-}
-
 function clip(sector, floor, scale, triangles, verts) {
   let size = verts.length
   if (size === 3) {
-    if (doDebug()) console.debug('no clip')
+    if (doDebug()) console.debug('$ no clip (only 3 vertices)')
     add(sector, floor, scale, triangles, verts[0].vec, verts[1].vec, verts[2].vec)
     return
   }
@@ -150,94 +165,47 @@ function clip(sector, floor, scale, triangles, verts) {
     let vert = verts[i]
     if (i + 1 == size) vert.next = verts[0]
     else vert.next = verts[i + 1]
-    if (doDebug()) console.debug(' ', stringifyVert(vert))
   }
   verts.sort(polygonSort)
-  let stack = [verts[0], verts[1]]
-  for (let k = 2; k < size; k++) {
-    let current = verts[k]
-    let pop = stack.pop()
-    if (doDebug()) console.debug(`is current := ${stringifyVec(current.vec)} and pop := ${stringifyVec(pop.vec)} adjacent: ${adjacent(current, pop)}`)
-    if (adjacent(current, pop)) {
-      let peek = stack[stack.length - 1]
-      if (doDebug()) console.debug('@ using:', stringifyVec(peek.vec), stringifyVec(pop.vec), stringifyVec(current.vec))
-      let a, c
-      let b = pop.vec
-      if (current.next === pop) {
-        if (doDebug()) console.debug('current.next === pop')
-        a = current.vec
-        c = peek.vec
-      } else {
-        if (doDebug()) console.debug('pop.next === current')
-        a = peek.vec
-        c = current.vec
-      }
-      if (doDebug()) console.debug('is', stringifyVec(a), stringifyVec(b), stringifyVec(c), 'reflex:', clockwiseReflex(a, b, c))
-      if (clockwiseReflex(a, b, c)) {
-        do {
-          add(sector, floor, scale, triangles, a, b, c)
-          if (doDebug()) console.debug('add (X)', stringifyVec(a), stringifyVec(b), stringifyVec(c))
-          pop = stack.pop()
-          if (stack.length === 0) break
-          peek = stack[stack.length - 1]
-          if (doDebug()) console.debug(`do peek := ${stringifyVec(peek.vec)}, pop := ${stringifyVec(pop.vec)}, current := ${stringifyVec(current.vec)}`)
-          b = pop.vec
-          if (current.next === pop) {
-            if (doDebug()) console.debug('current.next === pop')
-            a = current.vec
-            c = peek.vec
-          } else if (pop.next === current) {
-            if (doDebug()) console.debug('pop.next === current')
-            a = peek.vec
-            c = current.vec
-          } else if (current.next === peek) {
-            if (doDebug()) console.debug('current.next === peek')
-            a = peek.vec
-            c = current.vec
-          } else if (peek.next === current) {
-            if (doDebug()) console.debug('peek.next === current')
-            a = current.vec
-            c = peek.vec
-          } else if (pop.next === peek) {
-            if (doDebug()) console.debug('pop.next === peek')
-            a = peek.vec
-            c = current.vec
-          } else if (peek.next === pop) {
-            if (doDebug()) console.debug('peek.next === pop')
-            a = current.vec
-            c = peek.vec
-          } else {
-            console.error('unknown adjacency case')
-            a = peek.vec
-            c = current.vec
-          }
-          if (doDebug()) console.debug('while is', stringifyVec(a), stringifyVec(b), stringifyVec(c), 'reflex:', clockwiseReflex(a, b, c))
-        } while (clockwiseReflex(a, b, c))
-      }
-      stack.push(pop)
-    } else {
-      const save = pop
-      let peek = stack[stack.length - 1]
-      while (stack.length > 0) {
-        if (clockwiseReflex(peek.vec, pop.vec, current.vec)) {
-          add(sector, floor, scale, triangles, peek.vec, pop.vec, current.vec)
-          if (doDebug()) console.debug('add (Y) peek, pop, current :=', stringifyVec(peek.vec), stringifyVec(pop.vec), stringifyVec(current.vec))
-        } else {
-          add(sector, floor, scale, triangles, current.vec, pop.vec, peek.vec)
-          if (doDebug()) console.debug('add (Z) current, pop, peek :=', stringifyVec(current.vec), stringifyVec(pop.vec), stringifyVec(peek.vec))
-        }
-        pop = stack.pop()
-        if (stack.length === 0) break
-        peek = stack[stack.length - 1]
-      }
-      stack.push(save)
-    }
-    stack.push(current)
-    if (doDebug()) console.debug(`k := ${k}, len := ${size}, stack :=`)
-    for (const vert of stack) {
-      if (doDebug()) console.debug(' ', stringifyVec(vert.vec))
-    }
+  for (let i = 0; i < size; i++) {
+    if (doDebug()) console.debug(' ', stringifyVert(verts[i]))
   }
+  const points = verts.slice()
+  let i = 0
+  let protect = size * 2
+  while (size > 3) {
+    if (--protect <= 0) throw 'Too many clip iterations'
+    if (i >= size) i = 0
+    const va = verts[i]
+    if (va === undefined) {
+      console.debug(size, '|', i, '|', verts)
+    }
+    const vb = va.next
+    const vc = vb.next
+    const a = va.vec
+    const b = vb.vec
+    const c = vc.vec
+    if (doDebug()) console.debug('(triangle)', stringifyVec(a), stringifyVec(b), stringifyVec(c))
+    if (clockwiseReflex(a, b, c)) {
+      if (safeTriangle(points, a, b, c)) {
+        if (doDebug()) console.debug('(add)', stringifyVec(a), stringifyVec(b), stringifyVec(c))
+        add(sector, floor, scale, triangles, a, b, c)
+        for (let x = 0; x < size; x++) {
+          if (verts[x] === vb) {
+            verts.splice(x, 1)
+            break
+          }
+        }
+        va.next = vc
+        size--
+        continue
+      }
+    }
+    i++
+  }
+  if (doDebug()) console.debug('(add remaining)', stringifyVec(verts[0].vec), stringifyVec(verts[1].vec), stringifyVec(verts[2].vec))
+  add(sector, floor, scale, triangles, verts[0].vec, verts[1].vec, verts[2].vec)
+  if (doDebug()) console.debug('$ end clip')
 }
 
 function monotone(sector, floor, scale, starting, triangles) {
@@ -251,18 +219,18 @@ function monotone(sector, floor, scale, starting, triangles) {
     verts.push(new Vertex(previous))
     let protect = 100
     while (true) {
-      if (--protect <= 0) throw 'Too many triangulation iterations'
+      if (--protect <= 0) throw 'Too many monotone iterations'
       let vec = current.vec
       let next = current.next
       verts.push(new Vertex(current.vec))
       if (current.diagonals.length > 0) {
         let best = next
         let angle = clockwiseInterior(previous, vec, next.vec)
-        if (doDebug()) console.debug('interior (O)', stringifyVec(previous), stringifyVec(vec), stringifyVec(next.vec), angle)
+        if (doDebug()) console.debug('interior (1)', stringifyVec(previous), stringifyVec(vec), stringifyVec(next.vec), angle)
         for (const diagonal of current.diagonals) {
           if (previous === diagonal.vec) continue
           let other = clockwiseInterior(previous, vec, diagonal.vec)
-          if (doDebug()) console.debug('interior (D)', stringifyVec(previous), stringifyVec(vec), stringifyVec(diagonal.vec), other)
+          if (doDebug()) console.debug('compare interior (2)', stringifyVec(previous), stringifyVec(vec), stringifyVec(diagonal.vec), '=', other, ', better:', other < angle)
           if (other < angle) {
             best = diagonal
             angle = other
@@ -270,7 +238,7 @@ function monotone(sector, floor, scale, starting, triangles) {
         }
         current = best
       } else {
-        if (doDebug()) console.debug('next (N)')
+        if (doDebug()) console.debug('(3) no diagonals, going to next')
         current = next
       }
       if (current === initial) break
@@ -442,9 +410,10 @@ export function sectorTriangulate(sector, scale) {
 }
 
 export function sectorTriangulateForEditor(sector, scale) {
-  if (doDebug()) console.debug('^ start compute triangles for sector -----------------------------------------')
+  if (debug) console.debug('^ start compute triangles for sector')
   sectorTriangulate(sector, scale)
   debugIsForEditor = true
   floorCeil(sector, null, scale, sector.view)
   debugIsForEditor = false
+  if (debug) console.debug('$ end compute triangles for sector')
 }

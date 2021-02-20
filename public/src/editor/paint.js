@@ -615,7 +615,7 @@ export class PaintEdit {
   export() {
     let rows = this.sheetRows
     let columns = this.sheetColumns
-    let content = columns + ' ' + rows
+    let content = `paint ${this.name} ${columns} ${rows}`
     let sheet = this.sheet
     for (let r = 0; r < rows; r++) {
       content += '\n'
@@ -624,6 +624,9 @@ export class PaintEdit {
         content += sheet[index] + ' '
       }
     }
+    content += '\nsprites'
+    content += '\nend sprites'
+    content += '\nend paint'
     return content
   }
 }

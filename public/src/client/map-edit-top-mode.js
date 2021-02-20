@@ -46,8 +46,11 @@ function mapRender(b, maps) {
         let x3 = mapX(triangle.c.x, zoom, camera)
         let y3 = mapZ(triangle.c.y, zoom, camera)
         seed++
-        if (seed == 5) seed++
-        else if (seed === 15) seed = 0
+        if (seed === 15) seed = 0
+        while (seed === 0 || seed === 1 || seed === 4 || seed === 5 || seed === 6 || seed == 7) {
+          seed++
+          if (seed === 15) seed = 0
+        }
         if (sector == maps.selectedSector) drawTriangle(b, x1, y1, x2, y2, x3, y3, blackf(0), blackf(1), blackf(2), alpha)
         else drawTriangle(b, x1, y1, x2, y2, x3, y3, colorf(seed, 0), colorf(seed, 1), colorf(seed, 2), alpha)
       }

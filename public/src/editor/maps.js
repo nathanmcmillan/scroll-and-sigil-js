@@ -239,6 +239,8 @@ export class MapEdit {
     this.dialog = null
     this.dialogStack = []
 
+    this.saved = true
+
     this.startMenuDialog = new Dialog('start', null, ['name', 'new', 'open', 'save', 'export', 'exit'])
     this.toolDialog = new Dialog('tool', null, ['draw mode', 'thing mode', 'sector mode'])
     this.editThingDialog = new Dialog('thing', null, ['swap entity', 'create new entity', 'set as default'])
@@ -325,9 +327,14 @@ export class MapEdit {
       this.dialog = this.saveOkDialog
       this.forcePaint = true
     } else if (event === 'start-new' || event === 'start-open' || event === 'start-exit') {
-      this.dialogStack.push(event)
-      this.dialog = this.askToSaveDialog
-      this.forcePaint = true
+      if (this.saved) {
+        this.parent.eventCall(event)
+        this.dialogEnd()
+      } else {
+        this.dialogStack.push(event)
+        this.dialog = this.askToSaveDialog
+        this.forcePaint = true
+      }
     } else if (event === 'start-export') {
       this.parent.eventCall(event)
       this.dialogEnd()

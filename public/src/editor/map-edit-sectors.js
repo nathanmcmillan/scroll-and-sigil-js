@@ -88,29 +88,6 @@ function clockwiseInterior(a, b, c) {
   return angle
 }
 
-// function swap(lines) {
-//   for (const line of lines) {
-//     let left = null
-//     let right = null
-//     let start = null
-//     let end = null
-//     for (const other of lines) {
-//       if (other === line) continue
-//       if (line.a == other.a) start = other
-//       if (line.a == other.b) left = other
-//       if (line.b == other.b) end = other
-//       if (line.b == other.a) right = other
-//     }
-//     if (left !== null && right !== null) continue
-//     if (left === null && right !== null) continue
-//     if (left === null && start === null) continue
-//     if (right === null && end === null) continue
-//     let temp = line.a
-//     line.a = line.b
-//     line.b = temp
-//   }
-// }
-
 function clockwise(vecs) {
   let sum = 0.0
   let len = vecs.length
@@ -217,7 +194,7 @@ function construct(editor, sectors, start) {
 }
 
 export function computeSectors(editor) {
-  if (debug) console.debug('^ start compute sectors ---')
+  if (debug) console.debug('^ start compute sectors')
 
   editor.vecs.sort(vecCompare)
 
@@ -276,5 +253,5 @@ export function computeSectors(editor) {
   checkLines(editor.lines)
 
   editor.sectors = sectors
-  if (debug) console.debug(`$ end compute sectors and triangles (sector count := ${sectors.length})`)
+  if (debug) console.debug(`$ end compute sectors (sector count := ${sectors.length})`)
 }

@@ -1,7 +1,7 @@
-import {VGA_FONT, EGA_FONT, DINA_FONT, TIC_FONT, SUPER_TITLE_FONT, SUPER_FONT, SUPER_OUTLINE_FONT} from '../render/render.js'
+import {TIC_FONT} from '../render/render.js'
 
 export function defaultFont() {
-  return SUPER_OUTLINE_FONT
+  return TIC_FONT
 }
 
 export function calcFontScale(scale) {
