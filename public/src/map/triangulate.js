@@ -11,18 +11,26 @@ let debugIsForFloor = false
 let debugIsForCeiling = false
 let debugIsForEditor = false
 
+export function clockwiseReflex(a, b, c) {
+  return (b.x - c.x) * (a.y - b.y) - (a.x - b.x) * (b.y - c.y) > 0.0
+}
+
+export function clockwiseInterior(a, b, c) {
+  let angle = Math.atan2(b.y - c.y, b.x - c.x) - Math.atan2(b.y - a.y, b.x - a.x)
+  if (angle < 0.0) angle += 2.0 * Math.PI
+  else if (angle >= 2.0 * Math.PI) angle -= 2.0 * Math.PI
+  return angle
+}
+
 function doDebug() {
   return debug && ((debugFloor && debugIsForFloor) || (debugCeiling && debugIsForCeiling) || (debugEditor && debugIsForEditor))
 }
 
-function stringifyVec(vec) {
-  return JSON.stringify(vec, (key, value) => {
-    if (key === 'index') return
-    else return value
-  })
+function strvec(vec) {
+  return JSON.stringify({x: vec.x, y: vec.y})
 }
 
-class PolygonTriangle {
+class PolygonPoint {
   constructor(vec) {
     this.index = -1
     this.start = false
@@ -44,7 +52,7 @@ function polygonSort(n, o) {
   return 0
 }
 
-function stringifyPoint(point) {
+function strpoint(point) {
   return JSON.stringify(point, (key, value) => {
     if (key === 'previous' || key === 'merge') return
     if (key === 'vec') return {x: value.x, y: value.y}
@@ -65,7 +73,7 @@ class Start {
   }
 }
 
-function stringifyStart(start) {
+function strstart(start) {
   return JSON.stringify(start, (key, value) => {
     if (key === 'a' || key == 'b') return {x: value.vec.x, y: value.vec.y}
     return value
@@ -79,24 +87,13 @@ class Vertex {
   }
 }
 
-function stringifyVert(vert) {
+function strvert(vert) {
   return JSON.stringify(vert, (key, value) => {
     if (key === 'next') {
       if (value === null) return null
       else return {vec: value.vec}
     } else return value
   })
-}
-
-function clockwiseReflex(a, b, c) {
-  return (b.x - c.x) * (a.y - b.y) - (a.x - b.x) * (b.y - c.y) > 0.0
-}
-
-function clockwiseInterior(a, b, c) {
-  let angle = Math.atan2(b.y - c.y, b.x - c.x) - Math.atan2(b.y - a.y, b.x - a.x)
-  if (angle < 0.0) angle += 2.0 * Math.PI
-  else if (angle >= 2.0 * Math.PI) angle -= 2.0 * Math.PI
-  return angle
 }
 
 function lineIntersect(a, b, c, d) {
@@ -168,7 +165,7 @@ function clip(sector, floor, scale, triangles, verts) {
   }
   verts.sort(polygonSort)
   for (let i = 0; i < size; i++) {
-    if (doDebug()) console.debug(' ', stringifyVert(verts[i]))
+    if (doDebug()) console.debug(' ', strvert(verts[i]))
   }
   const points = verts.slice()
   let i = 0
@@ -185,10 +182,10 @@ function clip(sector, floor, scale, triangles, verts) {
     const a = va.vec
     const b = vb.vec
     const c = vc.vec
-    if (doDebug()) console.debug('(triangle)', stringifyVec(a), stringifyVec(b), stringifyVec(c))
+    if (doDebug()) console.debug('(triangle)', strvec(a), strvec(b), strvec(c))
     if (clockwiseReflex(a, b, c)) {
       if (safeTriangle(points, a, b, c)) {
-        if (doDebug()) console.debug('(add)', stringifyVec(a), stringifyVec(b), stringifyVec(c))
+        if (doDebug()) console.debug('(add)', strvec(a), strvec(b), strvec(c))
         add(sector, floor, scale, triangles, a, b, c)
         for (let x = 0; x < size; x++) {
           if (verts[x] === vb) {
@@ -203,16 +200,17 @@ function clip(sector, floor, scale, triangles, verts) {
     }
     i++
   }
-  if (doDebug()) console.debug('(add remaining)', stringifyVec(verts[0].vec), stringifyVec(verts[1].vec), stringifyVec(verts[2].vec))
-  add(sector, floor, scale, triangles, verts[0].vec, verts[1].vec, verts[2].vec)
+  const a = verts[0]
+  if (doDebug()) console.debug('(add remaining)', strvec(a.vec), strvec(a.next.vec), strvec(a.next.next.vec))
+  add(sector, floor, scale, triangles, a.vec, a.next.vec, a.next.next.vec)
   if (doDebug()) console.debug('$ end clip')
 }
 
 function monotone(sector, floor, scale, starting, triangles) {
-  if (doDebug()) console.debug('monotone')
+  if (doDebug()) console.debug('^ monotone')
   let verts = []
   for (const start of starting) {
-    if (doDebug()) console.debug('begin monotone polygon starting with', stringifyStart(start))
+    if (doDebug()) console.debug('^ monotone polygon starting with', strstart(start))
     let initial = start.a
     let current = start.b
     let previous = initial.vec
@@ -226,11 +224,11 @@ function monotone(sector, floor, scale, starting, triangles) {
       if (current.diagonals.length > 0) {
         let best = next
         let angle = clockwiseInterior(previous, vec, next.vec)
-        if (doDebug()) console.debug('interior (1)', stringifyVec(previous), stringifyVec(vec), stringifyVec(next.vec), angle)
+        if (doDebug()) console.debug('interior (1)', strvec(previous), strvec(vec), strvec(next.vec), angle)
         for (const diagonal of current.diagonals) {
           if (previous === diagonal.vec) continue
           let other = clockwiseInterior(previous, vec, diagonal.vec)
-          if (doDebug()) console.debug('compare interior (2)', stringifyVec(previous), stringifyVec(vec), stringifyVec(diagonal.vec), '=', other, ', better:', other < angle)
+          if (doDebug()) console.debug('compare interior (2)', strvec(previous), strvec(vec), strvec(diagonal.vec), '=', other, ', better:', other < angle)
           if (other < angle) {
             best = diagonal
             angle = other
@@ -245,13 +243,14 @@ function monotone(sector, floor, scale, starting, triangles) {
       previous = vec
     }
     clip(sector, floor, scale, triangles, verts)
-    if (doDebug()) console.debug('end monotone')
+    if (doDebug()) console.debug('$ end monotone polygon')
     verts.length = 0
   }
+  if (doDebug()) console.debug('$ end monotone')
 }
 
 function classify(points) {
-  if (doDebug()) console.debug('classify')
+  if (doDebug()) console.debug('^ classify')
   let monotone = []
   let merge = []
   let split = []
@@ -262,7 +261,7 @@ function classify(points) {
     let reflex = clockwiseReflex(previous, vec, next)
     if (reflex) {
       let above = previous.y < vec.y && next.y <= vec.y
-      if (doDebug()) console.debug(' ', stringifyPoint(current), 'reflex', reflex, 'above', above)
+      if (doDebug()) console.debug(' ', strpoint(current), 'reflex', reflex, 'above', above)
       if (above) {
         current.start = true
         monotone.push(new Start(current, current.next))
@@ -270,7 +269,7 @@ function classify(points) {
     } else {
       let above = previous.y <= vec.y && next.y < vec.y
       let below = previous.y >= vec.y && next.y > vec.y
-      if (doDebug()) console.debug(' ', stringifyPoint(current), 'reflex', reflex, 'above', above, 'below', below)
+      if (doDebug()) console.debug(' ', strpoint(current), 'reflex', reflex, 'above', above, 'below', below)
       if (above) {
         split.push(current)
       } else if (below) {
@@ -278,7 +277,7 @@ function classify(points) {
       }
     }
   }
-  for (const mono of monotone) if (doDebug()) console.debug('start', stringifyStart(mono))
+  for (const mono of monotone) if (doDebug()) console.debug('start', strstart(mono))
   for (const point of merge) {
     let vec = point.vec
     for (let k = point.index + 1; k < points.length; k++) {
@@ -287,7 +286,7 @@ function classify(points) {
       point.merge = true
       point.diagonals.push(diagonal)
       diagonal.diagonals.push(point)
-      if (doDebug()) console.debug('merge', stringifyVec(point.vec), 'with', stringifyVec(diagonal.vec))
+      if (doDebug()) console.debug('merge', strvec(point.vec), 'with', strvec(diagonal.vec))
       break
     }
   }
@@ -299,7 +298,7 @@ function classify(points) {
       if (diagonal.merge) break
       point.diagonals.push(diagonal)
       diagonal.diagonals.push(point)
-      if (doDebug()) console.debug('split', stringifyVec(point.vec), 'with', stringifyVec(diagonal.vec))
+      if (doDebug()) console.debug('split', strvec(point.vec), 'with', strvec(diagonal.vec))
       if (diagonal.start) {
         monotone.push(new Start(diagonal, point))
       } else {
@@ -309,66 +308,15 @@ function classify(points) {
       break
     }
   }
+  if (doDebug()) console.debug('$ end classify')
   return monotone
 }
 
 function find(points, vec) {
   for (const point of points) {
-    if (vec === point.vec) {
-      return point
-    }
+    if (vec === point.vec) return point
   }
   return null
-}
-
-function populateReferences(sector, points, clockwise) {
-  const len = sector.vecs.length
-  for (let i = 0; i < len; i++) {
-    let p = i == 0 ? len - 1 : i - 1
-    let n = i == len - 1 ? 0 : i + 1
-    if (!clockwise) {
-      let t = p
-      p = n
-      n = t
-    }
-    let next = find(points, sector.vecs[n])
-    let previous = find(points, sector.vecs[p])
-    let original = find(points, sector.vecs[i])
-    if (original.previous === null) {
-      original.previous = previous
-    } else {
-      let point = original.vec
-      let angle = original.previous.vec.angle(point)
-      if (previous.vec.angle(point) < angle) {
-        original.previous = previous
-      }
-      if (debug) console.warn('Double previous reference')
-    }
-    if (original.next === null) {
-      original.next = next
-    } else {
-      let point = original.vec
-      let angle = original.next.vec.angle(point)
-      if (next.vec.angle(point) < angle) {
-        original.next = next
-      }
-      if (debug) console.warn('Double next reference')
-    }
-  }
-}
-
-function populateVectors(sector, points) {
-  for (const vec of sector.vecs) {
-    let exists = false
-    for (const point of points) {
-      if (vec === point.vec) {
-        exists = true
-        break
-      }
-    }
-    if (!exists) points.push(new PolygonTriangle(vec))
-  }
-  points.sort(polygonSort)
 }
 
 function skip(sector, floor) {
@@ -377,26 +325,187 @@ function skip(sector, floor) {
   return !sector.hasCeiling()
 }
 
+class InnerReference {
+  constructor(inner) {
+    this.vecSet = [inner.vecs]
+    this.vecs = null
+  }
+
+  add(inner) {
+    this.vecSet.push(inner.vecs)
+  }
+
+  has(d) {
+    for (const vecs of this.vecSet) {
+      for (const vec of vecs) {
+        if (vec === d) return true
+      }
+    }
+    return false
+  }
+
+  topLeft() {
+    let top = null
+    for (const vecs of this.vecSet) {
+      for (const vec of vecs) {
+        if (top === null) {
+          top = vec
+          continue
+        }
+        if (vec.y < top.y) continue
+        if (Float.eq(vec.y, top.y) && vec.x > top.x) continue
+        top = vec
+      }
+    }
+    return top
+  }
+
+  startOf(top) {
+    let start = null
+    for (const vecs of this.vecSet) {
+      for (const vec of vecs) {
+        if (vec === top) continue
+        if (start === null) {
+          start = vec
+          continue
+        }
+        if (vec.x > start.x) continue
+        if (Float.eq(vec.x, start.x) && vec.y < start.y) continue
+        start = vec
+      }
+    }
+    return start
+  }
+
+  next(previous, current) {
+    let result = null
+    for (let v = 0; v < this.vecSet.length; v++) {
+      const vecs = this.vecSet[v]
+      for (let i = 0; i < vecs.length; i++) {
+        const vec = vecs[i]
+        if (vec !== current) continue
+        let n = i + 1 === vecs.length ? 0 : i + 1
+        const next = vecs[n]
+        if (result === null) result = next
+        else {
+          let one = clockwiseInterior(previous, current, result)
+          let two = clockwiseInterior(previous, current, next)
+          if (two > one) result = next
+        }
+      }
+    }
+    return result
+  }
+}
+
+function populateInside(inside, floor) {
+  if (doDebug()) console.debug('^ populate inside')
+
+  const clusters = []
+  const remaining = inside.filter((inner) => !skip(inner, floor))
+
+  for (let i = 0; i < remaining.length; i++) {
+    const inner = remaining[i]
+    const reference = new InnerReference(inner)
+    clusters.push(reference)
+    const list = []
+    for (let r = i + 1; r < remaining.length; r++) {
+      const other = inside[r]
+      iter: for (const d of other.vecs) {
+        if (reference.has(d)) {
+          reference.add(other)
+          list.push(other)
+          break iter
+        }
+      }
+    }
+    for (const other of list) remaining.splice(remaining.indexOf(other), 1)
+  }
+
+  for (const cluster of clusters) {
+    if (cluster.vecSet.length === 1) {
+      cluster.vecs = cluster.vecSet[0]
+      continue
+    }
+    if (doDebug()) console.debug('^ cluster boundary')
+    const top = cluster.topLeft()
+    const start = cluster.startOf(top)
+    if (doDebug()) console.debug('@ start', start)
+    if (doDebug()) console.debug('@ top', top)
+    const vecs = [start, top]
+    let previous = start
+    let current = top
+    let protect = 1000
+    while (true) {
+      if (--protect <= 0) throw 'Too many population iterations'
+      let next = cluster.next(previous, current)
+      if (next === start) break
+      vecs.push(next)
+      if (doDebug()) console.debug('@ next', next)
+      previous = current
+      current = next
+    }
+    cluster.vecs = vecs
+    if (doDebug()) console.debug('$ end cluster boundary')
+  }
+
+  if (doDebug()) console.debug(`$ end populate inside (len ${clusters.length})`)
+  return clusters.map((cluster) => cluster.vecs)
+}
+
+function populateReferences(vecs, points, clockwise) {
+  if (doDebug()) console.debug('^ populate refs')
+  const size = vecs.length
+  for (let i = 0; i < size; i++) {
+    let p = i == 0 ? size - 1 : i - 1
+    let n = i == size - 1 ? 0 : i + 1
+    if (!clockwise) {
+      let t = p
+      p = n
+      n = t
+    }
+    const next = find(points, vecs[n])
+    const previous = find(points, vecs[p])
+    const original = find(points, vecs[i])
+    if (original.previous === null) original.previous = previous
+    else console.warn('Multiple previous references:', strvec(original.vec), '|', strvec(original.previous.vec), '|', strvec(previous.vec))
+    if (original.next === null) original.next = next
+    else console.warn('Multiple next references:', strvec(original.vec), '|', strvec(original.next.vec), '|', strvec(next.vec))
+  }
+  if (doDebug()) console.debug('$ end populate refs')
+}
+
+function populateVectors(vecs, points) {
+  for (const vec of vecs) {
+    let exists = false
+    for (const point of points) {
+      if (vec === point.vec) {
+        exists = true
+        break
+      }
+    }
+    if (!exists) points.push(new PolygonPoint(vec))
+  }
+  points.sort(polygonSort)
+}
+
 function populate(sector, floor) {
-  let polygons = []
-  for (let inner of sector.inside) {
-    if (skip(inner, floor)) continue // this should be removed? there's overdrawing
-    populateVectors(inner, polygons)
-  }
-  for (let inner of sector.inside) {
-    if (skip(inner, floor)) continue // this should be removed? there's overdrawing
-    populateReferences(inner, polygons, false)
-  }
-  populateVectors(sector, polygons)
-  populateReferences(sector, polygons, true)
-  for (let i = 0; i < polygons.length; i++) polygons[i].index = i
-  return polygons
+  let points = []
+  if (doDebug()) console.debug(`^ populate (${sector.inside.length})`)
+  const inside = populateInside(sector.inside, floor)
+  for (const inner of inside) populateVectors(inner, points)
+  for (const inner of inside) populateReferences(inner, points, false)
+  populateVectors(sector.vecs, points)
+  populateReferences(sector.vecs, points, true)
+  for (let i = 0; i < points.length; i++) points[i].index = i
+  if (doDebug()) console.debug('$ end populate')
+  return points
 }
 
 function floorCeil(sector, floor, scale, triangles) {
   if (skip(sector, floor)) return
-  let polygons = populate(sector, floor)
-  let starting = classify(polygons)
+  let points = populate(sector, floor)
+  let starting = classify(points)
   monotone(sector, floor, scale, starting, triangles)
 }
 

@@ -20,6 +20,10 @@ function input(@zoo object, @int num) {
   zoo.eat(num)
 }
 
+-- constant or variables
+const x = 0
+var z = 0
+
 -- class functions are syntactic sugar for regular functions with `this`
 function zoo.string() {
   return "(%{this.x}, %{this.y})"

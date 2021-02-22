@@ -11,8 +11,6 @@ import {Vector2} from '../math/vector.js'
 import {TextBox} from '../gui/text-box.js'
 import * as In from '../input/input.js'
 
-const debugDisableSector = true
-
 export const TOP_MODE = 0
 export const VIEW_MODE = 1
 
@@ -150,6 +148,10 @@ SECTOR_MODE_LINE_UNDER_CURSOR_OPTIONS.set(In.BUTTON_A, DO_EDIT_LINE)
 DESCRIBE_OPTIONS[OPTION_SECTOR_MODE_LINE_UNDER_CURSOR] = SECTOR_MODE_LINE_UNDER_CURSOR_OPTIONS
 
 const INPUT_RATE = 128
+
+function strvec(vec) {
+  return JSON.stringify({x: vec.x, y: vec.y})
+}
 
 function texture(name) {
   if (name === 'none') return null
@@ -326,7 +328,16 @@ export class MapEdit {
       this.parent.eventCall(event)
       this.dialog = this.saveOkDialog
       this.forcePaint = true
-    } else if (event === 'start-new' || event === 'start-open' || event === 'start-exit') {
+    } else if (event === 'start-new') {
+      if (this.saved) {
+        this.clear()
+        this.dialogEnd()
+      } else {
+        this.dialogStack.push(event)
+        this.dialog = this.askToSaveDialog
+        this.forcePaint = true
+      }
+    } else if (event === 'start-open' || event === 'start-exit') {
       if (this.saved) {
         this.parent.eventCall(event)
         this.dialogEnd()
@@ -511,6 +522,21 @@ export class MapEdit {
     this.doPaint = true
   }
 
+  checkVectors() {
+    const vecs = this.vecs
+    const size = vecs.length
+    for (let i = 0; i < size; i++) {
+      for (let k = 0; k < size; k++) {
+        if (i === k) continue
+        let a = vecs[i]
+        let b = vecs[k]
+        if (a === b || a.eq(b)) {
+          console.warn('Duplicate vectors found', strvec(a), strvec(b))
+        }
+      }
+    }
+  }
+
   read(content) {
     this.clear()
     this.entityList = entityList().sort()
@@ -532,6 +558,8 @@ export class MapEdit {
         }
         index++
 
+        this.checkVectors()
+
         index++
         while (index < end) {
           if (map[index] === 'end lines') break
@@ -547,60 +575,52 @@ export class MapEdit {
         index++
 
         index++
-        if (debugDisableSector) {
-          while (index < end) {
-            if (map[index] === 'end sectors') break
-            index++
+        while (index < end) {
+          if (map[index] === 'end sectors') break
+          let sector = map[index].split(' ')
+          let bottom = parseFloat(sector[0])
+          let floor = parseFloat(sector[1])
+          let ceiling = parseFloat(sector[2])
+          let top = parseFloat(sector[3])
+          let floorTexture = texture(sector[4])
+          let ceilingTexture = texture(sector[5])
+          let count = parseInt(sector[6])
+          let i = 7
+          let end = i + count
+          let vecs = []
+          for (; i < end; i++) vecs.push(this.vecs[parseInt(sector[i])])
+          count = parseInt(sector[i])
+          i++
+          end = i + count
+          let lines = []
+          for (; i < end; i++) {
+            lines.push(this.lines[parseInt(sector[i])])
           }
+          this.sectors.push(new SectorReference(bottom, floor, ceiling, top, floorTexture, ceilingTexture, vecs, lines))
           index++
-        } else {
-          while (index < end) {
-            if (map[index] === 'end sectors') break
-            let sector = map[index].split(' ')
-            let bottom = parseFloat(sector[0])
-            let floor = parseFloat(sector[1])
-            let ceiling = parseFloat(sector[2])
-            let top = parseFloat(sector[3])
-            let floorTexture = texture(sector[4])
-            let ceilingTexture = texture(sector[5])
-            let count = parseInt(sector[6])
-            let i = 7
-            let end = i + count
-            let vecs = []
-            for (; i < end; i++) vecs.push(this.vecs[parseInt(sector[i])])
-            count = parseInt(sector[i])
-            i++
-            end = i + count
-            let lines = []
-            for (; i < end; i++) {
-              lines.push(this.lines[parseInt(sector[i])])
-            }
-            this.sectors.push(new SectorReference(bottom, floor, ceiling, top, floorTexture, ceilingTexture, vecs, lines))
-            index++
-          }
-          index++
-
-          let i = 0
-          for (const sector of this.sectors) sector.index = i++
-
-          sectorInsideOutside(this.sectors)
-          this.sectors.sort((a, b) => {
-            // just for debugging
-            if (a.otherIsInside(b)) return 1
-            if (b.otherIsInside(a)) return -1
-            if (a.vecs.length < b.vecs.length) return 1
-            if (b.vecs.length > b.vecs.length) return -1
-            return 0
-          })
-          for (const sector of this.sectors) {
-            try {
-              sectorTriangulateForEditor(sector, WORLD_SCALE)
-            } catch (e) {
-              console.error(e)
-            }
-          }
-          sectorLineNeighbors(this.sectors, WORLD_SCALE)
         }
+        index++
+
+        let i = 0
+        for (const sector of this.sectors) sector.index = i++
+
+        sectorInsideOutside(this.sectors)
+        this.sectors.sort((a, b) => {
+          // just for debugging
+          if (a.otherIsInside(b)) return 1
+          if (b.otherIsInside(a)) return -1
+          if (a.vecs.length < b.vecs.length) return 1
+          if (b.vecs.length > b.vecs.length) return -1
+          return 0
+        })
+        for (const sector of this.sectors) {
+          try {
+            sectorTriangulateForEditor(sector, WORLD_SCALE)
+          } catch (e) {
+            console.error(e)
+          }
+        }
+        sectorLineNeighbors(this.sectors, WORLD_SCALE)
 
         while (index < end) {
           let top = map[index]
@@ -642,6 +662,8 @@ export class MapEdit {
           this.vecs.push(new VectorReference(parseFloat(vec[0]), parseFloat(vec[1])))
         }
 
+        this.checkVectors()
+
         let lines = index + parseInt(map[index].split(' ')[1])
         index++
         for (; index <= lines; index++) {
@@ -654,57 +676,51 @@ export class MapEdit {
           this.lines.push(new LineReference(bottom, middle, top, a, b))
         }
 
-        if (debugDisableSector) {
-          let sectors = index + parseInt(map[index].split(' ')[1])
-          index++
-          for (; index <= sectors; index++);
-        } else {
-          let sectors = index + parseInt(map[index].split(' ')[1])
-          index++
-          for (; index <= sectors; index++) {
-            let sector = map[index].split(' ')
-            let bottom = parseFloat(sector[0])
-            let floor = parseFloat(sector[1])
-            let ceiling = parseFloat(sector[2])
-            let top = parseFloat(sector[3])
-            let floorTexture = texture(sector[4])
-            let ceilingTexture = texture(sector[5])
-            let count = parseInt(sector[6])
-            let i = 7
-            let end = i + count
-            let vecs = []
-            for (; i < end; i++) vecs.push(this.vecs[parseInt(sector[i])])
-            count = parseInt(sector[i])
-            i++
-            end = i + count
-            let lines = []
-            for (; i < end; i++) {
-              lines.push(this.lines[parseInt(sector[i])])
-            }
-            this.sectors.push(new SectorReference(bottom, floor, ceiling, top, floorTexture, ceilingTexture, vecs, lines))
+        let sectors = index + parseInt(map[index].split(' ')[1])
+        index++
+        for (; index <= sectors; index++) {
+          let sector = map[index].split(' ')
+          let bottom = parseFloat(sector[0])
+          let floor = parseFloat(sector[1])
+          let ceiling = parseFloat(sector[2])
+          let top = parseFloat(sector[3])
+          let floorTexture = texture(sector[4])
+          let ceilingTexture = texture(sector[5])
+          let count = parseInt(sector[6])
+          let i = 7
+          let end = i + count
+          let vecs = []
+          for (; i < end; i++) vecs.push(this.vecs[parseInt(sector[i])])
+          count = parseInt(sector[i])
+          i++
+          end = i + count
+          let lines = []
+          for (; i < end; i++) {
+            lines.push(this.lines[parseInt(sector[i])])
           }
-
-          let i = 0
-          for (const sector of this.sectors) sector.index = i++
-
-          sectorInsideOutside(this.sectors)
-          this.sectors.sort((a, b) => {
-            // just for debugging
-            if (a.otherIsInside(b)) return 1
-            if (b.otherIsInside(a)) return -1
-            if (a.vecs.length < b.vecs.length) return 1
-            if (b.vecs.length > b.vecs.length) return -1
-            return 0
-          })
-          for (const sector of this.sectors) {
-            try {
-              sectorTriangulateForEditor(sector, WORLD_SCALE)
-            } catch (e) {
-              console.error(e)
-            }
-          }
-          sectorLineNeighbors(this.sectors, WORLD_SCALE)
+          this.sectors.push(new SectorReference(bottom, floor, ceiling, top, floorTexture, ceilingTexture, vecs, lines))
         }
+
+        let i = 0
+        for (const sector of this.sectors) sector.index = i++
+
+        sectorInsideOutside(this.sectors)
+        this.sectors.sort((a, b) => {
+          // just for debugging
+          if (a.otherIsInside(b)) return 1
+          if (b.otherIsInside(a)) return -1
+          if (a.vecs.length < b.vecs.length) return 1
+          if (b.vecs.length > b.vecs.length) return -1
+          return 0
+        })
+        for (const sector of this.sectors) {
+          try {
+            sectorTriangulateForEditor(sector, WORLD_SCALE)
+          } catch (e) {
+            console.error(e)
+          }
+        }
+        sectorLineNeighbors(this.sectors, WORLD_SCALE)
 
         while (index < map.length - 1) {
           let top = map[index].split(' ')
@@ -734,7 +750,7 @@ export class MapEdit {
       this.dialog = this.errorOkDialog
     }
 
-    this.doSectorRefresh = debugDisableSector
+    this.doSectorRefresh = false
     this.shadowInput = true
     this.doPaint = true
   }
@@ -1590,6 +1606,7 @@ export class MapEdit {
   }
 
   export() {
+    computeSectors(this)
     let content = `map ${this.name}\n`
     content += 'vectors\n'
     let index = 0

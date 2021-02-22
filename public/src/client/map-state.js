@@ -47,9 +47,9 @@ export class MapState {
   }
 
   eventCall(event) {
-    if (event === 'start-save') this.saveMap()
-    else if (event === 'start-open') this.importMap()
-    else if (event === 'start-export') this.exportPlain()
+    if (event === 'start-save') this.save()
+    else if (event === 'start-open') this.import()
+    else if (event === 'start-export') this.export()
     else if (event === 'start-exit') this.returnToDashboard()
   }
 
@@ -57,7 +57,7 @@ export class MapState {
     this.client.openState('dashboard')
   }
 
-  importMap() {
+  import() {
     let button = document.createElement('input')
     button.type = 'file'
     button.onchange = (e) => {
@@ -73,14 +73,14 @@ export class MapState {
     button.click()
   }
 
-  saveMap() {
+  save() {
     let blob = this.maps.export()
     localStorage.setItem('map.txt', blob)
     console.info(blob)
     console.info('saved to local storage!')
   }
 
-  exportPlain() {
+  export() {
     let blob = this.maps.export()
     let download = document.createElement('a')
     download.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(blob)
