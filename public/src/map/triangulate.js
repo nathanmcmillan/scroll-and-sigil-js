@@ -361,17 +361,24 @@ class InnerReference {
   }
 
   startOf(top) {
+    // TODO: Forgot to check if start actually is attached to top (fixed). Double check this works
     let start = null
-    for (const vecs of this.vecSet) {
-      for (const vec of vecs) {
+    for (let v = 0; v < this.vecSet.length; v++) {
+      const vecs = this.vecSet[v]
+      for (let i = 0; i < vecs.length; i++) {
+        const vec = vecs[i]
         if (vec === top) continue
-        if (start === null) {
+        let n = i + 1 === vecs.length ? 0 : i + 1
+        const next = vecs[n]
+        if (next === top) {
+          if (start === null) {
+            start = vec
+            continue
+          }
+          if (vec.x > start.x) continue
+          if (Float.eq(vec.x, start.x) && vec.y < start.y) continue
           start = vec
-          continue
         }
-        if (vec.x > start.x) continue
-        if (Float.eq(vec.x, start.x) && vec.y < start.y) continue
-        start = vec
       }
     }
     return start
@@ -424,6 +431,7 @@ function populateInside(inside, floor) {
     }
     const top = cluster.topLeft()
     const start = cluster.startOf(top)
+    if (doDebug()) console.debug('@ cluster', strvec(start), strvec(top))
     const vecs = [start, top]
     let previous = start
     let current = top
