@@ -399,39 +399,31 @@ class InnerReference {
 }
 
 function populateInside(inside, floor) {
-  if (doDebug()) console.debug('^ populate inside')
-
   const clusters = []
   const remaining = inside.filter((inner) => !skip(inner, floor))
-
   for (let i = 0; i < remaining.length; i++) {
     const inner = remaining[i]
     const reference = new InnerReference(inner)
     clusters.push(reference)
-    const list = []
     for (let r = i + 1; r < remaining.length; r++) {
-      const other = inside[r]
+      const other = remaining[r]
       iter: for (const d of other.vecs) {
         if (reference.has(d)) {
           reference.add(other)
-          list.push(other)
+          remaining.splice(r, 1)
+          r--
           break iter
         }
       }
     }
-    for (const other of list) remaining.splice(remaining.indexOf(other), 1)
   }
-
   for (const cluster of clusters) {
     if (cluster.vecSet.length === 1) {
       cluster.vecs = cluster.vecSet[0]
       continue
     }
-    if (doDebug()) console.debug('^ cluster boundary')
     const top = cluster.topLeft()
     const start = cluster.startOf(top)
-    if (doDebug()) console.debug('@ start', start)
-    if (doDebug()) console.debug('@ top', top)
     const vecs = [start, top]
     let previous = start
     let current = top
@@ -441,20 +433,15 @@ function populateInside(inside, floor) {
       let next = cluster.next(previous, current)
       if (next === start) break
       vecs.push(next)
-      if (doDebug()) console.debug('@ next', next)
       previous = current
       current = next
     }
     cluster.vecs = vecs
-    if (doDebug()) console.debug('$ end cluster boundary')
   }
-
-  if (doDebug()) console.debug(`$ end populate inside (len ${clusters.length})`)
   return clusters.map((cluster) => cluster.vecs)
 }
 
 function populateReferences(vecs, points, clockwise) {
-  if (doDebug()) console.debug('^ populate refs')
   const size = vecs.length
   for (let i = 0; i < size; i++) {
     let p = i == 0 ? size - 1 : i - 1
@@ -472,7 +459,6 @@ function populateReferences(vecs, points, clockwise) {
     if (original.next === null) original.next = next
     else console.warn('Multiple next references:', strvec(original.vec), '|', strvec(original.next.vec), '|', strvec(next.vec))
   }
-  if (doDebug()) console.debug('$ end populate refs')
 }
 
 function populateVectors(vecs, points) {
