@@ -85,10 +85,10 @@ export class Sector {
   }
 }
 
-function deleteNestedInside(set, inside) {
-  for (const nested of inside.inside) {
+function deleteNestedInside(set, inner) {
+  for (const nested of inner.inside) {
     set.add(nested)
-    deleteNestedInside(nested)
+    deleteNestedInside(set, nested)
   }
 }
 
@@ -114,13 +114,14 @@ export function sectorInsideOutside(sectors) {
     }
   }
   for (const sector of sectors) {
-    let dead = new Set()
-    for (const inside of sector.inside) deleteNestedInside(dead, inside)
+    const inside = sector.inside
+    const dead = new Set()
+    for (const inner of inside) deleteNestedInside(dead, inner)
     for (const other of dead) {
-      let index = sector.inside.indexOf(other)
-      if (index >= 0) sector.inside.splice(index, 1)
+      let index = inside.indexOf(other)
+      if (index >= 0) inside.splice(index, 1)
     }
-    for (const inside of sector.inside) inside.outside = sector
+    for (const inner of inside) inner.outside = sector
   }
 }
 

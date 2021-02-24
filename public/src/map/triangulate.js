@@ -1,7 +1,7 @@
 import {Float} from '../math/vector.js'
 import {Triangle} from '../map/triangle.js'
 
-const debug = true
+const debug = false
 
 const debugFloor = false
 const debugCeiling = false
@@ -361,7 +361,6 @@ class InnerReference {
   }
 
   startOf(top) {
-    // TODO: Forgot to check if start actually is attached to top (fixed). Double check this works
     let start = null
     for (let v = 0; v < this.vecSet.length; v++) {
       const vecs = this.vecSet[v]

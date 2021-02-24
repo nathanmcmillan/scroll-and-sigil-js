@@ -1,9 +1,9 @@
 package: default
-map: test
+map: base
 open: music
 open: game
 open: dashboard
-open: home
 open: sfx
 open: paint
 open: maps
+open: home

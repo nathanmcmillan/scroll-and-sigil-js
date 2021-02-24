@@ -601,18 +601,8 @@ export class MapEdit {
         }
         index++
 
-        let i = 0
-        for (const sector of this.sectors) sector.index = i++
-
         sectorInsideOutside(this.sectors)
-        this.sectors.sort((a, b) => {
-          // just for debugging
-          if (a.otherIsInside(b)) return 1
-          if (b.otherIsInside(a)) return -1
-          if (a.vecs.length < b.vecs.length) return 1
-          if (b.vecs.length > b.vecs.length) return -1
-          return 0
-        })
+
         for (const sector of this.sectors) {
           try {
             sectorTriangulateForEditor(sector, WORLD_SCALE)
@@ -701,18 +691,8 @@ export class MapEdit {
           this.sectors.push(new SectorReference(bottom, floor, ceiling, top, floorTexture, ceilingTexture, vecs, lines))
         }
 
-        let i = 0
-        for (const sector of this.sectors) sector.index = i++
-
         sectorInsideOutside(this.sectors)
-        this.sectors.sort((a, b) => {
-          // just for debugging
-          if (a.otherIsInside(b)) return 1
-          if (b.otherIsInside(a)) return -1
-          if (a.vecs.length < b.vecs.length) return 1
-          if (b.vecs.length > b.vecs.length) return -1
-          return 0
-        })
+
         for (const sector of this.sectors) {
           try {
             sectorTriangulateForEditor(sector, WORLD_SCALE)

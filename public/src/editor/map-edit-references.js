@@ -259,7 +259,6 @@ export class SectorReference {
     this.outside = null
     this.neighbors = []
     this.view = []
-    this.index = 0
   }
 
   hasFloor() {

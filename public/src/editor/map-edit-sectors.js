@@ -55,14 +55,6 @@ function transfer(previous, sectors) {
   }
 }
 
-function vecCompare(a, b) {
-  if (a.y > b.y) return -1
-  if (a.y < b.y) return 1
-  if (a.x > b.x) return 1
-  if (a.x < b.x) return -1
-  return 0
-}
-
 function isDuplicate(sectors, vecs) {
   for (const sector of sectors) {
     if (vecs.length !== sector.vecs.length) continue
@@ -89,16 +81,6 @@ function isClockwise(vecs) {
     sum += (vecs[k].x - vecs[i].x) * (vecs[k].y + vecs[i].y)
   }
   if (sum >= 0.0) return true
-  // let temp = vecs[0]
-  // vecs[0] = vecs[1]
-  // vecs[1] = temp
-  // let i = 2
-  // while (i < len - i + 1) {
-  //   temp = vecs[i]
-  //   vecs[i] = vecs[len - i + 1]
-  //   vecs[len - i + 1] = temp
-  //   i++
-  // }
   if (debug) console.warn('% counter-clockwise computed sector')
   return false
 }
@@ -186,8 +168,6 @@ function construct(editor, sectors, start) {
 export function computeSectors(editor) {
   if (debug) console.debug('^ start compute sectors')
 
-  editor.vecs.sort(vecCompare)
-
   let sectors = []
   for (const line of editor.lines) {
     if (debug) console.debug('@ compute sector', strvec(line.a), strvec(line.b))
@@ -221,15 +201,6 @@ export function computeSectors(editor) {
 
   transfer(editor.sectors, sectors)
   sectorInsideOutside(sectors)
-
-  sectors.sort((a, b) => {
-    // just for debugging
-    if (a.otherIsInside(b)) return 1
-    if (b.otherIsInside(a)) return -1
-    if (a.vecs.length < b.vecs.length) return 1
-    if (b.vecs.length > b.vecs.length) return -1
-    return 0
-  })
 
   for (const sector of sectors) {
     try {
