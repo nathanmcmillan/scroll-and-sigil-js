@@ -21,6 +21,9 @@ A 3D adventure game with a strong focus on modding and user crafted content.
 - Snap/attach things to walls (like torches)
 - Lines should have front and back textures optional
 
+- Entity wad animation needs to specify sprite for each frame, so that animations can span multiple sprite sheets
+- Tiles should just be paint:sprite index from regular paint image
+
 ### Low Priority
 
 - Forward rendered light shader

@@ -11,6 +11,8 @@ import {Dialog} from '../gui/dialog.js'
 const PENCIL = 0
 const FILL = 1
 const DROPLET = 2
+const SELECT = 3
+const SPRITER = 4
 
 const INPUT_RATE = 128
 const HISTORY_LIMIT = 50
@@ -42,6 +44,8 @@ export class PaintEdit {
     let i = this.sheet.length
     while (i--) this.sheet[i] = 0
 
+    this.sprites = []
+
     this.paletteC = 0
     this.paletteR = 0
 
@@ -54,8 +58,13 @@ export class PaintEdit {
     this.positionC = 0
     this.positionR = 0
 
-    this.toolColumns = 3
+    this.toolColumns = 4
     this.tool = 0
+
+    this.selectL = null
+    this.selectT = null
+    this.selectR = null
+    this.selectB = null
 
     this.history = []
     this.historyPosition = 0
@@ -72,6 +81,7 @@ export class PaintEdit {
     this.exportDialog = new Dialog('export', 'export to file', ['plain text', 'png', 'huffman', 'back'])
     this.askToSaveDialog = new Dialog('ask', 'save current file?', ['save', 'export', 'no'])
     this.saveOkDialog = new Dialog('ok', 'file saved', ['ok'])
+    this.errorOkDialog = new Dialog('error', null, ['ok'])
 
     this.resize(width, height, scale)
   }
@@ -79,7 +89,7 @@ export class PaintEdit {
   clear() {
     let i = this.sheet.length
     while (i--) this.sheet[i] = 0
-
+    this.sprites.length = 0
     return null
   }
 
@@ -137,6 +147,7 @@ export class PaintEdit {
     this.exportDialog.reset()
     this.askToSaveDialog.reset()
     this.saveOkDialog.reset()
+    this.errorOkDialog.reset()
   }
 
   dialogEnd() {
@@ -225,27 +236,45 @@ export class PaintEdit {
   read(content) {
     this.clear()
 
-    const image = content.split('\n')
-    let index = 0
+    try {
+      const image = content.split('\n')
+      let index = 0
 
-    let dimensions = image[index].split(' ')
-    let width = parseInt(dimensions[0])
-    let height = parseInt(dimensions[1])
-    index++
-
-    const sheet = this.sheet
-    const rows = this.sheetRows
-    const columns = this.sheetColumns
-
-    if (height > rows) height = rows
-    if (width > columns) width = columns
-
-    for (let h = 0; h < height; h++) {
-      let row = image[index].split(' ')
-      for (let c = 0; c < width; c++) {
-        sheet[c + h * columns] = parseInt(row[c])
-      }
+      let dimensions = image[index].split(' ')
+      let width = parseInt(dimensions[0])
+      let height = parseInt(dimensions[1])
       index++
+
+      const sheet = this.sheet
+      const rows = this.sheetRows
+      const columns = this.sheetColumns
+
+      if (height > rows) height = rows
+      if (width > columns) width = columns
+
+      for (let h = 0; h < height; h++) {
+        let row = image[index].split(' ')
+        for (let c = 0; c < width; c++) {
+          sheet[c + h * columns] = parseInt(row[c])
+        }
+        index++
+      }
+
+      if (index < image.length) {
+        if (image[index] === 'sprites') {
+          index++
+          while (index < image.length) {
+            if (image[index] === 'end sprites') break
+            const list = image[index]
+            this.sprites.push([parseInt(list[0]), parseInt(list[1]), parseInt(list[2]), parseInt(list[3])])
+            index++
+          }
+        }
+      }
+    } catch (e) {
+      console.error(e)
+      this.errorOkDialog.title = 'Failed reading file'
+      this.dialog = this.errorOkDialog
     }
 
     this.shadowInput = true
@@ -522,6 +551,8 @@ export class PaintEdit {
       if (this.tool === PENCIL) this.pencil(index, color)
       else if (this.tool === FILL) this.fill(index, color)
       else if (this.tool === DROPLET) this.droplet(index)
+      else if (this.tool === SELECT) this.select(index)
+      else if (this.tool === SPRITER) this.spriter(index)
       this.hasUpdates = true
       this.canUpdate = false
     }
@@ -529,10 +560,10 @@ export class PaintEdit {
 
   pencil(start, color) {
     let saved = false
-    let columns = this.sheetColumns
+    const columns = this.sheetColumns
     for (let h = 0; h < this.brushSize; h++) {
       for (let c = 0; c < this.brushSize; c++) {
-        let index = c + h * columns + start
+        const index = c + h * columns + start
         if (this.sheet[index] === color) continue
         if (!saved) {
           this.saveHistory()
@@ -544,17 +575,17 @@ export class PaintEdit {
   }
 
   fill(start, color) {
-    let match = this.sheet[start]
+    const match = this.sheet[start]
     if (match === color) return
     this.saveHistory()
-    let rows = this.sheetRows
-    let columns = this.sheetColumns
-    let queue = [start]
+    const rows = this.sheetRows
+    const columns = this.sheetColumns
+    const queue = [start]
     while (queue.length > 0) {
-      let index = queue.shift()
+      const index = queue.shift()
       this.sheet[index] = color
-      let c = index % columns
-      let r = Math.floor(index / columns)
+      const c = index % columns
+      const r = Math.floor(index / columns)
       if (c > 0 && this.sheet[index - 1] === match && !queue.includes(index - 1)) queue.push(index - 1)
       if (r > 0 && this.sheet[index - columns] === match && !queue.includes(index - columns)) queue.push(index - columns)
       if (c < columns - 1 && this.sheet[index + 1] === match && !queue.includes(index + 1)) queue.push(index + 1)
@@ -563,10 +594,25 @@ export class PaintEdit {
   }
 
   droplet(index) {
-    let color = this.sheet[index]
+    const color = this.sheet[index]
     this.paletteC = color % this.paletteColumns
     this.paletteR = Math.floor(color / this.paletteColumns)
   }
+
+  select(index) {
+    const columns = this.sheetColumns
+    if (this.selectL === null || this.selectR !== null) {
+      this.selectL = index % columns
+      this.selectT = Math.floor(index / columns)
+      this.selectR = null
+      this.selectB = null
+    } else {
+      this.selectR = index % columns
+      this.selectB = Math.floor(index / columns)
+    }
+  }
+
+  spriter(index) {}
 
   undo() {
     if (this.historyPosition > 0) {
@@ -624,8 +670,11 @@ export class PaintEdit {
         content += sheet[index] + ' '
       }
     }
-    content += '\nsprites'
-    content += '\nend sprites'
+    if (this.sprites.length > 0) {
+      content += '\nsprites'
+      for (const sprite of this.sprites) content += `\n${sprite[0]} ${sprite[1]} ${sprite[2]} ${sprite[3]}`
+      content += '\nend sprites'
+    }
     content += '\nend paint'
     return content
   }
