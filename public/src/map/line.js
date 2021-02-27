@@ -1,11 +1,13 @@
 import {Wall} from '../map/wall.js'
 
 export class Line {
-  constructor(top, middle, bottom, a, b) {
+  constructor(top, middle, bottom, a, b, type, trigger) {
     this.plus = null
     this.minus = null
     this.a = a
     this.b = b
+    this.type = type
+    this.trigger = trigger
     this.normal = this.a.normal(this.b)
     this.top = top >= 0 ? new Wall(top) : null
     this.middle = middle >= 0 ? new Wall(middle) : null

@@ -1,11 +1,13 @@
 export class Sector {
-  constructor(bottom, floor, ceiling, top, floorTexture, ceilingTexture, vecs, lines) {
+  constructor(bottom, floor, ceiling, top, floorTexture, ceilingTexture, type, trigger, vecs, lines) {
     this.bottom = bottom
     this.floor = floor
     this.ceiling = ceiling
     this.top = top
     this.floorTexture = floorTexture
     this.ceilingTexture = ceilingTexture
+    this.type = type
+    this.trigger = trigger
     this.vecs = vecs
     this.lines = lines
     this.triangles = []

@@ -18,8 +18,8 @@ A 3D adventure game with a strong focus on modding and user crafted content.
 
 - Single file format for entire data pack
 - Tiles as sprites specified in regular image. Auto-generate OpenGL single image for repeating
-- Sector and triangle map generator is broken
-- When saving/exporting a map. Need to include all entity information. When exporting entire tape, can be separate
+- Snap/attach things to walls (like torches)
+- Lines should have front and back textures optional
 
 ### Low Priority
 
@@ -50,6 +50,7 @@ A 3D adventure game with a strong focus on modding and user crafted content.
     - Follow target
     - Quest Complete
     - Sound effect
+    - Particle effect
     - Set target to
 - NPC Interactions
   - Buying

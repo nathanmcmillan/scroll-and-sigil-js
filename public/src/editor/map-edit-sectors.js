@@ -187,6 +187,8 @@ export function computeSectors(editor) {
     let top = 0.0
     let floorTexture = null
     let ceilingTexture = null
+    let type = null
+    let trigger = null
     if (editor.defaultSector) {
       const sector = editor.defaultSector
       bottom = sector.bottom
@@ -195,8 +197,10 @@ export function computeSectors(editor) {
       top = sector.top
       floorTexture = sector.floorTexture
       ceilingTexture = sector.ceilingTexture
+      type = sector.type
+      trigger = sector.trigger
     }
-    sectors.push(new SectorReference(bottom, floor, ceiling, top, floorTexture, ceilingTexture, vecs, lines))
+    sectors.push(new SectorReference(bottom, floor, ceiling, top, floorTexture, ceilingTexture, type, trigger, vecs, lines))
   }
 
   transfer(editor.sectors, sectors)

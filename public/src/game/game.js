@@ -4,7 +4,6 @@ import {Vector2} from '../math/vector.js'
 import {Sector} from '../map/sector.js'
 import {World} from '../world/world.js'
 import {cameraTowardsTarget, cameraFollowCinema, Camera} from '../game/camera.js'
-import {Input} from '../input/input.js'
 import {thingSet} from '../thing/thing.js'
 import {Hero} from '../thing/hero.js'
 import {Monster} from '../thing/monster.js'
@@ -14,6 +13,7 @@ import {Medkit} from '../thing/medkit.js'
 import {Armor} from '../thing/armor.js'
 import {textureIndexForName, entityByName} from '../assets/assets.js'
 import {playMusic} from '../assets/sounds.js'
+import {Trigger} from '../world/trigger.js'
 
 function texture(name) {
   if (name === 'none') return -1
@@ -30,120 +30,167 @@ export class Game {
     this.cinema = false
   }
 
-  async load(file) {
-    let world = this.world
+  read(content) {
+    const world = this.world
     world.clear()
 
-    let vecs = []
-    let lines = []
+    const vecs = []
+    const lines = []
 
-    let map = (await fetchText(file)).split('\n')
-    let index = 0
+    try {
+      const map = content.split('\n')
+      const end = map.length - 1
 
-    let vectors = index + parseInt(map[index].split(' ')[1])
-    index++
-    for (; index <= vectors; index++) {
-      let vec = map[index].split(' ')
-      vecs.push(new Vector2(parseFloat(vec[0]), parseFloat(vec[1])))
-    }
-
-    let count = index + parseInt(map[index].split(' ')[1])
-    index++
-    for (; index <= count; index++) {
-      let line = map[index].split(' ')
-      let a = vecs[parseInt(line[0])]
-      let b = vecs[parseInt(line[1])]
-      let top = texture(line[2])
-      let middle = texture(line[3])
-      let bottom = texture(line[4])
-      lines.push(new Line(top, middle, bottom, a, b))
-    }
-
-    let sectors = index + parseInt(map[index].split(' ')[1])
-    index++
-    for (; index <= sectors; index++) {
-      let sector = map[index].split(' ')
-      let bottom = parseFloat(sector[0])
-      let floor = parseFloat(sector[1])
-      let ceiling = parseFloat(sector[2])
-      let top = parseFloat(sector[3])
-      let floorTexture = texture(sector[4])
-      let ceilingTexture = texture(sector[5])
-      let count = parseInt(sector[6])
-      let i = 7
-      let end = i + count
-      let sectorVecs = []
-      for (; i < end; i++) {
-        sectorVecs.push(vecs[parseInt(sector[i])])
+      let index = 2
+      while (index < end) {
+        if (map[index] === 'end vectors') break
+        let vec = map[index].split(' ')
+        vecs.push(new Vector2(parseFloat(vec[0]), parseFloat(vec[1])))
+        index++
       }
-      count = parseInt(sector[i])
-      i++
-      end = i + count
-      let sectorLines = []
-      for (; i < end; i++) sectorLines.push(lines[parseInt(sector[i])])
-      world.pushSector(new Sector(bottom, floor, ceiling, top, floorTexture, ceilingTexture, sectorVecs, sectorLines))
-    }
+      index++
 
-    world.setLines(lines)
-    world.build()
+      index++
+      while (index < end) {
+        if (map[index] === 'end lines') break
+        let line = map[index].split(' ')
+        let a = vecs[parseInt(line[0])]
+        let b = vecs[parseInt(line[1])]
+        let top = texture(line[2])
+        let middle = texture(line[3])
+        let bottom = texture(line[4])
+        let type = null
+        let trigger = null
+        let i = 5
+        while (i < line.length) {
+          if (line[i] === 'type') {
+            type = line[i + 1]
+            i += 2
+          } else if (line[i] === 'trigger') {
+            i++
+            let start = i
+            while (line[i] !== 'end') i++
+            i++
+            trigger = new Trigger(line.slice(start, i))
+          } else i++
+        }
+        lines.push(new Line(top, middle, bottom, a, b, type, trigger))
+        index++
+      }
+      index++
 
-    while (index < map.length - 1) {
-      let top = map[index].split(' ')
-      let count = parseInt(top[1])
-      if (top[0] === 'things') {
-        let things = index + count
+      index++
+      while (index < end) {
+        if (map[index] === 'end sectors') break
+        let sector = map[index].split(' ')
+        let bottom = parseFloat(sector[0])
+        let floor = parseFloat(sector[1])
+        let ceiling = parseFloat(sector[2])
+        let top = parseFloat(sector[3])
+        let floorTexture = texture(sector[4])
+        let ceilingTexture = texture(sector[5])
+        let count = parseInt(sector[6])
+        let i = 7
+        let end = i + count
+        let sectorVecs = []
+        for (; i < end; i++) sectorVecs.push(vecs[parseInt(sector[i])])
+        count = parseInt(sector[i])
+        i++
+        end = i + count
+        let sectorLines = []
+        for (; i < end; i++) sectorLines.push(lines[parseInt(sector[i])])
+        let type = null
+        let trigger = null
+        while (i < sector.length) {
+          if (sector[i] === 'type') {
+            type = sector[i + 1]
+            i += 2
+          } else if (sector[i] === 'trigger') {
+            i++
+            let start = i
+            while (sector[i] !== 'end') i++
+            i++
+            trigger = new Trigger(sector.slice(start, i))
+          } else i++
+        }
+        world.pushSector(new Sector(bottom, floor, ceiling, top, floorTexture, ceilingTexture, type, trigger, sectorVecs, sectorLines))
         index++
-        for (; index <= things; index++) {
-          let thing = map[index].split(' ')
-          let x = parseFloat(thing[0])
-          let z = parseFloat(thing[1])
-          let name = thing[2]
-          let entity = entityByName(name)
-          if (entity.has('class')) name = entity.get('class')
-          switch (name) {
-            case 'monster':
-              new Monster(world, entity, x, z)
-              continue
-            case 'tree':
-              new Tree(world, entity, x, z)
-              continue
-            case 'medkit':
-              new Medkit(world, entity, x, z)
-              continue
-            case 'armor':
-              new Armor(world, entity, x, z)
-              continue
-            case 'npc':
-              new NonPlayerCharacter(world, entity, x, z)
-              continue
-            case 'hero':
-              if (this.hero) thingSet(this.hero, x, z)
-              else this.hero = new Hero(world, entity, x, z, this.input)
-              this.camera.target = this.hero
-              continue
+      }
+      index++
+
+      world.setLines(lines)
+      world.build()
+
+      while (index < end) {
+        let top = map[index]
+        index++
+        if (top === 'things') {
+          while (index < end) {
+            if (map[index] === 'end things') break
+            let thing = map[index].split(' ')
+            let x = parseFloat(thing[0])
+            let z = parseFloat(thing[1])
+            let name = thing[2]
+            let entity = entityByName(name)
+            if (entity.has('class')) name = entity.get('class')
+            switch (name) {
+              case 'monster':
+                new Monster(world, entity, x, z)
+                break
+              case 'tree':
+                new Tree(world, entity, x, z)
+                break
+              case 'medkit':
+                new Medkit(world, entity, x, z)
+                break
+              case 'armor':
+                new Armor(world, entity, x, z)
+                break
+              case 'npc':
+                new NonPlayerCharacter(world, entity, x, z)
+                break
+              case 'hero':
+                if (this.hero) thingSet(this.hero, x, z)
+                else this.hero = new Hero(world, entity, x, z, this.input)
+                this.camera.target = this.hero
+                break
+            }
+            index++
           }
-        }
-        if (this.camera.target === null) throw 'map is missing hero entity'
-      } else if (top[0] === 'triggers') {
-        let triggers = index + count
-        index++
-        for (; index <= triggers; index++) {
-          let trigger = map[index].split(' ')
-          console.log(trigger)
-          if (trigger[0] === 'line') {
-            let line = lines[parseInt(trigger[1])]
-            world.trigger('interact-line', [line], trigger.slice(2))
+          index++
+          if (this.camera.target === null) throw 'map is missing hero entity'
+        } else if (top === 'triggers') {
+          while (index < end) {
+            if (map[index] === 'end triggers') break
+            let trigger = map[index].split(' ')
+            console.log(trigger)
+            if (trigger[0] === 'line') {
+              let line = lines[parseInt(trigger[1])]
+              world.trigger('interact-line', [line], trigger.slice(2))
+            }
+            index++
           }
-        }
-      } else if (top[0] === 'info') {
-        let info = index + count
-        index++
-        for (; index <= info; index++) {
-          let content = map[index].split(' ')
-          if (content[0] === 'music') playMusic(content[1])
-        }
-      } else throw `unknown map data: '${top[0]}'`
+          index++
+        } else if (top === 'meta') {
+          while (index < end) {
+            if (map[index] === 'end meta') break
+            let content = map[index].split(' ')
+            if (content[0] === 'music') playMusic(content[1])
+            index++
+          }
+          index++
+        } else if (top === 'end map') {
+          break
+        } else throw `unknown map data: '${top}'`
+      }
+    } catch (e) {
+      console.error(e)
     }
+  }
+
+  async load(file) {
+    const map = await fetchText(file)
+    this.read(map)
   }
 
   update() {

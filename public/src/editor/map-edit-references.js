@@ -31,11 +31,13 @@ export class VectorReference {
 }
 
 export class LineReference {
-  constructor(bottom, middle, top, a, b) {
+  constructor(bottom, middle, top, a, b, type, trigger) {
     this.plus = null
     this.minus = null
     this.a = a
     this.b = b
+    this.type = type
+    this.trigger = trigger
     this.bottom = new WallReference(this, bottom)
     this.middle = new WallReference(this, middle)
     this.top = new WallReference(this, top)
@@ -179,6 +181,8 @@ export class LineReference {
     content += ` ${this.topOffset()}`
     content += ` ${this.middleOffset()}`
     content += ` ${this.bottomOffset()}`
+    if (this.type) content += ` ${this.type}`
+    if (this.trigger) content += ` ${this.trigger.export()}`
     return content
   }
 
@@ -186,7 +190,7 @@ export class LineReference {
     let top = line.top ? line.top.texture : -1
     let middle = line.middle ? line.middle.texture : -1
     let bottom = line.bottom ? line.bottom.texture : -1
-    let copy = new LineReference(bottom, middle, top, line.a, line.b)
+    let copy = new LineReference(bottom, middle, top, line.a, line.b, line.type, line.trigger)
     WallReference.transfer(line.bottom, copy.bottom)
     WallReference.transfer(line.middle, copy.middle)
     WallReference.transfer(line.top, copy.top)
@@ -245,13 +249,15 @@ export class WallReference {
 }
 
 export class SectorReference {
-  constructor(bottom, floor, ceiling, top, floorTexture, ceilingTexture, vecs, lines) {
+  constructor(bottom, floor, ceiling, top, floorTexture, ceilingTexture, type, trigger, vecs, lines) {
     this.bottom = bottom
     this.floor = floor
     this.ceiling = ceiling
     this.top = top
     this.floorTexture = floorTexture
     this.ceilingTexture = ceilingTexture
+    this.type = type
+    this.trigger = trigger
     this.vecs = vecs
     this.lines = lines
     this.triangles = []
@@ -341,6 +347,8 @@ export class SectorReference {
     for (const vec of this.vecs) content += ` ${vec.index}`
     content += ` ${this.lines.length}`
     for (const line of this.lines) content += ` ${line.index}`
+    if (this.type) content += ` ${this.type}`
+    if (this.trigger) content += ` ${this.trigger.export()}`
     return content
   }
 }

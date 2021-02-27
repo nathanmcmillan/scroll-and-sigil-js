@@ -10,6 +10,7 @@ import {Dialog} from '../gui/dialog.js'
 import {Vector2} from '../math/vector.js'
 import {TextBox} from '../gui/text-box.js'
 import * as In from '../input/input.js'
+import {Trigger} from '../world/trigger.js'
 
 export const TOP_MODE = 0
 export const VIEW_MODE = 1
@@ -216,6 +217,8 @@ export class MapEdit {
     this.lines = []
     this.sectors = []
     this.things = []
+    this.triggers = []
+    this.meta = []
 
     this.selectedVec = null
     this.selectedLine = null
@@ -245,9 +248,8 @@ export class MapEdit {
 
     this.startMenuDialog = new Dialog('start', null, ['name', 'new', 'open', 'save', 'export', 'exit'])
     this.toolDialog = new Dialog('tool', null, ['draw mode', 'thing mode', 'sector mode'])
-    this.editThingDialog = new Dialog('thing', null, ['swap entity', 'create new entity', 'set as default'])
+    this.editThingDialog = new Dialog('thing', null, ['swap entity', 'set as default'])
     this.changeEntityDialog = new Dialog('entity', 'swap entity', [])
-    this.createNewEntityDialog = new Dialog('creator', 'create new entity', ['back'])
     this.editSectorDialog = new Dialog('sector', null, ['', '', '', '', '', '', 'set as default'])
     this.editLineDialog = new Dialog('line', null, ['', '', '', '', '', '', 'set as default'])
     this.askToSaveDialog = new Dialog('ask', 'save current file?', ['save', 'export', 'no'])
@@ -277,6 +279,8 @@ export class MapEdit {
     this.lines.length = 0
     this.sectors.length = 0
     this.things.length = 0
+    this.triggers.length = 0
+    this.meta.length = 0
 
     this.selectedVec = null
     this.selectedLine = null
@@ -369,9 +373,6 @@ export class MapEdit {
       let change = this.changeEntityDialog
       change.options = this.entityList.slice()
       this.dialog = change
-      this.forcePaint = true
-    } else if (event === 'thing-create new entity') {
-      this.dialog = this.createNewEntityDialog
       this.forcePaint = true
     } else if (event === 'thing-set as default') {
       this.defaultEntity = this.selectedThing.entity.get('_wad')
@@ -499,7 +500,6 @@ export class MapEdit {
     this.toolDialog.reset()
     this.editThingDialog.reset()
     this.changeEntityDialog.reset()
-    this.createNewEntityDialog.reset()
     this.editSectorDialog.reset()
     this.editLineDialog.reset()
     this.askToSaveDialog.reset()
@@ -569,7 +569,22 @@ export class MapEdit {
           let top = texture(line[2])
           let middle = texture(line[3])
           let bottom = texture(line[4])
-          this.lines.push(new LineReference(bottom, middle, top, a, b))
+          let type = null
+          let trigger = null
+          let i = 5
+          while (i < line.length) {
+            if (line[i] === 'type') {
+              type = line[i + 1]
+              i += 2
+            } else if (line[i] === 'trigger') {
+              i++
+              let start = i
+              while (line[i] !== 'end') i++
+              i++
+              trigger = new Trigger(line.slice(start, i))
+            } else i++
+          }
+          this.lines.push(new LineReference(bottom, middle, top, a, b, type, trigger))
           index++
         }
         index++
@@ -596,7 +611,21 @@ export class MapEdit {
           for (; i < end; i++) {
             lines.push(this.lines[parseInt(sector[i])])
           }
-          this.sectors.push(new SectorReference(bottom, floor, ceiling, top, floorTexture, ceilingTexture, vecs, lines))
+          let type = null
+          let trigger = null
+          while (i < sector.length) {
+            if (sector[i] === 'type') {
+              type = sector[i + 1]
+              i += 2
+            } else if (sector[i] === 'trigger') {
+              i++
+              let start = i
+              while (sector[i] !== 'end') i++
+              i++
+              trigger = new Trigger(sector.slice(start, i))
+            } else i++
+          }
+          this.sectors.push(new SectorReference(bottom, floor, ceiling, top, floorTexture, ceilingTexture, type, trigger, vecs, lines))
           index++
         }
         index++
@@ -629,18 +658,20 @@ export class MapEdit {
           } else if (top === 'triggers') {
             while (index < end) {
               if (map[index] === 'end triggers') break
+              this.triggers.push(map[index])
               index++
             }
             index++
-          } else if (top === 'info') {
+          } else if (top === 'meta') {
             while (index < end) {
-              if (map[index] === 'end info') break
+              if (map[index] === 'end meta') break
+              this.meta.push(map[index])
               index++
             }
             index++
           } else if (top === 'end map') {
             break
-          } else throw `unknown map data: '${top[0]}'`
+          } else throw `unknown map data: '${top}'`
         }
       } else {
         let index = 0
@@ -663,7 +694,9 @@ export class MapEdit {
           let top = texture(line[2])
           let middle = texture(line[3])
           let bottom = texture(line[4])
-          this.lines.push(new LineReference(bottom, middle, top, a, b))
+          let type = null
+          let trigger = null
+          this.lines.push(new LineReference(bottom, middle, top, a, b, type, trigger))
         }
 
         let sectors = index + parseInt(map[index].split(' ')[1])
@@ -688,7 +721,9 @@ export class MapEdit {
           for (; i < end; i++) {
             lines.push(this.lines[parseInt(sector[i])])
           }
-          this.sectors.push(new SectorReference(bottom, floor, ceiling, top, floorTexture, ceilingTexture, vecs, lines))
+          let type = end < sector.length ? sector[end] : null
+          let trigger = null
+          this.sectors.push(new SectorReference(bottom, floor, ceiling, top, floorTexture, ceilingTexture, type, trigger, vecs, lines))
         }
 
         sectorInsideOutside(this.sectors)
@@ -1023,6 +1058,8 @@ export class MapEdit {
                 let bottom = null
                 let floor = 0.0
                 let ceiling = 10.0
+                let type = null
+                let trigger = null
                 if (this.defaulLine) {
                   const line = this.defaulLine
                   top = line.top
@@ -1030,8 +1067,10 @@ export class MapEdit {
                   bottom = line.bottom
                   floor = line.floor
                   ceiling = line.ceiling
+                  type = line.type
+                  trigger = line.trigger
                 }
-                let line = new LineReference(bottom, middle, top, this.selectedVec, this.selectedSecondVec)
+                let line = new LineReference(bottom, middle, top, this.selectedVec, this.selectedSecondVec, type, trigger)
                 let x = line.a.x - line.b.x
                 let y = line.a.y - line.b.y
                 let st = Math.sqrt(x * x + y * y) * WORLD_SCALE
@@ -1060,6 +1099,8 @@ export class MapEdit {
               let bottom = null
               let floor = 0.0
               let ceiling = 10.0
+              let type = null
+              let trigger = null
               if (this.defaulLine) {
                 const line = this.defaulLine
                 top = line.top
@@ -1067,8 +1108,10 @@ export class MapEdit {
                 bottom = line.bottom
                 floor = line.floor
                 ceiling = line.ceiling
+                type = line.type
+                trigger = line.trigger
               }
-              let line = new LineReference(bottom, middle, top, this.selectedVec, this.placeVectorAtCursor())
+              let line = new LineReference(bottom, middle, top, this.selectedVec, this.placeVectorAtCursor(), type, trigger)
               let x = line.a.x - line.b.x
               let y = line.a.y - line.b.y
               let st = Math.sqrt(x * x + y * y) * WORLD_SCALE
@@ -1603,19 +1646,23 @@ export class MapEdit {
     }
     content += 'end lines\n'
     content += 'sectors\n'
-    for (const sector of this.sectors) {
-      content += sector.export() + '\n'
-    }
+    for (const sector of this.sectors) content += sector.export() + '\n'
     content += 'end sectors\n'
     if (this.things.length > 0) {
       content += 'things\n'
-      for (const thing of this.things) {
-        content += thing.export() + '\n'
-      }
+      for (const thing of this.things) content += thing.export() + '\n'
       content += 'end things\n'
     }
-    // content += `triggers\n`
-    // content += `info\n`
+    if (this.triggers.length > 0) {
+      content += 'triggers\n'
+      for (const trigger of this.triggers) content += trigger + '\n'
+      content += 'end triggers\n'
+    }
+    if (this.meta.length > 0) {
+      content += 'meta\n'
+      for (const meta of this.meta) content += meta + '\n'
+      content += 'end meta\n'
+    }
     content += 'end map\n'
     return content
   }
