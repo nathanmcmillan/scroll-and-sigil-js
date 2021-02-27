@@ -384,6 +384,12 @@ export class PaintState {
     drawHollowRectangle(client.bufferColor, x, y, magnify, magnify, thickness, black0f, black1f, black2f, 1.0)
     drawHollowRectangle(client.bufferColor, x - thickness, y - thickness, magnify + doubleThick, magnify + doubleThick, thickness, white0f, white1f, white2f, 1.0)
 
+    // selection
+
+    if (paint.selectL !== null && paint.selectR !== null) {
+      // drawHollowRectangle(client.bufferColor, left - thickness, top - thickness, boxWidth + doubleThick, boxHeight + doubleThick, thickness, black0f, black1f, black2f, 1.0)
+    }
+
     // top and bottom bar
 
     const topBarHeight = calcTopBarHeight(scale)

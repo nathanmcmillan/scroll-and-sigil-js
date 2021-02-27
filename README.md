@@ -21,6 +21,9 @@ A 3D adventure game with a strong focus on modding and user crafted content.
 - Sector and triangle map generator is broken
 - When saving/exporting a map. Need to include all entity information. When exporting entire tape, can be separate
 
+- Entity wad animation needs to specify sprite for each frame, so that animations can span multiple sprite sheets
+- Tiles should just be paint:sprite index from regular paint image
+
 ### Low Priority
 
 - Forward rendered light shader
