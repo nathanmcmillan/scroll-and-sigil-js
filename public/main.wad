@@ -1,9 +1,9 @@
 package: default
 map: base
 open: music
-open: game
 open: dashboard
 open: sfx
-open: paint
 open: home
 open: maps
+open: paint
+open: game

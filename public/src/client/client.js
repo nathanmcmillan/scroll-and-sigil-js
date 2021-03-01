@@ -249,28 +249,58 @@ export class Client {
           fetchText(directory + '/textures/' + name).then((text) => {
             name = name.substring(0, name.length - 4)
 
-            let image = text.split('\n')
-            let index = 0
+            const image = text.split('\n')
 
-            let dimensions = image[index].split(' ')
-            let width = parseInt(dimensions[0])
-            let height = parseInt(dimensions[1])
-            index++
+            const info = image[0].split(' ')
+            let index = 1
 
-            let palette = newPalette()
-            let pixels = new Uint8Array(width * height * 3)
+            const palette = newPalette()
+            let width, height, pixels
 
-            for (let h = 0; h < height; h++) {
-              let row = image[index].split(' ')
-              for (let c = 0; c < width; c++) {
-                let i = (c + h * width) * 3
-                let p = parseInt(row[c]) * 3
+            if (info[0] === 'paint') {
+              width = parseInt(info[2])
+              height = parseInt(info[3])
+              pixels = new Uint8Array(width * height * 3)
 
-                pixels[i] = palette[p]
-                pixels[i + 1] = palette[p + 1]
-                pixels[i + 2] = palette[p + 2]
+              for (let h = 0; h < height; h++) {
+                let row = image[index].split(' ')
+                for (let c = 0; c < width; c++) {
+                  let i = (c + h * width) * 3
+                  let p = parseInt(row[c]) * 3
+
+                  pixels[i] = palette[p]
+                  pixels[i + 1] = palette[p + 1]
+                  pixels[i + 2] = palette[p + 2]
+                }
+                index++
               }
-              index++
+
+              if (index < image.length) {
+                if (image[index] === 'sprites') {
+                  index++
+                  while (index < image.length) {
+                    if (image[index] === 'end sprites') break
+                    index++
+                  }
+                }
+              }
+            } else {
+              width = parseInt(info[0])
+              height = parseInt(info[1])
+              pixels = new Uint8Array(width * height * 3)
+
+              for (let h = 0; h < height; h++) {
+                let row = image[index].split(' ')
+                for (let c = 0; c < width; c++) {
+                  let i = (c + h * width) * 3
+                  let p = parseInt(row[c]) * 3
+
+                  pixels[i] = palette[p]
+                  pixels[i + 1] = palette[p + 1]
+                  pixels[i + 2] = palette[p + 2]
+                }
+                index++
+              }
             }
 
             return {name: name, wrap: wrap, width: width, height: height, pixels: pixels}

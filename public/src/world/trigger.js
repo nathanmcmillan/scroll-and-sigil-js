@@ -12,6 +12,7 @@ export class Trigger {
         i++
       } else if (input[i] === 'do') {
         i++
+        let start = i
         this.action = input.splice(start, i)
         this.action = input[i]
         i++

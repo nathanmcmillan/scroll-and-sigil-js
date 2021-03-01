@@ -256,7 +256,7 @@ export class MapEdit {
     this.saveOkDialog = new Dialog('ok', 'file saved', ['ok'])
     this.errorOkDialog = new Dialog('error', null, ['ok'])
 
-    this.askName = false
+    this.activeTextBox = false
     this.textBox = new TextBox('', 20)
   }
 
@@ -326,7 +326,7 @@ export class MapEdit {
       this.dialogEnd()
     } else if (event === 'start-name') {
       this.textBox.reset(this.name)
-      this.askName = true
+      this.activeTextBox = true
       this.dialogEnd()
     } else if (event === 'start-save') {
       this.parent.eventCall(event)
@@ -1242,7 +1242,7 @@ export class MapEdit {
       } else if (input.timerStickLeft(timestamp, INPUT_RATE)) this.handleDialogSpecial(true)
       else if (input.timerStickRight(timestamp, INPUT_RATE)) this.handleDialogSpecial(false)
       return
-    } else if (this.askName) {
+    } else if (this.activeTextBox) {
       if (input.timerStickUp(timestamp, INPUT_RATE)) this.textBox.up()
       else if (input.timerStickDown(timestamp, INPUT_RATE)) this.textBox.down()
       else if (input.timerStickLeft(timestamp, INPUT_RATE)) this.textBox.left()
@@ -1583,14 +1583,14 @@ export class MapEdit {
 
   immediateInput() {
     const input = this.input
-    if (this.askName) {
+    if (this.activeTextBox) {
       if (input.pressY()) {
         this.textBox.erase()
         this.name = this.textBox.text
         this.forcePaint = true
       } else if (input.pressA()) {
         if (this.textBox.end()) {
-          this.askName = false
+          this.activeTextBox = false
           this.forcePaint = true
         } else {
           this.textBox.apply()

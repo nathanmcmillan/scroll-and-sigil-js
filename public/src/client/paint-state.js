@@ -1,6 +1,6 @@
-import {exportPixels, exportToCanvas, PaintEdit} from '../editor/paint.js'
+import {exportPixels, exportToCanvas, PaintEdit, SPRITE_TOOL} from '../editor/paint.js'
 import {textureByName} from '../assets/assets.js'
-import {drawTextFont, drawRectangle, drawHollowRectangle, drawImage} from '../render/render.js'
+import {drawTextFont, drawRectangle, drawHollowRectangle, drawImage, drawTextFontSpecial} from '../render/render.js'
 import {renderTouch} from '../client/render-touch.js'
 import {spr, sprcol} from '../render/pico.js'
 import {identity, multiply} from '../math/matrix.js'
@@ -8,8 +8,27 @@ import {flexBox, flexSolve} from '../gui/flex.js'
 import {compress, decompress} from '../compress/huffman.js'
 import {createPixelsToTexture} from '../webgl/webgl.js'
 import {defaultFont, calcFontScale, calcThickness, calcTopBarHeight, calcBottomBarHeight} from '../editor/editor-util.js'
-import {renderDialogBox, renderStatus} from '../client/client-util.js'
-import {black0f, black1f, black2f, white0f, white1f, white2f, lightgreyf, lavenderf, redf, darkgreyf, luminosity, luminosityTable} from '../editor/palette.js'
+import {renderDialogBox, renderStatus, renderTextBox} from '../client/client-util.js'
+import {
+  black0f,
+  black1f,
+  black2f,
+  white0f,
+  white1f,
+  white2f,
+  lightgreyf,
+  lavenderf,
+  redf,
+  darkgreyf,
+  luminosity,
+  luminosityTable,
+  red0f,
+  red1f,
+  red2f,
+  lavender0f,
+  lavender1f,
+  lavender2f,
+} from '../editor/palette.js'
 
 function updatePixelsToTexture(gl, texture, width, height, pixels) {
   gl.bindTexture(gl.TEXTURE_2D, texture)
@@ -169,7 +188,7 @@ export class PaintState {
     let blob = this.paint.export()
     let download = document.createElement('a')
     download.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(blob)
-    download.download = 'paint.txt'
+    download.download = this.paint.name + '.txt'
     download.click()
   }
 
@@ -177,7 +196,7 @@ export class PaintState {
     let blob = compress(this.paint.export())
     let download = document.createElement('a')
     download.href = window.URL.createObjectURL(new Blob([blob], {type: 'application/octet-stream'}))
-    download.download = 'paint.huff'
+    download.download = this.paint.name + '.huff'
     download.click()
   }
 
@@ -193,7 +212,7 @@ export class PaintState {
     let blob = canvas.toDataURL('image/png')
     let download = document.createElement('a')
     download.href = blob
-    download.download = 'paint.png'
+    download.download = this.paint.name + '.png'
     download.click()
   }
 
@@ -272,6 +291,7 @@ export class PaintState {
 
     let sheetBox = paint.sheetBox
     let viewBox = paint.viewBox
+    let miniBox = paint.miniBox
     let toolBox = paint.toolBox
     let paletteBox = paint.paletteBox
 
@@ -292,12 +312,7 @@ export class PaintState {
     let sr = (posOffsetC + canvasZoom) / sheetColumns
     let sb = (posOffsetR + canvasZoom) / sheetRows
 
-    boxWidth = 16 * scale
-    boxHeight = 16 * scale
-    left = viewBox.x
-    top = toolBox.y
-
-    drawImage(client.bufferGUI, left, top, boxWidth, boxHeight, 1.0, 1.0, 1.0, 1.0, sl, st, sr, sb)
+    drawImage(client.bufferGUI, miniBox.x, miniBox.y, miniBox.width, miniBox.height, 1.0, 1.0, 1.0, 1.0, sl, st, sr, sb)
 
     // view
 
@@ -327,13 +342,54 @@ export class PaintState {
 
     drawHollowRectangle(client.bufferColor, left - thickness, top - thickness, boxWidth + doubleThick, boxHeight + doubleThick, thickness, black0f, black1f, black2f, 1.0)
 
-    // focus box around view
+    // focus in view
 
     x = left + posC * magnify
     y = top + boxHeight - posR * magnify
     box = magnify * brushSize
     drawHollowRectangle(client.bufferColor, x, y - box, box, box, thickness, black0f, black1f, black2f, 1.0)
     drawHollowRectangle(client.bufferColor, x - thickness, y - thickness - box, box + doubleThick, box + doubleThick, thickness, white0f, white1f, white2f, 1.0)
+
+    // selection in view
+
+    if (paint.selectL !== null) {
+      let selectX, selectY, selectWidth, selectHeight
+      if (paint.selectR === null) {
+        let l = paint.selectL
+        let t = paint.selectT
+        let r = posC + posOffsetC
+        let b = posR + posOffsetR
+        if (r < l) {
+          let temp = l
+          l = r
+          r = temp
+        }
+        if (b < t) {
+          let temp = t
+          t = b
+          b = temp
+        }
+        selectWidth = (r - l + 1) * magnify
+        selectHeight = (b - t + 1) * magnify
+        selectX = left + l * magnify
+        selectY = top + boxHeight - t * magnify - selectHeight
+      } else {
+        selectWidth = (paint.selectR - paint.selectL + 1) * magnify
+        selectHeight = (paint.selectB - paint.selectT + 1) * magnify
+        selectX = left + paint.selectL * magnify
+        selectY = top + boxHeight - paint.selectT * magnify - selectHeight
+      }
+      const rectWidth = selectWidth + doubleThick
+      const rectHeight = selectHeight + doubleThick
+      if (selectX < x + box && selectY < y + box) {
+        selectX -= thickness
+        selectY -= thickness
+        drawRectangle(client.bufferColor, selectX, selectY, rectWidth, thickness, red0f, red1f, red2f, 1.0)
+        drawRectangle(client.bufferColor, selectX, selectY, thickness, rectHeight, red0f, red1f, red2f, 1.0)
+        drawRectangle(client.bufferColor, selectX + rectWidth - thickness, selectY, thickness, rectHeight, red0f, red1f, red2f, 1.0)
+        drawRectangle(client.bufferColor, selectX, selectY + rectHeight - thickness, rectWidth, thickness, red0f, red1f, red2f, 1.0)
+      }
+    }
 
     // sheet
 
@@ -347,12 +403,56 @@ export class PaintState {
 
     drawHollowRectangle(client.bufferColor, left - thickness, top - thickness, boxWidth + doubleThick, boxHeight + doubleThick, thickness, black0f, black1f, black2f, 1.0)
 
-    // focus box around sheet
+    // sprites in sheet
+
+    if (paint.tool === SPRITE_TOOL) {
+      for (const sprite of paint.sprites) {
+        const w = (sprite.r - sprite.l + 1) * magnify
+        const h = (sprite.b - sprite.t + 1) * magnify
+        x = left + sprite.l * magnify
+        y = top + boxHeight - sprite.t * magnify - h
+        drawHollowRectangle(client.bufferColor, x - thickness, y - thickness, w + doubleThick, h + doubleThick, thickness, lavender0f, lavender1f, lavender2f, 1.0)
+      }
+    }
+
+    // focus in sheet
 
     x = left + posOffsetC * magnify
     y = top + boxHeight - posOffsetR * magnify
     box = canvasZoom * magnify
     drawHollowRectangle(client.bufferColor, x - thickness, y - thickness - box, box + doubleThick, box + doubleThick, thickness, white0f, white1f, white2f, 1.0)
+
+    // selection in sheet
+
+    if (paint.selectL !== null) {
+      let selectionWidth, selectionHeight
+      if (paint.selectR === null) {
+        let l = paint.selectL
+        let t = paint.selectT
+        let r = posC + posOffsetC
+        let b = posR + posOffsetR
+        if (r < l) {
+          let temp = l
+          l = r
+          r = temp
+        }
+        if (b < t) {
+          let temp = t
+          t = b
+          b = temp
+        }
+        selectionWidth = (r - l + 1) * magnify
+        selectionHeight = (b - t + 1) * magnify
+        x = left + l * magnify
+        y = top + boxHeight - t * magnify - selectionHeight
+      } else {
+        selectionWidth = (paint.selectR - paint.selectL + 1) * magnify
+        selectionHeight = (paint.selectB - paint.selectT + 1) * magnify
+        x = left + paint.selectL * magnify
+        y = top + boxHeight - paint.selectT * magnify - selectionHeight
+      }
+      drawHollowRectangle(client.bufferColor, x - thickness, y - thickness, selectionWidth + doubleThick, selectionHeight + doubleThick, thickness, red0f, red1f, red2f, 1.0)
+    }
 
     // pallete
 
@@ -377,18 +477,12 @@ export class PaintState {
 
     drawHollowRectangle(client.bufferColor, left - thickness, top - thickness, boxWidth + doubleThick, boxHeight + doubleThick, thickness, black0f, black1f, black2f, 1.0)
 
-    // focus box around palette
+    // focus in palette
 
     x = left + paint.paletteC * magnify
     y = top + boxHeight - (paint.paletteR + 1) * magnify
     drawHollowRectangle(client.bufferColor, x, y, magnify, magnify, thickness, black0f, black1f, black2f, 1.0)
     drawHollowRectangle(client.bufferColor, x - thickness, y - thickness, magnify + doubleThick, magnify + doubleThick, thickness, white0f, white1f, white2f, 1.0)
-
-    // selection
-
-    if (paint.selectL !== null && paint.selectR !== null) {
-      // drawHollowRectangle(client.bufferColor, left - thickness, top - thickness, boxWidth + doubleThick, boxHeight + doubleThick, thickness, black0f, black1f, black2f, 1.0)
-    }
 
     // top and bottom bar
 
@@ -471,8 +565,16 @@ export class PaintState {
     rendering.bindTexture(gl.TEXTURE0, textureByName(font.name).texture)
     rendering.updateAndDraw(client.bufferGUI)
 
-    // dialog box
+    // dialog box or text box
 
     if (paint.dialog != null) renderDialogBox(this, scale, font, paint.dialog)
+    else if (paint.activeTextBox) {
+      const box = paint.textBox
+      renderTextBox(this, scale, font, box, 200, 200)
+
+      client.bufferGUI.zero()
+      drawTextFontSpecial(client.bufferGUI, 200, 500, box.text, fontScale, white0f, white1f, white2f, font)
+      rendering.updateAndDraw(client.bufferGUI)
+    }
   }
 }

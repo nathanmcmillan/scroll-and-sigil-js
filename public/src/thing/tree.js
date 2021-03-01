@@ -20,8 +20,10 @@ function treeUpdate() {
 function treeInit(self, entity) {
   this.box = entity.box()
   this.height = entity.height()
-  this.texture = textureIndexForName(entity.get('sprite'))
-  this.sprite = spritesByName(entity.get('sprite')).get(entity.get('animation'))
+  const sprite = entity.get('sprite')
+  const info = sprite.split('|')
+  this.texture = textureIndexForName(info[0])
+  this.sprite = spritesByName(info[0]).get(info[1])
   this.update = treeUpdate
   thingSetup(this)
 }

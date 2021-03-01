@@ -14,17 +14,23 @@ A 3D adventure game with a strong focus on modding and user crafted content.
 
 ## Development
 
-### High Priority
+### Priority
 
 - Single file format for entire data pack
 - Tiles as sprites specified in regular image. Auto-generate OpenGL single image for repeating
 - Snap/attach things to walls (like torches)
 - Lines should have front and back textures optional
-
 - Entity wad animation needs to specify sprite for each frame, so that animations can span multiple sprite sheets
 - Tiles should just be paint:sprite index from regular paint image
+- Need a global ticker for animated tiles and doodads
 
-### Low Priority
+### Needed
+
+- Paint
+
+  - Fullscreen mode for sprite sheet
+  - Smart undo redo history saving. Only save region that was changed
+  - Undo redo is broken for edge cases
 
 - Forward rendered light shader
 - Forward rendered built-in palette mapper. Reduce incoming final colors to 16 color map

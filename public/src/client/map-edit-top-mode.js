@@ -160,12 +160,12 @@ export function renderMapEditTopMode(state) {
 
   if (maps.dialog != null) {
     renderDialogBox(state, scale, font, maps.dialog)
-  } else if (maps.askName) {
+  } else if (maps.activeTextBox) {
     const box = maps.textBox
     renderTextBox(state, scale, font, box, 200, 200)
 
     client.bufferGUI.zero()
-    drawTextFontSpecial(client.bufferGUI, 200, 500, maps.name, fontScale, white0f, white1f, white2f, font)
+    drawTextFontSpecial(client.bufferGUI, 200, 500, box.text, fontScale, white0f, white1f, white2f, font)
     rendering.updateAndDraw(client.bufferGUI)
   } else {
     rendering.setProgram(3)
