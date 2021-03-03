@@ -1,5 +1,4 @@
 import {ANIMATION_DONE} from '../world/world.js'
-import {textureIndexForName} from '../assets/assets.js'
 import {particleSetup, particleUpdateAnimation} from '../particle/particle.js'
 
 function plasmaExplosionUpdate() {
@@ -10,9 +9,8 @@ function plasmaExplosionUpdate() {
 
 function plasmaExplosionInit(self, entity) {
   self.update = plasmaExplosionUpdate
-  self.texture = textureIndexForName(entity.get('sprite'))
-  self.animation = entity.animations()
-  self.sprite = self.animation[0]
+  self.animation = entity.stamps()
+  self.stamp = self.animation[0]
   self.animationMod = 0
   self.animationFrame = 0
   particleSetup(self)

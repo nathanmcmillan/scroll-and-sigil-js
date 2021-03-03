@@ -42,12 +42,16 @@ function match(src, dest) {
 }
 
 function transfer(previous, sectors) {
-  for (const sector of sectors) {
+  let s = sectors.length
+  while (s--) {
+    const sector = sectors[s]
     let i = previous.length
     while (i--) {
-      let old = previous[i]
+      const old = previous[i]
       if (match(old, sector)) {
-        copy(old, sector)
+        // can we get away with using the older sector and not copying? less risky
+        // copy(old, sector)
+        sectors[s] = old
         previous.splice(i, 1)
         break
       }

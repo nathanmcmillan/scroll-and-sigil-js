@@ -258,6 +258,7 @@ export class SectorReference {
     this.ceilingTexture = ceilingTexture
     this.type = type
     this.trigger = trigger
+    console.debug('IN', this.trigger)
     this.vecs = vecs
     this.lines = lines
     this.triangles = []
@@ -348,6 +349,7 @@ export class SectorReference {
     content += ` ${this.lines.length}`
     for (const line of this.lines) content += ` ${line.index}`
     if (this.type) content += ` ${this.type}`
+    console.debug('debug', this.trigger)
     if (this.trigger) content += ` ${this.trigger.export()}`
     return content
   }
@@ -363,19 +365,15 @@ export class ThingReference {
   }
 
   setEntity(entity) {
+    this.entity = entity
     this.box = entity.box()
     this.height = entity.height()
-    this.texture = textureIndexForName(entity.get('sprite'))
-    this.animations = entity.animations()
-    if (Array.isArray(this.animations)) {
-      this.sprite = this.animations[0]
-    } else if (this.animations instanceof Map) {
-      this.animation = this.animations.values().next().value
-      this.sprite = this.animation[0]
-    } else {
-      this.sprite = this.animations
+    if (entity.has('sprite')) this.stamp = entity.stamp()
+    else {
+      let stamps = entity.stamps()
+      if (Array.isArray(stamps)) this.stamp = stamps[0]
+      else this.stamp = stamps.values().next().value[0]
     }
-    this.entity = entity
   }
 
   export() {

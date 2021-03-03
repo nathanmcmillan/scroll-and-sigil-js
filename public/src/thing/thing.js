@@ -22,15 +22,15 @@ export class Thing {
     this.ground = false
     this.speed = 0.0
     this.health = 0.0
-    this.texture = 0
-    this.sprite = null
     this.minC = 0
     this.maxC = 0
     this.minR = 0
     this.maxR = 0
+    this.stamp = null
+    this.animation = null
+    this.animations = null
     this.animationMod = 0
     this.animationFrame = 0
-    this.animation = null
     this.isPhysical = true
     this.isItem = false
     this.wasOnLine = false
@@ -181,7 +181,7 @@ export function thingUpdateAnimation(self) {
 }
 
 export function thingUpdateSprite(self) {
-  self.sprite = self.animation[self.animationFrame]
+  self.stamp = self.animation[self.animationFrame]
 }
 
 export function thingSetAnimation(self, name) {

@@ -4,7 +4,7 @@ import {randomInt} from '../math/random.js'
 import {ANIMATION_DONE} from '../world/world.js'
 import {newPlasma} from '../missile/plasma.js'
 import {playSound} from '../assets/sounds.js'
-import {textureIndexForName, entityByName} from '../assets/assets.js'
+import {entityByName} from '../assets/assets.js'
 import {redBloodTowards, redBloodExplode} from '../thing/thing-util.js'
 import {sin, cos, atan2} from '../math/approximate.js'
 
@@ -21,13 +21,12 @@ export class Monster extends Thing {
     this.height = entity.height()
     this.name = entity.name()
     this.group = entity.group()
-    this.texture = textureIndexForName(entity.get('sprite'))
-    this.animations = entity.animations()
-    this.animation = this.animations.get('idle')
     this.health = entity.health()
     this.speed = entity.speed()
     this.sight = entity.sight()
-    this.sprite = this.animation[0]
+    this.animations = entity.stamps()
+    this.animation = this.animations.get('idle')
+    this.stamp = this.animation[0]
     this.target = null
     this.moveCount = 0
     this.status = STATUS_LOOK

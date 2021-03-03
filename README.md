@@ -20,9 +20,10 @@ A 3D adventure game with a strong focus on modding and user crafted content.
 - Tiles as sprites specified in regular image. Auto-generate OpenGL single image for repeating
 - Snap/attach things to walls (like torches)
 - Lines should have front and back textures optional
-- Entity wad animation needs to specify sprite for each frame, so that animations can span multiple sprite sheets
 - Tiles should just be paint:sprite index from regular paint image
 - Need a global ticker for animated tiles and doodads
+- Extended color palette
+- Lines aren't always showing texture
 
 ### Needed
 

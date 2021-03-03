@@ -61,6 +61,7 @@ function convertImageToText(palette, image) {
   context.drawImage(image, 0, 0)
   let pixels = context.getImageData(0, 0, width, height).data
 
+  // closestInPalette
   let table = luminosityTable(palette)
 
   let text = width + ' ' + height

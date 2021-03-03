@@ -164,24 +164,24 @@ export class GameState {
     let t = world.thingCount
     while (t--) {
       let thing = things[t]
-      let buffer = client.getSpriteBuffer(thing.texture)
-      drawSprite(buffer, thing.x, thing.y, thing.z, thing.sprite, sine, cosine)
+      let buffer = client.getSpriteBuffer(thing.stamp.texture)
+      drawSprite(buffer, thing.x, thing.y, thing.z, thing.stamp.sprite, sine, cosine)
     }
 
     let missiles = world.missiles
     let m = world.missileCount
     while (m--) {
       let missile = missiles[m]
-      let buffer = client.getSpriteBuffer(missile.texture)
-      drawSprite(buffer, missile.x, missile.y, missile.z, missile.sprite, sine, cosine)
+      let buffer = client.getSpriteBuffer(missile.stamp.texture)
+      drawSprite(buffer, missile.x, missile.y, missile.z, missile.stamp.sprite, sine, cosine)
     }
 
     let particles = world.particles
     let p = world.particleCount
     while (p--) {
       let particle = particles[p]
-      let buffer = client.getSpriteBuffer(particle.texture)
-      drawSprite(buffer, particle.x, particle.y, particle.z, particle.sprite, sine, cosine)
+      let buffer = client.getSpriteBuffer(particle.stamp.texture)
+      drawSprite(buffer, particle.x, particle.y, particle.z, particle.stamp.sprite, sine, cosine)
     }
 
     for (const [index, buffer] of buffers) {

@@ -1,6 +1,5 @@
 import {thingSetup, thingIntegrate, thingUpdateSprite, thingUpdateAnimation, thingPushToCells, thingRemoveFromCells, thingFindSector, Thing} from '../thing/thing.js'
 import {playSound} from '../assets/sounds.js'
-import {textureIndexForName} from '../assets/assets.js'
 import {redBloodTowards, redBloodExplode} from '../thing/thing-util.js'
 import {WORLD_CELL_SHIFT} from '../world/world.js'
 import {sin, cos} from '../math/approximate.js'
@@ -20,12 +19,11 @@ export class NonPlayerCharacter extends Thing {
     this.height = entity.height()
     this.name = entity.name()
     this.group = entity.group()
-    this.texture = textureIndexForName(entity.get('sprite'))
-    this.animations = entity.animations()
-    this.animation = this.animations.get('idle')
     this.health = entity.health()
     this.speed = entity.speed()
-    this.sprite = this.animation[0]
+    this.animations = entity.stamps()
+    this.animation = this.animations.get('idle')
+    this.stamp = this.animation[0]
     this.target = null
     this.moveCount = 0
     this.status = STATUS_STAND

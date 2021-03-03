@@ -155,8 +155,8 @@ export class HomeState {
     let t = world.thingCount
     while (t--) {
       let thing = things[t]
-      let buffer = client.getSpriteBuffer(thing.texture)
-      drawSprite(buffer, thing.x, thing.y, thing.z, thing.sprite, sine, cosine)
+      let buffer = client.getSpriteBuffer(thing.stamp.texture)
+      drawSprite(buffer, thing.x, thing.y, thing.z, thing.stamp.sprite, sine, cosine)
     }
 
     for (const [index, buffer] of buffers) {

@@ -383,10 +383,9 @@ export class Hero extends Thing {
     this.box = entity.box()
     this.height = entity.height()
     this.input = input
-    this.texture = textureIndexForName(entity.get('sprite'))
-    this.animations = entity.animations()
+    this.animations = entity.stamps()
     this.animation = this.animations.get('move')
-    this.sprite = this.animation[0]
+    this.stamp = this.animation[0]
     this.speed = entity.speed()
     this.maxHealth = entity.health()
     this.health = this.maxHealth

@@ -7,10 +7,9 @@ import {cameraTowardsTarget, cameraFollowCinema, Camera} from '../game/camera.js
 import {thingSet} from '../thing/thing.js'
 import {Hero} from '../thing/hero.js'
 import {Monster} from '../thing/monster.js'
-import {Tree} from '../thing/tree.js'
+import {Doodad} from '../thing/doodad.js'
 import {NonPlayerCharacter} from '../thing/npc.js'
-import {Medkit} from '../thing/medkit.js'
-import {Armor} from '../thing/armor.js'
+import {Item} from '../thing/item.js'
 import {textureIndexForName, entityByName} from '../assets/assets.js'
 import {playMusic} from '../assets/sounds.js'
 import {Trigger} from '../world/trigger.js'
@@ -137,14 +136,11 @@ export class Game {
               case 'monster':
                 new Monster(world, entity, x, z)
                 break
-              case 'tree':
-                new Tree(world, entity, x, z)
+              case 'doodad':
+                new Doodad(world, entity, x, z)
                 break
-              case 'medkit':
-                new Medkit(world, entity, x, z)
-                break
-              case 'armor':
-                new Armor(world, entity, x, z)
+              case 'item':
+                new Item(world, entity, x, z)
                 break
               case 'npc':
                 new NonPlayerCharacter(world, entity, x, z)

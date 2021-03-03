@@ -578,7 +578,7 @@ export class MapEdit {
               i += 2
             } else if (line[i] === 'trigger') {
               i++
-              let start = i
+              const start = i
               while (line[i] !== 'end') i++
               i++
               trigger = new Trigger(line.slice(start, i))
@@ -619,7 +619,7 @@ export class MapEdit {
               i += 2
             } else if (sector[i] === 'trigger') {
               i++
-              let start = i
+              const start = i
               while (sector[i] !== 'end') i++
               i++
               trigger = new Trigger(sector.slice(start, i))
@@ -658,7 +658,7 @@ export class MapEdit {
           } else if (top === 'triggers') {
             while (index < end) {
               if (map[index] === 'end triggers') break
-              this.triggers.push(map[index])
+              this.triggers.push(new Trigger(map[index].split(' ')))
               index++
             }
             index++
@@ -1630,6 +1630,9 @@ export class MapEdit {
 
   export() {
     computeSectors(this)
+    this.vecs.sort(vecCompare)
+    this.lines.sort(lineCompare)
+    this.sectors.sort(secCompare)
     let content = `map ${this.name}\n`
     content += 'vectors\n'
     let index = 0
@@ -1655,7 +1658,7 @@ export class MapEdit {
     }
     if (this.triggers.length > 0) {
       content += 'triggers\n'
-      for (const trigger of this.triggers) content += trigger + '\n'
+      for (const trigger of this.triggers) content += trigger.export() + '\n'
       content += 'end triggers\n'
     }
     if (this.meta.length > 0) {
@@ -1666,4 +1669,32 @@ export class MapEdit {
     content += 'end map\n'
     return content
   }
+}
+
+function vecCompare(a, b) {
+  if (a.y > b.y) return -1
+  if (a.y < b.y) return 1
+  if (a.x > b.x) return 1
+  if (a.x < b.x) return -1
+  return 0
+}
+
+function lineCompare(a, b) {
+  if (a.a.y > b.a.y) return -1
+  if (a.a.y < b.a.y) return 1
+  if (a.a.x > b.a.x) return 1
+  if (a.a.x < b.a.x) return -1
+  if (a.b.y > b.b.y) return -1
+  if (a.b.y < b.b.y) return 1
+  if (a.b.x > b.b.x) return 1
+  if (a.b.x < b.b.x) return -1
+  return 0
+}
+
+function secCompare(a, b) {
+  if (a.otherIsInside(b)) return 1
+  if (b.otherIsInside(a)) return -1
+  if (a.vecs.length < b.vecs.length) return 1
+  if (b.vecs.length > b.vecs.length) return -1
+  return 0
 }

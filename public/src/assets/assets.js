@@ -1,4 +1,4 @@
-import {Entity} from '../entity/entity.js'
+import {Entity, spriteName} from '../entity/entity.js'
 import {fetchText, fetchImage} from '../client/net.js'
 import {createSpriteSheet} from '../assets/sprite-sheet.js'
 import * as Wad from '../wad/wad.js'
@@ -82,24 +82,42 @@ async function promiseEntity(name, directory, path) {
     return
   }
 
-  let text = await fetchText(directory + path)
+  const text = await fetchText(directory + path)
 
-  let wad = Wad.parse(text)
+  const wad = Wad.parse(text)
   wad.set('_wad', name)
-
-  let sprite = wad.get('sprite')
 
   ENTITIES.set(name, new Entity(wad))
 
+  const set = new Set()
+
+  const sprite = wad.get('sprite')
+  if (sprite) {
+    set.add(spriteName(sprite))
+  } else {
+    const sprites = wad.get('sprites')
+    if (Array.isArray(sprites)) {
+      for (const sprite of sprites) {
+        set.add(spriteName(sprite))
+      }
+    } else {
+      for (const value of sprites.values()) {
+        for (const sprite of value) set.add(spriteName(sprite))
+      }
+    }
+  }
+
   directory += '/sprites'
 
-  let image = promiseImage(sprite, directory)
-  let atlas = promiseAtlas(sprite, directory)
+  for (const sprite of set) {
+    const image = promiseImage(sprite, directory)
+    const atlas = promiseAtlas(sprite, directory)
 
-  ASYNC_SPRITE_NAMES.add(sprite)
+    ASYNC_SPRITE_NAMES.add(sprite)
 
-  await image
-  await atlas
+    await image
+    await atlas
+  }
 }
 
 export function saveEntity(name, directory, path) {

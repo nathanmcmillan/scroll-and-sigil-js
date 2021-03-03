@@ -1,6 +1,6 @@
 import {newPlasmaExplosion} from '../particle/plasma-explosion.js'
 import {playSound} from '../assets/sounds.js'
-import {textureIndexForName, spritesByName, entityByName} from '../assets/assets.js'
+import {entityByName} from '../assets/assets.js'
 import {missileHit, missileSetup, missileIntegrate} from '../missile/missile.js'
 
 function plasmaHit(thing) {
@@ -18,8 +18,7 @@ function plasmaInit(self, entity, dx, dy, dz, damage) {
   self.update = plasmaUpdate
   self.box = entity.box()
   self.height = entity.height()
-  self.texture = textureIndexForName(entity.get('sprite'))
-  self.sprite = spritesByName(entity.get('sprite')).get(entity.get('animation'))
+  self.stamp = entity.stamp()
   self.deltaX = dx
   self.deltaY = dy
   self.deltaZ = dz

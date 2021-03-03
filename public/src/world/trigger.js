@@ -1,32 +1,37 @@
 export class Trigger {
   constructor(input) {
     this.event = null
-    this.condition = null
     this.action = null
+    this.condition = null
     const size = input.length
     let i = 0
     while (i < size) {
       if (input[i] === 'on') {
         i++
-        this.event = input[i]
-        i++
+        const s = i
+        if (input[s] === 'every') i += 3
+        else i++
+        this.event = input.slice(s, i)
       } else if (input[i] === 'do') {
         i++
-        let start = i
-        this.action = input.splice(start, i)
-        this.action = input[i]
+        const s = i
+        if (input[s] === 'goto') i += 3
+        else if (input[s] === 'teleport') i += 3
+        else if (input[s] === 'spawn') i += 4
+        else i++
+        this.action = input.slice(s, i)
+      } else if (input[i] === 'if') {
         i++
-      } else if (input[i] === 'condition') {
-        i++
-        this.condition = input[i]
-        i++
+        const s = i
+        if (input[s] === 'lte') i += 3
+        else i++
+        this.condition = input.slice(s, i)
       } else if (input[i] === 'end') break
       else i++
     }
-    console.debug(this.event, this.condition, this.action)
   }
 
   export() {
-    return this.event.join(' ') + this.condition.join(' ') + this.action.join(' ')
+    return this.event.join(' ') + ' ' + this.action.join(' ') + (this.condition ? ' ' + this.condition.join(' ') : '')
   }
 }

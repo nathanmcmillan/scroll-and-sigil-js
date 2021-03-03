@@ -1,13 +1,12 @@
 import {WORLD_CELL_SHIFT} from '../world/world.js'
-import {textureIndexForName, spritesByName} from '../assets/assets.js'
 import {randomInt} from '../math/random.js'
 import {particleSetup, particleUpdateSector} from '../particle/particle.js'
 
 function bloodHitFloor(self) {
   let sector = self.sector
-  let decal = self.world.newDecal(self.texture)
+  let decal = self.world.newDecal(self.stamp.texture)
 
-  let sprite = self.sprite
+  let sprite = self.stamp.sprite
   let width = sprite.halfWidth
   let height = 0.5 * sprite.height
 
@@ -49,9 +48,9 @@ function bloodHitFloor(self) {
 
 function bloodHitCeiling(self) {
   let sector = self.sector
-  let decal = self.world.newDecal(self.texture)
+  let decal = self.world.newDecal(self.stamp.texture)
 
-  let sprite = self.sprite
+  let sprite = self.stamp.sprite
   let width = sprite.halfWidth
   let height = 0.5 * sprite.height
 
@@ -110,12 +109,12 @@ function bloodHitLine(self, line) {
   let pz = line.a.y + vz * t - self.z
   if (px * px + pz * pz > box * box) return false
 
-  let decal = self.world.newDecal(self.texture)
+  let decal = self.world.newDecal(self.stamp.texture)
 
   let x = px + self.x
   let z = pz + self.z
 
-  let sprite = self.sprite
+  let sprite = self.stamp.sprite
   let width = sprite.halfWidth
   let height = sprite.height
 
@@ -219,9 +218,8 @@ function bloodInit(self, entity, dx, dy, dz) {
   self.update = bloodUpdate
   self.box = entity.box()
   self.height = entity.height()
-  self.texture = textureIndexForName(entity.get('sprite'))
-  let types = entity.get('animation')
-  self.sprite = spritesByName(entity.get('sprite')).get(types[randomInt(types.length)])
+  const sprites = entity.stamps()
+  self.stamp = sprites[randomInt(sprites.length)]
   self.deltaX = dx
   self.deltaY = dy
   self.deltaZ = dz

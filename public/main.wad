@@ -3,7 +3,7 @@ map: base
 open: music
 open: dashboard
 open: sfx
-open: home
-open: maps
 open: paint
 open: game
+open: home
+open: maps

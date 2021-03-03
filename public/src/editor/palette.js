@@ -300,6 +300,22 @@ export function luminosityTable(palette) {
   return table
 }
 
+export function closestInPalette(palette, red, green, blue) {
+  let closest = 0
+  let smallest = Number.MAX_VALUE
+  for (let i = 0; i < palette.length; i += 3) {
+    const r = palette[i] - red
+    const g = palette[i + 1] - green
+    const b = palette[i + 2] - blue
+    const distance = r * r + g * g + b * b
+    if (distance < smallest) {
+      closest = i
+      smallest = distance
+    }
+  }
+  return closest
+}
+
 export function newPalette() {
   let palette = new Uint8Array(4 * 4 * 3)
   let index = 0
