@@ -47,6 +47,55 @@ export const lightpeach0 = 255
 export const lightpeach1 = 204
 export const lightpeach2 = 170
 
+export const darkestgrey0 = 41
+export const darkestgrey1 = 24
+export const darkestgrey2 = 20
+export const darkerblue0 = 17
+export const darkerblue1 = 29
+export const darkerblue2 = 53
+export const darkerpurple0 = 66
+export const darkerpurple1 = 33
+export const darkerpurple2 = 54
+export const bluegreen0 = 18
+export const bluegreen1 = 83
+export const bluegreen2 = 89
+export const darkbrown0 = 116
+export const darkbrown1 = 47
+export const darkbrown2 = 41
+export const darkergrey0 = 116
+export const darkergrey1 = 47
+export const darkergrey2 = 41
+export const mediumgrey0 = 162
+export const mediumgrey1 = 136
+export const mediumgrey2 = 121
+export const lightyellow0 = 243
+export const lightyellow1 = 239
+export const lightyellow2 = 125
+export const darkred0 = 190
+export const darkred1 = 18
+export const darkred2 = 80
+export const darkorange0 = 255
+export const darkorange1 = 108
+export const darkorange2 = 36
+export const lightgreen0 = 168
+export const lightgreen1 = 231
+export const lightgreen2 = 46
+export const mediumgreen0 = 0
+export const mediumgreen1 = 181
+export const mediumgreen2 = 67
+export const mediumblue0 = 6
+export const mediumblue1 = 90
+export const mediumblue2 = 181
+export const mauve0 = 117
+export const mauve1 = 70
+export const mauve2 = 101
+export const darkpeach0 = 255
+export const darkpeach1 = 110
+export const darkpeach2 = 89
+export const peach0 = 255
+export const peach1 = 157
+export const peach2 = 129
+
 export const black0f = black0 / 255.0
 export const black1f = black1 / 255.0
 export const black2f = black2 / 255.0
@@ -95,6 +144,10 @@ export const pink2f = pink2 / 255.0
 export const lightpeach0f = lightpeach0 / 255.0
 export const lightpeach1f = lightpeach1 / 255.0
 export const lightpeach2f = lightpeach2 / 255.0
+
+export const darkestgrey0f = darkestgrey0 / 255.0
+export const darkestgrey1f = darkestgrey1 / 255.0
+export const darkestgrey2f = darkestgrey2 / 255.0
 
 export function black() {
   return black0
@@ -317,7 +370,7 @@ export function closestInPalette(palette, red, green, blue) {
 }
 
 export function newPalette() {
-  let palette = new Uint8Array(4 * 4 * 3)
+  let palette = new Uint8Array(16 * 3)
   let index = 0
 
   palette[index] = black0
