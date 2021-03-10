@@ -3,7 +3,7 @@ import {spr} from '../render/pico.js'
 import {identity, multiply} from '../math/matrix.js'
 import {textureByName} from '../assets/assets.js'
 import {vectorSize, thingSize, SECTOR_TOOL, OPTION_END_LINE, OPTION_END_LINE_NEW_VECTOR} from '../editor/maps.js'
-import {colorf, blackf, darkgreyf, yellowf, whitef, greenf, redf, white0f, white1f, white2f} from '../editor/palette.js'
+import {blackf, slatef, yellowf, whitef, greenf, redf, white0f, white1f, white2f, winef} from '../editor/palette.js'
 import {renderTouch} from '../client/render-touch.js'
 import {defaultFont, calcFontScale, calcTopBarHeight, calcBottomBarHeight} from '../editor/editor-util.js'
 import {renderDialogBox, renderTextBox, renderStatus} from '../client/client-util.js'
@@ -36,7 +36,7 @@ function mapRender(b, maps) {
   const alpha = 1.0
   const thickness = 1.0
   if (maps.viewSectors && maps.tool === SECTOR_TOOL) {
-    let seed = 0
+    // let seed = 0
     for (const sector of maps.sectors) {
       for (const triangle of sector.view) {
         let x1 = mapX(triangle.a.x, zoom, camera)
@@ -45,14 +45,15 @@ function mapRender(b, maps) {
         let y2 = mapZ(triangle.b.y, zoom, camera)
         let x3 = mapX(triangle.c.x, zoom, camera)
         let y3 = mapZ(triangle.c.y, zoom, camera)
-        seed++
-        if (seed === 15) seed = 0
-        while (seed === 0 || seed === 1 || seed === 4 || seed === 5 || seed === 6 || seed == 7) {
-          seed++
-          if (seed === 15) seed = 0
-        }
-        if (sector == maps.selectedSector) drawTriangle(b, x1, y1, x2, y2, x3, y3, blackf(0), blackf(1), blackf(2), alpha)
-        else drawTriangle(b, x1, y1, x2, y2, x3, y3, colorf(seed, 0), colorf(seed, 1), colorf(seed, 2), alpha)
+        // seed++
+        // if (seed === 15) seed = 0
+        // while (seed === 0 || seed === 1 || seed === 4 || seed === 5 || seed === 6 || seed == 7) {
+        //   seed++
+        //   if (seed === 15) seed = 0
+        // }
+        if (sector === maps.selectedSector) drawTriangle(b, x1, y1, x2, y2, x3, y3, winef(0), winef(1), winef(2), alpha)
+        else drawTriangle(b, x1, y1, x2, y2, x3, y3, blackf(0), blackf(1), blackf(2), alpha)
+        // else drawTriangle(b, x1, y1, x2, y2, x3, y3, colorf(seed, 0), colorf(seed, 1), colorf(seed, 2), alpha)
       }
     }
   }
@@ -105,7 +106,7 @@ export function renderMapEditTopMode(state) {
   rendering.setProgram(0)
   rendering.setView(0, client.top, width, height)
 
-  gl.clearColor(darkgreyf(0), darkgreyf(1), darkgreyf(2), 1.0)
+  gl.clearColor(slatef(0), slatef(1), slatef(2), 1.0)
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
   gl.disable(gl.CULL_FACE)

@@ -1,22 +1,6 @@
 import {textureByName} from '../assets/assets.js'
 import {drawRectangle, drawHollowRectangle, drawTextFontSpecial, drawTextFont} from '../render/render.js'
-import {
-  white0f,
-  white1f,
-  white2f,
-  darkpurple0f,
-  darkpurple1f,
-  darkpurple2f,
-  lightpeach0f,
-  lightpeach1f,
-  lightpeach2f,
-  orange0f,
-  orange1f,
-  orange2f,
-  darkgrey0f,
-  darkgrey1f,
-  darkgrey2f,
-} from '../editor/palette.js'
+import {white0f, white1f, white2f, wine0f, wine1f, wine2f, peach0f, peach1f, peach2f, orange0f, orange1f, orange2f, slate0f, slate1f, slate2f} from '../editor/palette.js'
 import {calcFontScale, calcThickness, calcFontPad, calcLongest} from '../editor/editor-util.js'
 
 export function renderDialogBox(state, scale, font, dialog) {
@@ -53,22 +37,12 @@ export function renderDialogBox(state, scale, font, dialog) {
   if (title !== null) dialogHeight += fontHeightAndPad
   let x = Math.floor(0.5 * (width - dialogWidth))
   let y = Math.floor(0.5 * (height - dialogHeight))
-  drawRectangle(client.bufferColor, x, y, dialogWidth + doubleThick, dialogHeight + doubleThick, darkgrey0f, darkgrey1f, darkgrey2f, 1.0)
+  drawRectangle(client.bufferColor, x, y, dialogWidth + doubleThick, dialogHeight + doubleThick, slate0f, slate1f, slate2f, 1.0)
 
-  drawHollowRectangle(client.bufferColor, x + thickness, y + thickness, dialogWidth, dialogHeight, thickness, lightpeach0f, lightpeach1f, lightpeach2f, 1.0)
+  drawHollowRectangle(client.bufferColor, x + thickness, y + thickness, dialogWidth, dialogHeight, thickness, peach0f, peach1f, peach2f, 1.0)
 
   if (title !== null)
-    drawRectangle(
-      client.bufferColor,
-      x + thickness,
-      y + dialogHeight - thickness - fontHeightAndPad - 2 * fontPad,
-      dialogWidth,
-      thickness,
-      lightpeach0f,
-      lightpeach1f,
-      lightpeach2f,
-      1.0
-    )
+    drawRectangle(client.bufferColor, x + thickness, y + dialogHeight - thickness - fontHeightAndPad - 2 * fontPad, dialogWidth, thickness, peach0f, peach1f, peach2f, 1.0)
 
   rendering.updateAndDraw(client.bufferColor)
 
@@ -134,9 +108,9 @@ export function renderTextBox(state, scale, font, box, x, y) {
   const boxWidth = textBoxWidth(fontWidth, box)
   const boxHeight = textBoxHeight(fontHeightAndPad, box)
 
-  drawRectangle(client.bufferColor, x, y, boxWidth + doubleThick, boxHeight + doubleThick, darkgrey0f, darkgrey1f, darkgrey2f, 1.0)
+  drawRectangle(client.bufferColor, x, y, boxWidth + doubleThick, boxHeight + doubleThick, slate0f, slate1f, slate2f, 1.0)
 
-  drawHollowRectangle(client.bufferColor, x + thickness, y + thickness, boxWidth, boxHeight, thickness, lightpeach0f, lightpeach1f, lightpeach2f, 1.0)
+  drawHollowRectangle(client.bufferColor, x + thickness, y + thickness, boxWidth, boxHeight, thickness, peach0f, peach1f, peach2f, 1.0)
 
   rendering.updateAndDraw(client.bufferColor)
 
@@ -166,27 +140,15 @@ export function renderTextBox(state, scale, font, box, x, y) {
 
 export function renderStatus(client, width, height, font, fontWidth, fontScale, topBarHeight, edit) {
   const topLeftStatus = edit.topLeftStatus()
-  drawTextFont(client.bufferGUI, fontWidth, height - topBarHeight, topLeftStatus, fontScale, darkpurple0f, darkpurple1f, darkpurple2f, 1.0, font)
+  drawTextFont(client.bufferGUI, fontWidth, height - topBarHeight, topLeftStatus, fontScale, wine0f, wine1f, wine2f, 1.0, font)
 
   const topRightStatus = edit.topRightStatus()
   if (topRightStatus)
-    drawTextFont(
-      client.bufferGUI,
-      width - (topRightStatus.length + 1) * fontWidth,
-      height - topBarHeight,
-      topRightStatus,
-      fontScale,
-      darkpurple0f,
-      darkpurple1f,
-      darkpurple2f,
-      1.0,
-      font
-    )
+    drawTextFont(client.bufferGUI, width - (topRightStatus.length + 1) * fontWidth, height - topBarHeight, topRightStatus, fontScale, wine0f, wine1f, wine2f, 1.0, font)
 
   const bottmRightStatus = edit.bottomRightStatus()
-  if (bottmRightStatus)
-    drawTextFont(client.bufferGUI, width - (bottmRightStatus.length + 1) * fontWidth, 0, bottmRightStatus, fontScale, darkpurple0f, darkpurple1f, darkpurple2f, 1.0, font)
+  if (bottmRightStatus) drawTextFont(client.bufferGUI, width - (bottmRightStatus.length + 1) * fontWidth, 0, bottmRightStatus, fontScale, wine0f, wine1f, wine2f, 1.0, font)
 
   const bottomLeftStatus = edit.bottomLeftStatus()
-  if (bottomLeftStatus) drawTextFont(client.bufferGUI, fontWidth, 0, bottomLeftStatus, fontScale, darkpurple0f, darkpurple1f, darkpurple2f, 1.0, font)
+  if (bottomLeftStatus) drawTextFont(client.bufferGUI, fontWidth, 0, bottomLeftStatus, fontScale, wine0f, wine1f, wine2f, 1.0, font)
 }

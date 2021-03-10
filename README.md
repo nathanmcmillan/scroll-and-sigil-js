@@ -22,7 +22,6 @@ A 3D adventure game with a strong focus on modding and user crafted content.
 - Lines should have front and back textures optional
 - Tiles should just be paint:sprite index from regular paint image
 - Need a global ticker for animated tiles and doodads
-- Extended color palette
 - Lines aren't always showing texture
 
 ### Needed

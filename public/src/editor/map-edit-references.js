@@ -258,7 +258,6 @@ export class SectorReference {
     this.ceilingTexture = ceilingTexture
     this.type = type
     this.trigger = trigger
-    console.debug('IN', this.trigger)
     this.vecs = vecs
     this.lines = lines
     this.triangles = []

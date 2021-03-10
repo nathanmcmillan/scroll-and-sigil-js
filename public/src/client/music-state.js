@@ -4,7 +4,7 @@ import {textureByName} from '../assets/assets.js'
 import {drawTextFontSpecial, drawRectangle} from '../render/render.js'
 import {spr, sprcol} from '../render/pico.js'
 import {identity, multiply} from '../math/matrix.js'
-import {whitef, redf, darkgreyf} from '../editor/palette.js'
+import {whitef, redf, slatef} from '../editor/palette.js'
 import {flexBox, flexSolve} from '../gui/flex.js'
 import {defaultFont, calcFontScale} from '../editor/editor-util.js'
 import {renderDialogBox, renderStatus} from '../client/client-util.js'
@@ -123,7 +123,7 @@ export class MusicState {
     rendering.setView(0, client.top, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
 
-    gl.clearColor(darkgreyf(0), darkgreyf(1), darkgreyf(2), 1.0)
+    gl.clearColor(slatef(0), slatef(1), slatef(2), 1.0)
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
     client.bufferGUI.zero()

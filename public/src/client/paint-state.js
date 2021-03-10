@@ -16,18 +16,17 @@ import {
   white0f,
   white1f,
   white2f,
-  lightgreyf,
+  silverf,
   lavenderf,
   redf,
-  darkgreyf,
-  luminosity,
-  luminosityTable,
+  slatef,
   red0f,
   red1f,
   red2f,
   lavender0f,
   lavender1f,
   lavender2f,
+  closestInPalette,
 } from '../editor/palette.js'
 
 function updatePixelsToTexture(gl, texture, width, height, pixels) {
@@ -35,19 +34,6 @@ function updatePixelsToTexture(gl, texture, width, height, pixels) {
   gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, width, height, gl.RGB, gl.UNSIGNED_BYTE, pixels, 0)
   gl.bindTexture(gl.TEXTURE_2D, null)
   return texture
-}
-
-function guessColor(table, red, green, blue) {
-  let lumin = luminosity(red, green, blue)
-  for (let i = 0; i < table.length - 1; i++) {
-    let c = table[i][0]
-    let n = table[i + 1][0]
-    if (lumin >= c && lumin <= n) {
-      if (lumin - c < n - lumin) return table[i][1]
-      else return table[i + 1][1]
-    }
-  }
-  return table[table.length - 1][1]
 }
 
 function convertImageToText(palette, image) {
@@ -61,9 +47,6 @@ function convertImageToText(palette, image) {
   context.drawImage(image, 0, 0)
   let pixels = context.getImageData(0, 0, width, height).data
 
-  // closestInPalette
-  let table = luminosityTable(palette)
-
   let text = width + ' ' + height
   for (let h = 0; h < height; h++) {
     text += '\n'
@@ -72,7 +55,7 @@ function convertImageToText(palette, image) {
       let red = pixels[index]
       let green = pixels[index + 1]
       let blue = pixels[index + 2]
-      text += guessColor(table, red, green, blue) + ' '
+      text += closestInPalette(palette, red, green, blue) + ' '
     }
   }
   return text
@@ -282,7 +265,7 @@ export class PaintState {
     rendering.setView(0, client.top, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
 
-    gl.clearColor(darkgreyf(0), darkgreyf(1), darkgreyf(2), 1.0)
+    gl.clearColor(slatef(0), slatef(1), slatef(2), 1.0)
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
     gl.disable(gl.CULL_FACE)
@@ -529,8 +512,10 @@ export class PaintState {
 
     client.bufferGUI.zero()
 
-    let displayC = posC < 10 ? '0' + posC : '' + posC
-    let displayR = posR < 10 ? '0' + posR : '' + posR
+    let displayC = '' + (posC + posOffsetC)
+    let displayR = '' + (posR + posOffsetR)
+    while (displayC.length < 3) displayC = '0' + displayC
+    while (displayR.length < 3) displayR = '0' + displayR
     let text = 'x:' + displayC + ' y:' + displayR
     let posBox = flexBox(fontWidth * text.length, fontHeight)
     posBox.funX = 'center'
@@ -538,7 +523,7 @@ export class PaintState {
     posBox.funY = 'above'
     posBox.fromY = viewBox
     flexSolve(0, 0, posBox)
-    drawTextFont(client.bufferGUI, posBox.x, posBox.y, text, fontScale, lightgreyf(0), lightgreyf(1), lightgreyf(2), 1.0, font)
+    drawTextFont(client.bufferGUI, posBox.x, posBox.y, text, fontScale, silverf(0), silverf(1), silverf(2), 1.0, font)
 
     let displaySheet = paint.name
     let sheetNumBox = flexBox(fontWidth * displaySheet.length, fontHeight)
@@ -547,7 +532,7 @@ export class PaintState {
     sheetNumBox.funY = 'above'
     sheetNumBox.fromY = sheetBox
     flexSolve(0, 0, sheetNumBox)
-    drawTextFont(client.bufferGUI, sheetNumBox.x, sheetNumBox.y, displaySheet, fontScale, lightgreyf(0), lightgreyf(1), lightgreyf(2), 1.0, font)
+    drawTextFont(client.bufferGUI, sheetNumBox.x, sheetNumBox.y, displaySheet, fontScale, silverf(0), silverf(1), silverf(2), 1.0, font)
 
     let spriteIndex = posOffsetC / 8 + 2 * posOffsetR
     let displayIndex = ' index:' + (spriteIndex < 10 ? '00' + spriteIndex : spriteIndex < 100 ? '0' + spriteIndex : '' + spriteIndex)
@@ -557,7 +542,7 @@ export class PaintState {
     positionBox.funY = 'above'
     positionBox.fromY = sheetBox
     flexSolve(0, 0, positionBox)
-    drawTextFont(client.bufferGUI, positionBox.x, positionBox.y, displayIndex, fontScale, lightgreyf(0), lightgreyf(1), lightgreyf(2), 1.0, font)
+    drawTextFont(client.bufferGUI, positionBox.x, positionBox.y, displayIndex, fontScale, silverf(0), silverf(1), silverf(2), 1.0, font)
 
     //  status text
 

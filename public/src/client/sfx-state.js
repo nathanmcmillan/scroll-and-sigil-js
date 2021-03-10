@@ -1,7 +1,7 @@
 import {diatonic, semitoneName, SEMITONES, WAVE_LIST} from '../sound/synth.js'
 import {textureByName} from '../assets/assets.js'
 import {identity, multiply} from '../math/matrix.js'
-import {darkgreyf, red0f, red1f, red2f, lightgrey0f, lightgrey1f, lightgrey2f, orange0f, orange1f, orange2f} from '../editor/palette.js'
+import {slatef, red0f, red1f, red2f, silver0f, silver1f, silver2f, orange0f, orange1f, orange2f} from '../editor/palette.js'
 import {SfxEdit, WAVE_INDEX, FREQUENCY_INDEX, DURATION_INDEX} from '../editor/sfx.js'
 import {drawRectangle, drawTextFont} from '../render/render.js'
 import {calcFontScale, calcTopBarHeight, calcBottomBarHeight, calcFontPad, defaultFont} from '../editor/editor-util.js'
@@ -115,7 +115,7 @@ export class SfxState {
     rendering.setView(0, client.top, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
 
-    gl.clearColor(darkgreyf(0), darkgreyf(1), darkgreyf(2), 1.0)
+    gl.clearColor(slatef(0), slatef(1), slatef(2), 1.0)
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
     gl.disable(gl.CULL_FACE)
@@ -157,7 +157,7 @@ export class SfxState {
       else if (i === DURATION_INDEX) text += sfx.arguments[i] + ' ms'
       else text += sfx.arguments[i].toFixed(2)
       if (i === sfx.row) drawTextFont(client.bufferGUI, x, y, text, fontScale, orange0f, orange1f, orange2f, 1.0, font)
-      else drawTextFont(client.bufferGUI, x, y, text, fontScale, lightgrey0f, lightgrey1f, lightgrey2f, 1.0, font)
+      else drawTextFont(client.bufferGUI, x, y, text, fontScale, silver0f, silver1f, silver2f, 1.0, font)
       y -= fontHeightAndPad
     }
 

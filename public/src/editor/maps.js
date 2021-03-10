@@ -811,7 +811,7 @@ export class MapEdit {
       let px = line.a.x + vx * t - x
       let pz = line.a.y + vz * t - y
       let distance = px * px + pz * pz
-      if (distance > size * size || distance > best) continue
+      if (distance > size || distance > best) continue
       best = distance
       closest = line
     }
@@ -907,14 +907,42 @@ export class MapEdit {
     return true
   }
 
-  sectorUnderCursor() {
-    let x = this.camera.x + this.cursor.x / this.zoom
-    let y = this.camera.z + this.cursor.y / this.zoom
+  sectorOrLineUnderCursor() {
+    this.selectedLine = null
+    this.selectedSector = null
+    const x = this.camera.x + this.cursor.x / this.zoom
+    const y = this.camera.z + this.cursor.y / this.zoom
+    let found = null
     for (const sector of this.sectors) {
       if (sector.contains(x, y)) {
-        return sector.find(x, y)
+        found = sector.find(x, y)
+        break
       }
     }
+    const size = Math.pow(0.5, 2)
+    const forced = Math.pow(0.2, 2)
+    let best = Number.MAX_VALUE
+    let closest = null
+    let multiple = false
+    for (const line of this.lines) {
+      let vx = line.b.x - line.a.x
+      let vz = line.b.y - line.a.y
+      let wx = x - line.a.x
+      let wz = y - line.a.y
+      let t = (wx * vx + wz * vz) / (vx * vx + vz * vz)
+      if (t < 0.0) t = 0.0
+      else if (t > 1.0) t = 1.0
+      let px = line.a.x + vx * t - x
+      let pz = line.a.y + vz * t - y
+      let distance = px * px + pz * pz
+      if (distance > size || distance > best) continue
+      if (closest) multiple = true
+      best = distance
+      closest = line
+    }
+    if (found && multiple && best > forced) this.selectedSector = found
+    else if (closest) this.selectedLine = closest
+    else if (found) this.selectedSector = found
   }
 
   updateThingsY() {
@@ -1179,14 +1207,9 @@ export class MapEdit {
     } else if (this.tool === SECTOR_TOOL) {
       if (this.action === OPTION_SECTOR_MODE_DEFAULT || this.action === OPTION_SECTOR_UNDER_CURSOR || this.action === OPTION_SECTOR_MODE_LINE_UNDER_CURSOR) {
         this.action = OPTION_SECTOR_MODE_DEFAULT
-        this.selectedLine = this.lineUnderCursor()
-        if (this.selectedLine) {
-          this.action = OPTION_SECTOR_MODE_LINE_UNDER_CURSOR
-          this.selectedSector = null
-        } else {
-          this.selectedSector = this.sectorUnderCursor()
-          if (this.selectedSector) this.action = OPTION_SECTOR_UNDER_CURSOR
-        }
+        this.sectorOrLineUnderCursor()
+        if (this.selectedLine) this.action = OPTION_SECTOR_MODE_LINE_UNDER_CURSOR
+        else if (this.selectedSector) this.action = OPTION_SECTOR_UNDER_CURSOR
       }
 
       let options = DESCRIBE_OPTIONS[this.action]
@@ -1539,14 +1562,14 @@ export class MapEdit {
     if (this.selectedVec) {
       return 'VEC ' + this.selectedVec.x.toFixed(2) + ', ' + this.selectedVec.y.toFixed(2)
     } else if (this.selectedThing) {
-      let thing = this.selectedThing
-      return thing.entity.get('_wad').toUpperCase() + ' ' + thing.x.toFixed(2) + ', ' + thing.z.toFixed(2)
+      const thing = this.selectedThing
+      return 'THING ' + thing.entity.get('_wad').toUpperCase() + ' ' + thing.x.toFixed(2) + ', ' + thing.z.toFixed(2)
     } else if (this.selectedLine) {
-      let line = this.selectedLine
+      const line = this.selectedLine
       return 'LINE B' + line.bottom.offset + ' M' + line.middle.offset + ' T' + line.top.offset
     } else if (this.selectedSector) {
-      let sector = this.selectedSector
-      return 'B' + sector.bottom + ' F' + sector.floor + ' C' + sector.ceiling + ' T' + sector.top
+      const sector = this.selectedSector
+      return 'SECTOR B' + sector.bottom + ' F' + sector.floor + ' C' + sector.ceiling + ' T' + sector.top
     }
     return 'CURSOR ' + (this.camera.x + this.cursor.x / this.zoom).toFixed(2) + ', ' + (this.camera.z + this.cursor.y / this.zoom).toFixed(2)
   }

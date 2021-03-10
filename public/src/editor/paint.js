@@ -50,7 +50,7 @@ export class PaintEdit {
     this.hasUpdates = false
 
     this.paletteRows = 4
-    this.paletteColumns = 4
+    this.paletteColumns = 8
     this.palette = newPalette()
     this.paletteFloat = newPaletteFloat(this.palette)
 
@@ -414,7 +414,7 @@ export class PaintEdit {
       else if (this.tool === SPRITE_TOOL) return prefix + 'SPRITES'
       else if (this.tool === CLEAR_TOOL) return prefix + 'CLEAR'
     } else if (input.select()) return 'BRUSH SIZE: ' + this.brushSize + ' ZOOM: ' + this.canvasZoom + 'X'
-    else return 'X:' + (this.positionOffsetC + this.positionC) + ' Y:' + (this.positionOffsetR + this.positionR)
+    else return 'X:' + this.positionC + ' Y:' + this.positionR
   }
 
   bottomRightStatus() {

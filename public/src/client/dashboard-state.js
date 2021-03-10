@@ -2,7 +2,7 @@ import {textureByName} from '../assets/assets.js'
 import {drawTextFontSpecial} from '../render/render.js'
 import {renderTouch} from '../client/render-touch.js'
 import {identity, multiply} from '../math/matrix.js'
-import {darkgrey0f, darkgrey1f, darkgrey2f, white0f, white1f, white2f} from '../editor/palette.js'
+import {slate0f, slate1f, slate2f, white0f, white1f, white2f} from '../editor/palette.js'
 import {flexBox, flexSolve} from '../gui/flex.js'
 import {defaultFont, calcFontScale, calcFontPad} from '../editor/editor-util.js'
 import {Dashboard, TAPE_MENU, PROGRAM_MENU, EDIT_NAME} from '../menu/dashboard.js'
@@ -92,7 +92,7 @@ export class DashboardState {
     rendering.setView(0, client.top, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
 
-    gl.clearColor(darkgrey0f, darkgrey1f, darkgrey2f, 1.0)
+    gl.clearColor(slate0f, slate1f, slate2f, 1.0)
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
     gl.disable(gl.CULL_FACE)

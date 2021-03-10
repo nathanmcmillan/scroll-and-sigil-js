@@ -3,12 +3,6 @@ import {sectorLineNeighbors, sectorInsideOutside} from '../map/sector.js'
 import {clockwiseReflex, clockwiseInterior, sectorTriangulateForEditor} from '../map/triangulate.js'
 import {SectorReference} from '../editor/map-edit-references.js'
 
-const debug = false
-
-function strvec(vec) {
-  return JSON.stringify({x: vec.x, y: vec.y})
-}
-
 function nullLines(lines) {
   for (const line of lines) {
     line.plus = null
@@ -31,6 +25,8 @@ function copy(src, dest) {
   dest.top = src.top
   dest.floorTexture = src.floorTexture
   dest.ceilingTexture = src.ceilingTexture
+  dest.type = src.type
+  dest.trigger = src.trigger
 }
 
 function match(src, dest) {
@@ -49,9 +45,7 @@ function transfer(previous, sectors) {
     while (i--) {
       const old = previous[i]
       if (match(old, sector)) {
-        // can we get away with using the older sector and not copying? less risky
-        // copy(old, sector)
-        sectors[s] = old
+        copy(old, sector)
         previous.splice(i, 1)
         break
       }
@@ -69,10 +63,7 @@ function isDuplicate(sectors, vecs) {
         break
       }
     }
-    if (duplicate) {
-      if (debug) console.warn('% duplicate computed sector')
-      return true
-    }
+    if (duplicate) return true
   }
   return false
 }
@@ -84,9 +75,7 @@ function isClockwise(vecs) {
     let k = i + 1 == len ? 0 : i + 1
     sum += (vecs[k].x - vecs[i].x) * (vecs[k].y + vecs[i].y)
   }
-  if (sum >= 0.0) return true
-  if (debug) console.warn('% counter-clockwise computed sector')
-  return false
+  return sum >= 0.0
 }
 
 function isFirstTop(a, b) {
@@ -116,15 +105,12 @@ function construct(editor, sectors, start) {
     for (const line of editor.lines) {
       if (line === start || !line.has(b)) continue
       let c = line.other(b)
-      if (initial && debug) console.debug('(is 2nd top)', strvec(a), strvec(b), strvec(c), ':=', isSecondTop(a, b, c))
       if (initial && !isSecondTop(a, b, c)) continue
       let interior = clockwiseInterior(a, b, c)
-      if (debug) console.debug('(interior)', strvec(a), strvec(b), strvec(c), ':=', interior)
       let wind = false
       if (initial && interior >= Math.PI) {
         interior = clockwiseInterior(c, b, a)
         wind = true
-        if (debug) console.debug('(reversed interior)', interior)
       }
       if (interior < best) {
         second = line
@@ -133,10 +119,7 @@ function construct(editor, sectors, start) {
         reverse = wind
       }
     }
-    if (second === null) {
-      if (debug) console.debug('(not found)')
-      return [null, null]
-    }
+    if (second === null) return [null, null]
     if (initial) {
       if (reverse) {
         a = next
@@ -146,21 +129,14 @@ function construct(editor, sectors, start) {
         lines[0] = second
         second = start
         start = lines[0]
-        if (debug) console.debug('(reversed)')
       }
       initial = false
-      if (debug) console.debug('(one)', a.x, a.y)
-      if (debug) console.debug('(two)', b.x, b.y)
     }
     if (next === origin) {
       lines.push(second)
       return [vecs, lines]
     }
-    if (debug) console.debug('(next)', next.x, next.y)
-    if (vecs.indexOf(next) >= 0) {
-      if (debug) console.debug('(bad)')
-      return [null, null]
-    }
+    if (vecs.indexOf(next) >= 0) return [null, null]
     vecs.push(next)
     lines.push(second)
     a = b
@@ -170,21 +146,12 @@ function construct(editor, sectors, start) {
 }
 
 export function computeSectors(editor) {
-  if (debug) console.debug('^ start compute sectors')
-
-  let sectors = []
+  const sectors = []
   for (const line of editor.lines) {
-    if (debug) console.debug('@ compute sector', strvec(line.a), strvec(line.b))
-    if ((line.a.x == 46.0 || line.b.x == 46.0) && (line.a.y == 79.0 || line.b.y == 79.0)) console.error('xxxxxxxxxxxxxx')
     let [vecs, lines] = construct(editor, sectors, line)
     if (vecs === null || lines.length < 3) continue
     if (isDuplicate(sectors, vecs)) continue
     if (!isClockwise(vecs)) continue
-    if (debug) console.debug('sector:')
-    for (const vec of vecs) {
-      if (debug) console.debug(' ', vec.x, vec.y)
-    }
-    if (debug) console.debug('# push sector')
     let bottom = 0.0
     let floor = 0.0
     let ceiling = 0.0
@@ -223,5 +190,4 @@ export function computeSectors(editor) {
   checkLines(editor.lines)
 
   editor.sectors = sectors
-  if (debug) console.debug(`$ end compute sectors (sector count := ${sectors.length})`)
 }
