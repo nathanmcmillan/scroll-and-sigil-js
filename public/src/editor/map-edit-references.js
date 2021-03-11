@@ -38,15 +38,21 @@ export class LineReference {
     this.b = b
     this.type = type
     this.trigger = trigger
-    this.bottom = new WallReference(this, bottom)
-    this.middle = new WallReference(this, middle)
-    this.top = new WallReference(this, top)
+    this.bottom = new WallReference(bottom)
+    this.middle = new WallReference(middle)
+    this.top = new WallReference(top)
     this.index = 0
   }
 
-  updateSectors(plus, minus, scale) {
+  updateSectorsForLine(plus, minus, scale) {
     this.plus = plus
     this.minus = minus
+
+    // if (plus) console.debug('+', plus.bottom, plus.floor, plus.ceiling, plus.top, plus.floorTexture, plus.ceilingTexture)
+    // else console.debug('+ null')
+
+    // if (minus) console.debug('-', minus.bottom, minus.floor, minus.ceiling, minus.top, minus.floorTexture, minus.ceilingTexture)
+    // else console.debug('- null')
 
     let x = this.a.x - this.b.x
     let y = this.a.y - this.b.y
@@ -54,7 +60,6 @@ export class LineReference {
     let st = uv + Math.sqrt(x * x + y * y) * scale
 
     if (this.top.use()) {
-      let flip = false
       let a = this.a
       let b = this.b
       let ceiling = null
@@ -72,17 +77,11 @@ export class LineReference {
           top = minus.top
         }
       }
-      if (ceiling >= top) console.warn(`invalid top wall: ceiling := ${ceiling}, top := ${top}`)
-      if (flip) {
-        let temp = a
-        a = b
-        b = temp
-      }
+      if (ceiling >= top) console.warn(`Invalid top wall: ceiling := ${ceiling}, top := ${top}, ${this.top.texture}`)
       this.top.update(ceiling, top, uv, ceiling * scale, st, top * scale, a, b)
     }
 
     if (this.middle.use()) {
-      let flip = false
       let a = this.a
       let b = this.b
       let floor = null
@@ -100,17 +99,11 @@ export class LineReference {
           ceiling = minus.ceiling
         }
       }
-      if (floor >= ceiling) console.warn(`invalid middle wall: floor := ${floor}, ceiling := ${ceiling}`)
-      if (flip) {
-        let temp = a
-        a = b
-        b = temp
-      }
+      if (floor >= ceiling) console.warn(`Invalid middle wall: floor := ${floor}, ceiling := ${ceiling}, ${this.middle.texture}`)
       this.middle.update(floor, ceiling, uv, floor * scale, st, ceiling * scale, a, b)
     }
 
     if (this.bottom.use()) {
-      let flip = false
       let a = this.a
       let b = this.b
       let bottom = null
@@ -126,15 +119,9 @@ export class LineReference {
         } else {
           if (minus.floor > floor) floor = minus.floor
           if (minus.bottom < bottom) bottom = minus.bottom
-          flip = true
         }
       }
-      if (bottom >= floor) console.warn(`invalid bottom wall: bottom := ${bottom}, floor := ${floor}`)
-      if (flip) {
-        let temp = a
-        a = b
-        b = temp
-      }
+      if (bottom >= floor) console.warn(`Invalid bottom wall: bottom := ${bottom}, floor := ${floor}, ${this.bottom.texture}`)
       this.bottom.update(bottom, floor, uv, bottom * scale, st, floor * scale, a, b)
     }
   }
@@ -199,8 +186,7 @@ export class LineReference {
 }
 
 export class WallReference {
-  constructor(line, texture) {
-    this.line = line
+  constructor(texture) {
     this.a = null
     this.b = null
     this.normal = null
@@ -215,7 +201,7 @@ export class WallReference {
   }
 
   valid() {
-    return this.a && this.b && this.texture
+    return this.a && this.b && this.texture && this.floor < this.ceiling
   }
 
   use() {

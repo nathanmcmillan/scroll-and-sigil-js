@@ -15,7 +15,7 @@ export class Line {
     this.physical = this.middle !== null
   }
 
-  updateSectors(plus, minus, scale) {
+  updateSectorsForLine(plus, minus, scale) {
     this.plus = plus
     this.minus = minus
 
@@ -25,7 +25,6 @@ export class Line {
     let st = uv + Math.sqrt(x * x + y * y) * scale
 
     if (this.top) {
-      let flip = false
       let a = this.a
       let b = this.b
       let ceiling = null
@@ -43,17 +42,11 @@ export class Line {
           top = minus.top
         }
       }
-      if (ceiling >= top) console.error(`invalid top wall: ceiling := ${ceiling}, top := ${top}`)
-      if (flip) {
-        let temp = a
-        a = b
-        b = temp
-      }
+      if (ceiling >= top) console.error(`Invalid top wall: ceiling := ${ceiling}, top := ${top}`)
       this.top.update(ceiling, top, uv, ceiling * scale, st, top * scale, a, b)
     }
 
     if (this.middle) {
-      let flip = false
       let a = this.a
       let b = this.b
       let floor = null
@@ -71,17 +64,11 @@ export class Line {
           ceiling = minus.ceiling
         }
       }
-      if (floor >= ceiling) console.error(`invalid middle wall: floor := ${floor}, ceiling := ${ceiling}`)
-      if (flip) {
-        let temp = a
-        a = b
-        b = temp
-      }
+      if (floor >= ceiling) console.error(`Invalid middle wall: floor := ${floor}, ceiling := ${ceiling}`)
       this.middle.update(floor, ceiling, uv, floor * scale, st, ceiling * scale, a, b)
     }
 
     if (this.bottom) {
-      let flip = false
       let a = this.a
       let b = this.b
       let bottom = null
@@ -97,15 +84,9 @@ export class Line {
         } else {
           if (minus.floor > floor) floor = minus.floor
           if (minus.bottom < bottom) bottom = minus.bottom
-          flip = true
         }
       }
-      if (bottom >= floor) console.warn(`invalid bottom wall: bottom := ${bottom}, floor := ${floor}`)
-      if (flip) {
-        let temp = a
-        a = b
-        b = temp
-      }
+      if (bottom >= floor) console.error(`Invalid bottom wall: bottom := ${bottom}, floor := ${floor}`)
       this.bottom.update(bottom, floor, uv, bottom * scale, st, floor * scale, a, b)
     }
   }

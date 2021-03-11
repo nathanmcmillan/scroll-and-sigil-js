@@ -61,7 +61,7 @@ function tick(timestamp) {
 
 async function main() {
   let canvas = newCanvas(window.innerWidth, window.innerHeight)
-  let gl = canvas.getContext('webgl2')
+  let gl = canvas.getContext('webgl2', {antialias: false})
 
   client = new Client(canvas, gl)
 

@@ -107,16 +107,16 @@ function construct(editor, sectors, start) {
       let c = line.other(b)
       if (initial && !isSecondTop(a, b, c)) continue
       let interior = clockwiseInterior(a, b, c)
-      let wind = false
+      let winding = false
       if (initial && interior >= Math.PI) {
         interior = clockwiseInterior(c, b, a)
-        wind = true
+        winding = true
       }
       if (interior < best) {
         second = line
         next = c
         best = interior
-        reverse = wind
+        reverse = winding
       }
     }
     if (second === null) return [null, null]

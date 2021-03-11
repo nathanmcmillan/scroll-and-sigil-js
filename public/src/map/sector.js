@@ -1,9 +1,13 @@
+const MAX_SECTOR_HEIGHT = 9999
+
 export class Sector {
   constructor(bottom, floor, ceiling, top, floorTexture, ceilingTexture, type, trigger, vecs, lines) {
-    this.bottom = bottom
-    this.floor = floor
-    this.ceiling = ceiling
-    this.top = top
+    this.bottom = Math.min(bottom, floor)
+    this.floor = Math.max(bottom, floor)
+    if (ceiling === 0) ceiling = MAX_SECTOR_HEIGHT
+    if (top === 0) top = MAX_SECTOR_HEIGHT
+    this.ceiling = Math.min(ceiling, top)
+    this.top = Math.max(ceiling, top)
     this.floorTexture = floorTexture
     this.ceilingTexture = ceilingTexture
     this.type = type
@@ -63,12 +67,12 @@ export class Sector {
 
   searchFor(x, z) {
     if (this.contains(x, z)) return this.find(x, z)
-    let queue = this.neighbors.slice()
-    let done = []
+    const queue = this.neighbors.slice()
+    const done = []
     while (queue.length > 0) {
-      let current = queue.shift()
+      const current = queue.shift()
       if (current.contains(x, z)) return current.find(x, z)
-      let neighbors = current.neighbors
+      const neighbors = current.neighbors
       for (let i = 0; i < neighbors.length; i++) {
         let neighbor = neighbors[i]
         if (neighbor === current || queue.includes(neighbor) || done.includes(neighbor)) continue
@@ -128,23 +132,33 @@ export function sectorInsideOutside(sectors) {
 }
 
 export function sectorLineNeighbors(sectors, scale) {
-  for (const sector of sectors) {
-    for (const other of sectors) {
-      if (sector === other) continue
-      if (other.neighbors.includes(sector)) continue
-      iter: for (const o of other.lines) {
-        for (const line of sector.lines) {
-          if (line === o) {
-            sector.neighbors.push(other)
-            other.neighbors.push(sector)
-            line.updateSectors(sector, other, scale)
-            break iter
+  const size = sectors.length
+  for (let i = 0; i < size; i++) {
+    const sector = sectors[i]
+    for (let k = i + 1; k < size; k++) {
+      const other = sectors[k]
+      let neighbors = false
+      for (const a of sector.lines) {
+        for (const b of other.lines) {
+          if (a === b) {
+            neighbors = true
+            // FIXME: How to know which should be plus or minus side?
+            // Answer: Need to check the winding to see which sector the line is pointing towards
+            if (a.plus !== null || a.minus !== null) console.error('Line sectors were already set')
+            a.updateSectorsForLine(sector, other, scale)
           }
         }
+      }
+      if (neighbors) {
+        sector.neighbors.push(other)
+        other.neighbors.push(sector)
       }
     }
     let plus, minus
     if (sector.outside) {
+      if (!sector.neighbors.includes(sector.outside)) sector.neighbors.push(sector.outside)
+      if (!sector.outside.neighbors.includes(sector)) sector.outside.neighbors.push(sector)
+
       plus = sector
       minus = sector.outside
     } else {
@@ -153,7 +167,7 @@ export function sectorLineNeighbors(sectors, scale) {
     }
     for (const line of sector.lines) {
       if (line.plus !== null || line.minus !== null) continue
-      line.updateSectors(plus, minus, scale)
+      line.updateSectorsForLine(plus, minus, scale)
     }
   }
 }
