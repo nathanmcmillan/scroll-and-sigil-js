@@ -569,22 +569,22 @@ export class MapEdit {
           let top = texture(line[2])
           let middle = texture(line[3])
           let bottom = texture(line[4])
-          let type = null
+          let flags = null
           let trigger = null
           let i = 5
           while (i < line.length) {
-            if (line[i] === 'type') {
-              type = line[i + 1]
-              i += 2
+            if (line[i] === 'flags') {
+              flags = line[i + 1]
+              i += 3
             } else if (line[i] === 'trigger') {
               i++
               const start = i
-              while (line[i] !== 'end') i++
+              while (i < line.length && line[i] !== 'end') i++
               i++
               trigger = new Trigger(line.slice(start, i))
             } else i++
           }
-          this.lines.push(new LineReference(bottom, middle, top, a, b, type, trigger))
+          this.lines.push(new LineReference(bottom, middle, top, a, b, flags, trigger))
           index++
         }
         index++
@@ -611,21 +611,21 @@ export class MapEdit {
           for (; i < end; i++) {
             lines.push(this.lines[parseInt(sector[i])])
           }
-          let type = null
+          let flags = null
           let trigger = null
           while (i < sector.length) {
-            if (sector[i] === 'type') {
-              type = sector[i + 1]
-              i += 2
+            if (sector[i] === 'flags') {
+              flags = sector[i + 1]
+              i += 3
             } else if (sector[i] === 'trigger') {
               i++
               const start = i
-              while (sector[i] !== 'end') i++
+              while (i < sector.length && sector[i] !== 'end') i++
               i++
               trigger = new Trigger(sector.slice(start, i))
             } else i++
           }
-          this.sectors.push(new SectorReference(bottom, floor, ceiling, top, floorTexture, ceilingTexture, type, trigger, vecs, lines))
+          this.sectors.push(new SectorReference(bottom, floor, ceiling, top, floorTexture, ceilingTexture, flags, trigger, vecs, lines))
           index++
         }
         index++
@@ -639,7 +639,8 @@ export class MapEdit {
             console.error(e)
           }
         }
-        sectorLineNeighbors(this.sectors, WORLD_SCALE)
+
+        sectorLineNeighbors(this.sectors, this.lines, WORLD_SCALE)
 
         while (index < end) {
           let top = map[index]
@@ -735,7 +736,8 @@ export class MapEdit {
             console.error(e)
           }
         }
-        sectorLineNeighbors(this.sectors, WORLD_SCALE)
+
+        sectorLineNeighbors(this.sectors, this.lines, WORLD_SCALE)
 
         while (index < map.length - 1) {
           let top = map[index].split(' ')
@@ -857,27 +859,28 @@ export class MapEdit {
   }
 
   flipSelectedLine() {
-    let line = this.selectedLine
-    let temp = line.a
+    this.doSectorRefresh = true
+    const line = this.selectedLine
+    const temp = line.a
     line.a = line.b
     line.b = temp
   }
 
   splitSelectedLine() {
-    let line = this.selectedLine
-    let x = 0.5 * (line.a.x + line.b.x)
-    let y = 0.5 * (line.a.y + line.b.y)
-    let vec = new VectorReference(x, y)
+    this.doSectorRefresh = true
+    const line = this.selectedLine
+    const x = 0.5 * (line.a.x + line.b.x)
+    const y = 0.5 * (line.a.y + line.b.y)
+    const vec = new VectorReference(x, y)
     this.vecs.push(vec)
-
-    let split = LineReference.copy(line)
+    const split = LineReference.copy(line)
     split.b = vec
     this.lines.push(split)
-
     line.a = vec
   }
 
   deleteSelectedLine() {
+    this.doSectorRefresh = true
     let selected = this.selectedLine
     let index = this.lines.indexOf(selected)
     this.lines.splice(index, 1)
@@ -1024,7 +1027,6 @@ export class MapEdit {
               this.flipSelectedLine()
             } else if (option === DO_DELETE_LINE) {
               this.deleteSelectedLine()
-              this.doSectorRefresh = true
             } else if (option === DO_SPLIT_LINE) {
               this.splitSelectedLine()
             }
@@ -1110,9 +1112,7 @@ export class MapEdit {
               this.selectedVec = null
               this.selectedSecondVec = null
             } else if (option === DO_CANCEL) {
-              if (referenceLinesFromVec(this.selectedVec, this.lines).length === 0) {
-                this.deleteSelectedVector()
-              }
+              if (referenceLinesFromVec(this.selectedVec, this.lines).length === 0) this.deleteSelectedVector()
               this.action = OPTION_DRAW_MODE_DEFAULT
             }
           }
@@ -1149,9 +1149,7 @@ export class MapEdit {
               this.action = OPTION_VECTOR_UNDER_CURSOR
               this.doSectorRefresh = true
             } else if (option === DO_CANCEL) {
-              if (referenceLinesFromVec(this.selectedVec, this.lines).length === 0) {
-                this.deleteSelectedVector()
-              }
+              if (referenceLinesFromVec(this.selectedVec, this.lines).length === 0) this.deleteSelectedVector()
               this.action = OPTION_DRAW_MODE_DEFAULT
             }
           }

@@ -3,7 +3,7 @@ import {sectorLineNeighbors, sectorInsideOutside} from '../map/sector.js'
 import {clockwiseReflex, clockwiseInterior, sectorTriangulateForEditor} from '../map/triangulate.js'
 import {SectorReference} from '../editor/map-edit-references.js'
 
-function nullLines(lines) {
+function resetLineFacing(lines) {
   for (const line of lines) {
     line.plus = null
     line.minus = null
@@ -13,7 +13,7 @@ function nullLines(lines) {
 function checkLines(lines) {
   for (const line of lines) {
     if (line.plus === null && line.minus === null) {
-      console.warn('Line not linked between sectors:', line)
+      console.warn('Line not linked to sectors:', line)
     }
   }
 }
@@ -185,8 +185,8 @@ export function computeSectors(editor) {
     }
   }
 
-  nullLines(editor.lines)
-  sectorLineNeighbors(sectors, WORLD_SCALE)
+  resetLineFacing(editor.lines)
+  sectorLineNeighbors(sectors, editor.lines, WORLD_SCALE)
   checkLines(editor.lines)
 
   editor.sectors = sectors

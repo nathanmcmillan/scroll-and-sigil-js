@@ -15,18 +15,17 @@ export class Line {
     this.physical = this.middle !== null
   }
 
-  updateSectorsForLine(plus, minus, scale) {
-    this.plus = plus
-    this.minus = minus
-
-    let x = this.a.x - this.b.x
-    let y = this.a.y - this.b.y
-    let uv = 0.0
-    let st = uv + Math.sqrt(x * x + y * y) * scale
+  updateSectorsForLine(scale) {
+    const plus = this.plus
+    const minus = this.minus
+    const a = this.a
+    const b = this.b
+    const x = a.x - b.x
+    const y = a.y - b.y
+    const uv = 0.0
+    const st = uv + Math.sqrt(x * x + y * y) * scale
 
     if (this.top) {
-      let a = this.a
-      let b = this.b
       let ceiling = null
       let top = null
       if (plus) {
@@ -47,8 +46,6 @@ export class Line {
     }
 
     if (this.middle) {
-      let a = this.a
-      let b = this.b
       let floor = null
       let ceiling = null
       if (plus) {
@@ -69,8 +66,6 @@ export class Line {
     }
 
     if (this.bottom) {
-      let a = this.a
-      let b = this.b
       let bottom = null
       let floor = null
       if (plus) {

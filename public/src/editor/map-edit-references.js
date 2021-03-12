@@ -31,12 +31,12 @@ export class VectorReference {
 }
 
 export class LineReference {
-  constructor(bottom, middle, top, a, b, type, trigger) {
+  constructor(bottom, middle, top, a, b, flags, trigger) {
     this.plus = null
     this.minus = null
     this.a = a
     this.b = b
-    this.type = type
+    this.flags = flags
     this.trigger = trigger
     this.bottom = new WallReference(bottom)
     this.middle = new WallReference(middle)
@@ -44,24 +44,17 @@ export class LineReference {
     this.index = 0
   }
 
-  updateSectorsForLine(plus, minus, scale) {
-    this.plus = plus
-    this.minus = minus
-
-    // if (plus) console.debug('+', plus.bottom, plus.floor, plus.ceiling, plus.top, plus.floorTexture, plus.ceilingTexture)
-    // else console.debug('+ null')
-
-    // if (minus) console.debug('-', minus.bottom, minus.floor, minus.ceiling, minus.top, minus.floorTexture, minus.ceilingTexture)
-    // else console.debug('- null')
-
-    let x = this.a.x - this.b.x
-    let y = this.a.y - this.b.y
-    let uv = 0.0
-    let st = uv + Math.sqrt(x * x + y * y) * scale
+  updateSectorsForLine(scale) {
+    const plus = this.plus
+    const minus = this.minus
+    const a = this.a
+    const b = this.b
+    const x = a.x - b.x
+    const y = a.y - b.y
+    const uv = 0.0
+    const st = uv + Math.sqrt(x * x + y * y) * scale
 
     if (this.top.use()) {
-      let a = this.a
-      let b = this.b
       let ceiling = null
       let top = null
       if (plus) {
@@ -82,8 +75,6 @@ export class LineReference {
     }
 
     if (this.middle.use()) {
-      let a = this.a
-      let b = this.b
       let floor = null
       let ceiling = null
       if (plus) {
@@ -104,8 +95,6 @@ export class LineReference {
     }
 
     if (this.bottom.use()) {
-      let a = this.a
-      let b = this.b
       let bottom = null
       let floor = null
       if (plus) {
@@ -168,8 +157,8 @@ export class LineReference {
     content += ` ${this.topOffset()}`
     content += ` ${this.middleOffset()}`
     content += ` ${this.bottomOffset()}`
-    if (this.type) content += ` ${this.type}`
-    if (this.trigger) content += ` ${this.trigger.export()}`
+    if (this.flags) content += ` flags ${this.flags} end`
+    if (this.trigger) content += ` trigger ${this.trigger.export()} end`
     return content
   }
 
@@ -177,7 +166,7 @@ export class LineReference {
     let top = line.top ? line.top.texture : -1
     let middle = line.middle ? line.middle.texture : -1
     let bottom = line.bottom ? line.bottom.texture : -1
-    let copy = new LineReference(bottom, middle, top, line.a, line.b, line.type, line.trigger)
+    let copy = new LineReference(bottom, middle, top, line.a, line.b, line.flags, line.trigger)
     WallReference.transfer(line.bottom, copy.bottom)
     WallReference.transfer(line.middle, copy.middle)
     WallReference.transfer(line.top, copy.top)
@@ -235,14 +224,14 @@ export class WallReference {
 }
 
 export class SectorReference {
-  constructor(bottom, floor, ceiling, top, floorTexture, ceilingTexture, type, trigger, vecs, lines) {
+  constructor(bottom, floor, ceiling, top, floorTexture, ceilingTexture, flags, trigger, vecs, lines) {
     this.bottom = bottom
     this.floor = floor
     this.ceiling = ceiling
     this.top = top
     this.floorTexture = floorTexture
     this.ceilingTexture = ceilingTexture
-    this.type = type
+    this.flags = flags
     this.trigger = trigger
     this.vecs = vecs
     this.lines = lines
@@ -333,9 +322,8 @@ export class SectorReference {
     for (const vec of this.vecs) content += ` ${vec.index}`
     content += ` ${this.lines.length}`
     for (const line of this.lines) content += ` ${line.index}`
-    if (this.type) content += ` ${this.type}`
-    console.debug('debug', this.trigger)
-    if (this.trigger) content += ` ${this.trigger.export()}`
+    if (this.flags) content += ` flags ${this.flags} end`
+    if (this.trigger) content += ` trigger ${this.trigger.export()} end`
     return content
   }
 }

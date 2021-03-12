@@ -235,7 +235,7 @@ export class World {
     for (let i = 0; i < this.cells.length; i++) this.cells[i] = new Cell()
     sectorInsideOutside(this.sectors)
     for (const sector of this.sectors) sectorTriangulate(sector, WORLD_SCALE)
-    sectorLineNeighbors(this.sectors, WORLD_SCALE)
+    sectorLineNeighbors(this.sectors, this.lines, WORLD_SCALE)
     for (const line of this.lines) this.buildCellLines(line)
   }
 

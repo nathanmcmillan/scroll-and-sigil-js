@@ -19,15 +19,15 @@ function mapZ(z, zoom, camera) {
 function drawLineWithNormal(b, x1, y1, x2, y2, thickness, red, green, blue, alpha, zoom, normal) {
   drawLine(b, x1, y1, x2, y2, thickness, red, green, blue, alpha)
   if (!normal) return
-  let midX = 0.5 * (x1 + x2)
-  let midY = 0.5 * (y1 + y2)
-  let normX = -(y1 - y2)
-  let normY = x1 - x2
-  let magnitude = Math.sqrt(normX * normX + normY * normY)
-  normX /= magnitude
-  normY /= magnitude
-  zoom *= 0.25
-  drawLine(b, midX, midY, midX + normX * zoom, midY + normY * zoom, thickness, red, green, blue, alpha)
+  const centerX = 0.5 * (x1 + x2)
+  const centerY = 0.5 * (y1 + y2)
+  let normalX = -(y1 - y2)
+  let normalY = x1 - x2
+  const magnitude = Math.sqrt(normalX * normalX + normalY * normalY)
+  normalX /= magnitude
+  normalY /= magnitude
+  zoom *= 0.5
+  drawLine(b, centerX, centerY, centerX + normalX * zoom, centerY + normalY * zoom, thickness, red, green, blue, alpha)
 }
 
 function mapRender(b, maps) {

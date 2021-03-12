@@ -1,7 +1,7 @@
 const MAX_SECTOR_HEIGHT = 9999
 
 export class Sector {
-  constructor(bottom, floor, ceiling, top, floorTexture, ceilingTexture, type, trigger, vecs, lines) {
+  constructor(bottom, floor, ceiling, top, floorTexture, ceilingTexture, flags, trigger, vecs, lines) {
     this.bottom = Math.min(bottom, floor)
     this.floor = Math.max(bottom, floor)
     if (ceiling === 0) ceiling = MAX_SECTOR_HEIGHT
@@ -10,7 +10,7 @@ export class Sector {
     this.top = Math.max(ceiling, top)
     this.floorTexture = floorTexture
     this.ceilingTexture = ceilingTexture
-    this.type = type
+    this.flags = flags
     this.trigger = trigger
     this.vecs = vecs
     this.lines = lines
@@ -131,43 +131,49 @@ export function sectorInsideOutside(sectors) {
   }
 }
 
-export function sectorLineNeighbors(sectors, scale) {
+function sectorLineFacing(sector, line) {
+  const a = line.a
+  const vecs = sector.vecs
+  const size = vecs.length
+  for (let i = 0; i < size; i++) {
+    const vec = vecs[i]
+    if (vec !== a) continue
+    i++
+    if (i === size) i = 0
+    if (vecs[i] === line.b) line.plus = sector
+    else line.minus = sector
+    return
+  }
+}
+
+export function sectorLineNeighbors(sectors, lines, scale) {
   const size = sectors.length
   for (let i = 0; i < size; i++) {
     const sector = sectors[i]
-    for (let k = i + 1; k < size; k++) {
-      const other = sectors[k]
-      let neighbors = false
-      for (const a of sector.lines) {
-        for (const b of other.lines) {
-          if (a === b) {
-            neighbors = true
-            // FIXME: How to know which should be plus or minus side?
-            // Answer: Need to check the winding to see which sector the line is pointing towards
-            if (a.plus !== null || a.minus !== null) console.error('Line sectors were already set')
-            a.updateSectorsForLine(sector, other, scale)
-          }
-        }
-      }
-      if (neighbors) {
-        sector.neighbors.push(other)
-        other.neighbors.push(sector)
-      }
-    }
-    let plus, minus
-    if (sector.outside) {
-      if (!sector.neighbors.includes(sector.outside)) sector.neighbors.push(sector.outside)
-      if (!sector.outside.neighbors.includes(sector)) sector.outside.neighbors.push(sector)
-
-      plus = sector
-      minus = sector.outside
-    } else {
-      plus = null
-      minus = sector
-    }
-    for (const line of sector.lines) {
-      if (line.plus !== null || line.minus !== null) continue
-      line.updateSectorsForLine(plus, minus, scale)
+    for (const line of sector.lines) sectorLineFacing(sector, line)
+  }
+  for (const line of lines) {
+    const plus = line.plus
+    const minus = line.minus
+    if (plus !== null && minus !== null) {
+      if (!plus.neighbors.includes(minus)) plus.neighbors.push(minus)
+      if (!minus.neighbors.includes(plus)) minus.neighbors.push(plus)
     }
   }
+  for (let i = 0; i < size; i++) {
+    const sector = sectors[i]
+    const outside = sector.outside
+    if (outside) {
+      if (!sector.neighbors.includes(sector.outside)) sector.neighbors.push(sector.outside)
+      if (!sector.outside.neighbors.includes(sector)) sector.outside.neighbors.push(sector)
+      for (const line of sector.lines) {
+        if (line.plus !== null) {
+          if (line.minus === null) line.minus = outside
+        } else {
+          if (line.plus === null) line.plus = outside
+        }
+      }
+    }
+  }
+  for (const line of lines) line.updateSectorsForLine(scale)
 }
