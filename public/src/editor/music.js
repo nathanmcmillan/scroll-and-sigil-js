@@ -153,9 +153,9 @@ export class MusicEdit {
     // 16 ms tick update
     // timestamp is in milliseconds
     // tempo = 120
-    // 30 whole notes per minute | 1 whole note == 2 seconds
-    // 60 half notes per minute | 1 half note == 1 second
-    // 120 quarter notes per minute | 1 quarter note ==  0.5 seconds
+    // 30 whole notes per minute | 1 whole note === 2 seconds
+    // 60 half notes per minute | 1 half note === 1 second
+    // 120 quarter notes per minute | 1 quarter note ===  0.5 seconds
     // 240 eight notes per minute
     // 480 sixteenth notes per minute
     // 960 thirty-second notes per minute

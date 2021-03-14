@@ -19,7 +19,7 @@ const extensions = {
 let server = http.createServer(function (request, response) {
   console.log('request', request.url)
   let file = request.url
-  if (file == '/') {
+  if (file === '/') {
     file = '/index.html'
   }
   file = directory + file

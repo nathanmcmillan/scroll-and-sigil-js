@@ -553,7 +553,7 @@ export class PaintState {
 
     // dialog box or text box
 
-    if (paint.dialog != null) renderDialogBox(this, scale, font, paint.dialog)
+    if (paint.dialog !== null) renderDialogBox(this, scale, font, paint.dialog)
     else if (paint.activeTextBox) {
       const box = paint.textBox
       renderTextBox(this, scale, font, box, 200, 200)

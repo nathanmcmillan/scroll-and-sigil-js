@@ -243,6 +243,6 @@ export class MusicState {
 
     // dialog box
 
-    if (music.dialog != null) renderDialogBox(this, scale, font, music.dialog)
+    if (music.dialog !== null) renderDialogBox(this, scale, font, music.dialog)
   }
 }

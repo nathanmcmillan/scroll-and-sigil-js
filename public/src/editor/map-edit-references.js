@@ -265,7 +265,7 @@ export class SectorReference {
     for (let i = 0; i < len; i++) {
       let a = this.vecs[i]
       let b = this.vecs[k]
-      if (a.y > z != b.y > z) {
+      if (a.y > z !== b.y > z) {
         let val = ((b.x - a.x) * (z - a.y)) / (b.y - a.y) + a.x
         if (x < val) {
           odd = !odd

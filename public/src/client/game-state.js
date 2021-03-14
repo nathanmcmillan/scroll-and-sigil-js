@@ -114,7 +114,7 @@ export class GameState {
 
     // sky box
 
-    rendering.setProgram(2)
+    rendering.setProgram(5)
     rendering.setView(0, client.top, width, height)
 
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
@@ -152,10 +152,8 @@ export class GameState {
       rendering.bindAndDraw(buffer)
     }
 
-    let buffers = client.spriteBuffers
-    for (const buffer of buffers.values()) {
-      buffer.zero()
-    }
+    const buffers = client.spriteBuffers
+    for (const buffer of buffers.values()) buffer.zero()
 
     let sine = Math.sin(-camera.ry)
     let cosine = Math.cos(-camera.ry)

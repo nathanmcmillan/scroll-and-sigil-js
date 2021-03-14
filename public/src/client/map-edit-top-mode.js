@@ -47,7 +47,7 @@ function mapRender(b, maps) {
         let y3 = mapZ(triangle.c.y, zoom, camera)
         // seed++
         // if (seed === 15) seed = 0
-        // while (seed === 0 || seed === 1 || seed === 4 || seed === 5 || seed === 6 || seed == 7) {
+        // while (seed === 0 || seed === 1 || seed === 4 || seed === 5 || seed === 6 || seed === 7) {
         //   seed++
         //   if (seed === 15) seed = 0
         // }
@@ -64,7 +64,7 @@ function mapRender(b, maps) {
       let y1 = mapZ(line.a.y, zoom, camera)
       let x2 = mapX(line.b.x, zoom, camera)
       let y2 = mapZ(line.b.y, zoom, camera)
-      if (line == maps.selectedLine) drawLineWithNormal(b, x1, y1, x2, y2, thickness, greenf(0), greenf(1), greenf(2), alpha, zoom, normal)
+      if (line === maps.selectedLine) drawLineWithNormal(b, x1, y1, x2, y2, thickness, greenf(0), greenf(1), greenf(2), alpha, zoom, normal)
       else drawLineWithNormal(b, x1, y1, x2, y2, thickness, whitef(0), whitef(1), whitef(2), alpha, zoom, normal)
     }
   }
@@ -82,7 +82,7 @@ function mapRender(b, maps) {
       let x = Math.floor(mapX(thing.x, zoom, camera))
       let y = Math.floor(mapZ(thing.z, zoom, camera))
       let size = thingSize(thing, zoom)
-      if (thing == maps.selectedThing) drawRectangle(b, x - size, y - size, 2.0 * size, 2.0 * size, yellowf(0), yellowf(1), yellowf(2), alpha)
+      if (thing === maps.selectedThing) drawRectangle(b, x - size, y - size, 2.0 * size, 2.0 * size, yellowf(0), yellowf(1), yellowf(2), alpha)
       else drawRectangle(b, x - size, y - size, 2.0 * size, 2.0 * size, greenf(0), greenf(1), greenf(2), alpha)
     }
   }
@@ -120,7 +120,7 @@ export function renderMapEditTopMode(state) {
 
   mapRender(client.bufferColor, maps)
 
-  if (maps.action == OPTION_END_LINE || maps.action == OPTION_END_LINE_NEW_VECTOR) {
+  if (maps.action === OPTION_END_LINE || maps.action === OPTION_END_LINE_NEW_VECTOR) {
     const thickness = 1.0
     const zoom = maps.zoom
     const camera = maps.camera
@@ -159,7 +159,7 @@ export function renderMapEditTopMode(state) {
 
   // dialog box, text box, or cursor
 
-  if (maps.dialog != null) {
+  if (maps.dialog !== null) {
     renderDialogBox(state, scale, font, maps.dialog)
   } else if (maps.activeTextBox) {
     const box = maps.textBox

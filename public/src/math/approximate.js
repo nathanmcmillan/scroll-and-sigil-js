@@ -15,9 +15,9 @@ export function cos(x) {
 }
 
 export function atan2(y, x) {
-  if (x == 0.0) {
+  if (x === 0.0) {
     if (y > 0.0) return halfpi
-    if (y == 0.0) return 0.0
+    if (y === 0.0) return 0.0
     return -halfpi
   }
   let atan

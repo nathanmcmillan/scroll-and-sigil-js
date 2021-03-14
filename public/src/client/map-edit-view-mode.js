@@ -144,5 +144,5 @@ export function renderMapEditViewMode(state) {
 
   // dialog box
 
-  if (maps.dialog != null) renderDialogBox(state, scale, font, maps.dialog)
+  if (maps.dialog !== null) renderDialogBox(state, scale, font, maps.dialog)
 }

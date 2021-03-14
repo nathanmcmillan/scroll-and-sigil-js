@@ -42,7 +42,7 @@ function algo(data, text, base, speed, position) {
     let l = text[c]
     let p = phonemes[l]
     if (!p) {
-      if (l == ' ' || l == '\n') position += Math.floor(SYNTH_SPEECH_RATE * 0.1 * speed)
+      if (l === ' ' || l === '\n') position += Math.floor(SYNTH_SPEECH_RATE * 0.1 * speed)
       continue
     }
     let v = p.amp

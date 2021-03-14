@@ -17,21 +17,21 @@ const INPUT_RATE = 128
 const HISTORY_LIMIT = 50
 
 class SpriteBox {
-  constructor(name, l, t, r, b) {
+  constructor(name, left, top, right, bottom, tile) {
     this.name = name
-    this.tile = false
-    this.l = l
-    this.t = t
-    this.r = r
-    this.b = b
+    this.left = left
+    this.top = top
+    this.right = right
+    this.bottom = bottom
+    this.tile = tile
   }
 
   select(c, r) {
-    return c >= this.l && c <= this.r && r >= this.t && r <= this.b
+    return c >= this.left && c <= this.right && r >= this.top && r <= this.bottom
   }
 
   export() {
-    let content = `${this.name} ${this.l} ${this.t} ${this.r} ${this.b}`
+    let content = `${this.name} ${this.left} ${this.top} ${this.right} ${this.bottom}`
     if (this.tile) content += ' tile'
     return content
   }
@@ -58,6 +58,7 @@ export class PaintEdit {
     this.sheetColumns = 128
 
     this.name = 'untitled'
+    this.transparency = 0
 
     this.sheet = new Uint8Array(this.sheetRows * this.sheetColumns)
     let i = this.sheet.length
@@ -115,6 +116,7 @@ export class PaintEdit {
 
   clear() {
     this.name = 'untitled'
+    this.transparency = 0
 
     let i = this.sheet.length
     while (i--) this.sheet[i] = 0
@@ -313,56 +315,43 @@ export class PaintEdit {
       const image = content.split('\n')
 
       const info = image[0].split(' ')
+
+      this.name = info[1]
+      let width = parseInt(info[2])
+      let height = parseInt(info[3])
+
       let index = 1
 
-      if (info[0] === 'paint') {
-        this.name = info[1]
-        let width = parseInt(info[2])
-        let height = parseInt(info[3])
+      if (image[index].startsWith('transparency')) {
+        this.transparency = parseInt(image[index].split(' ')[1])
+        index++
+      }
 
-        const sheet = this.sheet
-        const rows = this.sheetRows
-        const columns = this.sheetColumns
+      const sheet = this.sheet
+      const rows = this.sheetRows
+      const columns = this.sheetColumns
 
-        if (height > rows) height = rows
-        if (width > columns) width = columns
+      if (height > rows) height = rows
+      if (width > columns) width = columns
 
-        for (let h = 0; h < height; h++) {
-          let row = image[index].split(' ')
-          for (let c = 0; c < width; c++) {
-            sheet[c + h * columns] = parseInt(row[c])
-          }
-          index++
+      for (let h = 0; h < height; h++) {
+        let row = image[index].split(' ')
+        for (let c = 0; c < width; c++) {
+          sheet[c + h * columns] = parseInt(row[c])
         }
+        index++
+      }
 
-        if (index < image.length) {
-          if (image[index] === 'sprites') {
+      if (index < image.length) {
+        if (image[index] === 'sprites') {
+          index++
+          while (index < image.length) {
+            if (image[index] === 'end sprites') break
+            const sprite = image[index].split(' ')
+            const tile = sprite.length >= 6 && sprite[5] === 'tile'
+            this.sprites.push(new SpriteBox(sprite[0], parseInt(sprite[1]), parseInt(sprite[2]), parseInt(sprite[3]), parseInt(sprite[4]), tile))
             index++
-            while (index < image.length) {
-              if (image[index] === 'end sprites') break
-              const list = image[index]
-              this.sprites.push([parseInt(list[0]), parseInt(list[1]), parseInt(list[2]), parseInt(list[3])])
-              index++
-            }
           }
-        }
-      } else {
-        let width = parseInt(info[0])
-        let height = parseInt(info[1])
-
-        const sheet = this.sheet
-        const rows = this.sheetRows
-        const columns = this.sheetColumns
-
-        if (height > rows) height = rows
-        if (width > columns) width = columns
-
-        for (let h = 0; h < height; h++) {
-          let row = image[index].split(' ')
-          for (let c = 0; c < width; c++) {
-            sheet[c + h * columns] = parseInt(row[c])
-          }
-          index++
         }
       }
     } catch (e) {
@@ -817,7 +806,7 @@ export class PaintEdit {
     const r = Math.floor(index / columns)
     if (this.selectR !== null) {
       if (c >= this.selectL && c <= this.selectR && r >= this.selectT && r <= this.selectB) {
-        const sprite = new SpriteBox('untitled', this.selectL, this.selectT, this.selectR, this.selectB)
+        const sprite = new SpriteBox('untitled', this.selectL, this.selectT, this.selectR, this.selectB, false)
         this.sprites.push(sprite)
         this.activeSprite = sprite
         this.spriteDialog.title = sprite.name
@@ -925,6 +914,7 @@ export class PaintEdit {
     let rows = this.sheetRows
     let columns = this.sheetColumns
     let content = `paint ${this.name} ${columns} ${rows}`
+    if (this.transparency !== 0) content += `\ntransparency ${this.transparency}`
     let sheet = this.sheet
     for (let r = 0; r < rows; r++) {
       content += '\n'

@@ -12,22 +12,39 @@ export function readPaintFile(text, palette) {
   const image = text.split('\n')
 
   const info = image[0].split(' ')
-  let index = 1
 
   const name = info[1]
   const width = parseInt(info[2])
   const height = parseInt(info[3])
   const pixels = new Uint8Array(width * height * 3)
 
+  let index = 1
+  let transparency = 0
+
+  if (image[index].startsWith('transparency')) {
+    transparency = parseInt(image[index].split(' ')[1])
+    index++
+  }
+
   for (let h = 0; h < height; h++) {
     let row = image[index].split(' ')
     for (let c = 0; c < width; c++) {
-      let i = (c + h * width) * 3
-      let p = parseInt(row[c]) * 3
-
-      pixels[i] = palette[p]
-      pixels[i + 1] = palette[p + 1]
-      pixels[i + 2] = palette[p + 2]
+      let p = parseInt(row[c])
+      let red, green, blue
+      if (p === transparency) {
+        red = 255
+        green = 255
+        blue = 255
+      } else {
+        p *= 3
+        red = palette[p]
+        green = palette[p + 1]
+        blue = palette[p + 2]
+      }
+      const i = (c + h * width) * 3
+      pixels[i] = red
+      pixels[i + 1] = green
+      pixels[i + 2] = blue
     }
     index++
   }

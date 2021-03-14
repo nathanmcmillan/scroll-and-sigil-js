@@ -59,7 +59,7 @@ function strpoint(point) {
     if (key === 'next') {
       if (value === null) return null
       else return {index: value.index, point: value.point}
-    } else if (key == 'diagonals') {
+    } else if (key === 'diagonals') {
       if (value === null) return null
       else return []
     } else return value
@@ -75,7 +75,7 @@ class Start {
 
 function strstart(start) {
   return JSON.stringify(start, (key, value) => {
-    if (key === 'a' || key == 'b') return {x: value.vec.x, y: value.vec.y}
+    if (key === 'a' || key === 'b') return {x: value.vec.x, y: value.vec.y}
     return value
   })
 }
@@ -128,8 +128,8 @@ function triangleContains(a, b, c, p) {
   const x = p.x - a.x
   const y = p.y - a.y
   const pab = (b.x - a.x) * y - (b.y - a.y) * x > 0
-  if ((c.x - a.x) * y - (c.y - a.y) * x > 0 == pab) return false
-  if ((c.x - b.x) * (p.y - b.y) - (c.y - b.y) * (p.x - b.x) > 0 != pab) return false
+  if ((c.x - a.x) * y - (c.y - a.y) * x > 0 === pab) return false
+  if ((c.x - b.x) * (p.y - b.y) - (c.y - b.y) * (p.x - b.x) > 0 !== pab) return false
   return true
 }
 
@@ -137,7 +137,7 @@ function safeTriangle(verts, a, b, c) {
   let i = verts.length
   while (i--) {
     let p = verts[i].vec
-    if (p == a || p == b || p == c) continue
+    if (p === a || p === b || p === c) continue
     if (triangleContains(a, b, c, p)) return false
   }
   return true
@@ -160,7 +160,7 @@ function clip(sector, floor, scale, triangles, verts) {
   if (doDebug()) console.debug('^ start clip')
   for (let i = 0; i < size; i++) {
     let vert = verts[i]
-    if (i + 1 == size) vert.next = verts[0]
+    if (i + 1 === size) vert.next = verts[0]
     else vert.next = verts[i + 1]
   }
   verts.sort(polygonSort)
@@ -451,8 +451,8 @@ function populateInside(inside, floor) {
 function populateReferences(vecs, points, clockwise) {
   const size = vecs.length
   for (let i = 0; i < size; i++) {
-    let p = i == 0 ? size - 1 : i - 1
-    let n = i == size - 1 ? 0 : i + 1
+    let p = i === 0 ? size - 1 : i - 1
+    let n = i === size - 1 ? 0 : i + 1
     if (!clockwise) {
       let t = p
       p = n

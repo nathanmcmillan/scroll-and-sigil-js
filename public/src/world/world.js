@@ -108,7 +108,7 @@ export class World {
     if (decals.length === DECAL_LIMIT) {
       decal = decals[this.decalQueue]
       this.decalQueue++
-      if (this.decalQueue == DECAL_LIMIT) this.decalQueue = 0
+      if (this.decalQueue === DECAL_LIMIT) this.decalQueue = 0
     } else {
       decal = new Decal()
       decals.push(decal)

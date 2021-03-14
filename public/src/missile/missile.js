@@ -129,7 +129,7 @@ export function missileCheck(self) {
       let i = cell.thingCount
       while (i--) {
         let thing = cell.things[i]
-        if (self == thing) continue
+        if (self === thing) continue
         if (thing.isPhysical && missileOverlap(self, thing)) {
           self.hit(thing)
           return true

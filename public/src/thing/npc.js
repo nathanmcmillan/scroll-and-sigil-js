@@ -36,7 +36,7 @@ export class NonPlayerCharacter extends Thing {
 }
 
 function npcDead(self) {
-  if (self.animationFrame == self.animation.length - 1) {
+  if (self.animationFrame === self.animation.length - 1) {
     self.isPhysical = false
     self.status = STATUS_FINAL
     return

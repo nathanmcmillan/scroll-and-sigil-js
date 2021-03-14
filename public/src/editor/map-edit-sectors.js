@@ -58,7 +58,7 @@ function isDuplicate(sectors, vecs) {
     if (vecs.length !== sector.vecs.length) continue
     let duplicate = true
     for (const s of sector.vecs) {
-      if (vecs.indexOf(s) == -1) {
+      if (vecs.indexOf(s) === -1) {
         duplicate = false
         break
       }
@@ -72,7 +72,7 @@ function isClockwise(vecs) {
   let sum = 0.0
   let len = vecs.length
   for (let i = 0; i < len; i++) {
-    let k = i + 1 == len ? 0 : i + 1
+    let k = i + 1 === len ? 0 : i + 1
     sum += (vecs[k].x - vecs[i].x) * (vecs[k].y + vecs[i].y)
   }
   return sum >= 0.0

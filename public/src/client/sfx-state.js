@@ -166,6 +166,6 @@ export class SfxState {
 
     // dialog box
 
-    if (sfx.dialog != null) renderDialogBox(this, scale, font, sfx.dialog)
+    if (sfx.dialog !== null) renderDialogBox(this, scale, font, sfx.dialog)
   }
 }

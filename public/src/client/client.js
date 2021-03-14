@@ -143,7 +143,7 @@ export class Client {
 
   getSectorBuffer(texture) {
     let buffer = this.sectorBuffers.get(texture)
-    if (buffer == null) {
+    if (buffer === undefined) {
       buffer = new Buffer(3, 0, 2, 3, 4 * 800, 36 * 800)
       this.rendering.makeVAO(buffer)
       this.sectorBuffers.set(texture, buffer)
@@ -153,7 +153,7 @@ export class Client {
 
   getSpriteBuffer(texture) {
     let buffer = this.spriteBuffers.get(texture)
-    if (buffer == null) {
+    if (buffer === undefined) {
       buffer = new Buffer(3, 0, 2, 3, 4 * 800, 36 * 800)
       this.rendering.makeVAO(buffer)
       this.spriteBuffers.set(texture, buffer)
@@ -165,22 +165,22 @@ export class Client {
     for (const line of sector.lines) {
       let wall = line.top
       if (wall) {
-        let buffer = this.getSectorBuffer(wall.texture)
+        const buffer = this.getSectorBuffer(wall.texture)
         drawWall(buffer, wall)
       }
       wall = line.middle
       if (wall) {
-        let buffer = this.getSectorBuffer(wall.texture)
+        const buffer = this.getSectorBuffer(wall.texture)
         drawWall(buffer, wall)
       }
       wall = line.bottom
       if (wall) {
-        let buffer = this.getSectorBuffer(wall.texture)
+        const buffer = this.getSectorBuffer(wall.texture)
         drawWall(buffer, wall)
       }
     }
     for (const triangle of sector.triangles) {
-      let buffer = this.getSectorBuffer(triangle.texture)
+      const buffer = this.getSectorBuffer(triangle.texture)
       drawFloorCeil(buffer, triangle)
     }
   }
@@ -228,6 +228,7 @@ export class Client {
     let texture3d = fetchText('./shaders/texture3d.glsl')
     let texture2d_rgb = fetchText('./shaders/texture2d-rgb.glsl')
     let texture2d_font = fetchText('./shaders/texture2d-font.glsl')
+    let texture3d_rgb = fetchText('./shaders/texture3d-rgb.glsl')
 
     const textures = []
     const palette = newPalette()
@@ -298,19 +299,21 @@ export class Client {
 
     drawSkyBox(this.bufferSky)
 
-    let rendering = this.rendering
+    const rendering = this.rendering
 
     color2d = await color2d
     texture2d = await texture2d
     texture3d = await texture3d
     texture2d_rgb = await texture2d_rgb
     texture2d_font = await texture2d_font
+    texture3d_rgb = await texture3d_rgb
 
     rendering.insertProgram(0, compileProgram(gl, color2d))
     rendering.insertProgram(1, compileProgram(gl, texture2d))
     rendering.insertProgram(2, compileProgram(gl, texture3d))
     rendering.insertProgram(3, compileProgram(gl, texture2d_rgb))
     rendering.insertProgram(4, compileProgram(gl, texture2d_font))
+    rendering.insertProgram(5, compileProgram(gl, texture3d_rgb))
 
     rendering.makeVAO(this.bufferGUI)
     rendering.makeVAO(this.bufferColor)
@@ -318,7 +321,7 @@ export class Client {
 
     rendering.updateVAO(this.bufferSky, gl.STATIC_DRAW)
 
-    let keys = new TwoWayMap()
+    const keys = new TwoWayMap()
 
     keys.set('Enter', In.BUTTON_START)
     keys.set('Space', In.BUTTON_SELECT)

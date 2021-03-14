@@ -108,7 +108,7 @@ export class HomeState {
     const world = game.world
     const camera = game.camera
 
-    rendering.setProgram(2)
+    rendering.setProgram(5)
     rendering.setView(0, client.top, width, height)
 
     gl.clearColor(0.0, 0.0, 0.0, 1.0)
@@ -153,7 +153,6 @@ export class HomeState {
     let t = world.thingCount
     while (t--) {
       const thing = things[t]
-      console.debug(thing)
       const buffer = client.getSpriteBuffer(thing.stamp.texture)
       drawSprite(buffer, thing.x, thing.y, thing.z, thing.stamp.sprite, sine, cosine)
     }

@@ -28,7 +28,7 @@ let ongoingTouches = []
 function touchIndexById(identifier) {
   const touches = ongoingTouches
   for (let i = 0; i < touches.length; i++) {
-    if (touches[i].identifier == identifier) return i
+    if (touches[i].identifier === identifier) return i
   }
   return -1
 }
