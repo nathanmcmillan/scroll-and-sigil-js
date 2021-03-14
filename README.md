@@ -100,9 +100,3 @@ A 3D adventure game with a strong focus on modding and user crafted content.
     - Adjust audio and video
     - Exit game to main menu
 - World map
-
-## Bundling Sprite Sheets
-
-`$ bundle.sh`
-
-Collects sprite images and generates sprite sheets.
