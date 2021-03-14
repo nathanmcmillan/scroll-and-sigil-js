@@ -7,7 +7,7 @@ import {drawWall, drawFloorCeil} from '../client/render-sector.js'
 import {orthographic, perspective} from '../math/matrix.js'
 import {saveSound, saveMusic, pauseMusic, resumeMusic} from '../assets/sounds.js'
 import {newPalette} from '../editor/palette.js'
-import {saveEntity, saveTile, saveTexture, waitForResources, createNewTexturesAndSpriteSheets} from '../assets/assets.js'
+import {saveEntity, saveTile, saveTexture, waitForResources, readPaintFile, createNewTexturesAndSpriteSheets} from '../assets/assets.js'
 import {PaintState} from '../client/paint-state.js'
 import {SfxState} from '../client/sfx-state.js'
 import {MusicState} from '../client/music-state.js'
@@ -190,7 +190,7 @@ export class Client {
 
     // for (let i = 0; i < localStorage.length; i++) console.debug(localStorage.key(i))
 
-    const main = Wad.parse(await fetchText('main.wad'))
+    const main = Wad.parse(await fetchText('start.wad'))
     const pack = main.get('package')
     const directory = './pack/' + pack
     const contents = Wad.parse(await fetchText(directory + '/' + pack + '.wad'))
@@ -230,54 +230,17 @@ export class Client {
     let texture2d_font = fetchText('./shaders/texture2d-font.glsl')
 
     const textures = []
+    const palette = newPalette()
 
     for (const texture of contents.get('sprites')) {
-      const name = texture.substring(0, texture.length - 4)
       if (texture.endsWith('.txt')) {
         textures.push(
           fetchText(directory + '/sprites/' + texture).then((text) => {
-            const image = text.split('\n')
-
-            const info = image[0].split(' ')
-            let index = 1
-
-            const palette = newPalette()
-
-            let width = parseInt(info[2])
-            let height = parseInt(info[3])
-            let pixels = new Uint8Array(width * height * 3)
-
-            for (let h = 0; h < height; h++) {
-              let row = image[index].split(' ')
-              for (let c = 0; c < width; c++) {
-                let i = (c + h * width) * 3
-                let p = parseInt(row[c]) * 3
-
-                pixels[i] = palette[p]
-                pixels[i + 1] = palette[p + 1]
-                pixels[i + 2] = palette[p + 2]
-              }
-              index++
-            }
-
-            let sprites = null
-            if (index < image.length) {
-              if (image[index] === 'sprites') {
-                index++
-                while (index < image.length) {
-                  if (image[index] === 'end sprites') break
-                  const sprite = image[index].split(' ')
-                  if (sprites === null) sprites = []
-                  sprites.push(sprite)
-                  index++
-                }
-              }
-            }
-
-            return {name: name, wrap: 'clamp', width: width, height: height, pixels: pixels, sprites: sprites}
+            return readPaintFile(text, palette)
           })
         )
       } else {
+        const name = texture.substring(0, texture.length - 4)
         textures.push(
           fetchImage(directory + '/sprites/' + texture).then((image) => {
             return {name: name, wrap: 'clamp', image: image}
@@ -289,8 +252,8 @@ export class Client {
 
     await waitForResources()
 
-    createNewTexturesAndSpriteSheets((image) => {
-      return createTexture(gl, image, gl.NEAREST, gl.CLAMP_TO_EDGE)
+    createNewTexturesAndSpriteSheets(palette, (image) => {
+      return createPixelsToTexture(gl, image.width, image.height, image.pixels, gl.RGB, gl.NEAREST, gl.CLAMP_TO_EDGE)
     })
 
     for (let texture of textures) {

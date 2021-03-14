@@ -4,6 +4,6 @@ open: music
 open: dashboard
 open: sfx
 open: game
-open: home
 open: maps
 open: paint
+open: home

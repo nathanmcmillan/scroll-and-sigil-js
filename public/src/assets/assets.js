@@ -1,5 +1,5 @@
 import {Entity, spriteName} from '../entity/entity.js'
-import {fetchText, fetchImage} from '../client/net.js'
+import {fetchText} from '../client/net.js'
 import {createSpriteSheet} from '../assets/sprite-sheet.js'
 import * as Wad from '../wad/wad.js'
 
@@ -7,6 +7,47 @@ const PROMISES = []
 
 const TEXTURE_NAME_TO_INDEX = new Map()
 const TEXTURES = []
+
+export function readPaintFile(text, palette) {
+  const image = text.split('\n')
+
+  const info = image[0].split(' ')
+  let index = 1
+
+  const name = info[1]
+  const width = parseInt(info[2])
+  const height = parseInt(info[3])
+  const pixels = new Uint8Array(width * height * 3)
+
+  for (let h = 0; h < height; h++) {
+    let row = image[index].split(' ')
+    for (let c = 0; c < width; c++) {
+      let i = (c + h * width) * 3
+      let p = parseInt(row[c]) * 3
+
+      pixels[i] = palette[p]
+      pixels[i + 1] = palette[p + 1]
+      pixels[i + 2] = palette[p + 2]
+    }
+    index++
+  }
+
+  let sprites = null
+  if (index < image.length) {
+    if (image[index] === 'sprites') {
+      index++
+      while (index < image.length) {
+        if (image[index] === 'end sprites') break
+        const sprite = image[index].split(' ')
+        if (sprites === null) sprites = []
+        sprites.push(sprite)
+        index++
+      }
+    }
+  }
+
+  return {name: name, wrap: 'clamp', width: width, height: height, pixels: pixels, sprites: sprites}
+}
 
 export function saveTexture(name, texture) {
   let index = TEXTURES.length
@@ -62,16 +103,8 @@ const SPRITE_IMAGES = new Map()
 
 async function promiseImage(sprite, directory) {
   if (SPRITE_IMAGES.has(sprite)) return
-  let image = await fetchImage(directory + '/' + sprite + '/' + sprite + '.png')
+  const image = await fetchText(directory + '/' + sprite + '.txt')
   SPRITE_IMAGES.set(sprite, image)
-}
-
-const SPRITE_ATLASES = new Map()
-
-async function promiseAtlas(sprite, directory) {
-  if (SPRITE_ATLASES.has(sprite)) return
-  let text = await fetchText(directory + '/' + sprite + '/' + sprite + '.wad')
-  SPRITE_ATLASES.set(sprite, Wad.parse(text))
 }
 
 const ENTITIES = new Map()
@@ -111,12 +144,8 @@ async function promiseEntity(name, directory, path) {
 
   for (const sprite of set) {
     const image = promiseImage(sprite, directory)
-    const atlas = promiseAtlas(sprite, directory)
-
     ASYNC_SPRITE_NAMES.add(sprite)
-
     await image
-    await atlas
   }
 }
 
@@ -147,14 +176,17 @@ export function spritesByName(name) {
   return SPRITE_SHEETS.get(name)
 }
 
-export function createNewTexturesAndSpriteSheets(closure) {
+export function createNewTexturesAndSpriteSheets(palette, closure) {
   for (const sprite of ASYNC_SPRITE_NAMES) {
     if (SPRITE_SHEETS.has(sprite)) continue
-    let image = SPRITE_IMAGES.get(sprite)
-    let texture = closure(image)
-    let sheet = createSpriteSheet(texture, SPRITE_ATLASES.get(sprite))
+    const image = SPRITE_IMAGES.get(sprite)
+    const paint = readPaintFile(image, palette)
+    const texture = closure(paint)
     saveTexture(sprite, texture)
-    saveSprites(sprite, sheet)
+    if (paint.sprites) {
+      const sheet = createSpriteSheet(texture.width, texture.height, paint.sprites)
+      saveSprites(sprite, sheet)
+    }
   }
   ASYNC_SPRITE_NAMES.clear()
 }

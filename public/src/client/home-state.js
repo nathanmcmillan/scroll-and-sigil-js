@@ -144,9 +144,7 @@ export class HomeState {
     }
 
     let buffers = client.spriteBuffers
-    for (const buffer of buffers.values()) {
-      buffer.zero()
-    }
+    for (const buffer of buffers.values()) buffer.zero()
 
     let sine = Math.sin(-camera.ry)
     let cosine = Math.cos(-camera.ry)
@@ -154,8 +152,9 @@ export class HomeState {
     let things = world.things
     let t = world.thingCount
     while (t--) {
-      let thing = things[t]
-      let buffer = client.getSpriteBuffer(thing.stamp.texture)
+      const thing = things[t]
+      console.debug(thing)
+      const buffer = client.getSpriteBuffer(thing.stamp.texture)
       drawSprite(buffer, thing.x, thing.y, thing.z, thing.stamp.sprite, sine, cosine)
     }
 
@@ -176,6 +175,7 @@ export class HomeState {
     client.bufferGUI.zero()
 
     // text
+
     rendering.setProgram(4)
     rendering.setView(0, client.top, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
