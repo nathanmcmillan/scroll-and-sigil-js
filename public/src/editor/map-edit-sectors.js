@@ -25,7 +25,7 @@ function copy(src, dest) {
   dest.top = src.top
   dest.floorTexture = src.floorTexture
   dest.ceilingTexture = src.ceilingTexture
-  dest.type = src.type
+  dest.flags = src.flags
   dest.trigger = src.trigger
 }
 

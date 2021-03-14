@@ -229,91 +229,62 @@ export class Client {
     let texture2d_rgb = fetchText('./shaders/texture2d-rgb.glsl')
     let texture2d_font = fetchText('./shaders/texture2d-font.glsl')
 
-    let tiles = []
-    let textures = []
+    const textures = []
 
-    for (const tile of contents.get('tiles')) {
-      tiles.push(
-        fetchImage(directory + '/tiles/' + tile + '.png').then((image) => {
-          return {name: tile, image: image}
-        })
-      )
-      tape.tiles.push(tile)
-    }
-
-    for (const texture of contents.get('textures')) {
-      let name = texture.get('name')
-      let wrap = texture.get('wrap')
-      if (name.endsWith('.txt')) {
+    for (const texture of contents.get('sprites')) {
+      const name = texture.substring(0, texture.length - 4)
+      if (texture.endsWith('.txt')) {
         textures.push(
-          fetchText(directory + '/textures/' + name).then((text) => {
-            name = name.substring(0, name.length - 4)
-
+          fetchText(directory + '/sprites/' + texture).then((text) => {
             const image = text.split('\n')
 
             const info = image[0].split(' ')
             let index = 1
 
             const palette = newPalette()
-            let width, height, pixels
 
-            if (info[0] === 'paint') {
-              width = parseInt(info[2])
-              height = parseInt(info[3])
-              pixels = new Uint8Array(width * height * 3)
+            let width = parseInt(info[2])
+            let height = parseInt(info[3])
+            let pixels = new Uint8Array(width * height * 3)
 
-              for (let h = 0; h < height; h++) {
-                let row = image[index].split(' ')
-                for (let c = 0; c < width; c++) {
-                  let i = (c + h * width) * 3
-                  let p = parseInt(row[c]) * 3
+            for (let h = 0; h < height; h++) {
+              let row = image[index].split(' ')
+              for (let c = 0; c < width; c++) {
+                let i = (c + h * width) * 3
+                let p = parseInt(row[c]) * 3
 
-                  pixels[i] = palette[p]
-                  pixels[i + 1] = palette[p + 1]
-                  pixels[i + 2] = palette[p + 2]
-                }
-                index++
+                pixels[i] = palette[p]
+                pixels[i + 1] = palette[p + 1]
+                pixels[i + 2] = palette[p + 2]
               }
+              index++
+            }
 
-              if (index < image.length) {
-                if (image[index] === 'sprites') {
+            let sprites = null
+            if (index < image.length) {
+              if (image[index] === 'sprites') {
+                index++
+                while (index < image.length) {
+                  if (image[index] === 'end sprites') break
+                  const sprite = image[index].split(' ')
+                  if (sprites === null) sprites = []
+                  sprites.push(sprite)
                   index++
-                  while (index < image.length) {
-                    if (image[index] === 'end sprites') break
-                    index++
-                  }
                 }
-              }
-            } else {
-              width = parseInt(info[0])
-              height = parseInt(info[1])
-              pixels = new Uint8Array(width * height * 3)
-
-              for (let h = 0; h < height; h++) {
-                let row = image[index].split(' ')
-                for (let c = 0; c < width; c++) {
-                  let i = (c + h * width) * 3
-                  let p = parseInt(row[c]) * 3
-
-                  pixels[i] = palette[p]
-                  pixels[i + 1] = palette[p + 1]
-                  pixels[i + 2] = palette[p + 2]
-                }
-                index++
               }
             }
 
-            return {name: name, wrap: wrap, width: width, height: height, pixels: pixels}
+            return {name: name, wrap: 'clamp', width: width, height: height, pixels: pixels, sprites: sprites}
           })
         )
       } else {
         textures.push(
-          fetchImage(directory + '/textures/' + name + '.png').then((image) => {
-            return {name: name, wrap: wrap, image: image}
+          fetchImage(directory + '/sprites/' + texture).then((image) => {
+            return {name: name, wrap: 'clamp', image: image}
           })
         )
       }
-      tape.textures.push(name)
+      tape.textures.push(texture)
     }
 
     await waitForResources()
@@ -322,16 +293,39 @@ export class Client {
       return createTexture(gl, image, gl.NEAREST, gl.CLAMP_TO_EDGE)
     })
 
-    for (let tile of tiles) {
-      tile = await tile
-      saveTile(tile.name, createTexture(gl, tile.image, gl.NEAREST, gl.REPEAT))
-    }
-
     for (let texture of textures) {
       texture = await texture
       let wrap = texture.wrap === 'repeat' ? gl.REPEAT : gl.CLAMP_TO_EDGE
-      if (texture.pixels) saveTexture(texture.name, createPixelsToTexture(gl, texture.width, texture.height, texture.pixels, gl.RGB, gl.NEAREST, wrap))
-      else saveTexture(texture.name, createTexture(gl, texture.image, gl.NEAREST, wrap))
+      if (texture.pixels) {
+        saveTexture(texture.name, createPixelsToTexture(gl, texture.width, texture.height, texture.pixels, gl.RGB, gl.NEAREST, wrap))
+        if (texture.sprites) {
+          for (const sprite of texture.sprites) {
+            if (sprite.length < 6 || sprite[5] !== 'tile') continue
+            const left = parseInt(sprite[1])
+            const top = parseInt(sprite[2])
+            const right = parseInt(sprite[3])
+            const bottom = parseInt(sprite[4])
+            const width = right - left
+            const height = bottom - top
+            const source = texture.pixels
+            const srcwid = texture.width
+            const pixels = new Uint8Array(width * height * 3)
+            for (let h = 0; h < height; h++) {
+              const row = top + h
+              for (let c = 0; c < width; c++) {
+                const s = (left + c + row * srcwid) * 3
+                const d = (c + h * width) * 3
+                pixels[d] = source[s]
+                pixels[d + 1] = source[s + 1]
+                pixels[d + 2] = source[s + 2]
+              }
+            }
+            saveTile(sprite[0], createPixelsToTexture(gl, width, height, pixels, gl.RGB, gl.NEAREST, gl.REPEAT))
+          }
+        }
+      } else {
+        saveTexture(texture.name, createTexture(gl, texture.image, gl.NEAREST, wrap))
+      }
     }
 
     this.rendering = new Renderer(gl)
@@ -425,7 +419,7 @@ export class Client {
         if (this.game === null) this.game = new GameState(this)
         else this.game.reset()
         this.state = this.game
-        if (boot.has('map')) file = './pack/' + this.pack + '/maps/' + boot.get('map') + '.map'
+        if (boot.has('map')) file = './pack/' + this.pack + '/maps/' + boot.get('map') + '.txt'
         break
       default:
         if (this.home === null) this.home = new HomeState(this)

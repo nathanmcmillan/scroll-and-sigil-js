@@ -114,6 +114,8 @@ export class PaintEdit {
   }
 
   clear() {
+    this.name = 'untitled'
+
     let i = this.sheet.length
     while (i--) this.sheet[i] = 0
 

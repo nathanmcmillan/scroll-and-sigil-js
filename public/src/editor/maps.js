@@ -261,6 +261,8 @@ export class MapEdit {
   }
 
   clear() {
+    this.name = 'untitled'
+
     this.camera.x = 0.0
     this.camera.y = 1.0
     this.camera.z = 0.0
@@ -574,14 +576,17 @@ export class MapEdit {
           let i = 5
           while (i < line.length) {
             if (line[i] === 'flags') {
-              flags = line[i + 1]
-              i += 3
+              i++
+              const start = i
+              while (i < line.length && line[i] !== 'end') i++
+              flags = line.slice(start, i)
+              i++
             } else if (line[i] === 'trigger') {
               i++
               const start = i
               while (i < line.length && line[i] !== 'end') i++
-              i++
               trigger = new Trigger(line.slice(start, i))
+              i++
             } else i++
           }
           this.lines.push(new LineReference(bottom, middle, top, a, b, flags, trigger))
@@ -615,14 +620,17 @@ export class MapEdit {
           let trigger = null
           while (i < sector.length) {
             if (sector[i] === 'flags') {
-              flags = sector[i + 1]
-              i += 3
+              i++
+              const start = i
+              while (i < sector.length && sector[i] !== 'end') i++
+              flags = sector.slice(start, i)
+              i++
             } else if (sector[i] === 'trigger') {
               i++
               const start = i
               while (i < sector.length && sector[i] !== 'end') i++
-              i++
               trigger = new Trigger(sector.slice(start, i))
+              i++
             } else i++
           }
           this.sectors.push(new SectorReference(bottom, floor, ceiling, top, floorTexture, ceilingTexture, flags, trigger, vecs, lines))

@@ -157,7 +157,7 @@ export class LineReference {
     content += ` ${this.topOffset()}`
     content += ` ${this.middleOffset()}`
     content += ` ${this.bottomOffset()}`
-    if (this.flags) content += ` flags ${this.flags} end`
+    if (this.flags) content += ` flags ${this.flags.join(' ')} end`
     if (this.trigger) content += ` trigger ${this.trigger.export()} end`
     return content
   }
@@ -322,7 +322,7 @@ export class SectorReference {
     for (const vec of this.vecs) content += ` ${vec.index}`
     content += ` ${this.lines.length}`
     for (const line of this.lines) content += ` ${line.index}`
-    if (this.flags) content += ` flags ${this.flags} end`
+    if (this.flags) content += ` flags ${this.flags.join(' ')} end`
     if (this.trigger) content += ` trigger ${this.trigger.export()} end`
     return content
   }

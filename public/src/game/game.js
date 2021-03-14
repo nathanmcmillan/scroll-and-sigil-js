@@ -63,14 +63,17 @@ export class Game {
         let i = 5
         while (i < line.length) {
           if (line[i] === 'flags') {
-            flags = line[i + 1]
-            i += 3
+            i++
+            const start = i
+            while (i < line.length && line[i] !== 'end') i++
+            flags = line.slice(start, i)
+            i++
           } else if (line[i] === 'trigger') {
             i++
             let start = i
             while (i < line.length && line[i] !== 'end') i++
-            i++
             trigger = new Trigger(line.slice(start, i))
+            i++
           } else i++
         }
         lines.push(new Line(top, middle, bottom, a, b, flags, trigger))
@@ -102,14 +105,17 @@ export class Game {
         let trigger = null
         while (i < sector.length) {
           if (sector[i] === 'flags') {
-            flags = sector[i + 1]
-            i += 3
+            i++
+            const start = i
+            while (i < sector.length && sector[i] !== 'end') i++
+            flags = sector.slice(start, i)
+            i++
           } else if (sector[i] === 'trigger') {
             i++
             let start = i
             while (i < sector.length && sector[i] !== 'end') i++
-            i++
             trigger = new Trigger(sector.slice(start, i))
+            i++
           } else i++
         }
         world.pushSector(new Sector(bottom, floor, ceiling, top, floorTexture, ceilingTexture, flags, trigger, sectorVecs, sectorLines))
