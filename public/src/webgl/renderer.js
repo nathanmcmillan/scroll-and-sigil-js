@@ -2,15 +2,15 @@ export class Renderer {
   constructor(gl) {
     this.gl = gl
     this.program = null
-    this.programs = []
+    this.programs = new Map()
   }
 
-  insertProgram(index, program) {
-    this.programs[index] = program
+  insertProgram(id, program) {
+    this.programs.set(id, program)
   }
 
-  setProgram(index) {
-    this.program = this.programs[index]
+  setProgram(id) {
+    this.program = this.programs.get(id)
     this.gl.useProgram(this.program)
   }
 

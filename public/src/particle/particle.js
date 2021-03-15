@@ -14,7 +14,7 @@ export class Particle {
     this.height = 0.0
     this.ground = false
     this.texture = 0
-    this.sprite = null
+    this.stamp = null
     this.minC = 0
     this.maxC = 0
     this.minR = 0
@@ -81,7 +81,7 @@ export function particleUpdateAnimation(self) {
   if (self.animationMod === ANIMATION_RATE) {
     self.animationMod = 0
     self.animationFrame++
-    let frames = self.animation.length
+    const frames = self.animation.length
     if (self.animationFrame === frames - 1) return ANIMATION_ALMOST_DONE
     else if (self.animationFrame === frames) return ANIMATION_DONE
   }

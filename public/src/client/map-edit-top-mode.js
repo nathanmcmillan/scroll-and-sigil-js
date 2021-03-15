@@ -103,7 +103,7 @@ export function renderMapEditTopMode(state) {
 
   if (client.touch) renderTouch(client.touchRender)
 
-  rendering.setProgram(0)
+  rendering.setProgram('color2d')
   rendering.setView(0, client.top, width, height)
 
   gl.clearColor(slatef(0), slatef(1), slatef(2), 1.0)
@@ -140,7 +140,7 @@ export function renderMapEditTopMode(state) {
 
   rendering.updateAndDraw(client.bufferColor)
 
-  rendering.setProgram(4)
+  rendering.setProgram('texture2d-font')
   rendering.setView(0, client.top, width, height)
   rendering.updateUniformMatrix('u_mvp', projection)
 
@@ -169,7 +169,7 @@ export function renderMapEditTopMode(state) {
     drawTextFontSpecial(client.bufferGUI, 200, 500, box.text, fontScale, white0f, white1f, white2f, font)
     rendering.updateAndDraw(client.bufferGUI)
   } else {
-    rendering.setProgram(3)
+    rendering.setProgram('texture2d-rgb')
     rendering.setView(0, client.top, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
 

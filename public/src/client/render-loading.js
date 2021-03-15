@@ -19,7 +19,7 @@ export function renderLoadingInProgress(client, view, projection) {
   const fontWidth = fontScale * TIC_FONT_WIDTH
   const fontHeight = fontScale * TIC_FONT_HEIGHT
 
-  rendering.setProgram(4)
+  rendering.setProgram('texture2d-font')
   rendering.setView(0, client.top, width, height)
   rendering.updateUniformMatrix('u_mvp', projection)
 

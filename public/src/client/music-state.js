@@ -62,7 +62,7 @@ export class MusicState {
       let file = e.target.files[0]
       console.info(file)
       let reader = new FileReader()
-      reader.readAsText(file, 'UTF-8')
+      reader.readAsText(file, 'utf-8')
       reader.onload = (event) => {
         let content = event.target.result
         this.music.read(content)
@@ -119,7 +119,7 @@ export class MusicState {
 
     const pad = 2 * scale
 
-    rendering.setProgram(0)
+    rendering.setProgram('color2d')
     rendering.setView(0, client.top, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
 
@@ -141,7 +141,7 @@ export class MusicState {
 
     // text
 
-    rendering.setProgram(4)
+    rendering.setProgram('texture2d-font')
     rendering.setView(0, client.top, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
 
@@ -213,7 +213,7 @@ export class MusicState {
 
     // sprites
 
-    rendering.setProgram(3)
+    rendering.setProgram('texture2d-rgb')
     rendering.setView(0, client.top, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
 

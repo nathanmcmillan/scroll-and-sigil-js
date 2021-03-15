@@ -59,9 +59,9 @@ export function renderMapEditViewMode(state) {
 
   if (client.touch) renderTouch(client.touchRender)
 
-  // sky box
+  // render world
 
-  rendering.setProgram(2)
+  rendering.setProgram('texture3d-rgb')
   rendering.setView(0, client.top, width, height)
 
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
@@ -79,8 +79,6 @@ export function renderMapEditViewMode(state) {
   let sky = textureByName('sky-box-1')
   rendering.bindTexture(gl.TEXTURE0, sky.texture)
   rendering.bindAndDraw(client.bufferSky)
-
-  // render world
 
   gl.enable(gl.CULL_FACE)
   gl.enable(gl.DEPTH_TEST)
@@ -121,7 +119,7 @@ export function renderMapEditViewMode(state) {
 
   // text
 
-  rendering.setProgram(4)
+  rendering.setProgram('texture2d-font')
   rendering.setView(0, client.top, width, height)
 
   gl.disable(gl.CULL_FACE)

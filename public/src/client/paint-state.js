@@ -36,7 +36,7 @@ function updatePixelsToTexture(gl, texture, width, height, pixels) {
   return texture
 }
 
-function convertImageToText(palette, image) {
+function convertImageToText(palette, image, name) {
   const width = image.width
   const height = image.height
 
@@ -47,7 +47,7 @@ function convertImageToText(palette, image) {
   context.drawImage(image, 0, 0)
   let pixels = context.getImageData(0, 0, width, height).data
 
-  let text = width + ' ' + height
+  let text = `paint ${name} ${width} ${height}`
   for (let h = 0; h < height; h++) {
     text += '\n'
     for (let c = 0; c < width; c++) {
@@ -58,6 +58,7 @@ function convertImageToText(palette, image) {
       text += closestInPalette(palette, red, green, blue) + ' '
     }
   }
+  text += '\nend paint'
   return text
 }
 
@@ -137,7 +138,9 @@ export class PaintState {
           let image = new Image()
           image.src = content
           image.onload = () => {
-            content = convertImageToText(this.paint.palette, image)
+            const dot = file.name.indexOf('.')
+            const name = dot <= 0 ? file.name : file.name.substring(0, dot)
+            content = convertImageToText(this.paint.palette, image, name)
             this.paint.read(content)
             this.updateTexture()
           }
@@ -150,7 +153,7 @@ export class PaintState {
           this.updateTexture()
         }
       } else {
-        reader.readAsText(file, 'UTF-8')
+        reader.readAsText(file, 'utf-8')
         reader.onload = (event) => {
           let content = event.target.result
           this.paint.read(content)
@@ -261,7 +264,7 @@ export class PaintState {
 
     let magnify, top, left, boxWidth, boxHeight, box, x, y
 
-    rendering.setProgram(1)
+    rendering.setProgram('texture2d')
     rendering.setView(0, client.top, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
 
@@ -316,7 +319,7 @@ export class PaintState {
     rendering.bindTexture(gl.TEXTURE0, this.texture)
     rendering.updateAndDraw(client.bufferGUI)
 
-    rendering.setProgram(0)
+    rendering.setProgram('color2d')
     rendering.setView(0, client.top, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
 
@@ -480,7 +483,7 @@ export class PaintState {
 
     // special textures
 
-    rendering.setProgram(3)
+    rendering.setProgram('texture2d-rgb')
     rendering.setView(0, client.top, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
 
@@ -506,7 +509,7 @@ export class PaintState {
 
     // text
 
-    rendering.setProgram(4)
+    rendering.setProgram('texture2d-font')
     rendering.setView(0, client.top, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
 

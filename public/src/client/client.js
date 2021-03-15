@@ -308,12 +308,12 @@ export class Client {
     texture2d_font = await texture2d_font
     texture3d_rgb = await texture3d_rgb
 
-    rendering.insertProgram(0, compileProgram(gl, color2d))
-    rendering.insertProgram(1, compileProgram(gl, texture2d))
-    rendering.insertProgram(2, compileProgram(gl, texture3d))
-    rendering.insertProgram(3, compileProgram(gl, texture2d_rgb))
-    rendering.insertProgram(4, compileProgram(gl, texture2d_font))
-    rendering.insertProgram(5, compileProgram(gl, texture3d_rgb))
+    rendering.insertProgram('color2d', compileProgram(gl, color2d))
+    rendering.insertProgram('texture2d', compileProgram(gl, texture2d))
+    rendering.insertProgram('texture3d', compileProgram(gl, texture3d))
+    rendering.insertProgram('texture2d-rgb', compileProgram(gl, texture2d_rgb))
+    rendering.insertProgram('texture2d-font', compileProgram(gl, texture2d_font))
+    rendering.insertProgram('texture3d-rgb', compileProgram(gl, texture3d_rgb))
 
     rendering.makeVAO(this.bufferGUI)
     rendering.makeVAO(this.bufferColor)

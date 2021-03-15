@@ -60,7 +60,7 @@ export class SfxState {
       let file = e.target.files[0]
       console.info(file)
       let reader = new FileReader()
-      reader.readAsText(file, 'UTF-8')
+      reader.readAsText(file, 'utf-8')
       reader.onload = (event) => {
         let content = event.target.result
         this.sfx.read(content)
@@ -111,7 +111,7 @@ export class SfxState {
     const fontPad = calcFontPad(fontHeight)
     const fontHeightAndPad = fontHeight + fontPad
 
-    rendering.setProgram(0)
+    rendering.setProgram('color2d')
     rendering.setView(0, client.top, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
 
@@ -135,7 +135,7 @@ export class SfxState {
 
     // text
 
-    rendering.setProgram(4)
+    rendering.setProgram('texture2d-font')
     rendering.setView(0, 0, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
 

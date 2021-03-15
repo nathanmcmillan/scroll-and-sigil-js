@@ -64,7 +64,7 @@ export class MapState {
       let file = e.target.files[0]
       console.info(file)
       let reader = new FileReader()
-      reader.readAsText(file, 'UTF-8')
+      reader.readAsText(file, 'utf-8')
       reader.onload = (event) => {
         let content = event.target.result
         this.maps.read(content)

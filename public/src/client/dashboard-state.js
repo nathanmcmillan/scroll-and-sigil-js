@@ -88,7 +88,7 @@ export class DashboardState {
     multiply(projection, client.orthographic, view)
 
     // text
-    rendering.setProgram(4)
+    rendering.setProgram('texture2d-font')
     rendering.setView(0, client.top, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
 

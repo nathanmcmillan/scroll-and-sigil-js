@@ -108,7 +108,7 @@ export class HomeState {
     const world = game.world
     const camera = game.camera
 
-    rendering.setProgram(5)
+    rendering.setProgram('texture3d-rgb')
     rendering.setView(0, client.top, width, height)
 
     gl.clearColor(0.0, 0.0, 0.0, 1.0)
@@ -175,7 +175,7 @@ export class HomeState {
 
     // text
 
-    rendering.setProgram(4)
+    rendering.setProgram('texture2d-font')
     rendering.setView(0, client.top, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
 

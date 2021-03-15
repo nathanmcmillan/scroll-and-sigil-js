@@ -22,7 +22,7 @@ export function renderDialogBox(state, scale, font, dialog) {
   const fontPad = calcFontPad(fontHeight)
   const fontHeightAndPad = fontHeight + fontPad
 
-  rendering.setProgram(0)
+  rendering.setProgram('color2d')
   rendering.setView(0, client.top, width, height)
   rendering.updateUniformMatrix('u_mvp', projection)
 
@@ -46,7 +46,7 @@ export function renderDialogBox(state, scale, font, dialog) {
 
   rendering.updateAndDraw(client.bufferColor)
 
-  rendering.setProgram(4)
+  rendering.setProgram('texture2d-font')
   rendering.setView(0, client.top, width, height)
   rendering.updateUniformMatrix('u_mvp', projection)
 
@@ -99,7 +99,7 @@ export function renderTextBox(state, scale, font, box, x, y) {
   const fontPad = calcFontPad(fontHeight)
   const fontHeightAndPad = fontHeight + 3 * fontPad
 
-  rendering.setProgram(0)
+  rendering.setProgram('color2d')
   rendering.setView(0, client.top, width, height)
   rendering.updateUniformMatrix('u_mvp', projection)
 
@@ -114,7 +114,7 @@ export function renderTextBox(state, scale, font, box, x, y) {
 
   rendering.updateAndDraw(client.bufferColor)
 
-  rendering.setProgram(4)
+  rendering.setProgram('texture2d-font')
   rendering.setView(0, client.top, width, height)
   rendering.updateUniformMatrix('u_mvp', projection)
 

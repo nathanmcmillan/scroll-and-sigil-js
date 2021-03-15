@@ -108,7 +108,7 @@ export function renderTouch(touch) {
   const width = touch.width
   const height = touch.height
 
-  rendering.setProgram(0)
+  rendering.setProgram('color2d')
   rendering.setView(0, 0, width, height)
   rendering.updateUniformMatrix('u_mvp', projection)
 

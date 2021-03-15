@@ -173,7 +173,7 @@ export function thingUpdateAnimation(self) {
   if (self.animationMod === ANIMATION_RATE) {
     self.animationMod = 0
     self.animationFrame++
-    let frames = self.animation.length
+    const frames = self.animation.length
     if (self.animationFrame === frames - 1) return ANIMATION_ALMOST_DONE
     else if (self.animationFrame === frames) return ANIMATION_DONE
   }

@@ -3,7 +3,7 @@ import {particleSetup, particleUpdateAnimation} from '../particle/particle.js'
 
 function plasmaExplosionUpdate() {
   if (particleUpdateAnimation(this) === ANIMATION_DONE) return true
-  this.sprite = this.animation[this.animationFrame]
+  this.stamp = this.animation[this.animationFrame]
   return false
 }
 

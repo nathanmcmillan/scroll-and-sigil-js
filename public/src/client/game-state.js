@@ -114,7 +114,7 @@ export class GameState {
 
     // sky box
 
-    rendering.setProgram(5)
+    rendering.setProgram('texture3d-rgb')
     rendering.setView(0, client.top, width, height)
 
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
@@ -215,7 +215,7 @@ export class GameState {
       gl.disable(gl.POLYGON_OFFSET_FILL)
     }
 
-    rendering.setProgram(1)
+    rendering.setProgram('texture2d-font')
     rendering.setView(0, client.top, width, height)
 
     gl.disable(gl.CULL_FACE)
@@ -233,7 +233,7 @@ export class GameState {
 
     if (game.cinema) {
       const black = 60.0
-      rendering.setProgram(0)
+      rendering.setProgram('color2d')
       rendering.setView(0, client.top, width, height)
       rendering.updateUniformMatrix('u_mvp', projection)
       client.bufferColor.zero()

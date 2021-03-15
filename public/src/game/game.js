@@ -25,7 +25,7 @@ export class Game {
     this.input = input
     this.world = new World(this)
     this.hero = null
-    this.camera = new Camera(0.0, 0.0, 0.0, 0.0, 0.0, 8.0)
+    this.camera = new Camera(0.0, 0.0, 0.0, 0.0, 0.0, 12.0)
     this.cinema = false
   }
 
@@ -164,12 +164,13 @@ export class Game {
         } else if (top === 'triggers') {
           while (index < end) {
             if (map[index] === 'end triggers') break
-            let trigger = map[index].split(' ')
-            console.log(trigger)
-            if (trigger[0] === 'line') {
-              let line = lines[parseInt(trigger[1])]
-              world.trigger('interact-line', [line], trigger.slice(2))
-            }
+            // const trigger = map[index].split(' ')
+            // if (trigger[0] === 'line') {
+            //   let line = lines[parseInt(trigger[1])]
+            //   world.trigger('interact-line', [line], trigger.slice(2))
+            // }
+            const trigger = new Trigger(map[index].split(' '))
+            console.debug(trigger.export())
             index++
           }
           index++

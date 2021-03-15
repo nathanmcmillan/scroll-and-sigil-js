@@ -175,9 +175,7 @@ function heroInteract(self) {
 
 function heroDead(self) {
   if (self.animationFrame === self.animation.length - 1) {
-    if (self.input.pressA()) {
-      self.world.notify('death-menu')
-    }
+    if (self.input.pressStart()) self.world.notify('death-menu')
     return
   }
   thingUpdateAnimation(self)
