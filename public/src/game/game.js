@@ -1,18 +1,13 @@
-import {fetchText} from '../client/net.js'
-import {Line} from '../map/line.js'
-import {Vector2} from '../math/vector.js'
-import {Sector} from '../map/sector.js'
-import {World} from '../world/world.js'
-import {cameraTowardsTarget, cameraFollowCinema, Camera} from '../game/camera.js'
-import {thingSet} from '../thing/thing.js'
-import {Hero} from '../thing/hero.js'
-import {Monster} from '../thing/monster.js'
-import {Doodad} from '../thing/doodad.js'
-import {NonPlayerCharacter} from '../thing/npc.js'
-import {Item} from '../thing/item.js'
-import {textureIndexForName, entityByName} from '../assets/assets.js'
+import {textureIndexForName} from '../assets/assets.js'
 import {playMusic} from '../assets/sounds.js'
+import {fetchText} from '../client/net.js'
+import {Camera, cameraFollowCinema, cameraTowardsTarget} from '../game/camera.js'
+import {Line} from '../map/line.js'
+import {Sector} from '../map/sector.js'
+import {Vector2} from '../math/vector.js'
+import {Hero} from '../thing/hero.js'
 import {Trigger} from '../world/trigger.js'
+import {World} from '../world/world.js'
 
 function texture(name) {
   if (name === 'none') return -1
@@ -132,30 +127,14 @@ export class Game {
         if (top === 'things') {
           while (index < end) {
             if (map[index] === 'end things') break
-            let thing = map[index].split(' ')
-            let x = parseFloat(thing[0])
-            let z = parseFloat(thing[1])
-            let name = thing[2]
-            let entity = entityByName(name)
-            if (entity.has('class')) name = entity.get('class')
-            switch (name) {
-              case 'monster':
-                new Monster(world, entity, x, z)
-                break
-              case 'doodad':
-                new Doodad(world, entity, x, z)
-                break
-              case 'item':
-                new Item(world, entity, x, z)
-                break
-              case 'npc':
-                new NonPlayerCharacter(world, entity, x, z)
-                break
-              case 'hero':
-                if (this.hero) thingSet(this.hero, x, z)
-                else this.hero = new Hero(world, entity, x, z, this.input)
-                this.camera.target = this.hero
-                break
+            const thing = map[index].split(' ')
+            const x = parseFloat(thing[0])
+            const z = parseFloat(thing[1])
+            const name = thing[2]
+            const entity = world.spawnEntity(name, x, z)
+            if (entity instanceof Hero) {
+              this.hero = entity
+              this.camera.target = this.hero
             }
             index++
           }
@@ -170,7 +149,7 @@ export class Game {
             //   world.trigger('interact-line', [line], trigger.slice(2))
             // }
             const trigger = new Trigger(map[index].split(' '))
-            console.debug(trigger.export())
+            world.pushTrigger(trigger)
             index++
           }
           index++

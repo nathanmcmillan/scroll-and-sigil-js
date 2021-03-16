@@ -1,10 +1,10 @@
-import {thingSetup, thingIntegrate, thingUpdateSprite, thingSetAnimation, thingUpdateAnimation, thingApproximateDistance, Thing} from '../thing/thing.js'
+import {entityByName} from '../assets/assets.js'
 import {playSound} from '../assets/sounds.js'
-import {textureIndexForName, entityByName} from '../assets/assets.js'
-import {WORLD_CELL_SHIFT, ANIMATION_ALMOST_DONE, ANIMATION_DONE} from '../world/world.js'
-import {newPlasma} from '../missile/plasma.js'
 import {randomInt} from '../math/random.js'
-import {redBloodTowards, redBloodExplode} from '../thing/thing-util.js'
+import {newPlasma} from '../missile/plasma.js'
+import {redBloodExplode, redBloodTowards} from '../thing/thing-util.js'
+import {Thing, thingApproximateDistance, thingIntegrate, thingSetAnimation, thingSetup, thingUpdateAnimation, thingUpdateSprite} from '../thing/thing.js'
+import {ANIMATION_ALMOST_DONE, ANIMATION_DONE, WORLD_CELL_SHIFT} from '../world/world.js'
 
 // TODO
 // If thing interacting with dies / is busy then nullify hero interaction

@@ -1,10 +1,17 @@
-import {Float} from '../math/vector.js'
-import {Cell} from '../world/cell.js'
-import {decalInitialize, Decal} from '../world/decal.js'
-import {particleInitialize, Particle} from '../particle/particle.js'
-import {missileInitialize, Missile} from '../missile/missile.js'
+import {entityByName} from '../assets/assets.js'
 import {sectorInsideOutside, sectorLineNeighbors} from '../map/sector.js'
 import {sectorTriangulate} from '../map/triangulate.js'
+import {Float} from '../math/vector.js'
+import {Missile, missileInitialize} from '../missile/missile.js'
+import {Particle, particleInitialize} from '../particle/particle.js'
+import {Doodad} from '../thing/doodad.js'
+import {Hero} from '../thing/hero.js'
+import {Item} from '../thing/item.js'
+import {Monster} from '../thing/monster.js'
+import {NonPlayerCharacter} from '../thing/npc.js'
+import {thingSet} from '../thing/thing.js'
+import {Cell} from '../world/cell.js'
+import {Decal, decalInitialize} from '../world/decal.js'
 
 export const WORLD_SCALE = 0.25
 export const WORLD_CELL_SHIFT = 5
@@ -27,9 +34,16 @@ export function toFloatCell(f) {
   return f / (1 << WORLD_CELL_SHIFT)
 }
 
+export function ticksToTime(value, interval) {
+  if (interval === 'seconds') return value * 60
+  if (interval === 'minutes') return value * 3600
+  return value
+}
+
 export class World {
   constructor(game) {
     this.game = game
+    this.tick = 0
     this.lines = null
     this.sectors = []
     this.cells = null
@@ -43,7 +57,8 @@ export class World {
     this.particleCount = 0
     this.decals = []
     this.decalQueue = 0
-    this.triggers = new Map()
+    // this.triggers = new Map()
+    this.triggers = []
   }
 
   clear() {
@@ -51,6 +66,7 @@ export class World {
     for (let i = 0; i < this.missileCount; i++) this.missiles[i] = null
     for (let i = 0; i < this.particleCount; i++) this.particles[i] = null
     if (this.cells) for (let i = 0; i < this.cells.length; i++) this.cells[i].clear()
+    this.tick = 0
     this.lines = null
     this.sectors.length = 0
     this.cells = null
@@ -64,7 +80,8 @@ export class World {
     this.particleCount = 0
     this.decals.length = 0
     this.decalQueue = 0
-    this.triggers.clear()
+    // this.triggers.clear()
+    this.triggers.length = 0
   }
 
   pushThing(thing) {
@@ -118,6 +135,23 @@ export class World {
   }
 
   update() {
+    this.tick++
+
+    const triggers = this.triggers
+    let t = triggers.length
+    while (t--) {
+      const trigger = triggers[t]
+      const event = trigger.event
+      if (event[0] === 'every') {
+        const value = parseInt(event[1])
+        const interval = event[2]
+        const ticks = ticksToTime(value, interval)
+        if (this.tick % ticks === 0) {
+          if (this.checkTriggerCondition(trigger.condition)) this.doTriggerAction(trigger.action)
+        }
+      }
+    }
+
     const things = this.things
     let i = this.thingCount
     while (i--) {
@@ -239,31 +273,73 @@ export class World {
     for (const line of this.lines) this.buildCellLines(line)
   }
 
-  trigger(trigger, conditions, events) {
-    let list = this.triggers.get(trigger)
-    if (!list) {
-      list = []
-      this.triggers.set(trigger, list)
+  spawnEntity(name, x, z) {
+    const entity = entityByName(name)
+    if (entity.has('class')) name = entity.get('class')
+    switch (name) {
+      case 'monster':
+        return new Monster(this, entity, x, z)
+      case 'doodad':
+        return new Doodad(this, entity, x, z)
+      case 'item':
+        return new Item(this, entity, x, z)
+      case 'npc':
+        return new NonPlayerCharacter(this, entity, x, z)
+      case 'hero':
+        if (this.game.hero) {
+          thingSet(this.hero, x, z)
+          return this.game.hero
+        }
+        return new Hero(this, entity, x, z, this.game.input)
     }
-    list.push([conditions, events])
+    return null
   }
 
-  notify(trigger, params) {
-    let list = this.triggers.get(trigger)
-    if (!list) {
-      this.game.notify(trigger, params)
-      return
-    }
-    for (const entry of list) {
-      let conditions = entry[0]
-      let events = entry[1]
-      console.log(trigger, params, '=>', conditions, events)
-      if (trigger === 'interact-line') {
-        let line = params[1]
-        if (line === conditions[0]) {
-          this.game.notify(events[0])
-        }
-      }
+  pushTrigger(trigger) {
+    this.triggers.push(trigger)
+  }
+
+  checkTriggerCondition(condition) {
+    console.debug('check', condition)
+    if (condition === null) return true
+    return true
+  }
+
+  doTriggerAction(action, source = null, target = null) {
+    console.debug('do', action, source, target)
+    if (action[0] === 'spawn') {
+      const name = action[1]
+      const x = parseFloat(action[2])
+      const z = parseFloat(action[3])
+      this.spawnEntity(name, x, z)
     }
   }
+
+  // trigger(trigger, conditions, events) {
+  //   let list = this.triggers.get(trigger)
+  //   if (!list) {
+  //     list = []
+  //     this.triggers.set(trigger, list)
+  //   }
+  //   list.push([conditions, events])
+  // }
+
+  // notify(trigger, params) {
+  //   let list = this.triggers.get(trigger)
+  //   if (!list) {
+  //     this.game.notify(trigger, params)
+  //     return
+  //   }
+  //   for (const entry of list) {
+  //     let conditions = entry[0]
+  //     let events = entry[1]
+  //     console.log(trigger, params, '=>', conditions, events)
+  //     if (trigger === 'interact-line') {
+  //       let line = params[1]
+  //       if (line === conditions[0]) {
+  //         this.game.notify(events[0])
+  //       }
+  //     }
+  //   }
+  // }
 }
