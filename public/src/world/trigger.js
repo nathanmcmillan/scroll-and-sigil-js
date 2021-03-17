@@ -21,7 +21,9 @@ export class Trigger {
     this.event = input.slice(s, i)
     s = i
     while (i < size) {
-      if (input[i] === 'goto') i += 3
+      if (input[i] === 'music') i += 2
+      else if (input[i] === 'sound') i += 2
+      else if (input[i] === 'goto') i += 3
       else if (input[i] === 'teleport') i += 3
       else if (input[i] === 'spawn') i += 4
       else i++

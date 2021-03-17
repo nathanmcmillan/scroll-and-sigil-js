@@ -127,19 +127,26 @@ function thingLineFloorAndCeiling(self, line) {
   const px = line.a.x + vx * t - self.x
   const pz = line.a.y + vz * t - self.z
   if (px * px + pz * pz > box * box) return false
+  const old = self.sector
+  let sector = old
   if (line.plus) {
     if (line.plus.floor > self.floor) {
-      self.sector = line.plus
+      sector = line.plus
       self.floor = line.plus.floor
     }
     if (line.plus.ceiling < self.ceiling) self.ceiling = line.plus.ceiling
   }
   if (line.minus) {
     if (line.minus.floor > self.floor) {
-      self.sector = line.minus
+      sector = line.minus
       self.floor = line.minus.floor
     }
     if (line.minus.ceiling < self.ceiling) self.ceiling = line.minus.ceiling
+  }
+  if (sector !== old) {
+    self.sector = sector
+    const trigger = sector.trigger
+    if (trigger) self.world.activateTrigger(trigger, self)
   }
   return true
 }
@@ -163,10 +170,15 @@ export function thingFindSectorFromLine(self) {
 }
 
 export function thingFindSector(self) {
-  let sector = self.sector
+  const old = self.sector
+  let sector = old
   if (sector === null) sector = self.world.findSector(self.x, self.z)
   else sector = sector.searchFor(self.x, self.z)
-  self.sector = sector
+  if (sector !== old) {
+    self.sector = sector
+    const trigger = sector.trigger
+    if (trigger) self.world.activateTrigger(trigger, self)
+  }
   self.floor = sector.floor
   self.ceiling = sector.ceiling
 }
@@ -258,7 +270,7 @@ export function thingApproximateDistance(self, thing) {
   return dx + dz - dx * 0.5
 }
 
-function isThingCollision(self, thing) {
+function thingCollision(self, thing) {
   const box = self.box + thing.box
   return Math.abs(self.x - thing.x) <= box && Math.abs(self.z - thing.z) <= box
 }
@@ -274,10 +286,17 @@ export function thingSet(self, x, z) {
   self.x = self.previousX = x
   self.z = self.previousZ = z
   thingPushToCells(self)
+  const old = self.sector
   self.sector = null
   if (!thingFindSectorFromLine(self)) thingFindSector(self)
+  const world = self.world
+  const sector = self.sector
+  if (sector !== old) {
+    const trigger = sector.trigger
+    if (trigger) world.activateTrigger(trigger, self)
+  }
   thingUpdateY(self)
-  self.world.pushThing(self)
+  world.pushThing(self)
 }
 
 export function thingTeleport(self, x, z) {
@@ -285,8 +304,15 @@ export function thingTeleport(self, x, z) {
   self.x = self.previousX = x
   self.z = self.previousZ = z
   thingPushToCells(self)
+  const old = self.sector
   self.sector = null
   if (!thingFindSectorFromLine(self)) thingFindSector(self)
+  const world = self.world
+  const sector = self.sector
+  if (sector !== old) {
+    const trigger = sector.trigger
+    if (trigger) world.activateTrigger(trigger, self)
+  }
   thingUpdateY(self)
 }
 
@@ -382,7 +408,7 @@ export function thingIntegrate(self) {
         while (i--) {
           const thing = cell.things[i]
           if (!thing.isPhysical || collisions.has(thing)) continue
-          if (isThingCollision(self, thing)) collided.add(thing)
+          if (thingCollision(self, thing)) collided.add(thing)
           collisions.add(thing)
         }
       }

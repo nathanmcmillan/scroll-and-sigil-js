@@ -9,10 +9,11 @@ import { Hero } from '../thing/hero.js'
 import { Item } from '../thing/item.js'
 import { Monster } from '../thing/monster.js'
 import { NonPlayerCharacter } from '../thing/npc.js'
-import { thingSet } from '../thing/thing.js'
+import { thingSet, thingTeleport } from '../thing/thing.js'
 import { Cell } from '../world/cell.js'
 import { Decal, decalInitialize } from '../world/decal.js'
 import { IntervalTrigger } from '../world/trigger.js'
+import { playSound, playMusic } from '../assets/sounds.js'
 
 export const WORLD_SCALE = 0.25
 export const WORLD_CELL_SHIFT = 5
@@ -59,6 +60,7 @@ export class World {
     this.decals = []
     this.decalQueue = 0
     this.triggers = []
+    this.events = []
   }
 
   clear() {
@@ -81,6 +83,7 @@ export class World {
     this.decals.length = 0
     this.decalQueue = 0
     this.triggers.length = 0
+    this.events.length = 0
   }
 
   pushThing(thing) {
@@ -142,8 +145,7 @@ export class World {
       const meta = triggers[t]
       if (this.tick < meta.time) continue
       meta.time += meta.interval
-      const trigger = meta.trigger
-      if (this.checkTriggerCondition(trigger.condition)) this.doTriggerAction(trigger.action)
+      this.activateTrigger(meta.trigger)
     }
 
     const things = this.things
@@ -176,6 +178,13 @@ export class World {
         particles[i] = particles[this.particleCount]
         particles[this.particleCount] = particle
       }
+    }
+
+    const events = this.events
+    let e = events.length
+    if (e > 0) {
+      while (e--) this.doTriggerAction(...events[e])
+      this.events.length = 0
     }
   }
 
@@ -298,20 +307,66 @@ export class World {
     this.triggers.push(new IntervalTrigger(trigger, ticks, this.tick))
   }
 
-  checkTriggerCondition(condition) {
+  checkTriggerCondition(condition, source, target) {
     console.debug('check', condition)
     if (condition === null) return true
+    let i = 0
+    while (i < condition.length) {
+      if (condition[i] === 'lte') {
+        const variable = condition[i + 1]
+        const number = parseInt(condition[i + 2])
+        if (variable === 'health') if (source.health > number) return false
+        i += 3
+      } else if (condition[i] === 'gte') {
+        const variable = condition[i + 1]
+        const number = parseInt(condition[i + 2])
+        if (variable === 'health') if (source.health < number) return false
+        i += 3
+      } else if (condition[i] === 'eq') {
+        const variable = condition[i + 1]
+        const constant = condition[i + 2]
+        if (variable === 'health') {
+          if (source.health !== parseInt(constant)) return false
+        } else if (variable === 'group') {
+          if (source.group !== constant) return false
+        }
+        i += 3
+      } else i++
+    }
     return true
   }
 
-  doTriggerAction(action, source = null, target = null) {
-    console.debug('do', action, source, target)
-    if (action[0] === 'spawn') {
-      const name = action[1]
-      const x = parseFloat(action[2])
-      const z = parseFloat(action[3])
-      this.spawnEntity(name, x, z)
+  activateTrigger(trigger, source = null, target = null) {
+    if (this.checkTriggerCondition(trigger.condition, source, target)) {
+      this.events.push([trigger.action, source, target])
     }
+  }
+
+  doTriggerAction(action, source, target) {
+    console.debug('do', action)
+    let i = 0
+    while (i < action.length) {
+      if (action[i] === 'spawn') {
+        const name = action[i + 1]
+        const x = parseFloat(action[i + 2])
+        const z = parseFloat(action[i + 3])
+        this.spawnEntity(name, x, z)
+        i += 4
+      } else if (action[i] === 'teleport') {
+        const x = parseFloat(action[i + 1])
+        const z = parseFloat(action[i + 2])
+        thingTeleport(source, x, z)
+        i += 3
+      } else if (action[i] === 'music') {
+        playMusic(action[i + 1])
+        i += 2
+      } else if (action[i] === 'sound') {
+        playSound(action[i + 1])
+        i += 2
+      } else i++
+    }
+    // cinema
+    // go to new map
   }
 
   // trigger(trigger, conditions, events) {
