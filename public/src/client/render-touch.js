@@ -1,8 +1,7 @@
-import {identity, multiply} from '../math/matrix.js'
-import {orthographic} from '../math/matrix.js'
-import {drawRectangle} from '../render/render.js'
-import {whitef, blackf} from '../editor/palette.js'
+import { blackf, whitef } from '../editor/palette.js'
 import * as In from '../input/input.js'
+import { identity, multiply, orthographic } from '../math/matrix.js'
+import { drawRectangle } from '../render/render.js'
 
 class TouchButton {
   constructor(input) {

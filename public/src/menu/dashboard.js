@@ -1,5 +1,5 @@
-import {playSound} from '../assets/sounds.js'
-import {TextBox} from '../gui/text-box.js'
+import { playSound } from '../assets/sounds.js'
+import { TextBox } from '../gui/text-box.js'
 
 export const TAPE_MENU = 0
 export const PROGRAM_MENU = 1

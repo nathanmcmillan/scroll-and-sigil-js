@@ -1,5 +1,5 @@
-import {Float} from '../math/vector.js'
-import {Triangle} from '../map/triangle.js'
+import { Triangle } from '../map/triangle.js'
+import { Float } from '../math/vector.js'
 
 const debug = false
 
@@ -27,7 +27,7 @@ function doDebug() {
 }
 
 function strvec(vec) {
-  return JSON.stringify({x: vec.x, y: vec.y})
+  return JSON.stringify({ x: vec.x, y: vec.y })
 }
 
 class PolygonPoint {
@@ -55,10 +55,10 @@ function polygonSort(n, o) {
 function strpoint(point) {
   return JSON.stringify(point, (key, value) => {
     if (key === 'previous' || key === 'merge') return
-    if (key === 'vec') return {x: value.x, y: value.y}
+    if (key === 'vec') return { x: value.x, y: value.y }
     if (key === 'next') {
       if (value === null) return null
-      else return {index: value.index, point: value.point}
+      else return { index: value.index, point: value.point }
     } else if (key === 'diagonals') {
       if (value === null) return null
       else return []
@@ -75,7 +75,7 @@ class Start {
 
 function strstart(start) {
   return JSON.stringify(start, (key, value) => {
-    if (key === 'a' || key === 'b') return {x: value.vec.x, y: value.vec.y}
+    if (key === 'a' || key === 'b') return { x: value.vec.x, y: value.vec.y }
     return value
   })
 }
@@ -91,7 +91,7 @@ function strvert(vert) {
   return JSON.stringify(vert, (key, value) => {
     if (key === 'next') {
       if (value === null) return null
-      else return {vec: value.vec}
+      else return { vec: value.vec }
     } else return value
   })
 }

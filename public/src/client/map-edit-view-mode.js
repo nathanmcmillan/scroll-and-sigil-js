@@ -1,11 +1,11 @@
-import {drawSprite, drawTextFontSpecial} from '../render/render.js'
-import {identity, multiply, rotateX, rotateY, translate} from '../math/matrix.js'
-import {textureByName, textureByIndex, textureIndexForName} from '../assets/assets.js'
-import {drawWall, drawFloorCeil} from '../client/render-sector.js'
-import {renderTouch} from '../client/render-touch.js'
-import {redf} from '../editor/palette.js'
-import {renderDialogBox} from '../client/client-util.js'
-import {defaultFont, calcFontScale} from '../editor/editor-util.js'
+import { textureByIndex, textureByName, textureIndexForName } from '../assets/assets.js'
+import { renderDialogBox } from '../client/client-util.js'
+import { drawFloorCeil, drawWall } from '../client/render-sector.js'
+import { renderTouch } from '../client/render-touch.js'
+import { calcFontScale, defaultFont } from '../editor/editor-util.js'
+import { redf } from '../editor/palette.js'
+import { identity, multiply, rotateX, rotateY, translate } from '../math/matrix.js'
+import { drawSprite, drawTextFontSpecial } from '../render/render.js'
 
 function lineRender(client, line) {
   let wall = line.top

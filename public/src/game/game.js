@@ -1,13 +1,13 @@
-import {textureIndexForName} from '../assets/assets.js'
-import {playMusic} from '../assets/sounds.js'
-import {fetchText} from '../client/net.js'
-import {Camera, cameraFollowCinema, cameraTowardsTarget} from '../game/camera.js'
-import {Line} from '../map/line.js'
-import {Sector} from '../map/sector.js'
-import {Vector2} from '../math/vector.js'
-import {Hero} from '../thing/hero.js'
-import {Trigger} from '../world/trigger.js'
-import {World} from '../world/world.js'
+import { textureIndexForName } from '../assets/assets.js'
+import { playMusic } from '../assets/sounds.js'
+import { fetchText } from '../client/net.js'
+import { Camera, cameraFollowCinema, cameraTowardsTarget } from '../game/camera.js'
+import { Line } from '../map/line.js'
+import { Sector } from '../map/sector.js'
+import { Vector2 } from '../math/vector.js'
+import { Hero } from '../thing/hero.js'
+import { Trigger } from '../world/trigger.js'
+import { World } from '../world/world.js'
 
 function texture(name) {
   if (name === 'none') return -1

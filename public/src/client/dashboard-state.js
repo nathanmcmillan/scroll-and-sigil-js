@@ -1,12 +1,12 @@
-import {textureByName} from '../assets/assets.js'
-import {drawTextFontSpecial} from '../render/render.js'
-import {renderTouch} from '../client/render-touch.js'
-import {identity, multiply} from '../math/matrix.js'
-import {slate0f, slate1f, slate2f, white0f, white1f, white2f} from '../editor/palette.js'
-import {flexBox, flexSolve} from '../gui/flex.js'
-import {defaultFont, calcFontScale, calcFontPad} from '../editor/editor-util.js'
-import {Dashboard, TAPE_MENU, PROGRAM_MENU, EDIT_NAME} from '../menu/dashboard.js'
-import {renderTextBox, textBoxWidth, textBoxHeight} from './client-util.js'
+import { textureByName } from '../assets/assets.js'
+import { renderTouch } from '../client/render-touch.js'
+import { calcFontPad, calcFontScale, defaultFont } from '../editor/editor-util.js'
+import { slate0f, slate1f, slate2f, white0f, white1f, white2f } from '../editor/palette.js'
+import { flexBox, flexSolve } from '../gui/flex.js'
+import { identity, multiply } from '../math/matrix.js'
+import { Dashboard, EDIT_NAME, PROGRAM_MENU, TAPE_MENU } from '../menu/dashboard.js'
+import { drawTextFontSpecial } from '../render/render.js'
+import { renderTextBox, textBoxHeight, textBoxWidth } from './client-util.js'
 
 export class DashboardState {
   constructor(client) {

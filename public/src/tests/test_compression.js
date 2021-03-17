@@ -1,4 +1,4 @@
-import {compress, decompress} from '../compress/huffman.js'
+import { compress, decompress } from '../compress/huffman.js'
 
 let s = `
 Copyright (c) <year>, <copyright holder>

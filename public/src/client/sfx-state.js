@@ -1,11 +1,11 @@
-import {diatonic, semitoneName, SEMITONES, WAVE_LIST} from '../sound/synth.js'
-import {textureByName} from '../assets/assets.js'
-import {identity, multiply} from '../math/matrix.js'
-import {slatef, red0f, red1f, red2f, silver0f, silver1f, silver2f, orange0f, orange1f, orange2f} from '../editor/palette.js'
-import {SfxEdit, WAVE_INDEX, FREQUENCY_INDEX, DURATION_INDEX} from '../editor/sfx.js'
-import {drawRectangle, drawTextFont} from '../render/render.js'
-import {calcFontScale, calcTopBarHeight, calcBottomBarHeight, calcFontPad, defaultFont} from '../editor/editor-util.js'
-import {renderDialogBox, renderStatus} from '../client/client-util.js'
+import { textureByName } from '../assets/assets.js'
+import { renderDialogBox, renderStatus } from '../client/client-util.js'
+import { calcBottomBarHeight, calcFontPad, calcFontScale, calcTopBarHeight, defaultFont } from '../editor/editor-util.js'
+import { orange0f, orange1f, orange2f, red0f, red1f, red2f, silver0f, silver1f, silver2f, slatef } from '../editor/palette.js'
+import { DURATION_INDEX, FREQUENCY_INDEX, SfxEdit, WAVE_INDEX } from '../editor/sfx.js'
+import { identity, multiply } from '../math/matrix.js'
+import { drawRectangle, drawTextFont } from '../render/render.js'
+import { diatonic, semitoneName, SEMITONES, WAVE_LIST } from '../sound/synth.js'
 
 export class SfxState {
   constructor(client) {

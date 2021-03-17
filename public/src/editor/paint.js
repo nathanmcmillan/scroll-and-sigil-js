@@ -1,10 +1,10 @@
-import {fetchText} from '../client/net.js'
-import {newPalette, newPaletteFloat, describeColor} from '../editor/palette.js'
-import {flexBox, flexSolve, flexSize} from '../gui/flex.js'
-import {TIC_FONT_WIDTH, TIC_FONT_HEIGHT} from '../render/render.js'
-import {calcFontScale} from '../editor/editor-util.js'
-import {Dialog} from '../gui/dialog.js'
-import {TextBox} from '../gui/text-box.js'
+import { fetchText } from '../client/net.js'
+import { calcFontScale } from '../editor/editor-util.js'
+import { describeColor, newPalette, newPaletteFloat } from '../editor/palette.js'
+import { Dialog } from '../gui/dialog.js'
+import { flexBox, flexSize, flexSolve } from '../gui/flex.js'
+import { TextBox } from '../gui/text-box.js'
+import { TIC_FONT_HEIGHT, TIC_FONT_WIDTH } from '../render/render.js'
 
 const PENCIL = 0
 const FILL = 1

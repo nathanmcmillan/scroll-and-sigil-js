@@ -1,10 +1,10 @@
-import {drawTextSpecial, TIC_FONT_WIDTH, TIC_FONT_HEIGHT} from '../render/render.js'
-import {identity, multiply} from '../math/matrix.js'
-import {whitef, blackf} from '../editor/palette.js'
-import {flexText, flexSolve} from '../gui/flex.js'
-import {textureByName} from '../assets/assets.js'
-import {renderTouch} from '../client/render-touch.js'
-import {calcFontScale} from '../editor/editor-util.js'
+import { textureByName } from '../assets/assets.js'
+import { renderTouch } from '../client/render-touch.js'
+import { calcFontScale } from '../editor/editor-util.js'
+import { blackf, whitef } from '../editor/palette.js'
+import { flexSolve, flexText } from '../gui/flex.js'
+import { identity, multiply } from '../math/matrix.js'
+import { drawTextSpecial, TIC_FONT_HEIGHT, TIC_FONT_WIDTH } from '../render/render.js'
 
 export function renderLoadingInProgress(client, view, projection) {
   const gl = client.gl

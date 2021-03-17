@@ -1,4 +1,4 @@
-import {thingSetup, Thing} from '../thing/thing.js'
+import { Thing, thingSetup } from '../thing/thing.js'
 
 export class Doodad extends Thing {
   constructor(world, entity, x, z) {

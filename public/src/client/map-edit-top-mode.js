@@ -1,12 +1,12 @@
-import {drawRectangle, drawLine, drawTriangle, drawTextFontSpecial} from '../render/render.js'
-import {spr} from '../render/pico.js'
-import {identity, multiply} from '../math/matrix.js'
-import {textureByName} from '../assets/assets.js'
-import {vectorSize, thingSize, SECTOR_TOOL, OPTION_END_LINE, OPTION_END_LINE_NEW_VECTOR} from '../editor/maps.js'
-import {blackf, slatef, yellowf, whitef, greenf, redf, white0f, white1f, white2f, winef} from '../editor/palette.js'
-import {renderTouch} from '../client/render-touch.js'
-import {defaultFont, calcFontScale, calcTopBarHeight, calcBottomBarHeight} from '../editor/editor-util.js'
-import {renderDialogBox, renderTextBox, renderStatus} from '../client/client-util.js'
+import { textureByName } from '../assets/assets.js'
+import { renderDialogBox, renderStatus, renderTextBox } from '../client/client-util.js'
+import { renderTouch } from '../client/render-touch.js'
+import { calcBottomBarHeight, calcFontScale, calcTopBarHeight, defaultFont } from '../editor/editor-util.js'
+import { OPTION_END_LINE, OPTION_END_LINE_NEW_VECTOR, SECTOR_TOOL, thingSize, vectorSize } from '../editor/maps.js'
+import { blackf, greenf, redf, slatef, white0f, white1f, white2f, whitef, winef, yellowf } from '../editor/palette.js'
+import { identity, multiply } from '../math/matrix.js'
+import { spr } from '../render/pico.js'
+import { drawLine, drawRectangle, drawTextFontSpecial, drawTriangle } from '../render/render.js'
 
 function mapX(x, zoom, camera) {
   return zoom * (x - camera.x)

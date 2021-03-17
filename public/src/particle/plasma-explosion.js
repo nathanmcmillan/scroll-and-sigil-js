@@ -1,5 +1,5 @@
-import {ANIMATION_DONE} from '../world/world.js'
-import {particleSetup, particleUpdateAnimation} from '../particle/particle.js'
+import { particleSetup, particleUpdateAnimation } from '../particle/particle.js'
+import { ANIMATION_DONE } from '../world/world.js'
 
 function plasmaExplosionUpdate() {
   if (particleUpdateAnimation(this) === ANIMATION_DONE) return true

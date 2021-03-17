@@ -1,4 +1,4 @@
-import {WORLD_CELL_SHIFT, ANIMATION_RATE, ANIMATION_NOT_DONE, ANIMATION_ALMOST_DONE, ANIMATION_DONE} from '../world/world.js'
+import { ANIMATION_ALMOST_DONE, ANIMATION_DONE, ANIMATION_NOT_DONE, ANIMATION_RATE, WORLD_CELL_SHIFT } from '../world/world.js'
 
 export class Particle {
   constructor() {

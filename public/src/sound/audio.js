@@ -1,6 +1,6 @@
-import {zzfxm} from '../external/zzfxm.js'
-import {zzfxb, zzfxt} from '../external/zzfx.js'
-import {waveFromName, diatonic, SEMITONES, pulse} from '../sound/synth.js'
+import { zzfxb, zzfxt } from '../external/zzfx.js'
+import { zzfxm } from '../external/zzfxm.js'
+import { diatonic, pulse, SEMITONES, waveFromName } from '../sound/synth.js'
 
 export function parse(str) {
   let music = []

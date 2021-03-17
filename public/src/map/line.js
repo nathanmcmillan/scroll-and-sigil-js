@@ -1,4 +1,4 @@
-import {Wall} from '../map/wall.js'
+import { Wall } from '../map/wall.js'
 
 export class Line {
   constructor(top, middle, bottom, a, b, flags, trigger) {

@@ -1,3 +1,11 @@
+export class IntervalTrigger {
+  constructor(trigger, interval, current) {
+    this.trigger = trigger
+    this.interval = interval
+    this.time = current + interval
+  }
+}
+
 export class Trigger {
   constructor(input) {
     this.event = null

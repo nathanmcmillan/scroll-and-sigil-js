@@ -1,25 +1,25 @@
-import {fetchText, fetchImage} from '../client/net.js'
-import {Buffer} from '../webgl/buffer.js'
-import {createTexture, createPixelsToTexture, compileProgram} from '../webgl/webgl.js'
-import {Renderer} from '../webgl/renderer.js'
-import {drawSkyBox} from '../render/render.js'
-import {drawWall, drawFloorCeil} from '../client/render-sector.js'
-import {orthographic, perspective} from '../math/matrix.js'
-import {saveSound, saveMusic, pauseMusic, resumeMusic} from '../assets/sounds.js'
-import {newPalette} from '../editor/palette.js'
-import {saveEntity, saveTile, saveTexture, waitForResources, readPaintFile, createNewTexturesAndSpriteSheets} from '../assets/assets.js'
-import {PaintState} from '../client/paint-state.js'
-import {SfxState} from '../client/sfx-state.js'
-import {MusicState} from '../client/music-state.js'
-import {MapState} from '../client/map-state.js'
-import {DashboardState} from '../client/dashboard-state.js'
-import {GameState} from '../client/game-state.js'
-import {HomeState} from '../client/home-state.js'
-import {TwoWayMap} from '../util/collections.js'
-import {TouchRender, touchRenderEvent, touchRenderResize} from '../client/render-touch.js'
-import {Tape} from '../game/tape.js'
-import * as Wad from '../wad/wad.js'
+import { createNewTexturesAndSpriteSheets, readPaintFile, saveEntity, saveTexture, saveTile, waitForResources } from '../assets/assets.js'
+import { pauseMusic, resumeMusic, saveMusic, saveSound } from '../assets/sounds.js'
+import { DashboardState } from '../client/dashboard-state.js'
+import { GameState } from '../client/game-state.js'
+import { HomeState } from '../client/home-state.js'
+import { MapState } from '../client/map-state.js'
+import { MusicState } from '../client/music-state.js'
+import { fetchImage, fetchText } from '../client/net.js'
+import { PaintState } from '../client/paint-state.js'
+import { drawFloorCeil, drawWall } from '../client/render-sector.js'
+import { TouchRender, touchRenderEvent, touchRenderResize } from '../client/render-touch.js'
+import { SfxState } from '../client/sfx-state.js'
+import { newPalette } from '../editor/palette.js'
+import { Tape } from '../game/tape.js'
 import * as In from '../input/input.js'
+import { orthographic, perspective } from '../math/matrix.js'
+import { drawSkyBox } from '../render/render.js'
+import { TwoWayMap } from '../util/collections.js'
+import * as Wad from '../wad/wad.js'
+import { Buffer } from '../webgl/buffer.js'
+import { Renderer } from '../webgl/renderer.js'
+import { compileProgram, createPixelsToTexture, createTexture } from '../webgl/webgl.js'
 
 export class Client {
   constructor(canvas, gl) {
@@ -244,7 +244,7 @@ export class Client {
         const name = texture.substring(0, texture.length - 4)
         textures.push(
           fetchImage(directory + '/sprites/' + texture).then((image) => {
-            return {name: name, wrap: 'clamp', image: image}
+            return { name: name, wrap: 'clamp', image: image }
           })
         )
       }

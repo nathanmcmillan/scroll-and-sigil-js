@@ -1,7 +1,7 @@
-import {textureByName} from '../assets/assets.js'
-import {drawRectangle, drawHollowRectangle, drawTextFontSpecial, drawTextFont} from '../render/render.js'
-import {white0f, white1f, white2f, wine0f, wine1f, wine2f, peach0f, peach1f, peach2f, orange0f, orange1f, orange2f, slate0f, slate1f, slate2f} from '../editor/palette.js'
-import {calcFontScale, calcThickness, calcFontPad, calcLongest} from '../editor/editor-util.js'
+import { textureByName } from '../assets/assets.js'
+import { calcFontPad, calcFontScale, calcLongest, calcThickness } from '../editor/editor-util.js'
+import { orange0f, orange1f, orange2f, peach0f, peach1f, peach2f, slate0f, slate1f, slate2f, white0f, white1f, white2f, wine0f, wine1f, wine2f } from '../editor/palette.js'
+import { drawHollowRectangle, drawRectangle, drawTextFont, drawTextFontSpecial } from '../render/render.js'
 
 export function renderDialogBox(state, scale, font, dialog) {
   const client = state.client

@@ -1,4 +1,4 @@
-import {TIC_FONT} from '../render/render.js'
+import { TIC_FONT } from '../render/render.js'
 
 export function defaultFont() {
   return TIC_FONT

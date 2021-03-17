@@ -1,7 +1,7 @@
-import {newPlasmaExplosion} from '../particle/plasma-explosion.js'
-import {playSound} from '../assets/sounds.js'
-import {entityByName} from '../assets/assets.js'
-import {missileHit, missileSetup, missileIntegrate} from '../missile/missile.js'
+import { entityByName } from '../assets/assets.js'
+import { playSound } from '../assets/sounds.js'
+import { missileHit, missileIntegrate, missileSetup } from '../missile/missile.js'
+import { newPlasmaExplosion } from '../particle/plasma-explosion.js'
 
 function plasmaHit(thing) {
   missileHit(this, thing)

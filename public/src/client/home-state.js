@@ -1,13 +1,13 @@
-import {Game} from '../game/game.js'
-import {renderLoadingInProgress} from '../client/render-loading.js'
-import {renderTouch} from '../client/render-touch.js'
-import {textureByName, textureByIndex} from '../assets/assets.js'
-import {drawSprite, drawTextSpecial, TIC_FONT_WIDTH, TIC_FONT_HEIGHT} from '../render/render.js'
-import {identity, multiply, rotateX, rotateY, translate} from '../math/matrix.js'
-import {white0f, white1f, white2f} from '../editor/palette.js'
-import {flexText, flexSolve} from '../gui/flex.js'
-import {Home} from '../menu/home.js'
-import {calcFontScale} from '../editor/editor-util.js'
+import { textureByIndex, textureByName } from '../assets/assets.js'
+import { renderLoadingInProgress } from '../client/render-loading.js'
+import { renderTouch } from '../client/render-touch.js'
+import { calcFontScale } from '../editor/editor-util.js'
+import { white0f, white1f, white2f } from '../editor/palette.js'
+import { Game } from '../game/game.js'
+import { flexSolve, flexText } from '../gui/flex.js'
+import { identity, multiply, rotateX, rotateY, translate } from '../math/matrix.js'
+import { Home } from '../menu/home.js'
+import { drawSprite, drawTextSpecial, TIC_FONT_HEIGHT, TIC_FONT_WIDTH } from '../render/render.js'
 
 export class HomeState {
   constructor(client) {

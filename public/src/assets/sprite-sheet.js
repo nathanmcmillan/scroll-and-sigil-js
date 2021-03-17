@@ -1,4 +1,4 @@
-import {Sprite} from '../render/sprite.js'
+import { Sprite } from '../render/sprite.js'
 
 const SPRITE_SCALE = 1.0 / 8.0
 

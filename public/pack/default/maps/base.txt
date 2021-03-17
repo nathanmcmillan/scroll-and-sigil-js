@@ -79,7 +79,7 @@ things
 80 42 peasant
 end things
 triggers
-every 4 seconds spawn baron 10 80
+every 5 seconds spawn zombie 10 100
 end triggers
 meta
 music vampire-killer

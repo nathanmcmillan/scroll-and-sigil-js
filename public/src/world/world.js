@@ -1,17 +1,18 @@
-import {entityByName} from '../assets/assets.js'
-import {sectorInsideOutside, sectorLineNeighbors} from '../map/sector.js'
-import {sectorTriangulate} from '../map/triangulate.js'
-import {Float} from '../math/vector.js'
-import {Missile, missileInitialize} from '../missile/missile.js'
-import {Particle, particleInitialize} from '../particle/particle.js'
-import {Doodad} from '../thing/doodad.js'
-import {Hero} from '../thing/hero.js'
-import {Item} from '../thing/item.js'
-import {Monster} from '../thing/monster.js'
-import {NonPlayerCharacter} from '../thing/npc.js'
-import {thingSet} from '../thing/thing.js'
-import {Cell} from '../world/cell.js'
-import {Decal, decalInitialize} from '../world/decal.js'
+import { entityByName } from '../assets/assets.js'
+import { sectorInsideOutside, sectorLineNeighbors } from '../map/sector.js'
+import { sectorTriangulate } from '../map/triangulate.js'
+import { Float } from '../math/vector.js'
+import { Missile, missileInitialize } from '../missile/missile.js'
+import { Particle, particleInitialize } from '../particle/particle.js'
+import { Doodad } from '../thing/doodad.js'
+import { Hero } from '../thing/hero.js'
+import { Item } from '../thing/item.js'
+import { Monster } from '../thing/monster.js'
+import { NonPlayerCharacter } from '../thing/npc.js'
+import { thingSet } from '../thing/thing.js'
+import { Cell } from '../world/cell.js'
+import { Decal, decalInitialize } from '../world/decal.js'
+import { IntervalTrigger } from '../world/trigger.js'
 
 export const WORLD_SCALE = 0.25
 export const WORLD_CELL_SHIFT = 5
@@ -57,7 +58,6 @@ export class World {
     this.particleCount = 0
     this.decals = []
     this.decalQueue = 0
-    // this.triggers = new Map()
     this.triggers = []
   }
 
@@ -80,7 +80,6 @@ export class World {
     this.particleCount = 0
     this.decals.length = 0
     this.decalQueue = 0
-    // this.triggers.clear()
     this.triggers.length = 0
   }
 
@@ -140,16 +139,11 @@ export class World {
     const triggers = this.triggers
     let t = triggers.length
     while (t--) {
-      const trigger = triggers[t]
-      const event = trigger.event
-      if (event[0] === 'every') {
-        const value = parseInt(event[1])
-        const interval = event[2]
-        const ticks = ticksToTime(value, interval)
-        if (this.tick % ticks === 0) {
-          if (this.checkTriggerCondition(trigger.condition)) this.doTriggerAction(trigger.action)
-        }
-      }
+      const meta = triggers[t]
+      if (this.tick < meta.time) continue
+      meta.time += meta.interval
+      const trigger = meta.trigger
+      if (this.checkTriggerCondition(trigger.condition)) this.doTriggerAction(trigger.action)
     }
 
     const things = this.things
@@ -296,7 +290,12 @@ export class World {
   }
 
   pushTrigger(trigger) {
-    this.triggers.push(trigger)
+    const event = trigger.event
+    if (event[0] !== 'every') return
+    const value = parseInt(event[1])
+    const interval = event[2]
+    const ticks = ticksToTime(value, interval)
+    this.triggers.push(new IntervalTrigger(trigger, ticks, this.tick))
   }
 
   checkTriggerCondition(condition) {

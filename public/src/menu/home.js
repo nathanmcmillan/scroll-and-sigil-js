@@ -1,7 +1,7 @@
-import {flexText, flexSolve} from '../gui/flex.js'
-import {TIC_FONT_WIDTH, TIC_FONT_HEIGHT} from '../render/render.js'
-import {playSound} from '../assets/sounds.js'
-import {calcFontScale, calcFontPad} from '../editor/editor-util.js'
+import { playSound } from '../assets/sounds.js'
+import { calcFontPad, calcFontScale } from '../editor/editor-util.js'
+import { flexSolve, flexText } from '../gui/flex.js'
+import { TIC_FONT_HEIGHT, TIC_FONT_WIDTH } from '../render/render.js'
 
 const INPUT_RATE = 128
 

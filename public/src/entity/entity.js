@@ -1,4 +1,4 @@
-import {spritesByName, textureIndexForName} from '../assets/assets.js'
+import { spritesByName, textureIndexForName } from '../assets/assets.js'
 
 export function spriteInfo(value) {
   return value.split('|')

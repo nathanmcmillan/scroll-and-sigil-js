@@ -1,33 +1,33 @@
-import {exportPixels, exportToCanvas, PaintEdit, SPRITE_TOOL} from '../editor/paint.js'
-import {textureByName} from '../assets/assets.js'
-import {drawTextFont, drawRectangle, drawHollowRectangle, drawImage, drawTextFontSpecial} from '../render/render.js'
-import {renderTouch} from '../client/render-touch.js'
-import {spr, sprcol} from '../render/pico.js'
-import {identity, multiply} from '../math/matrix.js'
-import {flexBox, flexSolve} from '../gui/flex.js'
-import {compress, decompress} from '../compress/huffman.js'
-import {createPixelsToTexture} from '../webgl/webgl.js'
-import {defaultFont, calcFontScale, calcThickness, calcTopBarHeight, calcBottomBarHeight} from '../editor/editor-util.js'
-import {renderDialogBox, renderStatus, renderTextBox} from '../client/client-util.js'
+import { textureByName } from '../assets/assets.js'
+import { renderDialogBox, renderStatus, renderTextBox } from '../client/client-util.js'
+import { renderTouch } from '../client/render-touch.js'
+import { compress, decompress } from '../compress/huffman.js'
+import { calcBottomBarHeight, calcFontScale, calcThickness, calcTopBarHeight, defaultFont } from '../editor/editor-util.js'
+import { exportPixels, exportToCanvas, PaintEdit, SPRITE_TOOL } from '../editor/paint.js'
 import {
   black0f,
   black1f,
   black2f,
-  white0f,
-  white1f,
-  white2f,
-  silverf,
-  lavenderf,
-  redf,
-  slatef,
-  red0f,
-  red1f,
-  red2f,
+  closestInPalette,
   lavender0f,
   lavender1f,
   lavender2f,
-  closestInPalette,
+  lavenderf,
+  red0f,
+  red1f,
+  red2f,
+  redf,
+  silverf,
+  slatef,
+  white0f,
+  white1f,
+  white2f,
 } from '../editor/palette.js'
+import { flexBox, flexSolve } from '../gui/flex.js'
+import { identity, multiply } from '../math/matrix.js'
+import { spr, sprcol } from '../render/pico.js'
+import { drawHollowRectangle, drawImage, drawRectangle, drawTextFont, drawTextFontSpecial } from '../render/render.js'
+import { createPixelsToTexture } from '../webgl/webgl.js'
 
 function updatePixelsToTexture(gl, texture, width, height, pixels) {
   gl.bindTexture(gl.TEXTURE_2D, texture)
@@ -182,7 +182,7 @@ export class PaintState {
   exportHuffman() {
     let blob = compress(this.paint.export())
     let download = document.createElement('a')
-    download.href = window.URL.createObjectURL(new Blob([blob], {type: 'application/octet-stream'}))
+    download.href = window.URL.createObjectURL(new Blob([blob], { type: 'application/octet-stream' }))
     download.download = this.paint.name + '.huff'
     download.click()
   }

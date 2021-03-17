@@ -1,6 +1,6 @@
-import {Entity, spriteName} from '../entity/entity.js'
-import {fetchText} from '../client/net.js'
-import {createSpriteSheet} from '../assets/sprite-sheet.js'
+import { createSpriteSheet } from '../assets/sprite-sheet.js'
+import { fetchText } from '../client/net.js'
+import { Entity, spriteName } from '../entity/entity.js'
 import * as Wad from '../wad/wad.js'
 
 const PROMISES = []
@@ -63,7 +63,7 @@ export function readPaintFile(text, palette) {
     }
   }
 
-  return {name: name, wrap: 'clamp', width: width, height: height, pixels: pixels, sprites: sprites}
+  return { name: name, wrap: 'clamp', width: width, height: height, pixels: pixels, sprites: sprites }
 }
 
 export function saveTexture(name, texture) {

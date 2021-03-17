@@ -1,7 +1,7 @@
-import {WORLD_SCALE} from '../world/world.js'
-import {sectorLineNeighbors, sectorInsideOutside} from '../map/sector.js'
-import {clockwiseReflex, clockwiseInterior, sectorTriangulateForEditor} from '../map/triangulate.js'
-import {SectorReference} from '../editor/map-edit-references.js'
+import { SectorReference } from '../editor/map-edit-references.js'
+import { sectorInsideOutside, sectorLineNeighbors } from '../map/sector.js'
+import { clockwiseInterior, clockwiseReflex, sectorTriangulateForEditor } from '../map/triangulate.js'
+import { WORLD_SCALE } from '../world/world.js'
 
 function resetLineFacing(lines) {
   for (const line of lines) {

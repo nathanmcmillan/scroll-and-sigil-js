@@ -1,10 +1,10 @@
-import {entityByName} from '../assets/assets.js'
-import {playSound} from '../assets/sounds.js'
-import {randomInt} from '../math/random.js'
-import {newPlasma} from '../missile/plasma.js'
-import {redBloodExplode, redBloodTowards} from '../thing/thing-util.js'
-import {Thing, thingApproximateDistance, thingIntegrate, thingSetAnimation, thingSetup, thingUpdateAnimation, thingUpdateSprite} from '../thing/thing.js'
-import {ANIMATION_ALMOST_DONE, ANIMATION_DONE, WORLD_CELL_SHIFT} from '../world/world.js'
+import { entityByName } from '../assets/assets.js'
+import { playSound } from '../assets/sounds.js'
+import { randomInt } from '../math/random.js'
+import { newPlasma } from '../missile/plasma.js'
+import { redBloodExplode, redBloodTowards } from '../thing/thing-util.js'
+import { Thing, thingApproximateDistance, thingIntegrate, thingSetAnimation, thingSetup, thingUpdateAnimation, thingUpdateSprite } from '../thing/thing.js'
+import { ANIMATION_ALMOST_DONE, ANIMATION_DONE, WORLD_CELL_SHIFT } from '../world/world.js'
 
 // TODO
 // If thing interacting with dies / is busy then nullify hero interaction
@@ -185,7 +185,7 @@ function heroDead(self) {
 function heroOpenMenu(self) {
   self.status = STATUS_BUSY
   thingSetAnimation(self, 'move')
-  self.menu = {page: 'inventory'}
+  self.menu = { page: 'inventory' }
 }
 
 function heroBusy(self) {

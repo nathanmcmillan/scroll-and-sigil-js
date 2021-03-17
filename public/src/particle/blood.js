@@ -1,6 +1,6 @@
-import {WORLD_CELL_SHIFT} from '../world/world.js'
-import {randomInt} from '../math/random.js'
-import {particleSetup, particleUpdateSector} from '../particle/particle.js'
+import { randomInt } from '../math/random.js'
+import { particleSetup, particleUpdateSector } from '../particle/particle.js'
+import { WORLD_CELL_SHIFT } from '../world/world.js'
 
 function bloodHitFloor(self) {
   let sector = self.sector
