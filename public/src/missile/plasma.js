@@ -27,7 +27,7 @@ function plasmaInit(self, entity, dx, dy, dz, damage) {
 }
 
 export function newPlasma(world, entity, x, y, z, dx, dy, dz, damage) {
-  let missile = world.newMissile(x, y, z)
+  const missile = world.newMissile(x, y, z)
   plasmaInit(missile, entity, dx, dy, dz, damage)
   return missile
 }

@@ -169,7 +169,7 @@ export function thingSize(thing, zoom) {
 }
 
 function referenceLinesFromVec(vec, lines) {
-  let list = []
+  const list = []
   for (const line of lines) {
     if (line.has(vec)) {
       list.push(line)
@@ -372,7 +372,7 @@ export class MapEdit {
       this.switchTool()
       this.updateSectors()
     } else if (event === 'thing-swap entity') {
-      let change = this.changeEntityDialog
+      const change = this.changeEntityDialog
       change.options = this.entityList.slice()
       this.dialog = change
       this.forcePaint = true
@@ -383,8 +383,8 @@ export class MapEdit {
       this.dialog = this.editThingDialog
       this.forcePaint = true
     } else if (event.startsWith('entity-')) {
-      let dash = event.indexOf('-')
-      let entity = entityByName(event.substring(dash + 1))
+      const dash = event.indexOf('-')
+      const entity = entityByName(event.substring(dash + 1))
       this.selectedThing.setEntity(entity)
       this.dialogEnd()
     } else if (event.startsWith('sector-') || event.startsWith('line-')) {
@@ -397,99 +397,99 @@ export class MapEdit {
   handleDialogSpecial(left) {
     const event = this.dialog.id + '-' + this.dialog.options[this.dialog.pos]
     if (event.startsWith('sector-floor sprite:')) {
-      let sector = this.selectedSector
+      const sector = this.selectedSector
       let index = textureToTileIndex(sector.floorTexture)
       if (left) {
         if (index >= 0) index--
       } else if (index + 1 < tileCount()) index++
-      let was = sector.floorTexture
+      const was = sector.floorTexture
       sector.floorTexture = tileIndexToTexture(index)
       if ((was === null && sector.floorTexture !== null) || (was !== null && sector.floorTexture === null)) this.doSectorRefresh = true
       else sector.refreshFloorTexture()
       this.dialog.options[0] = 'floor sprite:   ' + sector.floorTextureName().padEnd(6).substring(0, 6)
     } else if (event.startsWith('sector-ceiling sprite:')) {
-      let sector = this.selectedSector
+      const sector = this.selectedSector
       let index = textureToTileIndex(sector.ceilingTexture)
       if (left) {
         if (index >= 0) index--
       } else if (index + 1 < tileCount()) index++
-      let was = sector.ceilingTexture
+      const was = sector.ceilingTexture
       sector.ceilingTexture = tileIndexToTexture(index)
       if ((was === null && sector.ceilingTexture !== null) || (was !== null && sector.ceilingTexture === null)) this.doSectorRefresh = true
       else sector.refreshCeilingTexture()
       this.dialog.options[1] = 'ceiling sprite: ' + sector.ceilingTextureName().padEnd(6).substring(0, 6)
     } else if (event.startsWith('sector-bottom:')) {
-      let sector = this.selectedSector
+      const sector = this.selectedSector
       if (left) {
         if (sector.bottom > 0) sector.bottom--
       } else sector.bottom++
       this.doSectorRefresh = true
       this.dialog.options[2] = 'bottom:         ' + sector.bottom
     } else if (event.startsWith('sector-floor:')) {
-      let sector = this.selectedSector
+      const sector = this.selectedSector
       if (left) {
         if (sector.floor > 0) sector.floor--
       } else sector.floor++
       this.doSectorRefresh = true
       this.dialog.options[3] = 'floor:          ' + sector.floor
     } else if (event.startsWith('sector-ceiling:')) {
-      let sector = this.selectedSector
+      const sector = this.selectedSector
       if (left) {
         if (sector.ceiling > 0) sector.ceiling--
       } else sector.ceiling++
       this.doSectorRefresh = true
       this.dialog.options[4] = 'ceiling:        ' + sector.ceiling
     } else if (event.startsWith('sector-top:')) {
-      let sector = this.selectedSector
+      const sector = this.selectedSector
       if (left) {
         if (sector.top > 0) sector.top--
       } else sector.top++
       this.doSectorRefresh = true
       this.dialog.options[5] = 'top:            ' + sector.top
     } else if (event.startsWith('line-top sprite:')) {
-      let wall = this.selectedLine.top
+      const wall = this.selectedLine.top
       let index = textureToTileIndex(wall.texture)
       if (left) {
         if (index >= 0) index--
       } else if (index + 1 < tileCount()) index++
-      let was = wall.texture
+      const was = wall.texture
       wall.texture = tileIndexToTexture(index)
       if ((was === null && wall.texture !== null) || (was !== null && wall.texture === null)) this.doSectorRefresh = true
       this.dialog.options[0] = 'top sprite:    ' + wall.textureName().padEnd(6).substring(0, 6)
     } else if (event.startsWith('line-middle sprite:')) {
-      let wall = this.selectedLine.middle
+      const wall = this.selectedLine.middle
       let index = textureToTileIndex(wall.texture)
       if (left) {
         if (index >= 0) index--
       } else if (index + 1 < tileCount()) index++
-      let was = wall.texture
+      const was = wall.texture
       wall.texture = tileIndexToTexture(index)
       if ((was === null && wall.texture !== null) || (was !== null && wall.texture === null)) this.doSectorRefresh = true
       this.dialog.options[1] = 'middle sprite: ' + wall.textureName().padEnd(6).substring(0, 6)
     } else if (event.startsWith('line-bottom sprite:')) {
-      let wall = this.selectedLine.bottom
+      const wall = this.selectedLine.bottom
       let index = textureToTileIndex(wall.texture)
       if (left) {
         if (index >= 0) index--
       } else if (index + 1 < tileCount()) index++
-      let was = wall.texture
+      const was = wall.texture
       wall.texture = tileIndexToTexture(index)
       if ((was === null && wall.texture !== null) || (was !== null && wall.texture === null)) this.doSectorRefresh = true
       this.dialog.options[2] = 'bottom sprite: ' + wall.textureName().padEnd(6).substring(0, 6)
     } else if (event.startsWith('line-top offset:')) {
-      let wall = this.selectedLine.top
+      const wall = this.selectedLine.top
       if (left) {
         if (wall.offset > 0) wall.offset--
       } else wall.offset++
       this.dialog.options[3] = 'top offset:    ' + wall.offset
     } else if (event.startsWith('line-middle offset:')) {
-      let wall = this.selectedLine.middle
+      const wall = this.selectedLine.middle
       if (left) {
         if (wall.offset > 0) wall.offset--
       } else wall.offset++
       this.dialog.options[4] = 'middle offset: ' + wall.offset
     } else if (event.startsWith('line-bottom offset:')) {
-      let wall = this.selectedLine.bottom
+      const wall = this.selectedLine.bottom
       if (left) {
         if (wall.offset > 0) wall.offset--
       } else wall.offset++
@@ -530,8 +530,8 @@ export class MapEdit {
     for (let i = 0; i < size; i++) {
       for (let k = 0; k < size; k++) {
         if (i === k) continue
-        let a = vecs[i]
-        let b = vecs[k]
+        const a = vecs[i]
+        const b = vecs[k]
         if (a === b || a.eq(b)) {
           console.warn('Duplicate vectors found', strvec(a), strvec(b))
         }
@@ -554,7 +554,7 @@ export class MapEdit {
         let index = 2
         while (index < end) {
           if (map[index] === 'end vectors') break
-          let vec = map[index].split(' ')
+          const vec = map[index].split(' ')
           this.vecs.push(new VectorReference(parseFloat(vec[0]), parseFloat(vec[1])))
           index++
         }
@@ -565,12 +565,12 @@ export class MapEdit {
         index++
         while (index < end) {
           if (map[index] === 'end lines') break
-          let line = map[index].split(' ')
-          let a = this.vecs[parseInt(line[0])]
-          let b = this.vecs[parseInt(line[1])]
-          let top = texture(line[2])
-          let middle = texture(line[3])
-          let bottom = texture(line[4])
+          const line = map[index].split(' ')
+          const a = this.vecs[parseInt(line[0])]
+          const b = this.vecs[parseInt(line[1])]
+          const top = texture(line[2])
+          const middle = texture(line[3])
+          const bottom = texture(line[4])
           let flags = null
           let trigger = null
           let i = 5
@@ -597,22 +597,22 @@ export class MapEdit {
         index++
         while (index < end) {
           if (map[index] === 'end sectors') break
-          let sector = map[index].split(' ')
-          let bottom = parseFloat(sector[0])
-          let floor = parseFloat(sector[1])
-          let ceiling = parseFloat(sector[2])
-          let top = parseFloat(sector[3])
-          let floorTexture = texture(sector[4])
-          let ceilingTexture = texture(sector[5])
+          const sector = map[index].split(' ')
+          const bottom = parseFloat(sector[0])
+          const floor = parseFloat(sector[1])
+          const ceiling = parseFloat(sector[2])
+          const top = parseFloat(sector[3])
+          const floorTexture = texture(sector[4])
+          const ceilingTexture = texture(sector[5])
           let count = parseInt(sector[6])
           let i = 7
           let end = i + count
-          let vecs = []
+          const vecs = []
           for (; i < end; i++) vecs.push(this.vecs[parseInt(sector[i])])
           count = parseInt(sector[i])
           i++
           end = i + count
-          let lines = []
+          const lines = []
           for (; i < end; i++) {
             lines.push(this.lines[parseInt(sector[i])])
           }
@@ -651,15 +651,15 @@ export class MapEdit {
         sectorLineNeighbors(this.sectors, this.lines, WORLD_SCALE)
 
         while (index < end) {
-          let top = map[index]
+          const top = map[index]
           index++
           if (top === 'things') {
             while (index < end) {
               if (map[index] === 'end things') break
-              let thing = map[index].split(' ')
-              let x = parseFloat(thing[0])
-              let z = parseFloat(thing[1])
-              let entity = entityByName(thing[2])
+              const thing = map[index].split(' ')
+              const x = parseFloat(thing[0])
+              const z = parseFloat(thing[1])
+              const entity = entityByName(thing[2])
               this.things.push(new ThingReference(entity, x, z))
               index++
             }
@@ -685,53 +685,53 @@ export class MapEdit {
       } else {
         let index = 0
 
-        let vectors = index + parseInt(map[index].split(' ')[1])
+        const vectors = index + parseInt(map[index].split(' ')[1])
         index++
         for (; index <= vectors; index++) {
-          let vec = map[index].split(' ')
+          const vec = map[index].split(' ')
           this.vecs.push(new VectorReference(parseFloat(vec[0]), parseFloat(vec[1])))
         }
 
         this.checkVectors()
 
-        let lines = index + parseInt(map[index].split(' ')[1])
+        const lines = index + parseInt(map[index].split(' ')[1])
         index++
         for (; index <= lines; index++) {
-          let line = map[index].split(' ')
-          let a = this.vecs[parseInt(line[0])]
-          let b = this.vecs[parseInt(line[1])]
-          let top = texture(line[2])
-          let middle = texture(line[3])
-          let bottom = texture(line[4])
-          let type = null
-          let trigger = null
+          const line = map[index].split(' ')
+          const a = this.vecs[parseInt(line[0])]
+          const b = this.vecs[parseInt(line[1])]
+          const top = texture(line[2])
+          const middle = texture(line[3])
+          const bottom = texture(line[4])
+          const type = null
+          const trigger = null
           this.lines.push(new LineReference(bottom, middle, top, a, b, type, trigger))
         }
 
-        let sectors = index + parseInt(map[index].split(' ')[1])
+        const sectors = index + parseInt(map[index].split(' ')[1])
         index++
         for (; index <= sectors; index++) {
-          let sector = map[index].split(' ')
-          let bottom = parseFloat(sector[0])
-          let floor = parseFloat(sector[1])
-          let ceiling = parseFloat(sector[2])
-          let top = parseFloat(sector[3])
-          let floorTexture = texture(sector[4])
-          let ceilingTexture = texture(sector[5])
+          const sector = map[index].split(' ')
+          const bottom = parseFloat(sector[0])
+          const floor = parseFloat(sector[1])
+          const ceiling = parseFloat(sector[2])
+          const top = parseFloat(sector[3])
+          const floorTexture = texture(sector[4])
+          const ceilingTexture = texture(sector[5])
           let count = parseInt(sector[6])
           let i = 7
           let end = i + count
-          let vecs = []
+          const vecs = []
           for (; i < end; i++) vecs.push(this.vecs[parseInt(sector[i])])
           count = parseInt(sector[i])
           i++
           end = i + count
-          let lines = []
+          const lines = []
           for (; i < end; i++) {
             lines.push(this.lines[parseInt(sector[i])])
           }
-          let type = end < sector.length ? sector[end] : null
-          let trigger = null
+          const type = end < sector.length ? sector[end] : null
+          const trigger = null
           this.sectors.push(new SectorReference(bottom, floor, ceiling, top, floorTexture, ceilingTexture, type, trigger, vecs, lines))
         }
 
@@ -748,16 +748,16 @@ export class MapEdit {
         sectorLineNeighbors(this.sectors, this.lines, WORLD_SCALE)
 
         while (index < map.length - 1) {
-          let top = map[index].split(' ')
-          let count = parseInt(top[1])
+          const top = map[index].split(' ')
+          const count = parseInt(top[1])
           if (top[0] === 'things') {
-            let things = index + count
+            const things = index + count
             index++
             for (; index <= things; index++) {
-              let thing = map[index].split(' ')
-              let x = parseFloat(thing[0])
-              let z = parseFloat(thing[1])
-              let entity = entityByName(thing[2])
+              const thing = map[index].split(' ')
+              const x = parseFloat(thing[0])
+              const z = parseFloat(thing[1])
+              const entity = entityByName(thing[2])
               this.things.push(new ThingReference(entity, x, z))
             }
           } else if (top[0] === 'triggers') {
@@ -796,7 +796,7 @@ export class MapEdit {
     let closest = null
     for (const vec of this.vecs) {
       if (vec === ignore) continue
-      let distance = Math.sqrt((vec.x - x) * (vec.x - x) + (vec.y - y) * (vec.y - y))
+      const distance = Math.sqrt((vec.x - x) * (vec.x - x) + (vec.y - y) * (vec.y - y))
       if (distance > size || distance > best) continue
       best = distance
       closest = vec
@@ -811,16 +811,16 @@ export class MapEdit {
     let best = Number.MAX_VALUE
     let closest = null
     for (const line of this.lines) {
-      let vx = line.b.x - line.a.x
-      let vz = line.b.y - line.a.y
-      let wx = x - line.a.x
-      let wz = y - line.a.y
+      const vx = line.b.x - line.a.x
+      const vz = line.b.y - line.a.y
+      const wx = x - line.a.x
+      const wz = y - line.a.y
       let t = (wx * vx + wz * vz) / (vx * vx + vz * vz)
       if (t < 0.0) t = 0.0
       else if (t > 1.0) t = 1.0
-      let px = line.a.x + vx * t - x
-      let pz = line.a.y + vz * t - y
-      let distance = px * px + pz * pz
+      const px = line.a.x + vx * t - x
+      const pz = line.a.y + vz * t - y
+      const distance = px * px + pz * pz
       if (distance > size || distance > best) continue
       best = distance
       closest = line
@@ -840,7 +840,7 @@ export class MapEdit {
     const x = this.camera.x + this.cursor.x / this.zoom
     const y = this.camera.z + this.cursor.y / this.zoom
     for (const thing of this.things) {
-      let size = 0.25 * thingSize(thing, this.zoom)
+      const size = 0.25 * thingSize(thing, this.zoom)
       if (x >= thing.x - size && x <= thing.x + size && y >= thing.z - size && y <= thing.z + size) {
         return thing
       }
@@ -857,7 +857,7 @@ export class MapEdit {
   }
 
   deleteVec(vec) {
-    let index = this.vecs.indexOf(vec)
+    const index = this.vecs.indexOf(vec)
     this.vecs.splice(index, 1)
   }
 
@@ -889,8 +889,8 @@ export class MapEdit {
 
   deleteSelectedLine() {
     this.doSectorRefresh = true
-    let selected = this.selectedLine
-    let index = this.lines.indexOf(selected)
+    const selected = this.selectedLine
+    const index = this.lines.indexOf(selected)
     this.lines.splice(index, 1)
     let a = false
     let b = false
@@ -905,7 +905,7 @@ export class MapEdit {
   }
 
   deleteSelectedThing() {
-    let index = this.things.indexOf(this.selectedThing)
+    const index = this.things.indexOf(this.selectedThing)
     this.things.splice(index, 1)
     this.selectedThing = null
   }
@@ -936,16 +936,16 @@ export class MapEdit {
     let closest = null
     let multiple = false
     for (const line of this.lines) {
-      let vx = line.b.x - line.a.x
-      let vz = line.b.y - line.a.y
-      let wx = x - line.a.x
-      let wz = y - line.a.y
+      const vx = line.b.x - line.a.x
+      const vz = line.b.y - line.a.y
+      const wx = x - line.a.x
+      const wz = y - line.a.y
       let t = (wx * vx + wz * vz) / (vx * vx + vz * vz)
       if (t < 0.0) t = 0.0
       else if (t > 1.0) t = 1.0
-      let px = line.a.x + vx * t - x
-      let pz = line.a.y + vz * t - y
-      let distance = px * px + pz * pz
+      const px = line.a.x + vx * t - x
+      const pz = line.a.y + vz * t - y
+      const distance = px * px + pz * pz
       if (distance > size || distance > best) continue
       if (closest) multiple = true
       best = distance
@@ -960,7 +960,7 @@ export class MapEdit {
     for (const thing of this.things) {
       for (const sector of this.sectors) {
         if (sector.contains(thing.x, thing.z)) {
-          let use = sector.find(thing.x, thing.z)
+          const use = sector.find(thing.x, thing.z)
           thing.y = use.floor
         }
       }
@@ -1007,15 +1007,15 @@ export class MapEdit {
         if (this.selectedSecondVec) this.action = OPTION_END_LINE
       } else if (this.action === OPTION_MOVE_VECTOR || this.action === OPTION_VECTOR_OVERLAP) {
         this.action = OPTION_MOVE_VECTOR
-        let x = camera.x + cursor.x / this.zoom
-        let y = camera.z + cursor.y / this.zoom
+        const x = camera.x + cursor.x / this.zoom
+        const y = camera.z + cursor.y / this.zoom
         this.selectedVec.x = x
         this.selectedVec.y = y
         this.selectedSecondVec = this.vectorUnderCursor(this.selectedVec)
         if (this.selectedSecondVec) this.action = OPTION_VECTOR_OVERLAP
       }
 
-      let options = DESCRIBE_OPTIONS[this.action]
+      const options = DESCRIBE_OPTIONS[this.action]
 
       if (this.action === OPTION_DRAW_MODE_DEFAULT) {
         for (const [button, option] of options) {
@@ -1065,8 +1065,8 @@ export class MapEdit {
           if (input.in[button]) {
             input.in[button] = false
             if (option === DO_MERGE_VECTOR) {
-              let lines = referenceLinesFromVec(this.selectedVec, this.lines)
-              for (let line of lines) {
+              const lines = referenceLinesFromVec(this.selectedVec, this.lines)
+              for (const line of lines) {
                 if (line.a === this.selectedVec) line.a = this.selectedSecondVec
                 else line.b = this.selectedSecondVec
               }
@@ -1108,10 +1108,10 @@ export class MapEdit {
                   type = line.type
                   trigger = line.trigger
                 }
-                let line = new LineReference(bottom, middle, top, this.selectedVec, this.selectedSecondVec, type, trigger)
-                let x = line.a.x - line.b.x
-                let y = line.a.y - line.b.y
-                let st = Math.sqrt(x * x + y * y) * WORLD_SCALE
+                const line = new LineReference(bottom, middle, top, this.selectedVec, this.selectedSecondVec, type, trigger)
+                const x = line.a.x - line.b.x
+                const y = line.a.y - line.b.y
+                const st = Math.sqrt(x * x + y * y) * WORLD_SCALE
                 line.middle.update(floor, ceiling, 0.0, floor * WORLD_SCALE, st, ceiling * WORLD_SCALE, line.a, line.b)
                 this.lines.push(line)
                 this.action = OPTION_VECTOR_UNDER_CURSOR
@@ -1147,10 +1147,10 @@ export class MapEdit {
                 type = line.type
                 trigger = line.trigger
               }
-              let line = new LineReference(bottom, middle, top, this.selectedVec, this.placeVectorAtCursor(), type, trigger)
-              let x = line.a.x - line.b.x
-              let y = line.a.y - line.b.y
-              let st = Math.sqrt(x * x + y * y) * WORLD_SCALE
+              const line = new LineReference(bottom, middle, top, this.selectedVec, this.placeVectorAtCursor(), type, trigger)
+              const x = line.a.x - line.b.x
+              const y = line.a.y - line.b.y
+              const st = Math.sqrt(x * x + y * y) * WORLD_SCALE
               line.middle.update(floor, ceiling, 0.0, floor * WORLD_SCALE, st, ceiling * WORLD_SCALE, line.a, line.b)
               this.lines.push(line)
               this.selectedVec = null
@@ -1169,13 +1169,13 @@ export class MapEdit {
         this.selectedThing = this.thingUnderCursor()
         if (this.selectedThing) this.action = OPTION_THING_UNDER_CURSOR
       } else if (this.action === OPTION_MOVE_THING) {
-        let x = camera.x + cursor.x / this.zoom
-        let y = camera.z + cursor.y / this.zoom
+        const x = camera.x + cursor.x / this.zoom
+        const y = camera.z + cursor.y / this.zoom
         this.selectedThing.x = x
         this.selectedThing.z = y
       }
 
-      let options = DESCRIBE_OPTIONS[this.action]
+      const options = DESCRIBE_OPTIONS[this.action]
 
       if (this.action === OPTION_THING_MODE_DEFAULT) {
         for (const [button, option] of options) {
@@ -1218,15 +1218,15 @@ export class MapEdit {
         else if (this.selectedSector) this.action = OPTION_SECTOR_UNDER_CURSOR
       }
 
-      let options = DESCRIBE_OPTIONS[this.action]
+      const options = DESCRIBE_OPTIONS[this.action]
 
       if (this.action === OPTION_SECTOR_UNDER_CURSOR) {
         for (const [button, option] of options) {
           if (input.in[button]) {
             input.in[button] = false
             if (option === DO_EDIT_SECTOR) {
-              let sector = this.selectedSector
-              let options = this.editSectorDialog.options
+              const sector = this.selectedSector
+              const options = this.editSectorDialog.options
               options[0] = 'floor sprite:   ' + sector.floorTextureName().padEnd(6).substring(0, 6)
               options[1] = 'ceiling sprite: ' + sector.ceilingTextureName().padEnd(6).substring(0, 6)
               options[2] = 'bottom:         ' + sector.bottom
@@ -1242,8 +1242,8 @@ export class MapEdit {
           if (input.in[button]) {
             input.in[button] = false
             if (option === DO_EDIT_LINE) {
-              let line = this.selectedLine
-              let options = this.editLineDialog.options
+              const line = this.selectedLine
+              const options = this.editLineDialog.options
               options[0] = 'top sprite:    ' + line.topTextureName().padEnd(6).substring(0, 6)
               options[1] = 'middle sprite: ' + line.middleTextureName().padEnd(6).substring(0, 6)
               options[2] = 'bottom sprite: ' + line.bottomTextureName().padEnd(6).substring(0, 6)
@@ -1338,54 +1338,54 @@ export class MapEdit {
         const grid = this.snapToGrid
         if (input.b()) {
           if (input.pressStickLeft()) {
-            let x = Math.floor(camera.x)
-            let modulo = x % grid
+            const x = Math.floor(camera.x)
+            const modulo = x % grid
             if (modulo === 0) camera.x -= grid
             else camera.x -= modulo
           }
           if (input.pressStickRight()) {
-            let x = Math.floor(camera.x)
-            let modulo = x % grid
+            const x = Math.floor(camera.x)
+            const modulo = x % grid
             if (modulo === 0) camera.x += grid
             else camera.x += grid - modulo
           }
           if (input.pressStickUp()) {
-            let z = Math.floor(camera.z)
-            let modulo = z % grid
+            const z = Math.floor(camera.z)
+            const modulo = z % grid
             if (modulo === 0) camera.z += grid
             else camera.z += grid - modulo
           }
           if (input.pressStickDown()) {
-            let z = Math.floor(camera.z)
-            let modulo = z % grid
+            const z = Math.floor(camera.z)
+            const modulo = z % grid
             if (modulo === 0) camera.z -= grid
             else camera.z -= modulo
           }
         } else {
           if (input.pressStickLeft()) {
-            let x = Math.floor(cursor.x)
-            let modulo = x % grid
+            const x = Math.floor(cursor.x)
+            const modulo = x % grid
             if (modulo === 0) cursor.x -= grid
             else cursor.x -= modulo
             if (cursor.x < 0.0) cursor.x = 0.0
           }
           if (input.pressStickRight()) {
-            let x = Math.floor(cursor.x)
-            let modulo = x % grid
+            const x = Math.floor(cursor.x)
+            const modulo = x % grid
             if (modulo === 0) cursor.x += grid
             else cursor.x += grid - modulo
             if (cursor.x > this.width) cursor.x = this.width
           }
           if (input.pressStickUp()) {
-            let y = Math.floor(cursor.y)
-            let modulo = y % grid
+            const y = Math.floor(cursor.y)
+            const modulo = y % grid
             if (modulo === 0) cursor.y += grid
             else cursor.y += grid - modulo
             if (cursor.y > this.height) cursor.y = this.height
           }
           if (input.pressStickDown()) {
-            let y = Math.floor(cursor.y)
-            let modulo = y % grid
+            const y = Math.floor(cursor.y)
+            const modulo = y % grid
             if (modulo === 0) cursor.y -= grid
             else cursor.y -= modulo
             if (cursor.y < 0.0) cursor.y = 0.0
@@ -1584,13 +1584,13 @@ export class MapEdit {
     const input = this.input
     if (input.rightTrigger()) return 'SNAP TO GRID: ' + this.snapToGrid + ' ZOOM: ' + this.zoom.toFixed(2) + 'X'
     if (this.selectedLine) {
-      let line = this.selectedLine
-      let bottom = line.bottom.textureName().toUpperCase()
-      let middle = line.middle.textureName().toUpperCase()
-      let top = line.top.textureName().toUpperCase()
+      const line = this.selectedLine
+      const bottom = line.bottom.textureName().toUpperCase()
+      const middle = line.middle.textureName().toUpperCase()
+      const top = line.top.textureName().toUpperCase()
       return 'B:' + bottom + ' M:' + middle + ' T:' + top
     } else if (this.selectedSector) {
-      let sector = this.selectedSector
+      const sector = this.selectedSector
       return 'F:' + sector.floorTextureName().toUpperCase() + ' C:' + sector.ceilingTextureName().toUpperCase()
     }
   }
@@ -1636,8 +1636,8 @@ export class MapEdit {
       this.forcePaint = true
     }
     if (input.pressA() || input.pressStart() || input.pressSelect()) {
-      let id = this.dialog.id
-      let option = this.dialog.options[this.dialog.pos]
+      const id = this.dialog.id
+      const option = this.dialog.options[this.dialog.pos]
       this.handleDialog(id + '-' + option)
     }
   }

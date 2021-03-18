@@ -81,17 +81,17 @@ export class Client {
   }
 
   touchStart(event) {
-    let input = touchRenderEvent(this.touchRender, event)
+    const input = touchRenderEvent(this.touchRender, event)
     if (input !== null) {
-      let code = this.keys.reversed(input)
+      const code = this.keys.reversed(input)
       this.state.keyEvent(code, true)
     }
   }
 
   touchEnd(event) {
-    let input = touchRenderEvent(this.touchRender, event)
+    const input = touchRenderEvent(this.touchRender, event)
     if (input !== null) {
-      let code = this.keys.reversed(input)
+      const code = this.keys.reversed(input)
       this.state.keyEvent(code, false)
     }
   }
@@ -127,13 +127,13 @@ export class Client {
 
     orthographic(this.orthographic, 0.0, width, 0.0, height, 0.0, 1.0)
 
-    let fov = 60.0
-    let near = 0.01
-    let far = 200.0
+    const fov = 60.0
+    const near = 0.01
+    const far = 200.0
     perspective(this.perspective, fov, near, far, ratio)
 
-    let x = Math.ceil(width / 800)
-    let y = Math.ceil(height / 600)
+    const x = Math.ceil(width / 800)
+    const y = Math.ceil(height / 600)
     this.scale = Math.min(x, y)
 
     if (this.touch) touchRenderResize(this.touchRender)
@@ -211,9 +211,9 @@ export class Client {
     gl.disable(gl.BLEND)
 
     for (const music of contents.get('music')) {
-      let dot = music.lastIndexOf('.')
+      const dot = music.lastIndexOf('.')
       if (dot === -1) throw 'Extension missing: ' + music
-      let name = music.substring(0, dot)
+      const name = music.substring(0, dot)
       saveMusic(name, directory + '/music/' + music)
       tape.music.push(music)
     }
@@ -259,7 +259,7 @@ export class Client {
 
     for (let texture of textures) {
       texture = await texture
-      let wrap = texture.wrap === 'repeat' ? gl.REPEAT : gl.CLAMP_TO_EDGE
+      const wrap = texture.wrap === 'repeat' ? gl.REPEAT : gl.CLAMP_TO_EDGE
       if (texture.pixels) {
         saveTexture(texture.name, createPixelsToTexture(gl, texture.width, texture.height, texture.pixels, gl.RGB, gl.NEAREST, wrap))
         if (texture.sprites) {
@@ -353,7 +353,7 @@ export class Client {
   }
 
   async openState(open) {
-    let boot = this.boot
+    const boot = this.boot
     let file = null
     switch (open) {
       case 'paint':

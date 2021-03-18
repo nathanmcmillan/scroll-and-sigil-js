@@ -27,7 +27,7 @@ export function calcBottomBarHeight(scale) {
 export function calcLongest(list) {
   let high = list[0].length
   for (let i = 1; i < list.length; i++) {
-    let len = list[i].length
+    const len = list[i].length
     if (len > high) high = len
   }
   return high

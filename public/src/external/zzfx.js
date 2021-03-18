@@ -10,8 +10,8 @@ export function zzfxt() {
 }
 
 export function zzfxb(...t) {
-  let source = context.createBufferSource()
-  let buffer = context.createBuffer(t.length, t[0].length, zzfxr)
+  const source = context.createBufferSource()
+  const buffer = context.createBuffer(t.length, t[0].length, zzfxr)
   t.map((d, i) => buffer.getChannelData(i).set(d))
   source.buffer = buffer
   source.connect(context.destination)
@@ -19,23 +19,23 @@ export function zzfxb(...t) {
 }
 
 export function zzfxp(...t) {
-  let source = zzfxb(...t)
+  const source = zzfxb(...t)
   source.start()
   return source
 }
 
 export function zzfxpd(when, ...t) {
-  let source = zzfxb(...t)
+  const source = zzfxb(...t)
   source.start(when)
   return source
 }
 
 export function zzfxg(q = 1, k = 0.05, c = 220, e = 0, t = 0, u = 0.1, r = 0, F = 1, v = 0, z = 0, w = 0, A = 0, l = 0, B = 0, x = 0, G = 0, d = 0, y = 1, m = 0, C = 0) {
-  let b = 2 * Math.PI
-  let H = (v *= (500 * b) / zzfxr ** 2)
-  let I = ((0 < x ? 1 : -1) * b) / 4
+  const b = 2 * Math.PI
+  const H = (v *= (500 * b) / zzfxr ** 2)
+  const I = ((0 < x ? 1 : -1) * b) / 4
   let D = (c *= ((1 + 2 * k * Math.random() - k) * b) / zzfxr)
-  let Z = []
+  const Z = []
   let g = 0
   let E = 0
   let a = 0

@@ -17,7 +17,7 @@ function plasmaExplosionInit(self, entity) {
 }
 
 export function newPlasmaExplosion(world, entity, x, y, z) {
-  let particle = world.newParticle(x, y, z)
+  const particle = world.newParticle(x, y, z)
   plasmaExplosionInit(particle, entity)
   return particle
 }

@@ -39,25 +39,25 @@ function sawtooth(x) {
 function algo(data, text, base, speed, position) {
   const len = text.length
   for (let c = 0; c < len; c++) {
-    let l = text[c]
-    let p = phonemes[l]
+    const l = text[c]
+    const p = phonemes[l]
     if (!p) {
       if (l === ' ' || l === '\n') position += Math.floor(SYNTH_SPEECH_RATE * 0.1 * speed)
       continue
     }
-    let v = p.amp
-    let sl = p.len * (SYNTH_SPEECH_RATE / 15) * speed
+    const v = p.amp
+    const sl = p.len * (SYNTH_SPEECH_RATE / 15) * speed
     for (let f = 0; f < 3; f++) {
-      let ff = p.f[f]
-      let freq = ff * (50 / SYNTH_SPEECH_RATE)
+      const ff = p.f[f]
+      const freq = ff * (50 / SYNTH_SPEECH_RATE)
       if (!ff) continue
       let one = 0
       let two = 0
-      let q = 1.0 - p.w[f] * ((pi * 10) / SYNTH_SPEECH_RATE)
+      const q = 1.0 - p.w[f] * ((pi * 10) / SYNTH_SPEECH_RATE)
       let current = position
       let xp = 0
       for (let s = 0; s < sl; s++) {
-        let n = Math.random() - 0.5
+        const n = Math.random() - 0.5
         let x = n
         if (!p.osc) {
           x = sawtooth(s * ((base * tau) / SYNTH_SPEECH_RATE))
@@ -81,11 +81,11 @@ function algo(data, text, base, speed, position) {
 }
 
 export function speech(text, base, speed, position = 0, when = 0) {
-  let seconds = text.length * speed
-  let buffer = context.createBuffer(1, Math.ceil(SYNTH_SPEECH_RATE * seconds), SYNTH_SPEECH_RATE)
-  let data = buffer.getChannelData(0)
+  const seconds = text.length * speed
+  const buffer = context.createBuffer(1, Math.ceil(SYNTH_SPEECH_RATE * seconds), SYNTH_SPEECH_RATE)
+  const data = buffer.getChannelData(0)
   algo(data, text, base, speed, position)
-  let source = context.createBufferSource()
+  const source = context.createBufferSource()
   source.buffer = buffer
   source.connect(context.destination)
   source.start(when)

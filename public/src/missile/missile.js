@@ -42,14 +42,14 @@ export function missileSetup(self) {
 }
 
 export function missilePushToCells(self) {
-  let box = self.box
-  let minC = Math.floor(self.x - box) >> WORLD_CELL_SHIFT
-  let maxC = Math.floor(self.x + box) >> WORLD_CELL_SHIFT
-  let minR = Math.floor(self.z - box) >> WORLD_CELL_SHIFT
-  let maxR = Math.floor(self.z + box) >> WORLD_CELL_SHIFT
+  const box = self.box
+  const minC = Math.floor(self.x - box) >> WORLD_CELL_SHIFT
+  const maxC = Math.floor(self.x + box) >> WORLD_CELL_SHIFT
+  const minR = Math.floor(self.z - box) >> WORLD_CELL_SHIFT
+  const maxR = Math.floor(self.z + box) >> WORLD_CELL_SHIFT
 
-  let world = self.world
-  let columns = world.columns
+  const world = self.world
+  const columns = world.columns
 
   if (minC < 0 || minR < 0 || maxC >= columns || maxR >= world.rows) return true
 
@@ -68,7 +68,7 @@ export function missilePushToCells(self) {
 }
 
 export function missileRemoveFromCells(self) {
-  let world = self.world
+  const world = self.world
   for (let r = self.minR; r <= self.maxR; r++) {
     for (let c = self.minC; c <= self.maxC; c++) {
       world.cells[c + r * world.columns].removeMissile(self)
@@ -82,26 +82,26 @@ export function missileUpdateSector(self) {
 }
 
 export function missileOverlap(self, thing) {
-  let box = self.box + thing.box
+  const box = self.box + thing.box
   return Math.abs(self.x - thing.x) <= box && Math.abs(self.z - thing.z) <= box
 }
 
 export function missileLineOverlap(self, line) {
   if (!line.physical) {
-    let max = self.y + self.height
+    const max = self.y + self.height
     if (line.plus && self.y > line.plus.floor && max < line.plus.ceiling) return false
     if (line.minus && self.y > line.minus.floor && max < line.minus.ceiling) return false
   }
-  let box = self.box
-  let vx = line.b.x - line.a.x
-  let vz = line.b.y - line.a.y
-  let wx = self.x - line.a.x
-  let wz = self.z - line.a.y
+  const box = self.box
+  const vx = line.b.x - line.a.x
+  const vz = line.b.y - line.a.y
+  const wx = self.x - line.a.x
+  const wz = self.z - line.a.y
   let t = (wx * vx + wz * vz) / (vx * vx + vz * vz)
   if (t < 0.0) t = 0.0
   else if (t > 1.0) t = 1.0
-  let px = line.a.x + vx * t - self.x
-  let pz = line.a.y + vz * t - self.z
+  const px = line.a.x + vx * t - self.x
+  const pz = line.a.y + vz * t - self.z
   return px * px + pz * pz <= box * box
 }
 
@@ -116,19 +116,19 @@ export function missileCheck(self) {
     self.hit(null)
     return true
   }
-  let box = self.box
-  let minC = Math.floor(self.x - box) >> WORLD_CELL_SHIFT
-  let maxC = Math.floor(self.x + box) >> WORLD_CELL_SHIFT
-  let minR = Math.floor(self.z - box) >> WORLD_CELL_SHIFT
-  let maxR = Math.floor(self.z + box) >> WORLD_CELL_SHIFT
-  let world = self.world
-  let columns = world.columns
+  const box = self.box
+  const minC = Math.floor(self.x - box) >> WORLD_CELL_SHIFT
+  const maxC = Math.floor(self.x + box) >> WORLD_CELL_SHIFT
+  const minR = Math.floor(self.z - box) >> WORLD_CELL_SHIFT
+  const maxR = Math.floor(self.z + box) >> WORLD_CELL_SHIFT
+  const world = self.world
+  const columns = world.columns
   for (let r = minR; r <= maxR; r++) {
     for (let c = minC; c <= maxC; c++) {
-      let cell = world.cells[c + r * columns]
+      const cell = world.cells[c + r * columns]
       let i = cell.thingCount
       while (i--) {
-        let thing = cell.things[i]
+        const thing = cell.things[i]
         if (self === thing) continue
         if (thing.isPhysical && missileOverlap(self, thing)) {
           self.hit(thing)

@@ -4,12 +4,12 @@ import { diatonic, pulse, SEMITONES, waveFromName } from '../sound/synth.js'
 
 export function parse(str) {
   let music = []
-  let stack = [music]
+  const stack = [music]
   let value = ''
   let pc = ''
-  let len = str.length
+  const len = str.length
   for (let i = 0; i < len; i++) {
-    let c = str[i]
+    const c = str[i]
     if (c === '\n') {
       continue
     } else if (c === ',') {
@@ -23,7 +23,7 @@ export function parse(str) {
       }
       pc = c
     } else if (c === '[') {
-      let array = []
+      const array = []
       stack[0].push(array)
       stack.unshift(array)
       pc = c
@@ -79,7 +79,7 @@ export class MusicNode {
   }
 
   pause() {
-    let audio = this.audio
+    const audio = this.audio
     if (!audio) return
     audio.disconnect()
     audio.stop()

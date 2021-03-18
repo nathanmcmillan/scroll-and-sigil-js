@@ -15,7 +15,7 @@ export class SfxState {
     this.view = new Float32Array(16)
     this.projection = new Float32Array(16)
 
-    let sfx = new SfxEdit(this, client.width, client.height - client.top, client.scale, client.input)
+    const sfx = new SfxEdit(this, client.width, client.height - client.top, client.scale, client.input)
     this.sfx = sfx
   }
 
@@ -54,15 +54,15 @@ export class SfxState {
   }
 
   import() {
-    let button = document.createElement('input')
+    const button = document.createElement('input')
     button.type = 'file'
     button.onchange = (e) => {
-      let file = e.target.files[0]
+      const file = e.target.files[0]
       console.info(file)
-      let reader = new FileReader()
+      const reader = new FileReader()
       reader.readAsText(file, 'utf-8')
       reader.onload = (event) => {
-        let content = event.target.result
+        const content = event.target.result
         this.sfx.read(content)
       }
     }
@@ -70,15 +70,15 @@ export class SfxState {
   }
 
   save() {
-    let blob = this.sfx.export()
+    const blob = this.sfx.export()
     localStorage.setItem('sfx.txt', blob)
     console.info(blob)
     console.info('saved to local storage!')
   }
 
   export() {
-    let blob = this.sfx.export()
-    let download = document.createElement('a')
+    const blob = this.sfx.export()
+    const download = document.createElement('a')
     download.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(blob)
     download.download = 'sfx.txt'
     download.click()
@@ -147,7 +147,7 @@ export class SfxState {
 
     // sound
 
-    let x = 40
+    const x = 40
     let y = 600
 
     for (let i = 0; i < sfx.parameters.length; i++) {

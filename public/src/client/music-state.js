@@ -17,7 +17,7 @@ export class MusicState {
     this.view = new Float32Array(16)
     this.projection = new Float32Array(16)
 
-    let music = new MusicEdit(this, client.width, client.height - client.top, client.scale, client.input)
+    const music = new MusicEdit(this, client.width, client.height - client.top, client.scale, client.input)
     this.music = music
   }
 
@@ -56,15 +56,15 @@ export class MusicState {
   }
 
   import() {
-    let button = document.createElement('input')
+    const button = document.createElement('input')
     button.type = 'file'
     button.onchange = (e) => {
-      let file = e.target.files[0]
+      const file = e.target.files[0]
       console.info(file)
-      let reader = new FileReader()
+      const reader = new FileReader()
       reader.readAsText(file, 'utf-8')
       reader.onload = (event) => {
-        let content = event.target.result
+        const content = event.target.result
         this.music.read(content)
       }
     }
@@ -72,15 +72,15 @@ export class MusicState {
   }
 
   save() {
-    let blob = this.music.export()
+    const blob = this.music.export()
     localStorage.setItem('music.txt', blob)
     console.info(blob)
     console.info('saved to local storage!')
   }
 
   export() {
-    let blob = this.music.export()
-    let download = document.createElement('a')
+    const blob = this.music.export()
+    const download = document.createElement('a')
     download.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(blob)
     download.download = 'music.txt'
     download.click()
@@ -109,7 +109,7 @@ export class MusicState {
     identity(view)
     multiply(projection, client.orthographic, view)
 
-    let buffer = client.bufferColor
+    const buffer = client.bufferColor
     buffer.zero()
 
     const font = defaultFont()
@@ -130,7 +130,7 @@ export class MusicState {
 
     // top bar
 
-    let topBarHeight = fontHeight + 2 * pad
+    const topBarHeight = fontHeight + 2 * pad
     drawRectangle(buffer, 0, height - topBarHeight, width, topBarHeight, redf(0), redf(1), redf(2), 1.0)
 
     // bottom bar
@@ -147,11 +147,11 @@ export class MusicState {
 
     client.bufferGUI.zero()
 
-    let track = music.tracks[music.trackIndex]
-    let notes = track.notes
+    const track = music.tracks[music.trackIndex]
+    const notes = track.notes
 
-    let text = track.name
-    let posBox = flexBox(fontWidth * text.length, fontHeight)
+    const text = track.name
+    const posBox = flexBox(fontWidth * text.length, fontHeight)
     posBox.argX = 20
     posBox.argY = 40
     flexSolve(width, height, posBox)
@@ -170,18 +170,18 @@ export class MusicState {
     let x = noteSides
     let pos = x
     let y = height - 150
-    let noteWidth = Math.floor(2.5 * smallFontWidth)
-    let noteHeight = Math.floor(1.2 * smallFontHeight)
+    const noteWidth = Math.floor(2.5 * smallFontWidth)
+    const noteHeight = Math.floor(1.2 * smallFontHeight)
 
     for (let c = 0; c < notes.length; c++) {
-      let note = notes[c]
+      const note = notes[c]
       if (pos > width - noteSides) {
         pos = x
         y -= 6 * noteHeight
       }
       for (let r = 1; r < noteRows; r++) {
-        let num = note[r]
-        let pitch = num === 0 ? '-' : '' + num
+        const num = note[r]
+        const pitch = num === 0 ? '-' : '' + num
         let xx = pos
         if (pitch >= 10) xx -= smallFontHalfWidth
         if (c === noteC && r === noteR) drawTextFontSpecial(client.bufferGUI, xx, y - r * noteHeight, pitch, smallFontScale, redf(0), redf(1), redf(2), font)
@@ -190,12 +190,12 @@ export class MusicState {
       pos += noteWidth
     }
 
-    let tempoText = 'Tempo:' + music.tempo
+    const tempoText = 'Tempo:' + music.tempo
     drawTextFontSpecial(client.bufferGUI, 20, height - fontHeight * 3, tempoText, fontScale, whitef(0), whitef(1), whitef(2), font)
 
     drawTextFontSpecial(client.bufferGUI, 20, 200, lengthName(notes[noteC][0]), smallFontScale, whitef(0), whitef(1), whitef(2), font)
     for (let r = 1; r < noteRows; r++) {
-      let note = notes[noteC][r]
+      const note = notes[noteC][r]
       let noteText
       if (note === 0) noteText = '-'
       else noteText = semitoneName(note - SEMITONES)
@@ -226,8 +226,8 @@ export class MusicState {
 
     const r = 0
     for (let c = 0; c < notes.length; c++) {
-      let note = notes[c]
-      let duration = 33 + note[r]
+      const note = notes[c]
+      const duration = 33 + note[r]
       if (pos > width - noteSides) {
         pos = x
         y -= 6 * noteHeight

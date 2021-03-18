@@ -114,10 +114,10 @@ function algoSawtooth(data, amplitude, frequency) {
 }
 
 function play(amplitude, frequency, parameters, seconds, algo, when = 0) {
-  let buffer = context.createBuffer(1, Math.ceil(SYNTH_RATE * seconds), SYNTH_RATE)
-  let data = buffer.getChannelData(0)
+  const buffer = context.createBuffer(1, Math.ceil(SYNTH_RATE * seconds), SYNTH_RATE)
+  const data = buffer.getChannelData(0)
   algo(data, amplitude, frequency, parameters)
-  let source = context.createBufferSource()
+  const source = context.createBufferSource()
   source.buffer = buffer
   source.connect(context.destination)
   source.start(when)
@@ -180,7 +180,7 @@ export function semitoneName(semitone) {
   semitone += 9
   let note = semitone % 12
   while (note < 0) note += 12
-  let octave = 4 + Math.floor(semitone / 12)
+  const octave = 4 + Math.floor(semitone / 12)
   return notes[note] + octave
 }
 

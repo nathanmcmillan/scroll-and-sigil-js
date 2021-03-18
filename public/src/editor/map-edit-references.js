@@ -13,9 +13,9 @@ export class VectorReference {
   }
 
   normal(b) {
-    let x = this.y - b.y
-    let y = -(this.x - b.x)
-    let magnitude = Math.sqrt(x * x + y * y)
+    const x = this.y - b.y
+    const y = -(this.x - b.x)
+    const magnitude = Math.sqrt(x * x + y * y)
     return new VectorReference(x / magnitude, y / magnitude)
   }
 
@@ -163,10 +163,10 @@ export class LineReference {
   }
 
   static copy(line) {
-    let top = line.top ? line.top.texture : -1
-    let middle = line.middle ? line.middle.texture : -1
-    let bottom = line.bottom ? line.bottom.texture : -1
-    let copy = new LineReference(bottom, middle, top, line.a, line.b, line.flags, line.trigger)
+    const top = line.top ? line.top.texture : -1
+    const middle = line.middle ? line.middle.texture : -1
+    const bottom = line.bottom ? line.bottom.texture : -1
+    const copy = new LineReference(bottom, middle, top, line.a, line.b, line.flags, line.trigger)
     WallReference.transfer(line.bottom, copy.bottom)
     WallReference.transfer(line.middle, copy.middle)
     WallReference.transfer(line.top, copy.top)
@@ -260,13 +260,13 @@ export class SectorReference {
 
   contains(x, z) {
     let odd = false
-    let len = this.vecs.length
+    const len = this.vecs.length
     let k = len - 1
     for (let i = 0; i < len; i++) {
-      let a = this.vecs[i]
-      let b = this.vecs[k]
+      const a = this.vecs[i]
+      const b = this.vecs[k]
       if (a.y > z !== b.y > z) {
-        let val = ((b.x - a.x) * (z - a.y)) / (b.y - a.y) + a.x
+        const val = ((b.x - a.x) * (z - a.y)) / (b.y - a.y) + a.x
         if (x < val) {
           odd = !odd
         }
@@ -279,7 +279,7 @@ export class SectorReference {
   find(x, z) {
     let i = this.inside.length
     while (i--) {
-      let inside = this.inside[i]
+      const inside = this.inside[i]
       if (inside.contains(x, z)) {
         return inside.find(x, z)
       }
@@ -343,7 +343,7 @@ export class ThingReference {
     this.height = entity.height()
     if (entity.has('sprite')) this.stamp = entity.stamp()
     else {
-      let stamps = entity.stamps()
+      const stamps = entity.stamps()
       if (Array.isArray(stamps)) this.stamp = stamps[0]
       else this.stamp = stamps.values().next().value[0]
     }

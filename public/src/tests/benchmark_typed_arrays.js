@@ -1,9 +1,9 @@
 const ITERATIONS = 100000
 
 function testA() {
-  let perf = performance.now()
+  const perf = performance.now()
   let sum = 0.0
-  let matrix = new Float64Array(16)
+  const matrix = new Float64Array(16)
   for (let i = 0; i < ITERATIONS; i++) {
     identityA(matrix)
     rotateA(matrix, Math.random(), Math.random())
@@ -14,9 +14,9 @@ function testA() {
 }
 
 function testB() {
-  let perf = performance.now()
+  const perf = performance.now()
   let sum = 0.0
-  let matrix = new Float32Array(16)
+  const matrix = new Float32Array(16)
   for (let i = 0; i < ITERATIONS; i++) {
     identityB(matrix)
     rotateB(matrix, Math.random(), Math.random())
@@ -27,9 +27,9 @@ function testB() {
 }
 
 function testC() {
-  let perf = performance.now()
+  const perf = performance.now()
   let sum = 0.0
-  let matrix = new Array(16)
+  const matrix = new Array(16)
   for (let i = 0; i < ITERATIONS; i++) {
     identityC(matrix)
     rotateC(matrix, Math.random(), Math.random())
@@ -40,9 +40,9 @@ function testC() {
 }
 
 function testD() {
-  let perf = performance.now()
+  const perf = performance.now()
   let sum = 0.0
-  let matrix = []
+  const matrix = []
   for (let i = 0; i < ITERATIONS; i++) {
     identityD(matrix)
     rotateD(matrix, Math.random(), Math.random())
@@ -52,13 +52,13 @@ function testD() {
   console.log('time (zero array)', performance.now() - perf)
 }
 
-let tempE1 = new Float32Array(16)
-let tempE2 = new Float32Array(16)
+const tempE1 = new Float32Array(16)
+const tempE2 = new Float32Array(16)
 
 function testE() {
-  let perf = performance.now()
+  const perf = performance.now()
   let sum = 0.0
-  let matrix = new Float32Array(16)
+  const matrix = new Float32Array(16)
   for (let i = 0; i < ITERATIONS; i++) {
     identityE(matrix)
     rotateE(matrix, Math.random(), Math.random())

@@ -19,13 +19,13 @@ export function zzfxm(instruments, patterns, sequence, BPM = 125) {
   let sampleOffset = 0
   let nextSampleOffset
   let sampleBuffer = []
-  let leftChannelBuffer = []
-  let rightChannelBuffer = []
+  const leftChannelBuffer = []
+  const rightChannelBuffer = []
   let channelIndex = 0
   let panning = 0
   let hasMore = 1
-  let sampleCache = {}
-  let beatLength = ((zzfxr / BPM) * 60) >> 2
+  const sampleCache = {}
+  const beatLength = ((zzfxr / BPM) * 60) >> 2
   // for each channel in order until there are no more
   for (; hasMore; channelIndex++) {
     // reset current values

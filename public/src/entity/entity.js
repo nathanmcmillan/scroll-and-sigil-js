@@ -108,7 +108,7 @@ export class Entity {
 
 export function entityWadToTape(wad) {
   let content = ''
-  for (let [key, value] of wad) {
+  for (const [key, value] of wad) {
     content += `${key} ${value}\n`
   }
   return content

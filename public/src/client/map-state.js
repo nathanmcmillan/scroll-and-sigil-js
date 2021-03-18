@@ -8,8 +8,8 @@ export class MapState {
     this.client = client
     this.keys = client.keys
 
-    let self = this
-    let callbacks = []
+    const self = this
+    const callbacks = []
     callbacks[SWITCH_MODE_CALLBACK] = () => {
       self.switchMode()
     }
@@ -30,7 +30,7 @@ export class MapState {
   }
 
   keyEvent(code, down) {
-    let maps = this.maps
+    const maps = this.maps
     if (this.keys.has(code)) {
       maps.input.set(this.keys.get(code), down)
       maps.immediateInput()
@@ -58,15 +58,15 @@ export class MapState {
   }
 
   import() {
-    let button = document.createElement('input')
+    const button = document.createElement('input')
     button.type = 'file'
     button.onchange = (e) => {
-      let file = e.target.files[0]
+      const file = e.target.files[0]
       console.info(file)
-      let reader = new FileReader()
+      const reader = new FileReader()
       reader.readAsText(file, 'utf-8')
       reader.onload = (event) => {
-        let content = event.target.result
+        const content = event.target.result
         this.maps.read(content)
       }
     }
@@ -74,15 +74,15 @@ export class MapState {
   }
 
   save() {
-    let blob = this.maps.export()
+    const blob = this.maps.export()
     localStorage.setItem('map.txt', blob)
     console.info(blob)
     console.info('saved to local storage!')
   }
 
   export() {
-    let blob = this.maps.export()
-    let download = document.createElement('a')
+    const blob = this.maps.export()
+    const download = document.createElement('a')
     download.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(blob)
     download.download = 'map.txt'
     download.click()

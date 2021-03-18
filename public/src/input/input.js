@@ -56,7 +56,7 @@ export class Input {
   }
 
   mouseClickLeft() {
-    let down = this.mouseLeftDown
+    const down = this.mouseLeftDown
     this.mouseLeftDown = false
     return down
   }
@@ -66,7 +66,7 @@ export class Input {
   }
 
   mouseClickRight() {
-    let down = this.mouseRightDown
+    const down = this.mouseRightDown
     this.mouseRightDown = false
     return down
   }
@@ -87,24 +87,24 @@ export class Input {
   }
 
   timer(now, rate, key) {
-    let previous = this.timers[key]
+    const previous = this.timers[key]
     if (now - rate < previous) return false
-    let down = this.in[key]
+    const down = this.in[key]
     if (down) this.timers[key] = now
     return down
   }
 
   double(now, key) {
     // fixme: broken
-    let down = this.in[key]
-    let decide = down && now - DOUBLE_RATE < this.timers[key] && now - DOUBLE_RATE > this.ghost[key]
+    const down = this.in[key]
+    const decide = down && now - DOUBLE_RATE < this.timers[key] && now - DOUBLE_RATE > this.ghost[key]
     if (down) this.timers[key] = now
     if (!down) this.ghost[key] = now
     return decide
   }
 
   press(key) {
-    let down = this.in[key]
+    const down = this.in[key]
     this.in[key] = false
     return down
   }

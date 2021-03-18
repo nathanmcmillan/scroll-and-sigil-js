@@ -31,7 +31,7 @@ function copy(src, dest) {
 
 function match(src, dest) {
   if (src.vecs.length !== dest.vecs.length) return false
-  for (let a of src.vecs) {
+  for (const a of src.vecs) {
     if (dest.vecs.indexOf(a) === -1) return false
   }
   return true
@@ -70,9 +70,9 @@ function isDuplicate(sectors, vecs) {
 
 function isClockwise(vecs) {
   let sum = 0.0
-  let len = vecs.length
+  const len = vecs.length
   for (let i = 0; i < len; i++) {
-    let k = i + 1 === len ? 0 : i + 1
+    const k = i + 1 === len ? 0 : i + 1
     sum += (vecs[k].x - vecs[i].x) * (vecs[k].y + vecs[i].y)
   }
   return sum >= 0.0
@@ -93,8 +93,8 @@ function construct(editor, sectors, start) {
     a = start.b
     b = start.a
   }
-  let vecs = [a, b]
-  let lines = [start]
+  const vecs = [a, b]
+  const lines = [start]
   let origin = a
   let initial = true
   while (true) {
@@ -104,7 +104,7 @@ function construct(editor, sectors, start) {
     let reverse = false
     for (const line of editor.lines) {
       if (line === start || !line.has(b)) continue
-      let c = line.other(b)
+      const c = line.other(b)
       if (initial && !isSecondTop(a, b, c)) continue
       let interior = clockwiseInterior(a, b, c)
       let winding = false
@@ -148,7 +148,7 @@ function construct(editor, sectors, start) {
 export function computeSectors(editor) {
   const sectors = []
   for (const line of editor.lines) {
-    let [vecs, lines] = construct(editor, sectors, line)
+    const [vecs, lines] = construct(editor, sectors, line)
     if (vecs === null || lines.length < 3) continue
     if (isDuplicate(sectors, vecs)) continue
     if (!isClockwise(vecs)) continue

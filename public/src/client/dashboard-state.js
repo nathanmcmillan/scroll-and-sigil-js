@@ -29,7 +29,7 @@ export class DashboardState {
   }
 
   keyEvent(code, down) {
-    let dashboard = this.dashboard
+    const dashboard = this.dashboard
     if (this.keys.has(code)) {
       dashboard.input.set(this.keys.get(code), down)
       dashboard.immediateInput()
@@ -101,7 +101,7 @@ export class DashboardState {
     client.bufferGUI.zero()
 
     let text = 'Scroll and Sigil Editor'
-    let mainMenu = flexBox(fontWidth * text.length, fontHeight)
+    const mainMenu = flexBox(fontWidth * text.length, fontHeight)
     mainMenu.bottomSpace = 3 * fontHeight
     mainMenu.funX = 'center'
     mainMenu.funY = '%'
@@ -110,7 +110,7 @@ export class DashboardState {
     drawTextFontSpecial(client.bufferGUI, mainMenu.x, mainMenu.y, text, fontScale, white0f, white1f, white2f, font)
 
     text = dashboard.tape.name
-    let tapeName = flexBox(fontWidth * text.length, fontHeight)
+    const tapeName = flexBox(fontWidth * text.length, fontHeight)
     tapeName.bottomSpace = 2 * fontHeight
     tapeName.funX = 'center'
     tapeName.fromX = mainMenu
@@ -121,7 +121,7 @@ export class DashboardState {
 
     if (dashboard.menu === TAPE_MENU) {
       text = 'Edit'
-      let optionEdit = flexBox(fontWidth * text.length, fontHeight)
+      const optionEdit = flexBox(fontWidth * text.length, fontHeight)
       optionEdit.bottomSpace = fontPad
       optionEdit.funX = 'center'
       optionEdit.fromX = tapeName
@@ -131,7 +131,7 @@ export class DashboardState {
       drawTextFontSpecial(client.bufferGUI, optionEdit.x, optionEdit.y, text, fontScale, white0f, white1f, white2f, font)
 
       text = 'Export'
-      let optionExport = flexBox(fontWidth * text.length, fontHeight)
+      const optionExport = flexBox(fontWidth * text.length, fontHeight)
       optionExport.bottomSpace = fontPad
       optionExport.funX = 'align-left'
       optionExport.fromX = optionEdit
@@ -141,7 +141,7 @@ export class DashboardState {
       drawTextFontSpecial(client.bufferGUI, optionExport.x, optionExport.y, text, fontScale, white0f, white1f, white2f, font)
 
       text = 'Name'
-      let optionName = flexBox(fontWidth * text.length, fontHeight)
+      const optionName = flexBox(fontWidth * text.length, fontHeight)
       optionName.bottomSpace = fontPad
       optionName.funX = 'align-left'
       optionName.fromX = optionExport
@@ -151,7 +151,7 @@ export class DashboardState {
       drawTextFontSpecial(client.bufferGUI, optionName.x, optionName.y, text, fontScale, white0f, white1f, white2f, font)
 
       text = 'New'
-      let optionNew = flexBox(fontWidth * text.length, fontHeight)
+      const optionNew = flexBox(fontWidth * text.length, fontHeight)
       optionNew.bottomSpace = fontPad
       optionNew.funX = 'align-left'
       optionNew.fromX = optionName
@@ -161,7 +161,7 @@ export class DashboardState {
       drawTextFontSpecial(client.bufferGUI, optionNew.x, optionNew.y, text, fontScale, white0f, white1f, white2f, font)
 
       text = 'Copy'
-      let optionCopy = flexBox(fontWidth * text.length, fontHeight)
+      const optionCopy = flexBox(fontWidth * text.length, fontHeight)
       optionCopy.bottomSpace = fontPad
       optionCopy.funX = 'align-left'
       optionCopy.fromX = optionNew
@@ -171,7 +171,7 @@ export class DashboardState {
       drawTextFontSpecial(client.bufferGUI, optionCopy.x, optionCopy.y, text, fontScale, white0f, white1f, white2f, font)
 
       text = 'Back'
-      let optionBack = flexBox(fontWidth * text.length, fontHeight)
+      const optionBack = flexBox(fontWidth * text.length, fontHeight)
       optionBack.bottomSpace = fontPad
       optionBack.funX = 'align-left'
       optionBack.fromX = optionCopy
@@ -181,7 +181,7 @@ export class DashboardState {
       drawTextFontSpecial(client.bufferGUI, optionBack.x, optionBack.y, text, fontScale, white0f, white1f, white2f, font)
 
       text = '>'
-      let indicator = flexBox(fontWidth * text.length, fontHeight)
+      const indicator = flexBox(fontWidth * text.length, fontHeight)
       indicator.funX = 'left-of'
       indicator.funY = 'center'
       switch (dashboard.tapeRow) {
@@ -217,7 +217,7 @@ export class DashboardState {
       rendering.updateAndDraw(client.bufferGUI)
     } else if (dashboard.menu === PROGRAM_MENU) {
       text = 'Maps'
-      let optionMaps = flexBox(fontWidth * text.length, fontHeight)
+      const optionMaps = flexBox(fontWidth * text.length, fontHeight)
       optionMaps.bottomSpace = fontPad
       optionMaps.funX = 'center'
       optionMaps.fromX = tapeName
@@ -227,7 +227,7 @@ export class DashboardState {
       drawTextFontSpecial(client.bufferGUI, optionMaps.x, optionMaps.y, text, fontScale, white0f, white1f, white2f, font)
 
       text = 'Paint'
-      let optionPaint = flexBox(fontWidth * text.length, fontHeight)
+      const optionPaint = flexBox(fontWidth * text.length, fontHeight)
       optionPaint.bottomSpace = fontPad
       optionPaint.funX = 'align-left'
       optionPaint.fromX = optionMaps
@@ -237,7 +237,7 @@ export class DashboardState {
       drawTextFontSpecial(client.bufferGUI, optionPaint.x, optionPaint.y, text, fontScale, white0f, white1f, white2f, font)
 
       text = 'Music'
-      let optionMusic = flexBox(fontWidth * text.length, fontHeight)
+      const optionMusic = flexBox(fontWidth * text.length, fontHeight)
       optionMusic.bottomSpace = fontPad
       optionMusic.funX = 'align-left'
       optionMusic.fromX = optionPaint
@@ -247,7 +247,7 @@ export class DashboardState {
       drawTextFontSpecial(client.bufferGUI, optionMusic.x, optionMusic.y, text, fontScale, white0f, white1f, white2f, font)
 
       text = 'Sound'
-      let optionSound = flexBox(fontWidth * text.length, fontHeight)
+      const optionSound = flexBox(fontWidth * text.length, fontHeight)
       optionSound.bottomSpace = fontPad
       optionSound.funX = 'align-left'
       optionSound.fromX = optionMusic
@@ -257,7 +257,7 @@ export class DashboardState {
       drawTextFontSpecial(client.bufferGUI, optionSound.x, optionSound.y, text, fontScale, white0f, white1f, white2f, font)
 
       text = 'Back'
-      let optionBack = flexBox(fontWidth * text.length, fontHeight)
+      const optionBack = flexBox(fontWidth * text.length, fontHeight)
       optionBack.bottomSpace = fontPad
       optionBack.funX = 'align-left'
       optionBack.fromX = optionSound
@@ -267,7 +267,7 @@ export class DashboardState {
       drawTextFontSpecial(client.bufferGUI, optionBack.x, optionBack.y, text, fontScale, white0f, white1f, white2f, font)
 
       text = '>'
-      let indicator = flexBox(fontWidth * text.length, fontHeight)
+      const indicator = flexBox(fontWidth * text.length, fontHeight)
       indicator.funX = 'left-of'
       indicator.funY = 'center'
       switch (dashboard.programRow) {

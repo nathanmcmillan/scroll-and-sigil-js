@@ -248,7 +248,7 @@ export class PaintEdit {
     const fontHeight = fontScale * TIC_FONT_HEIGHT
 
     let magnify = 2 * scale
-    let sheetBox = flexBox(magnify * sheetColumns, magnify * sheetRows)
+    const sheetBox = flexBox(magnify * sheetColumns, magnify * sheetRows)
     sheetBox.topSpace = Math.ceil(0.5 * fontHeight)
     sheetBox.bottomSpace = Math.ceil(0.5 * fontHeight)
     sheetBox.rightSpace = 2 * fontWidth
@@ -261,7 +261,7 @@ export class PaintEdit {
     if (canvasZoom === 16) magnify *= 8
     if (canvasZoom === 32) magnify *= 4
     if (canvasZoom === 64) magnify *= 2
-    let viewBox = flexBox(canvasZoom * magnify, canvasZoom * magnify)
+    const viewBox = flexBox(canvasZoom * magnify, canvasZoom * magnify)
     viewBox.topSpace = Math.ceil(0.5 * fontHeight)
     viewBox.bottomSpace = 2 * fontHeight
     viewBox.funX = 'right-of'
@@ -271,7 +271,7 @@ export class PaintEdit {
     this.viewBox = viewBox
 
     magnify = 16 * scale
-    let miniBox = flexBox(magnify, magnify)
+    const miniBox = flexBox(magnify, magnify)
     miniBox.rightSpace = fontWidth
     miniBox.funX = 'align-left'
     miniBox.fromX = viewBox
@@ -280,7 +280,7 @@ export class PaintEdit {
     this.miniBox = miniBox
 
     magnify = 16 * scale
-    let toolBox = flexBox(toolColumns * magnify, 2 * fontHeight)
+    const toolBox = flexBox(toolColumns * magnify, 2 * fontHeight)
     toolBox.bottomSpace = 2 * fontHeight
     toolBox.funX = 'right-of'
     toolBox.fromX = miniBox
@@ -289,18 +289,18 @@ export class PaintEdit {
     this.toolBox = toolBox
 
     magnify = 16 * scale
-    let paletteBox = flexBox(paletteColumns * magnify, paletteRows * magnify)
+    const paletteBox = flexBox(paletteColumns * magnify, paletteRows * magnify)
     paletteBox.funX = 'center'
     paletteBox.fromX = viewBox
     paletteBox.funY = 'below'
     paletteBox.fromY = toolBox
     this.paletteBox = paletteBox
 
-    let collection = [sheetBox, viewBox, miniBox, toolBox, paletteBox]
+    const collection = [sheetBox, viewBox, miniBox, toolBox, paletteBox]
     flexSolve(width, height, ...collection)
 
-    let size = flexSize(...collection)
-    let canvas = flexBox(size[2], size[3])
+    const size = flexSize(...collection)
+    const canvas = flexBox(size[2], size[3])
     canvas.funX = 'center'
     flexSolve(width, height, canvas)
 
@@ -335,7 +335,7 @@ export class PaintEdit {
       if (width > columns) width = columns
 
       for (let h = 0; h < height; h++) {
-        let row = image[index].split(' ')
+        const row = image[index].split(' ')
         for (let c = 0; c < width; c++) {
           sheet[c + h * columns] = parseInt(row[c])
         }
@@ -446,8 +446,8 @@ export class PaintEdit {
       this.forcePaint = true
     }
     if (input.pressA() || input.pressStart()) {
-      let id = this.dialog.id
-      let option = this.dialog.options[this.dialog.pos]
+      const id = this.dialog.id
+      const option = this.dialog.options[this.dialog.pos]
       this.handleDialog(id + '-' + option)
     }
   }
@@ -477,7 +477,7 @@ export class PaintEdit {
     this.doPaint = true
     this.hasUpdates = false
 
-    let input = this.input
+    const input = this.input
 
     if (this.dialog !== null) {
       if (input.timerStickUp(timestamp, INPUT_RATE)) {
@@ -594,14 +594,14 @@ export class PaintEdit {
 
     if (input.mouseMoved()) {
       input.mouseMoveOff()
-      let x = input.mouseX()
-      let y = input.mouseY()
+      const x = input.mouseX()
+      const y = input.mouseY()
       if (this.viewBox.inside(x, y)) this.mouseInViewBox(x, y)
     }
 
     if (input.mouseLeft()) {
-      let x = input.mouseX()
-      let y = input.mouseY()
+      const x = input.mouseX()
+      const y = input.mouseY()
       if (this.viewBox.inside(x, y)) {
         this.mouseInViewBox(x, y)
         if (this.allowMouseAction(input)) this.action()
@@ -611,8 +611,8 @@ export class PaintEdit {
   }
 
   mouseInViewBox(x, y) {
-    let c = this.positionC
-    let r = this.positionR
+    const c = this.positionC
+    const r = this.positionR
     x = Math.floor((x - this.viewBox.x) / 32)
     y = Math.floor((this.viewBox.height - (y - this.viewBox.y)) / 32)
     if (x < 8 && y < 8 && (x !== c || y !== r)) {
@@ -622,8 +622,8 @@ export class PaintEdit {
   }
 
   mouseInPaletteBox(x, y) {
-    let c = this.paletteC
-    let r = this.paletteR
+    const c = this.paletteC
+    const r = this.paletteR
     x = Math.floor((x - this.paletteBox.x) / 32)
     y = Math.floor((this.paletteBox.height - (y - this.paletteBox.y)) / 32)
     if (x < this.paletteColumns && y < this.paletteRows && (x !== c || y !== r)) {
@@ -633,10 +633,10 @@ export class PaintEdit {
   }
 
   mouseInSheetBox(x, y) {
-    let c = this.positionOffsetC
-    let r = this.positionOffsetR
-    let columns = this.sheetBox.width / this.sheetColumns
-    let rows = this.sheetBox.height / this.sheetRows
+    const c = this.positionOffsetC
+    const r = this.positionOffsetR
+    const columns = this.sheetBox.width / this.sheetColumns
+    const rows = this.sheetBox.height / this.sheetRows
     x = Math.floor((x - this.sheetBox.x) / columns)
     y = Math.floor((this.sheetBox.height - (y - this.sheetBox.y)) / rows)
     if (x + this.canvasZoom > this.sheetColumns) x = this.sheetColumns - this.canvasZoom
@@ -660,9 +660,9 @@ export class PaintEdit {
   }
 
   action() {
-    let columns = this.sheetColumns
-    let index = this.positionC + this.positionOffsetC + (this.positionR + this.positionOffsetR) * columns
-    let color = this.paletteC + this.paletteR * this.paletteColumns
+    const columns = this.sheetColumns
+    const index = this.positionC + this.positionOffsetC + (this.positionR + this.positionOffsetR) * columns
+    const color = this.paletteC + this.paletteR * this.paletteColumns
     if (this.tool === PENCIL) this.hasUpdates = this.pencil(index, color)
     else if (this.tool === FILL) this.hasUpdates = this.fill(index, color)
     else if (this.tool === DROPLET) this.hasUpdates = this.droplet(index)
@@ -891,12 +891,12 @@ export class PaintEdit {
   }
 
   saveHistory() {
-    let sheet = this.sheet
-    let history = this.history
+    const sheet = this.sheet
+    const history = this.history
     // console.debug('history', this.historyPosition, history)
     if (this.historyPosition >= history.length) {
       if (history.length === HISTORY_LIMIT) {
-        let last = history[0]
+        const last = history[0]
         last.set(sheet)
         for (let i = 0; i < HISTORY_LIMIT - 1; i++) history[i] = history[i + 1]
         history[HISTORY_LIMIT - 1] = last
@@ -911,15 +911,15 @@ export class PaintEdit {
   }
 
   export() {
-    let rows = this.sheetRows
-    let columns = this.sheetColumns
+    const rows = this.sheetRows
+    const columns = this.sheetColumns
     let content = `paint ${this.name} ${columns} ${rows}`
     if (this.transparency !== 0) content += `\ntransparency ${this.transparency}`
-    let sheet = this.sheet
+    const sheet = this.sheet
     for (let r = 0; r < rows; r++) {
       content += '\n'
       for (let c = 0; c < columns; c++) {
-        let index = c + r * columns
+        const index = c + r * columns
         content += sheet[index] + ' '
       }
     }
@@ -934,16 +934,16 @@ export class PaintEdit {
 }
 
 export function exportPixels(paint) {
-  let sheet = paint.sheet
-  let rows = paint.sheetRows
-  let columns = paint.sheetColumns
-  let palette = paint.palette
-  let pixels = new Uint8Array(rows * columns * 3)
+  const sheet = paint.sheet
+  const rows = paint.sheetRows
+  const columns = paint.sheetColumns
+  const palette = paint.palette
+  const pixels = new Uint8Array(rows * columns * 3)
   for (let r = 0; r < rows; r++) {
-    let row = r * columns
+    const row = r * columns
     for (let c = 0; c < columns; c++) {
       let i = c + row
-      let p = sheet[i] * 3
+      const p = sheet[i] * 3
       i *= 3
       pixels[i] = palette[p]
       pixels[i + 1] = palette[p + 1]
@@ -954,15 +954,15 @@ export function exportPixels(paint) {
 }
 
 export function exportToCanvas(paint, out) {
-  let sheet = paint.sheet
-  let rows = paint.sheetRows
-  let columns = paint.sheetColumns
-  let palette = paint.palette
+  const sheet = paint.sheet
+  const rows = paint.sheetRows
+  const columns = paint.sheetColumns
+  const palette = paint.palette
   for (let r = 0; r < rows; r++) {
-    let row = r * columns
+    const row = r * columns
     for (let c = 0; c < columns; c++) {
       let i = c + row
-      let p = sheet[i] * 3
+      const p = sheet[i] * 3
       i *= 4
       out[i] = palette[p]
       out[i + 1] = palette[p + 1]

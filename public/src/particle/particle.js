@@ -36,14 +36,14 @@ export function particleSetup(self) {
 }
 
 export function particlePushToCells(self) {
-  let box = self.box
+  const box = self.box
   let minC = Math.floor(self.x - box) >> WORLD_CELL_SHIFT
   let maxC = Math.floor(self.x + box) >> WORLD_CELL_SHIFT
   let minR = Math.floor(self.z - box) >> WORLD_CELL_SHIFT
   let maxR = Math.floor(self.z + box) >> WORLD_CELL_SHIFT
 
-  let world = self.world
-  let columns = world.columns
+  const world = self.world
+  const columns = world.columns
 
   if (minC < 0) minC = 0
   if (minR < 0) minR = 0
@@ -63,7 +63,7 @@ export function particlePushToCells(self) {
 }
 
 export function particleRemoveFromCells(self) {
-  let world = self.world
+  const world = self.world
   for (let r = self.minR; r <= self.maxR; r++) {
     for (let c = self.minC; c <= self.maxC; c++) {
       world.cells[c + r * world.columns].removeParticle(this)

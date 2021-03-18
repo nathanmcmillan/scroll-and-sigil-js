@@ -38,13 +38,13 @@ export class Sector {
 
   contains(x, z) {
     let odd = false
-    let len = this.vecs.length
+    const len = this.vecs.length
     let k = len - 1
     for (let i = 0; i < len; i++) {
-      let a = this.vecs[i]
-      let b = this.vecs[k]
+      const a = this.vecs[i]
+      const b = this.vecs[k]
       if (a.y > z !== b.y > z) {
-        let val = ((b.x - a.x) * (z - a.y)) / (b.y - a.y) + a.x
+        const val = ((b.x - a.x) * (z - a.y)) / (b.y - a.y) + a.x
         if (x < val) {
           odd = !odd
         }
@@ -57,7 +57,7 @@ export class Sector {
   find(x, z) {
     let i = this.inside.length
     while (i--) {
-      let inside = this.inside[i]
+      const inside = this.inside[i]
       if (inside.contains(x, z)) {
         return inside.find(x, z)
       }
@@ -74,7 +74,7 @@ export class Sector {
       if (current.contains(x, z)) return current.find(x, z)
       const neighbors = current.neighbors
       for (let i = 0; i < neighbors.length; i++) {
-        let neighbor = neighbors[i]
+        const neighbor = neighbors[i]
         if (neighbor === current || queue.includes(neighbor) || done.includes(neighbor)) continue
         queue.push(neighbor)
       }
@@ -124,7 +124,7 @@ export function sectorInsideOutside(sectors) {
     const dead = new Set()
     for (const inner of inside) deleteNestedInside(dead, inner)
     for (const other of dead) {
-      let index = inside.indexOf(other)
+      const index = inside.indexOf(other)
       if (index >= 0) inside.splice(index, 1)
     }
     for (const inner of inside) inner.outside = sector

@@ -40,21 +40,21 @@ function convertImageToText(palette, image, name) {
   const width = image.width
   const height = image.height
 
-  let canvas = document.createElement('canvas')
-  let context = canvas.getContext('2d')
+  const canvas = document.createElement('canvas')
+  const context = canvas.getContext('2d')
   canvas.width = width
   canvas.height = height
   context.drawImage(image, 0, 0)
-  let pixels = context.getImageData(0, 0, width, height).data
+  const pixels = context.getImageData(0, 0, width, height).data
 
   let text = `paint ${name} ${width} ${height}`
   for (let h = 0; h < height; h++) {
     text += '\n'
     for (let c = 0; c < width; c++) {
-      let index = (c + h * width) * 4
-      let red = pixels[index]
-      let green = pixels[index + 1]
-      let blue = pixels[index + 2]
+      const index = (c + h * width) * 4
+      const red = pixels[index]
+      const green = pixels[index + 1]
+      const blue = pixels[index + 2]
       text += closestInPalette(palette, red, green, blue) + ' '
     }
   }
@@ -70,14 +70,14 @@ export class PaintState {
     this.view = new Float32Array(16)
     this.projection = new Float32Array(16)
 
-    let paint = new PaintEdit(this, client.width, client.height - client.top, client.scale, client.input)
+    const paint = new PaintEdit(this, client.width, client.height - client.top, client.scale, client.input)
     this.paint = paint
 
-    let rows = paint.sheetRows
-    let columns = paint.sheetColumns
-    let pixels = exportPixels(paint)
+    const rows = paint.sheetRows
+    const columns = paint.sheetColumns
+    const pixels = exportPixels(paint)
 
-    let gl = client.gl
+    const gl = client.gl
     this.texture = createPixelsToTexture(gl, columns, rows, pixels, gl.RGB, gl.NEAREST, gl.CLAMP_TO_EDGE).texture
   }
 
@@ -125,17 +125,17 @@ export class PaintState {
   }
 
   importSheet() {
-    let button = document.createElement('input')
+    const button = document.createElement('input')
     button.type = 'file'
     button.onchange = (e) => {
-      let file = e.target.files[0]
+      const file = e.target.files[0]
       console.info(file)
-      let reader = new FileReader()
+      const reader = new FileReader()
       if (file.type === 'image/png') {
         reader.readAsDataURL(file)
         reader.onload = (event) => {
           let content = event.target.result
-          let image = new Image()
+          const image = new Image()
           image.src = content
           image.onload = () => {
             const dot = file.name.indexOf('.')
@@ -148,14 +148,14 @@ export class PaintState {
       } else if (file.name.endsWith('.huff')) {
         reader.readAsArrayBuffer(file)
         reader.onload = (event) => {
-          let content = new Uint8Array(event.target.result)
+          const content = new Uint8Array(event.target.result)
           this.paint.read(decompress(content))
           this.updateTexture()
         }
       } else {
         reader.readAsText(file, 'utf-8')
         reader.onload = (event) => {
-          let content = event.target.result
+          const content = event.target.result
           this.paint.read(content)
           this.updateTexture()
         }
@@ -165,54 +165,54 @@ export class PaintState {
   }
 
   saveSheet() {
-    let blob = this.paint.export()
+    const blob = this.paint.export()
     localStorage.setItem('paint.txt', blob)
     console.info(blob)
     console.info('saved to local storage!')
   }
 
   exportPlain() {
-    let blob = this.paint.export()
-    let download = document.createElement('a')
+    const blob = this.paint.export()
+    const download = document.createElement('a')
     download.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(blob)
     download.download = this.paint.name + '.txt'
     download.click()
   }
 
   exportHuffman() {
-    let blob = compress(this.paint.export())
-    let download = document.createElement('a')
+    const blob = compress(this.paint.export())
+    const download = document.createElement('a')
     download.href = window.URL.createObjectURL(new Blob([blob], { type: 'application/octet-stream' }))
     download.download = this.paint.name + '.huff'
     download.click()
   }
 
   exportPng() {
-    let paint = this.paint
-    let canvas = document.createElement('canvas')
-    let context = canvas.getContext('2d')
+    const paint = this.paint
+    const canvas = document.createElement('canvas')
+    const context = canvas.getContext('2d')
     canvas.width = paint.sheetColumns
     canvas.height = paint.sheetRows
-    let data = context.createImageData(canvas.width, canvas.height)
+    const data = context.createImageData(canvas.width, canvas.height)
     exportToCanvas(paint, data.data)
     context.putImageData(data, 0, 0)
-    let blob = canvas.toDataURL('image/png')
-    let download = document.createElement('a')
+    const blob = canvas.toDataURL('image/png')
+    const download = document.createElement('a')
     download.href = blob
     download.download = this.paint.name + '.png'
     download.click()
   }
 
   updateTexture() {
-    let paint = this.paint
-    let rows = paint.sheetRows
-    let columns = paint.sheetColumns
-    let pixels = exportPixels(paint)
+    const paint = this.paint
+    const rows = paint.sheetRows
+    const columns = paint.sheetColumns
+    const pixels = exportPixels(paint)
     updatePixelsToTexture(this.client.gl, this.texture, columns, rows, pixels)
   }
 
   update(timestamp) {
-    let paint = this.paint
+    const paint = this.paint
     paint.update(timestamp)
     if (paint.hasUpdates) this.updateTexture()
   }
@@ -244,23 +244,23 @@ export class PaintState {
     const width = client.width
     const height = client.height - client.top
 
-    let brushSize = paint.brushSize
-    let canvasZoom = paint.canvasZoom
+    const brushSize = paint.brushSize
+    const canvasZoom = paint.canvasZoom
 
-    let posOffsetC = paint.positionOffsetC
-    let posOffsetR = paint.positionOffsetR
+    const posOffsetC = paint.positionOffsetC
+    const posOffsetR = paint.positionOffsetR
 
-    let posC = paint.positionC
-    let posR = paint.positionR
+    const posC = paint.positionC
+    const posR = paint.positionR
 
-    let paletteRows = paint.paletteRows
-    let paletteColumns = paint.paletteColumns
-    let palette = paint.paletteFloat
+    const paletteRows = paint.paletteRows
+    const paletteColumns = paint.paletteColumns
+    const palette = paint.paletteFloat
 
-    let sheetRows = paint.sheetRows
-    let sheetColumns = paint.sheetColumns
+    const sheetRows = paint.sheetRows
+    const sheetColumns = paint.sheetColumns
 
-    let toolColumns = paint.toolColumns
+    const toolColumns = paint.toolColumns
 
     let magnify, top, left, boxWidth, boxHeight, box, x, y
 
@@ -276,11 +276,11 @@ export class PaintState {
 
     client.bufferGUI.zero()
 
-    let sheetBox = paint.sheetBox
-    let viewBox = paint.viewBox
-    let miniBox = paint.miniBox
-    let toolBox = paint.toolBox
-    let paletteBox = paint.paletteBox
+    const sheetBox = paint.sheetBox
+    const viewBox = paint.viewBox
+    const miniBox = paint.miniBox
+    const toolBox = paint.toolBox
+    const paletteBox = paint.paletteBox
 
     // sheet
 
@@ -294,10 +294,10 @@ export class PaintState {
 
     // mini view
 
-    let sl = posOffsetC / sheetColumns
-    let st = posOffsetR / sheetRows
-    let sr = (posOffsetC + canvasZoom) / sheetColumns
-    let sb = (posOffsetR + canvasZoom) / sheetRows
+    const sl = posOffsetC / sheetColumns
+    const st = posOffsetR / sheetRows
+    const sr = (posOffsetC + canvasZoom) / sheetColumns
+    const sb = (posOffsetR + canvasZoom) / sheetRows
 
     drawImage(client.bufferGUI, miniBox.x, miniBox.y, miniBox.width, miniBox.height, 1.0, 1.0, 1.0, 1.0, sl, st, sr, sb)
 
@@ -347,12 +347,12 @@ export class PaintState {
         let r = posC + posOffsetC
         let b = posR + posOffsetR
         if (r < l) {
-          let temp = l
+          const temp = l
           l = r
           r = temp
         }
         if (b < t) {
-          let temp = t
+          const temp = t
           t = b
           b = temp
         }
@@ -419,12 +419,12 @@ export class PaintState {
         let r = posC + posOffsetC
         let b = posR + posOffsetR
         if (r < l) {
-          let temp = l
+          const temp = l
           l = r
           r = temp
         }
         if (b < t) {
-          let temp = t
+          const temp = t
           t = b
           b = temp
         }
@@ -450,12 +450,12 @@ export class PaintState {
     top = paletteBox.y
     for (let r = 0; r < paletteRows; r++) {
       for (let c = 0; c < paletteColumns; c++) {
-        let x = left + c * magnify
-        let y = top + boxHeight - (r + 1) * magnify
-        let index = (c + r * paletteColumns) * 3
-        let red = palette[index]
-        let green = palette[index + 1]
-        let blue = palette[index + 2]
+        const x = left + c * magnify
+        const y = top + boxHeight - (r + 1) * magnify
+        const index = (c + r * paletteColumns) * 3
+        const red = palette[index]
+        const green = palette[index + 1]
+        const blue = palette[index + 2]
         drawRectangle(client.bufferColor, x, y, magnify, magnify, red, green, blue, 1.0)
       }
     }
@@ -491,12 +491,12 @@ export class PaintState {
 
     // tools
 
-    let toolMagnify = 16 * scale
-    let toolLeft = toolBox.x
-    let toolTop = toolBox.y
+    const toolMagnify = 16 * scale
+    const toolLeft = toolBox.x
+    const toolTop = toolBox.y
     y = toolTop
     for (let c = 0; c < toolColumns; c++) {
-      let x = toolLeft + c * toolMagnify
+      const x = toolLeft + c * toolMagnify
       if (c === paint.tool) {
         spr(client.bufferGUI, c, 1.0, 1.0, x, y - 2 * scale, toolMagnify, toolMagnify)
       } else {
@@ -519,8 +519,8 @@ export class PaintState {
     let displayR = '' + (posR + posOffsetR)
     while (displayC.length < 3) displayC = '0' + displayC
     while (displayR.length < 3) displayR = '0' + displayR
-    let text = 'x:' + displayC + ' y:' + displayR
-    let posBox = flexBox(fontWidth * text.length, fontHeight)
+    const text = 'x:' + displayC + ' y:' + displayR
+    const posBox = flexBox(fontWidth * text.length, fontHeight)
     posBox.funX = 'center'
     posBox.fromX = viewBox
     posBox.funY = 'above'
@@ -528,8 +528,8 @@ export class PaintState {
     flexSolve(0, 0, posBox)
     drawTextFont(client.bufferGUI, posBox.x, posBox.y, text, fontScale, silverf(0), silverf(1), silverf(2), 1.0, font)
 
-    let displaySheet = paint.name
-    let sheetNumBox = flexBox(fontWidth * displaySheet.length, fontHeight)
+    const displaySheet = paint.name
+    const sheetNumBox = flexBox(fontWidth * displaySheet.length, fontHeight)
     sheetNumBox.funX = 'align-left'
     sheetNumBox.fromX = sheetBox
     sheetNumBox.funY = 'above'
@@ -537,9 +537,9 @@ export class PaintState {
     flexSolve(0, 0, sheetNumBox)
     drawTextFont(client.bufferGUI, sheetNumBox.x, sheetNumBox.y, displaySheet, fontScale, silverf(0), silverf(1), silverf(2), 1.0, font)
 
-    let spriteIndex = posOffsetC / 8 + 2 * posOffsetR
-    let displayIndex = ' index:' + (spriteIndex < 10 ? '00' + spriteIndex : spriteIndex < 100 ? '0' + spriteIndex : '' + spriteIndex)
-    let positionBox = flexBox(fontWidth * displayIndex.length, fontHeight)
+    const spriteIndex = posOffsetC / 8 + 2 * posOffsetR
+    const displayIndex = ' index:' + (spriteIndex < 10 ? '00' + spriteIndex : spriteIndex < 100 ? '0' + spriteIndex : '' + spriteIndex)
+    const positionBox = flexBox(fontWidth * displayIndex.length, fontHeight)
     positionBox.funX = 'align-right'
     positionBox.fromX = sheetBox
     positionBox.funY = 'above'

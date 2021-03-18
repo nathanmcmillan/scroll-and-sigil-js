@@ -31,20 +31,20 @@ function drawLineWithNormal(b, x1, y1, x2, y2, thickness, red, green, blue, alph
 }
 
 function mapRender(b, maps) {
-  let zoom = maps.zoom
-  let camera = maps.camera
+  const zoom = maps.zoom
+  const camera = maps.camera
   const alpha = 1.0
   const thickness = 1.0
   if (maps.viewSectors && maps.tool === SECTOR_TOOL) {
     // let seed = 0
     for (const sector of maps.sectors) {
       for (const triangle of sector.view) {
-        let x1 = mapX(triangle.a.x, zoom, camera)
-        let y1 = mapZ(triangle.a.y, zoom, camera)
-        let x2 = mapX(triangle.b.x, zoom, camera)
-        let y2 = mapZ(triangle.b.y, zoom, camera)
-        let x3 = mapX(triangle.c.x, zoom, camera)
-        let y3 = mapZ(triangle.c.y, zoom, camera)
+        const x1 = mapX(triangle.a.x, zoom, camera)
+        const y1 = mapZ(triangle.a.y, zoom, camera)
+        const x2 = mapX(triangle.b.x, zoom, camera)
+        const y2 = mapZ(triangle.b.y, zoom, camera)
+        const x3 = mapX(triangle.c.x, zoom, camera)
+        const y3 = mapZ(triangle.c.y, zoom, camera)
         // seed++
         // if (seed === 15) seed = 0
         // while (seed === 0 || seed === 1 || seed === 4 || seed === 5 || seed === 6 || seed === 7) {
@@ -58,12 +58,12 @@ function mapRender(b, maps) {
     }
   }
   if (maps.viewLines) {
-    let normal = maps.viewLineNormals
+    const normal = maps.viewLineNormals
     for (const line of maps.lines) {
-      let x1 = mapX(line.a.x, zoom, camera)
-      let y1 = mapZ(line.a.y, zoom, camera)
-      let x2 = mapX(line.b.x, zoom, camera)
-      let y2 = mapZ(line.b.y, zoom, camera)
+      const x1 = mapX(line.a.x, zoom, camera)
+      const y1 = mapZ(line.a.y, zoom, camera)
+      const x2 = mapX(line.b.x, zoom, camera)
+      const y2 = mapZ(line.b.y, zoom, camera)
       if (line === maps.selectedLine) drawLineWithNormal(b, x1, y1, x2, y2, thickness, greenf(0), greenf(1), greenf(2), alpha, zoom, normal)
       else drawLineWithNormal(b, x1, y1, x2, y2, thickness, whitef(0), whitef(1), whitef(2), alpha, zoom, normal)
     }
@@ -71,17 +71,17 @@ function mapRender(b, maps) {
   if (maps.viewVecs) {
     const size = vectorSize(zoom)
     for (const vec of maps.vecs) {
-      let x = Math.floor(mapX(vec.x, zoom, camera))
-      let y = Math.floor(mapZ(vec.y, zoom, camera))
+      const x = Math.floor(mapX(vec.x, zoom, camera))
+      const y = Math.floor(mapZ(vec.y, zoom, camera))
       if (vec === maps.selectedVec || vec === maps.selectedSecondVec) drawRectangle(b, x - size, y - size, 2.0 * size, 2.0 * size, greenf(0), greenf(1), greenf(2), alpha)
       else drawRectangle(b, x - size, y - size, 2.0 * size, 2.0 * size, redf(0), redf(1), redf(2), alpha)
     }
   }
   if (maps.viewThings) {
     for (const thing of maps.things) {
-      let x = Math.floor(mapX(thing.x, zoom, camera))
-      let y = Math.floor(mapZ(thing.z, zoom, camera))
-      let size = thingSize(thing, zoom)
+      const x = Math.floor(mapX(thing.x, zoom, camera))
+      const y = Math.floor(mapZ(thing.z, zoom, camera))
+      const size = thingSize(thing, zoom)
       if (thing === maps.selectedThing) drawRectangle(b, x - size, y - size, 2.0 * size, 2.0 * size, yellowf(0), yellowf(1), yellowf(2), alpha)
       else drawRectangle(b, x - size, y - size, 2.0 * size, 2.0 * size, greenf(0), greenf(1), greenf(2), alpha)
     }
@@ -125,8 +125,8 @@ export function renderMapEditTopMode(state) {
     const zoom = maps.zoom
     const camera = maps.camera
     const vec = maps.selectedVec
-    let x = zoom * (vec.x - camera.x)
-    let y = zoom * (vec.y - camera.z)
+    const x = zoom * (vec.x - camera.x)
+    const y = zoom * (vec.y - camera.z)
     drawLineWithNormal(client.bufferColor, x, y, maps.cursor.x, maps.cursor.y, thickness, yellowf(0), yellowf(1), yellowf(2), 1.0, zoom, maps.viewLineNormals)
   }
 

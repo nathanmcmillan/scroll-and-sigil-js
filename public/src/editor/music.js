@@ -170,23 +170,23 @@ export class MusicEdit {
   }
 
   playOneNote(row) {
-    for (let sound of this.sounds) sound.stop()
+    for (const sound of this.sounds) sound.stop()
     this.sounds.length = 0
-    let track = this.tracks[this.trackIndex]
-    let waveform = waveFromName(track.instrument)
-    let note = track.notes[this.noteC]
-    let seconds = this.noteSeconds(note[0])
+    const track = this.tracks[this.trackIndex]
+    const waveform = waveFromName(track.instrument)
+    const note = track.notes[this.noteC]
+    const seconds = this.noteSeconds(note[0])
     if (row === 0) {
       for (let r = 1; r < this.noteRows; r++) {
-        let num = note[r]
+        const num = note[r]
         if (num === 0) continue
-        let pitch = diatonic(num - SEMITONES)
+        const pitch = diatonic(num - SEMITONES)
         this.sounds.push(waveform(0.25, pitch, seconds))
       }
     } else {
-      let num = note[row]
+      const num = note[row]
       if (num > 0) {
-        let pitch = diatonic(num - SEMITONES)
+        const pitch = diatonic(num - SEMITONES)
         this.sounds.push(waveform(0.25, pitch, seconds))
       }
     }
@@ -195,14 +195,14 @@ export class MusicEdit {
   playAndCalculateNote(timestamp) {
     const time = synthTime()
     const when = time + (1.0 / 1000.0) * 16.0
-    let track = this.tracks[this.trackIndex]
-    let waveform = waveFromName(track.instrument)
-    let note = track.notes[this.noteC]
-    let seconds = this.noteSeconds(note[0])
+    const track = this.tracks[this.trackIndex]
+    const waveform = waveFromName(track.instrument)
+    const note = track.notes[this.noteC]
+    const seconds = this.noteSeconds(note[0])
     for (let r = 1; r < this.noteRows; r++) {
-      let num = note[r]
+      const num = note[r]
       if (num === 0) continue
-      let pitch = diatonic(num - SEMITONES)
+      const pitch = diatonic(num - SEMITONES)
       this.sounds.push(waveform(0.25, pitch, seconds, when))
     }
     this.noteTimestamp = timestamp + seconds * 1000
@@ -211,7 +211,7 @@ export class MusicEdit {
   updatePlay(timestamp) {
     const input = this.input
     if (input.pressX()) {
-      for (let sound of this.sounds) sound.stop()
+      for (const sound of this.sounds) sound.stop()
       this.sounds.length = 0
       this.play = false
       this.doPaint = true
@@ -260,8 +260,8 @@ export class MusicEdit {
       this.forcePaint = true
     }
     if (input.pressA() || input.pressStart() || input.pressSelect()) {
-      let id = this.dialog.id
-      let option = this.dialog.options[this.dialog.pos]
+      const id = this.dialog.id
+      const option = this.dialog.options[this.dialog.pos]
       this.handleDialog(id + '-' + option)
     }
   }
@@ -314,7 +314,7 @@ export class MusicEdit {
       if (this.noteC > 0) this.noteC--
     } else if (input.timerStickRight(timestamp, INPUT_RATE)) {
       this.noteC++
-      let notes = this.tracks[this.trackIndex].notes
+      const notes = this.tracks[this.trackIndex].notes
       if (this.noteC === notes.length) {
         notes.push([2, 0, 49, 0])
       }
@@ -324,9 +324,9 @@ export class MusicEdit {
     // need copy paste section of notes
 
     if (input.timerA(timestamp, INPUT_RATE)) {
-      let row = this.noteR
-      let track = this.tracks[this.trackIndex]
-      let note = track.notes[this.noteC]
+      const row = this.noteR
+      const track = this.tracks[this.trackIndex]
+      const note = track.notes[this.noteC]
       if (row === 0) {
         if (input.leftTrigger()) note[row] = this.maxDuration - 1
         else if (note[row] < this.maxDuration - 1) note[row]++
@@ -336,9 +336,9 @@ export class MusicEdit {
       }
       this.playOneNote(this.noteR)
     } else if (input.timerB(timestamp, INPUT_RATE)) {
-      let row = this.noteR
-      let track = this.tracks[this.trackIndex]
-      let note = track.notes[this.noteC]
+      const row = this.noteR
+      const track = this.tracks[this.trackIndex]
+      const note = track.notes[this.noteC]
       if (input.leftTrigger()) note[row] = Math.max(note[row] - 12, 0)
       else if (note[row] > 0) note[row]--
       this.playOneNote(this.noteR)
@@ -366,12 +366,12 @@ export class MusicEdit {
     const noteRows = this.noteRows
     const tracks = this.tracks
     let content = `music ${this.name}\n`
-    for (let track of tracks) {
+    for (const track of tracks) {
       const notes = track.notes
       content += `track ${track.name}\n`
       content += `tuning ${track.tuning}`
       for (let c = 0; c < notes.length; c++) {
-        let note = notes[c]
+        const note = notes[c]
         for (let r = 0; r < noteRows; r++) {
           if (r === 0) content += '\n'
           else content += ' '

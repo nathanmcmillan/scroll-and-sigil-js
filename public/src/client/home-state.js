@@ -124,7 +124,7 @@ export class HomeState {
     multiply(projection, client.perspective, view)
     rendering.updateUniformMatrix('u_mvp', projection)
 
-    let sky = textureByName('sky-box-1')
+    const sky = textureByName('sky-box-1')
     rendering.bindTexture(gl.TEXTURE0, sky.texture)
     rendering.bindAndDraw(client.bufferSky)
 
@@ -143,13 +143,13 @@ export class HomeState {
       rendering.bindAndDraw(buffer)
     }
 
-    let buffers = client.spriteBuffers
+    const buffers = client.spriteBuffers
     for (const buffer of buffers.values()) buffer.zero()
 
-    let sine = Math.sin(-camera.ry)
-    let cosine = Math.cos(-camera.ry)
+    const sine = Math.sin(-camera.ry)
+    const cosine = Math.cos(-camera.ry)
 
-    let things = world.things
+    const things = world.things
     let t = world.thingCount
     while (t--) {
       const thing = things[t]
@@ -179,26 +179,26 @@ export class HomeState {
     rendering.setView(0, client.top, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
 
-    let titleBox = home.titleBox
+    const titleBox = home.titleBox
     drawTextSpecial(client.bufferGUI, titleBox.x, titleBox.y, titleBox.text, 2 * scale, white0f, white1f, white2f)
 
-    let continueGameBox = home.continueGameBox
+    const continueGameBox = home.continueGameBox
     drawTextSpecial(client.bufferGUI, continueGameBox.x, continueGameBox.y, continueGameBox.text, fontScale, white0f, white1f, white2f)
 
-    let newGameBox = home.newGameBox
+    const newGameBox = home.newGameBox
     drawTextSpecial(client.bufferGUI, newGameBox.x, newGameBox.y, newGameBox.text, fontScale, white0f, white1f, white2f)
 
-    let editorBox = home.editorBox
+    const editorBox = home.editorBox
     drawTextSpecial(client.bufferGUI, editorBox.x, editorBox.y, editorBox.text, fontScale, white0f, white1f, white2f)
 
-    let optionsBox = home.optionsBox
+    const optionsBox = home.optionsBox
     drawTextSpecial(client.bufferGUI, optionsBox.x, optionsBox.y, optionsBox.text, fontScale, white0f, white1f, white2f)
 
-    let creditsBox = home.creditsBox
+    const creditsBox = home.creditsBox
     drawTextSpecial(client.bufferGUI, creditsBox.x, creditsBox.y, creditsBox.text, fontScale, white0f, white1f, white2f)
 
-    let text = '>'
-    let indicatorBox = flexText(text, fontWidth * text.length, fontHeight)
+    const text = '>'
+    const indicatorBox = flexText(text, fontWidth * text.length, fontHeight)
     indicatorBox.funX = 'left-of'
     indicatorBox.funY = 'center'
     if (home.row === 0) {

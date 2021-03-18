@@ -170,8 +170,8 @@ export class SfxEdit {
       this.forcePaint = true
     }
     if (input.pressA() || input.pressStart() || input.pressSelect()) {
-      let id = this.dialog.id
-      let option = this.dialog.options[this.dialog.pos]
+      const id = this.dialog.id
+      const option = this.dialog.options[this.dialog.pos]
       this.handleDialog(id + '-' + option)
     }
   }
@@ -206,7 +206,7 @@ export class SfxEdit {
     }
 
     if (input.pressX()) {
-      for (let sound of this.sounds) sound.stop()
+      for (const sound of this.sounds) sound.stop()
       this.sounds.length = 0
       const waveform = waveFromName(WAVE_LIST[this.arguments[WAVE_INDEX]].toLowerCase())
       const pitch = diatonic(this.arguments[FREQUENCY_INDEX] - SEMITONES)

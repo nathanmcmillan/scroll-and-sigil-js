@@ -43,8 +43,8 @@ class PolygonPoint {
 }
 
 function polygonSort(n, o) {
-  let a = n.vec
-  let b = o.vec
+  const a = n.vec
+  const b = o.vec
   if (a.y > b.y) return -1
   if (a.y < b.y) return 1
   if (a.x > b.x) return 1
@@ -97,27 +97,27 @@ function strvert(vert) {
 }
 
 function lineIntersect(a, b, c, d) {
-  let a1 = b.y - a.y
-  let b1 = a.x - b.x
-  let c1 = b.x * a.y - a.x * b.y
-  let r3 = a1 * c.x + b1 * c.y + c1
-  let r4 = a1 * d.x + b1 * d.y + c1
+  const a1 = b.y - a.y
+  const b1 = a.x - b.x
+  const c1 = b.x * a.y - a.x * b.y
+  const r3 = a1 * c.x + b1 * c.y + c1
+  const r4 = a1 * d.x + b1 * d.y + c1
   if (!Float.zero(r3) && !Float.zero(r4) && r3 * r4 >= 0.0) return false
-  let a2 = d.y - c.y
-  let b2 = c.x - d.x
-  let c2 = d.x * c.y - c.x * d.y
-  let r1 = a2 * a.x + b2 * a.y + c2
-  let r2 = a2 * b.x + b2 * b.y + c2
+  const a2 = d.y - c.y
+  const b2 = c.x - d.x
+  const c2 = d.x * c.y - c.x * d.y
+  const r1 = a2 * a.x + b2 * a.y + c2
+  const r2 = a2 * b.x + b2 * b.y + c2
   if (!Float.zero(r1) && !Float.zero(r2) && r1 * r2 >= 0.0) return false
-  let denominator = a1 * b2 - a2 * b1
+  const denominator = a1 * b2 - a2 * b1
   if (Float.zero(denominator)) return false
   return true
 }
 
 function safeDiagonal(polygon, a, b) {
   for (const point of polygon) {
-    let c = point.vec
-    let d = point.previous.vec
+    const c = point.vec
+    const d = point.previous.vec
     if (a === c || a === d || b === c || b === d) continue
     if (lineIntersect(a, b, c, d)) return false
   }
@@ -136,7 +136,7 @@ function triangleContains(a, b, c, p) {
 function safeTriangle(verts, a, b, c) {
   let i = verts.length
   while (i--) {
-    let p = verts[i].vec
+    const p = verts[i].vec
     if (p === a || p === b || p === c) continue
     if (triangleContains(a, b, c, p)) return false
   }
@@ -159,7 +159,7 @@ function clip(sector, floor, scale, triangles, verts) {
   }
   if (doDebug()) console.debug('^ start clip')
   for (let i = 0; i < size; i++) {
-    let vert = verts[i]
+    const vert = verts[i]
     if (i + 1 === size) vert.next = verts[0]
     else vert.next = verts[i + 1]
   }
@@ -208,18 +208,18 @@ function clip(sector, floor, scale, triangles, verts) {
 
 function monotone(sector, floor, scale, starting, triangles) {
   if (doDebug()) console.debug('^ monotone')
-  let verts = []
+  const verts = []
   for (const start of starting) {
     if (doDebug()) console.debug('^ monotone polygon starting with', strstart(start))
-    let initial = start.a
+    const initial = start.a
     let current = start.b
     let previous = initial.vec
     verts.push(new Vertex(previous))
     let protect = 100
     while (true) {
       if (--protect <= 0) throw 'Too many monotone iterations'
-      let vec = current.vec
-      let next = current.next
+      const vec = current.vec
+      const next = current.next
       verts.push(new Vertex(current.vec))
       if (current.diagonals.length > 0) {
         let best = next
@@ -227,7 +227,7 @@ function monotone(sector, floor, scale, starting, triangles) {
         if (doDebug()) console.debug('interior (1)', strvec(previous), strvec(vec), strvec(next.vec), angle)
         for (const diagonal of current.diagonals) {
           if (previous === diagonal.vec) continue
-          let other = clockwiseInterior(previous, vec, diagonal.vec)
+          const other = clockwiseInterior(previous, vec, diagonal.vec)
           if (doDebug()) console.debug('compare interior (2)', strvec(previous), strvec(vec), strvec(diagonal.vec), '=', other, ', better:', other < angle)
           if (other < angle) {
             best = diagonal
@@ -251,24 +251,24 @@ function monotone(sector, floor, scale, starting, triangles) {
 
 function classify(points) {
   if (doDebug()) console.debug('^ classify')
-  let monotone = []
-  let merge = []
-  let split = []
+  const monotone = []
+  const merge = []
+  const split = []
   for (const current of points) {
-    let vec = current.vec
-    let previous = current.previous.vec
-    let next = current.next.vec
-    let reflex = clockwiseReflex(previous, vec, next)
+    const vec = current.vec
+    const previous = current.previous.vec
+    const next = current.next.vec
+    const reflex = clockwiseReflex(previous, vec, next)
     if (reflex) {
-      let above = previous.y < vec.y && next.y <= vec.y
+      const above = previous.y < vec.y && next.y <= vec.y
       if (doDebug()) console.debug(' ', strpoint(current), 'reflex', reflex, 'above', above)
       if (above) {
         current.start = true
         monotone.push(new Start(current, current.next))
       }
     } else {
-      let above = previous.y <= vec.y && next.y < vec.y
-      let below = previous.y >= vec.y && next.y > vec.y
+      const above = previous.y <= vec.y && next.y < vec.y
+      const below = previous.y >= vec.y && next.y > vec.y
       if (doDebug()) console.debug(' ', strpoint(current), 'reflex', reflex, 'above', above, 'below', below)
       if (above) {
         split.push(current)
@@ -279,9 +279,9 @@ function classify(points) {
   }
   for (const mono of monotone) if (doDebug()) console.debug('start', strstart(mono))
   for (const point of merge) {
-    let vec = point.vec
+    const vec = point.vec
     for (let k = point.index + 1; k < points.length; k++) {
-      let diagonal = points[k]
+      const diagonal = points[k]
       if (!safeDiagonal(points, vec, diagonal.vec)) continue
       point.merge = true
       point.diagonals.push(diagonal)
@@ -291,9 +291,9 @@ function classify(points) {
     }
   }
   for (const point of split) {
-    let vec = point.vec
+    const vec = point.vec
     for (let k = point.index - 1; k >= 0; k--) {
-      let diagonal = points[k]
+      const diagonal = points[k]
       if (!safeDiagonal(points, vec, diagonal.vec)) continue
       if (diagonal.merge) break
       point.diagonals.push(diagonal)
@@ -367,7 +367,7 @@ class InnerReference {
       for (let i = 0; i < vecs.length; i++) {
         const vec = vecs[i]
         if (vec === top) continue
-        let n = i + 1 === vecs.length ? 0 : i + 1
+        const n = i + 1 === vecs.length ? 0 : i + 1
         const next = vecs[n]
         if (next === top) {
           if (start === null) {
@@ -390,12 +390,12 @@ class InnerReference {
       for (let i = 0; i < vecs.length; i++) {
         const vec = vecs[i]
         if (vec !== current) continue
-        let n = i + 1 === vecs.length ? 0 : i + 1
+        const n = i + 1 === vecs.length ? 0 : i + 1
         const next = vecs[n]
         if (result === null) result = next
         else {
-          let one = clockwiseInterior(previous, current, result)
-          let two = clockwiseInterior(previous, current, next)
+          const one = clockwiseInterior(previous, current, result)
+          const two = clockwiseInterior(previous, current, next)
           if (two > one) result = next
         }
       }
@@ -437,7 +437,7 @@ function populateInside(inside, floor) {
     let protect = 1000
     while (true) {
       if (--protect <= 0) throw 'Too many population iterations'
-      let next = cluster.next(previous, current)
+      const next = cluster.next(previous, current)
       if (next === start) break
       vecs.push(next)
       previous = current
@@ -454,7 +454,7 @@ function populateReferences(vecs, points, clockwise) {
     let p = i === 0 ? size - 1 : i - 1
     let n = i === size - 1 ? 0 : i + 1
     if (!clockwise) {
-      let t = p
+      const t = p
       p = n
       n = t
     }
@@ -483,7 +483,7 @@ function populateVectors(vecs, points) {
 }
 
 function populate(sector, floor) {
-  let points = []
+  const points = []
   if (doDebug()) console.debug(`^ populate (${sector.inside.length})`)
   const inside = populateInside(sector.inside, floor)
   for (const inner of inside) populateVectors(inner, points)
@@ -497,8 +497,8 @@ function populate(sector, floor) {
 
 function floorCeil(sector, floor, scale, triangles) {
   if (skip(sector, floor)) return
-  let points = populate(sector, floor)
-  let starting = classify(points)
+  const points = populate(sector, floor)
+  const starting = classify(points)
   monotone(sector, floor, scale, starting, triangles)
 }
 

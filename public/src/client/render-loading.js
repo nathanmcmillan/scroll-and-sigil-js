@@ -32,8 +32,8 @@ export function renderLoadingInProgress(client, view, projection) {
 
   client.bufferGUI.zero()
 
-  let text = 'Loading. Please wait...'
-  let box = flexText(text, fontWidth * text.length, fontHeight)
+  const text = 'Loading. Please wait...'
+  const box = flexText(text, fontWidth * text.length, fontHeight)
   box.funX = 'center'
   box.funY = 'center'
   flexSolve(width, height, box)

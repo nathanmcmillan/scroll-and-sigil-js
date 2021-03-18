@@ -1,8 +1,8 @@
 import { index3, index4 } from '../render/render.js'
 
 export function drawWall(b, wall) {
-  let pos = b.vertexPosition
-  let vertices = b.vertices
+  const pos = b.vertexPosition
+  const vertices = b.vertices
 
   vertices[pos] = wall.a.x
   vertices[pos + 1] = wall.floor
@@ -45,8 +45,8 @@ export function drawWall(b, wall) {
 }
 
 export function drawFloorCeil(b, triangle) {
-  let pos = b.vertexPosition
-  let vertices = b.vertices
+  const pos = b.vertexPosition
+  const vertices = b.vertices
 
   vertices[pos] = triangle.c.x
   vertices[pos + 1] = triangle.height
@@ -80,8 +80,8 @@ export function drawFloorCeil(b, triangle) {
 }
 
 export function drawDecal(b, decal) {
-  let pos = b.vertexPosition
-  let vertices = b.vertices
+  const pos = b.vertexPosition
+  const vertices = b.vertices
 
   vertices[pos] = decal.x1
   vertices[pos + 1] = decal.y1

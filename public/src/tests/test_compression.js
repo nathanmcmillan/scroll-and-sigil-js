@@ -1,6 +1,6 @@
 import { compress, decompress } from '../compress/huffman.js'
 
-let s = `
+const s = `
 Copyright (c) <year>, <copyright holder>
 All rights reserved.
 
@@ -17,9 +17,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 console.log('input:', s)
 console.log('input size:', s.length)
 
-let c = compress(s)
+const c = compress(s)
 console.log('compressed:', c)
 console.log('compressed size:', c.length)
 
-let d = decompress(c)
+const d = decompress(c)
 console.log('decompress:', d)

@@ -36,7 +36,7 @@ export function renderDialogBox(state, scale, font, dialog) {
   let dialogHeight = (options.length + 2) * fontHeightAndPad
   if (title !== null) dialogHeight += fontHeightAndPad
   let x = Math.floor(0.5 * (width - dialogWidth))
-  let y = Math.floor(0.5 * (height - dialogHeight))
+  const y = Math.floor(0.5 * (height - dialogHeight))
   drawRectangle(client.bufferColor, x, y, dialogWidth + doubleThick, dialogHeight + doubleThick, slate0f, slate1f, slate2f, 1.0)
 
   drawHollowRectangle(client.bufferColor, x + thickness, y + thickness, dialogWidth, dialogHeight, thickness, peach0f, peach1f, peach2f, 1.0)

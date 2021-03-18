@@ -26,9 +26,9 @@ export const SUPER_OUTLINE_FONT = new Font('super-outline-font', 8, 8, 8)
 export const SUPER_TITLE_FONT = new Font('super-title-font', 8, 16, 15)
 
 export function index3(b) {
-  let pos = b.indexPosition
-  let offset = b.indexOffset
-  let indices = b.indices
+  const pos = b.indexPosition
+  const offset = b.indexOffset
+  const indices = b.indices
 
   indices[pos] = offset
   indices[pos + 1] = offset + 1
@@ -39,9 +39,9 @@ export function index3(b) {
 }
 
 export function index4(b) {
-  let pos = b.indexPosition
-  let offset = b.indexOffset
-  let indices = b.indices
+  const pos = b.indexPosition
+  const offset = b.indexOffset
+  const indices = b.indices
 
   indices[pos] = offset
   indices[pos + 1] = offset + 1
@@ -55,8 +55,8 @@ export function index4(b) {
 }
 
 export function screen(b, x, y, width, height) {
-  let pos = b.vertexPosition
-  let vertices = b.vertices
+  const pos = b.vertexPosition
+  const vertices = b.vertices
 
   vertices[pos] = x
   vertices[pos + 1] = y
@@ -72,12 +72,12 @@ export function screen(b, x, y, width, height) {
 }
 
 export function drawLine(b, x1, y1, x2, y2, thickness, red, green, blue, alpha) {
-  let pos = b.vertexPosition
-  let vertices = b.vertices
+  const pos = b.vertexPosition
+  const vertices = b.vertices
 
   let x = y1 - y2
   let y = -(x1 - x2)
-  let magnitude = Math.sqrt(x * x + y * y)
+  const magnitude = Math.sqrt(x * x + y * y)
   x /= magnitude
   y /= magnitude
 
@@ -114,8 +114,8 @@ export function drawLine(b, x1, y1, x2, y2, thickness, red, green, blue, alpha) 
 }
 
 export function drawTriangle(b, x1, y1, x2, y2, x3, y3, red, green, blue, alpha) {
-  let pos = b.vertexPosition
-  let vertices = b.vertices
+  const pos = b.vertexPosition
+  const vertices = b.vertices
 
   vertices[pos] = x1
   vertices[pos + 1] = y1
@@ -143,8 +143,8 @@ export function drawTriangle(b, x1, y1, x2, y2, x3, y3, red, green, blue, alpha)
 }
 
 export function drawRectangle(b, x, y, width, height, red, green, blue, alpha) {
-  let pos = b.vertexPosition
-  let vertices = b.vertices
+  const pos = b.vertexPosition
+  const vertices = b.vertices
 
   vertices[pos] = x
   vertices[pos + 1] = y
@@ -186,8 +186,8 @@ export function drawHollowRectangle(b, x, y, width, height, thickness, red, gree
 }
 
 export function drawImage(b, x, y, width, height, red, green, blue, alpha, left, top, right, bottom) {
-  let pos = b.vertexPosition
-  let vertices = b.vertices
+  const pos = b.vertexPosition
+  const vertices = b.vertices
 
   vertices[pos] = x
   vertices[pos + 1] = y
@@ -230,8 +230,8 @@ export function drawImage(b, x, y, width, height, red, green, blue, alpha, left,
 }
 
 export function drawSprite(b, x, y, z, sprite, sine, cosine) {
-  let pos = b.vertexPosition
-  let vertices = b.vertices
+  const pos = b.vertexPosition
+  const vertices = b.vertices
 
   sine = sprite.halfWidth * sine
   cosine = sprite.halfWidth * cosine
@@ -282,7 +282,7 @@ export function drawTextFont(b, x, y, text, scale, red, green, blue, alpha, font
   const fontWidth = font.width * scale
   const fontHeight = font.height * scale
   for (let i = 0; i < text.length; i++) {
-    let c = text.charAt(i)
+    const c = text.charAt(i)
     if (c === ' ') {
       currentX += fontWidth
       continue
@@ -291,11 +291,11 @@ export function drawTextFont(b, x, y, text, scale, red, green, blue, alpha, font
       currentY += fontHeight
       continue
     }
-    let index = FONT.indexOf(c)
-    let left = Math.floor(index % font.grid) * font.column
-    let top = Math.floor(index / font.grid) * font.row
-    let right = left + font.column
-    let bottom = top + font.row
+    const index = FONT.indexOf(c)
+    const left = Math.floor(index % font.grid) * font.column
+    const top = Math.floor(index / font.grid) * font.row
+    const right = left + font.column
+    const bottom = top + font.row
     drawImage(b, currentX, currentY, fontWidth, fontHeight, red, green, blue, alpha, left, top, right, bottom)
     currentX += fontWidth
   }
@@ -316,8 +316,8 @@ export function drawTextFontSpecial(b, x, y, text, scale, red, green, blue, font
 }
 
 export function drawCubeSide(b, side, x, y, z, size) {
-  let pos = b.vertexPosition
-  let vertices = b.vertices
+  const pos = b.vertexPosition
+  const vertices = b.vertices
 
   switch (side) {
     case 0:
