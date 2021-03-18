@@ -27,7 +27,7 @@ export function readPaintFile(text, palette) {
   }
 
   for (let h = 0; h < height; h++) {
-    let row = image[index].split(' ')
+    const row = image[index].split(' ')
     for (let c = 0; c < width; c++) {
       let p = parseInt(row[c])
       let red, green, blue
@@ -67,7 +67,7 @@ export function readPaintFile(text, palette) {
 }
 
 export function saveTexture(name, texture) {
-  let index = TEXTURES.length
+  const index = TEXTURES.length
   TEXTURE_NAME_TO_INDEX.set(name, index)
   TEXTURES.push(texture)
   return index
@@ -89,7 +89,7 @@ export function textureNameFromIndex(search) {
 }
 
 export function textureByName(name) {
-  let index = TEXTURE_NAME_TO_INDEX.get(name)
+  const index = TEXTURE_NAME_TO_INDEX.get(name)
   return TEXTURES[index]
 }
 

@@ -1,4 +1,5 @@
 import { entityByName } from '../assets/assets.js'
+import { playMusic, playSound } from '../assets/sounds.js'
 import { sectorInsideOutside, sectorLineNeighbors } from '../map/sector.js'
 import { sectorTriangulate } from '../map/triangulate.js'
 import { Float } from '../math/vector.js'
@@ -13,7 +14,6 @@ import { thingSet, thingTeleport } from '../thing/thing.js'
 import { Cell } from '../world/cell.js'
 import { Decal, decalInitialize } from '../world/decal.js'
 import { IntervalTrigger } from '../world/trigger.js'
-import { playSound, playMusic } from '../assets/sounds.js'
 
 export const WORLD_SCALE = 0.25
 export const WORLD_CELL_SHIFT = 5
@@ -87,14 +87,14 @@ export class World {
   }
 
   pushThing(thing) {
-    let things = this.things
+    const things = this.things
     if (things.length === this.thingCount) things.push(thing)
     else things[this.thingCount] = thing
     this.thingCount++
   }
 
   newMissile(x, y, z) {
-    let missiles = this.missiles
+    const missiles = this.missiles
     let missile
     if (missiles.length === this.missileCount) {
       missile = new Missile()
@@ -108,7 +108,7 @@ export class World {
   }
 
   newParticle(x, y, z) {
-    let particles = this.particles
+    const particles = this.particles
     let particle
     if (particles.length === this.particleCount) {
       particle = new Particle()
@@ -122,7 +122,7 @@ export class World {
   }
 
   newDecal(texture) {
-    let decals = this.decals
+    const decals = this.decals
     let decal
     if (decals.length === DECAL_LIMIT) {
       decal = decals[this.decalQueue]
@@ -161,7 +161,7 @@ export class World {
     const missiles = this.missiles
     i = this.missileCount
     while (i--) {
-      let missile = missiles[i]
+      const missile = missiles[i]
       if (missile.update()) {
         this.missileCount--
         missiles[i] = missiles[this.missileCount]
@@ -172,7 +172,7 @@ export class World {
     const particles = this.particles
     i = this.particleCount
     while (i--) {
-      let particle = particles[i]
+      const particle = particles[i]
       if (particle.update()) {
         this.particleCount--
         particles[i] = particles[this.particleCount]
@@ -195,7 +195,7 @@ export class World {
   findSector(x, z) {
     let i = this.sectors.length
     while (i--) {
-      let sector = this.sectors[i]
+      const sector = this.sectors[i]
       if (sector.outside) continue
       else if (sector.contains(x, z)) return sector.find(x, z)
     }
@@ -203,14 +203,14 @@ export class World {
   }
 
   buildCellLines(line) {
-    let xf = toFloatCell(line.a.x)
-    let yf = toFloatCell(line.a.y)
-    let dx = Math.abs(toFloatCell(line.b.x) - xf)
-    let dy = Math.abs(toFloatCell(line.b.y) - yf)
+    const xf = toFloatCell(line.a.x)
+    const yf = toFloatCell(line.a.y)
+    const dx = Math.abs(toFloatCell(line.b.x) - xf)
+    const dy = Math.abs(toFloatCell(line.b.y) - yf)
     let x = toCell(line.a.x)
     let y = toCell(line.a.y)
-    let xb = toCell(line.b.x)
-    let yb = toCell(line.b.y)
+    const xb = toCell(line.b.x)
+    const yb = toCell(line.b.y)
     let n = 1
     let error = 0.0
     let incrementX = 0
@@ -240,7 +240,7 @@ export class World {
       error -= (yf - y) * dx
     }
     for (; n > 0; n--) {
-      let cell = this.cells[x + y * this.columns]
+      const cell = this.cells[x + y * this.columns]
       cell.lines.push(line)
       if (error > 0.0) {
         y += incrementY
@@ -307,7 +307,7 @@ export class World {
     this.triggers.push(new IntervalTrigger(trigger, ticks, this.tick))
   }
 
-  checkTriggerCondition(condition, source, target) {
+  checkTriggerCondition(condition, source) {
     console.debug('check', condition)
     if (condition === null) return true
     let i = 0
@@ -336,13 +336,13 @@ export class World {
     return true
   }
 
-  activateTrigger(trigger, source = null, target = null) {
-    if (this.checkTriggerCondition(trigger.condition, source, target)) {
-      this.events.push([trigger.action, source, target])
+  activateTrigger(trigger, source = null) {
+    if (this.checkTriggerCondition(trigger.condition, source)) {
+      this.events.push([trigger.action, source])
     }
   }
 
-  doTriggerAction(action, source, target) {
+  doTriggerAction(action, source) {
     console.debug('do', action)
     let i = 0
     while (i < action.length) {

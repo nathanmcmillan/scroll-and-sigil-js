@@ -20,7 +20,7 @@ export class Cell {
   }
 
   pushThing(thing) {
-    let things = this.things
+    const things = this.things
     if (things.length === this.thingCount) {
       things.push(thing)
     } else {
@@ -30,15 +30,15 @@ export class Cell {
   }
 
   removeThing(thing) {
-    let things = this.things
-    let index = things.indexOf(thing)
+    const things = this.things
+    const index = things.indexOf(thing)
     this.thingCount--
     things[index] = things[this.thingCount]
     things[this.thingCount] = null
   }
 
   pushMissile(missile) {
-    let missiles = this.missiles
+    const missiles = this.missiles
     if (missiles.length === this.missileCount) {
       missiles.push(missile)
     } else {
@@ -48,15 +48,15 @@ export class Cell {
   }
 
   removeMissile(missile) {
-    let missiles = this.missiles
-    let index = missiles.indexOf(missile)
+    const missiles = this.missiles
+    const index = missiles.indexOf(missile)
     this.missileCount--
     missiles[index] = missiles[this.missileCount]
     missiles[this.missileCount] = null
   }
 
   pushParticle(particle) {
-    let particles = this.particles
+    const particles = this.particles
     if (particles.length === this.particleCount) {
       particles.push(particle)
     } else {
@@ -66,8 +66,8 @@ export class Cell {
   }
 
   removeParticle(particle) {
-    let particles = this.particles
-    let index = particles.indexOf(particle)
+    const particles = this.particles
+    const index = particles.indexOf(particle)
     this.particleCount--
     particles[index] = particles[this.particleCount]
     particles[this.particleCount] = null

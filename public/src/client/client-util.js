@@ -32,7 +32,7 @@ export function renderDialogBox(state, scale, font, dialog) {
   const title = dialog.title
   let longest = calcLongest(options)
   if (title !== null) longest = Math.max(longest, title.length)
-  let dialogWidth = (longest + 2) * fontWidth
+  const dialogWidth = (longest + 2) * fontWidth
   let dialogHeight = (options.length + 2) * fontHeightAndPad
   if (title !== null) dialogHeight += fontHeightAndPad
   let x = Math.floor(0.5 * (width - dialogWidth))
@@ -55,9 +55,9 @@ export function renderDialogBox(state, scale, font, dialog) {
   let yy = y + dialogHeight - 2 * fontHeightAndPad
   if (title !== null) yy -= fontHeightAndPad
 
-  let xx = x + fontWidth
+  const xx = x + fontWidth
   for (let i = 0; i < options.length; i++) {
-    let option = options[i]
+    const option = options[i]
     if (i === dialog.pos) drawTextFont(client.bufferGUI, xx, yy - i * fontHeightAndPad, option, fontScale, orange0f, orange1f, orange2f, 1.0, font)
     else drawTextFont(client.bufferGUI, xx, yy - i * fontHeightAndPad, option, fontScale, white0f, white1f, white2f, 1.0, font)
   }
@@ -126,7 +126,7 @@ export function renderTextBox(state, scale, font, box, x, y) {
     const col = box.cols[r]
     let xx = x + fontWidth
     for (let c = 0; c < col.length; c++) {
-      let chr = col[c]
+      const chr = col[c]
       if (c === box.c && r === box.r) drawTextFontSpecial(client.bufferGUI, xx, yy, chr, fontScale, orange0f, orange1f, orange2f, font)
       else drawTextFontSpecial(client.bufferGUI, xx, yy, chr, fontScale, white0f, white1f, white2f, font)
       xx += 2 * fontWidth

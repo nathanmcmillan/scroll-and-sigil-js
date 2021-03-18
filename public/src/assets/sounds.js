@@ -7,7 +7,7 @@ const MUSIC_TABLE = new Map()
 let MUSIC = null
 
 export async function saveSound(name, path) {
-  let dot = name.lastIndexOf('.')
+  const dot = name.lastIndexOf('.')
   if (dot > 0) {
     path += name
     name = name.substring(0, dot)
@@ -17,13 +17,13 @@ export async function saveSound(name, path) {
   if (SOUNDS.has(name)) return
   if (path.endsWith('.wav')) SOUNDS.set(name, new Audio(path))
   else {
-    let contents = await fetchText(path)
+    const contents = await fetchText(path)
     SOUNDS.set(name, new SynthSound(contents))
   }
 }
 
 export function playSound(name) {
-  let sound = SOUNDS.get(name)
+  const sound = SOUNDS.get(name)
   if (!sound) {
     console.error('Sound not loaded:', name)
     return
@@ -32,7 +32,7 @@ export function playSound(name) {
     sound.pause()
     sound.volume = 0.25
     sound.currentTime = 0
-    let promise = sound.play()
+    const promise = sound.play()
     if (promise) promise.then(() => {}).catch(() => {})
   } else {
     sound.play()
@@ -41,11 +41,11 @@ export function playSound(name) {
 
 export async function saveMusic(name, path) {
   if (MUSIC_TABLE.has(name)) return
-  let dot = path.lastIndexOf('.')
+  const dot = path.lastIndexOf('.')
   if (dot === -1) throw 'Extension missing: ' + path
-  let extension = path.substring(dot + 1)
+  const extension = path.substring(dot + 1)
   if (extension === 'zzfxm') {
-    let contents = parse(await fetchText(path))
+    const contents = parse(await fetchText(path))
     MUSIC_TABLE.set(name, new MusicNode(contents))
   } else {
     MUSIC_TABLE.set(name, new Audio(path))
@@ -53,7 +53,7 @@ export async function saveMusic(name, path) {
 }
 
 export function playMusic(name) {
-  let music = MUSIC_TABLE.get(name)
+  const music = MUSIC_TABLE.get(name)
   if (!music) {
     console.error('Music not loaded:', name)
     return
@@ -66,7 +66,7 @@ export function playMusic(name) {
     music.loop = true
     music.volume = 0.25
     music.currentTime = 0
-    let promise = music.play()
+    const promise = music.play()
     if (promise) promise.then(() => {}).catch(() => {})
   }
 }
