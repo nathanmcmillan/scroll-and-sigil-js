@@ -1,5 +1,5 @@
 import { Float, lineIntersect } from '../math/vector.js'
-import { ANIMATION_ALMOST_DONE, ANIMATION_DONE, ANIMATION_NOT_DONE, ANIMATION_RATE, GRAVITY, RESISTANCE, toCell, toFloatCell, WORLD_CELL_SHIFT } from '../world/world.js'
+import { ANIMATION_ALMOST_DONE, ANIMATION_DONE, ANIMATION_NOT_DONE, ANIMATION_RATE, GRAVITY, RESISTANCE, WORLD_CELL_SHIFT, toCell, toFloatCell } from '../world/world.js'
 
 let THING_UID = 0
 

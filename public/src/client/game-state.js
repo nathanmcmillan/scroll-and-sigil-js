@@ -4,7 +4,7 @@ import { drawDecal } from '../client/render-sector.js'
 import { renderTouch } from '../client/render-touch.js'
 import { Game } from '../game/game.js'
 import { identity, multiply, multiplyVector3, rotateX, rotateY, translate } from '../math/matrix.js'
-import { drawRectangle, drawSprite, drawText, TIC_FONT_HEIGHT, TIC_FONT_WIDTH } from '../render/render.js'
+import { TIC_FONT_HEIGHT, TIC_FONT_WIDTH, drawRectangle, drawSprite, drawText } from '../render/render.js'
 import { animal } from '../sound/animal.js'
 import { speech } from '../sound/speech.js'
 

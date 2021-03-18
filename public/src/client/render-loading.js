@@ -4,7 +4,7 @@ import { calcFontScale } from '../editor/editor-util.js'
 import { blackf, whitef } from '../editor/palette.js'
 import { flexSolve, flexText } from '../gui/flex.js'
 import { identity, multiply } from '../math/matrix.js'
-import { drawTextSpecial, TIC_FONT_HEIGHT, TIC_FONT_WIDTH } from '../render/render.js'
+import { TIC_FONT_HEIGHT, TIC_FONT_WIDTH, drawTextSpecial } from '../render/render.js'
 
 export function renderLoadingInProgress(client, view, projection) {
   const gl = client.gl

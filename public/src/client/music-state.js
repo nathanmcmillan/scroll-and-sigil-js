@@ -1,13 +1,13 @@
 import { textureByName } from '../assets/assets.js'
 import { renderDialogBox, renderStatus } from '../client/client-util.js'
 import { calcFontScale, defaultFont } from '../editor/editor-util.js'
-import { lengthName, MusicEdit } from '../editor/music.js'
+import { MusicEdit, lengthName } from '../editor/music.js'
 import { redf, slatef, whitef } from '../editor/palette.js'
 import { flexBox, flexSolve } from '../gui/flex.js'
 import { identity, multiply } from '../math/matrix.js'
 import { spr, sprcol } from '../render/pico.js'
 import { drawRectangle, drawTextFontSpecial } from '../render/render.js'
-import { semitoneName, SEMITONES } from '../sound/synth.js'
+import { SEMITONES, semitoneName } from '../sound/synth.js'
 
 export class MusicState {
   constructor(client) {

@@ -1,5 +1,5 @@
 import { Dialog } from '../gui/dialog.js'
-import { diatonic, SEMITONES, synthTime, waveFromName } from '../sound/synth.js'
+import { SEMITONES, diatonic, synthTime, waveFromName } from '../sound/synth.js'
 
 const INPUT_RATE = 128
 

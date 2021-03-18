@@ -1,6 +1,6 @@
 import { fetchText } from '../client/net.js'
 import { Dialog } from '../gui/dialog.js'
-import { diatonic, pulse, SEMITONES, waveFromName, WAVE_LIST } from '../sound/synth.js'
+import { SEMITONES, WAVE_LIST, diatonic, pulse, waveFromName } from '../sound/synth.js'
 
 // TODO: Every sound effect needs to be chainable e.g. (noise for 1s + sine for 1s + etc)
 

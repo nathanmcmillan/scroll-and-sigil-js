@@ -13,6 +13,13 @@
     "eqeqeq": ["error", "always"],
     "lines-between-class-members": ["error", "always"],
     "no-constant-condition": 0,
-    "prefer-const": "error"
+    "no-var": "error",
+    "prefer-const": "error",
+    "sort-imports": [
+      "error",
+      {
+        "ignoreDeclarationSort": true
+      }
+    ]
   }
 }

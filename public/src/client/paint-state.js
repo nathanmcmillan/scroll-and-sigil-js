@@ -3,7 +3,7 @@ import { renderDialogBox, renderStatus, renderTextBox } from '../client/client-u
 import { renderTouch } from '../client/render-touch.js'
 import { compress, decompress } from '../compress/huffman.js'
 import { calcBottomBarHeight, calcFontScale, calcThickness, calcTopBarHeight, defaultFont } from '../editor/editor-util.js'
-import { exportPixels, exportToCanvas, PaintEdit, SPRITE_TOOL } from '../editor/paint.js'
+import { PaintEdit, SPRITE_TOOL, exportPixels, exportToCanvas } from '../editor/paint.js'
 import {
   black0f,
   black1f,

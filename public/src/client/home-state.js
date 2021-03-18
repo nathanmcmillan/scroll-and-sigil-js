@@ -7,7 +7,7 @@ import { Game } from '../game/game.js'
 import { flexSolve, flexText } from '../gui/flex.js'
 import { identity, multiply, rotateX, rotateY, translate } from '../math/matrix.js'
 import { Home } from '../menu/home.js'
-import { drawSprite, drawTextSpecial, TIC_FONT_HEIGHT, TIC_FONT_WIDTH } from '../render/render.js'
+import { TIC_FONT_HEIGHT, TIC_FONT_WIDTH, drawSprite, drawTextSpecial } from '../render/render.js'
 
 export class HomeState {
   constructor(client) {
