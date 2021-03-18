@@ -1,4 +1,5 @@
-import { ANIMATION_ALMOST_DONE, ANIMATION_DONE, ANIMATION_NOT_DONE, ANIMATION_RATE, WORLD_CELL_SHIFT } from '../world/world.js'
+import { cellPushParticle, cellRemoveParticle } from '../world/cell.js'
+import { ANIMATION_ALMOST_DONE, ANIMATION_DONE, ANIMATION_NOT_DONE, ANIMATION_RATE, worldFindSector, WORLD_CELL_SHIFT } from '../world/world.js'
 
 export class Particle {
   constructor() {
@@ -52,7 +53,7 @@ export function particlePushToCells(self) {
 
   for (let r = minR; r <= maxR; r++) {
     for (let c = minC; c <= maxC; c++) {
-      world.cells[c + r * columns].pushParticle(this)
+      cellPushParticle(world.cells[c + r * columns], self)
     }
   }
 
@@ -66,13 +67,13 @@ export function particleRemoveFromCells(self) {
   const world = self.world
   for (let r = self.minR; r <= self.maxR; r++) {
     for (let c = self.minC; c <= self.maxC; c++) {
-      world.cells[c + r * world.columns].removeParticle(this)
+      cellRemoveParticle(world.cells[c + r * world.columns], self)
     }
   }
 }
 
 export function particleUpdateSector(self) {
-  self.sector = self.world.findSector(self.x, self.z)
+  self.sector = worldFindSector(self.world, self.x, self.z)
   return self.sector === null
 }
 

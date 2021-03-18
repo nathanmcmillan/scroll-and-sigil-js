@@ -7,7 +7,7 @@ import { Sector } from '../map/sector.js'
 import { Vector2 } from '../math/vector.js'
 import { Hero } from '../thing/hero.js'
 import { Trigger } from '../world/trigger.js'
-import { World } from '../world/world.js'
+import { World, worldClear, worldUpdate } from '../world/world.js'
 
 function texture(name) {
   if (name === 'none') return -1
@@ -26,7 +26,7 @@ export class Game {
 
   read(content) {
     const world = this.world
-    world.clear()
+    worldClear(world)
 
     const vecs = []
     const lines = []
@@ -143,11 +143,6 @@ export class Game {
         } else if (top === 'triggers') {
           while (index < end) {
             if (map[index] === 'end triggers') break
-            // const trigger = map[index].split(' ')
-            // if (trigger[0] === 'line') {
-            //   const line = lines[parseInt(trigger[1])]
-            //   world.trigger('interact-line', [line], trigger.slice(2))
-            // }
             const trigger = new Trigger(map[index].split(' '))
             world.pushTrigger(trigger)
             index++
@@ -199,7 +194,7 @@ export class Game {
       camera.target.rotation = camera.ry - 0.5 * Math.PI
     }
 
-    this.world.update()
+    worldUpdate(this.world)
 
     if (this.cinema) cameraTowardsTarget(camera)
     else cameraFollowCinema(camera, this.world)

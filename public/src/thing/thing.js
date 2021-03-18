@@ -1,5 +1,18 @@
 import { Float, lineIntersect } from '../math/vector.js'
-import { ANIMATION_ALMOST_DONE, ANIMATION_DONE, ANIMATION_NOT_DONE, ANIMATION_RATE, GRAVITY, RESISTANCE, WORLD_CELL_SHIFT, toCell, toFloatCell } from '../world/world.js'
+import { cellPushThing, cellRemoveThing } from '../world/cell.js'
+import {
+  ANIMATION_ALMOST_DONE,
+  ANIMATION_DONE,
+  ANIMATION_NOT_DONE,
+  ANIMATION_RATE,
+  GRAVITY,
+  RESISTANCE,
+  toCell,
+  toFloatCell,
+  worldFindSector,
+  worldPushThing,
+  WORLD_CELL_SHIFT,
+} from '../world/world.js'
 
 let THING_UID = 0
 
@@ -172,7 +185,7 @@ export function thingFindSectorFromLine(self) {
 export function thingFindSector(self) {
   const old = self.sector
   let sector = old
-  if (sector === null) sector = self.world.findSector(self.x, self.z)
+  if (sector === null) sector = worldFindSector(self.world, self.x, self.z)
   else sector = sector.searchFor(self.x, self.z)
   if (sector !== old) {
     self.sector = sector
@@ -279,7 +292,7 @@ export function thingSetup(self) {
   thingPushToCells(self)
   if (!thingFindSectorFromLine(self)) thingFindSector(self)
   thingUpdateY(self)
-  self.world.pushThing(self)
+  worldPushThing(self.world, self)
 }
 
 export function thingSet(self, x, z) {
@@ -296,7 +309,7 @@ export function thingSet(self, x, z) {
     if (trigger) world.activateTrigger(trigger, self)
   }
   thingUpdateY(self)
-  world.pushThing(self)
+  worldPushThing(world, self)
 }
 
 export function thingTeleport(self, x, z) {
@@ -330,7 +343,7 @@ export function thingPushToCells(self) {
   if (maxR >= world.rows) maxR = world.rows - 1
   for (let r = minR; r <= maxR; r++) {
     for (let c = minC; c <= maxC; c++) {
-      world.cells[c + r * columns].pushThing(self)
+      cellPushThing(world.cells[c + r * columns], self)
     }
   }
   self.minC = minC
@@ -344,7 +357,7 @@ export function thingRemoveFromCells(self) {
   const columns = self.world.columns
   for (let r = self.minR; r <= self.maxR; r++) {
     for (let c = self.minC; c <= self.maxC; c++) {
-      cells[c + r * columns].removeThing(self)
+      cellRemoveThing(cells[c + r * columns], self)
     }
   }
 }

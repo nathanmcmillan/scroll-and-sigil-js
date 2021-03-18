@@ -1,5 +1,5 @@
 import { Float, lineIntersectAt } from '../math/vector.js'
-import { WORLD_CELL_SHIFT } from '../world/world.js'
+import { worldFindSector, WORLD_CELL_SHIFT } from '../world/world.js'
 
 const out = [0.0, 0.0]
 
@@ -62,7 +62,7 @@ function cameraFixView(self, world) {
     }
   }
 
-  const sector = world.findSector(self.x, self.z)
+  const sector = worldFindSector(world, self.x, self.z)
   if (sector === null) return
   if (sector.hasFloor() && self.y < sector.floor + fudge) self.y = sector.floor + fudge
   if (sector.hasCeiling() && self.y > sector.ceiling - fudge) self.y = sector.ceiling - fudge

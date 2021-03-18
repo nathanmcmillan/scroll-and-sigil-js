@@ -1,6 +1,6 @@
 import { randomInt } from '../math/random.js'
 import { particleSetup, particleUpdateSector } from '../particle/particle.js'
-import { WORLD_CELL_SHIFT } from '../world/world.js'
+import { worldNewParticle, WORLD_CELL_SHIFT } from '../world/world.js'
 
 function bloodHitFloor(self) {
   const sector = self.sector
@@ -227,7 +227,7 @@ function bloodInit(self, entity, dx, dy, dz) {
 }
 
 export function newBlood(world, entity, x, y, z, dx, dy, dz) {
-  const particle = world.newParticle(x, y, z)
+  const particle = worldNewParticle(world, x, y, z)
   bloodInit(particle, entity, dx, dy, dz)
   return particle
 }

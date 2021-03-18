@@ -1,4 +1,5 @@
-import { WORLD_CELL_SHIFT } from '../world/world.js'
+import { cellPushMissile, cellRemoveMissile } from '../world/cell.js'
+import { worldFindSector, WORLD_CELL_SHIFT } from '../world/world.js'
 
 export class Missile {
   constructor() {
@@ -55,7 +56,7 @@ export function missilePushToCells(self) {
 
   for (let r = minR; r <= maxR; r++) {
     for (let c = minC; c <= maxC; c++) {
-      world.cells[c + r * columns].pushMissile(self)
+      cellPushMissile(world.cells[c + r * columns], self)
     }
   }
 
@@ -71,13 +72,13 @@ export function missileRemoveFromCells(self) {
   const world = self.world
   for (let r = self.minR; r <= self.maxR; r++) {
     for (let c = self.minC; c <= self.maxC; c++) {
-      world.cells[c + r * world.columns].removeMissile(self)
+      cellRemoveMissile(world.cells[c + r * world.columns], self)
     }
   }
 }
 
 export function missileUpdateSector(self) {
-  self.sector = self.world.findSector(self.x, self.z)
+  self.sector = worldFindSector(self.world, self.x, self.z)
   return self.sector === null
 }
 

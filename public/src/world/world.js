@@ -11,7 +11,7 @@ import { Item } from '../thing/item.js'
 import { Monster } from '../thing/monster.js'
 import { NonPlayerCharacter } from '../thing/npc.js'
 import { thingSet, thingTeleport } from '../thing/thing.js'
-import { Cell } from '../world/cell.js'
+import { Cell, cellClear } from '../world/cell.js'
 import { Decal, decalInitialize } from '../world/decal.js'
 import { IntervalTrigger } from '../world/trigger.js'
 
@@ -42,6 +42,126 @@ export function ticksToTime(value, interval) {
   return value
 }
 
+export function worldClear(world) {
+  for (let i = 0; i < world.thingCount; i++) world.things[i] = null
+  for (let i = 0; i < world.missileCount; i++) world.missiles[i] = null
+  for (let i = 0; i < world.particleCount; i++) world.particles[i] = null
+  if (world.cells) for (let i = 0; i < world.cells.length; i++) cellClear(world.cells[i])
+  world.tick = 0
+  world.lines = null
+  world.sectors.length = 0
+  world.cells = null
+  world.columns = 0
+  world.rows = 0
+  world.things.length = 0
+  world.thingCount = 0
+  world.missiles.length = 0
+  world.missileCount = 0
+  world.particles.length = 0
+  world.particleCount = 0
+  world.decals.length = 0
+  world.decalQueue = 0
+  world.triggers.length = 0
+  world.events.length = 0
+}
+
+export function worldPushThing(world, thing) {
+  const things = world.things
+  if (things.length === world.thingCount) things.push(thing)
+  else things[world.thingCount] = thing
+  world.thingCount++
+}
+
+export function worldUpdate(world) {
+  world.tick++
+
+  const triggers = world.triggers
+  let t = triggers.length
+  while (t--) {
+    const meta = triggers[t]
+    if (world.tick < meta.time) continue
+    meta.time += meta.interval
+    world.activateTrigger(meta.trigger)
+  }
+
+  const things = world.things
+  let i = world.thingCount
+  while (i--) {
+    if (things[i].update()) {
+      world.thingCount--
+      things[i] = things[world.thingCount]
+      things[world.thingCount] = null
+    }
+  }
+
+  const missiles = world.missiles
+  i = world.missileCount
+  while (i--) {
+    const missile = missiles[i]
+    if (missile.update()) {
+      world.missileCount--
+      missiles[i] = missiles[world.missileCount]
+      missiles[world.missileCount] = missile
+    }
+  }
+
+  const particles = world.particles
+  i = world.particleCount
+  while (i--) {
+    const particle = particles[i]
+    if (particle.update()) {
+      world.particleCount--
+      particles[i] = particles[world.particleCount]
+      particles[world.particleCount] = particle
+    }
+  }
+
+  const events = world.events
+  let e = events.length
+  if (e > 0) {
+    while (e--) world.doTriggerAction(...events[e])
+    world.events.length = 0
+  }
+}
+
+export function worldNewMissile(world, x, y, z) {
+  const missiles = world.missiles
+  let missile
+  if (missiles.length === world.missileCount) {
+    missile = new Missile()
+    missiles.push(missile)
+  } else {
+    missile = missiles[world.missileCount]
+  }
+  world.missileCount++
+  missileInitialize(missile, world, x, y, z)
+  return missile
+}
+
+export function worldNewParticle(world, x, y, z) {
+  const particles = world.particles
+  let particle
+  if (particles.length === world.particleCount) {
+    particle = new Particle()
+    particles.push(particle)
+  } else {
+    particle = particles[world.particleCount]
+  }
+  world.particleCount++
+  particleInitialize(particle, world, x, y, z)
+  return particle
+}
+
+export function worldFindSector(world, x, z) {
+  let i = world.sectors.length
+  while (i--) {
+    const sector = world.sectors[i]
+    if (sector.outside) continue
+    else if (sector.contains(x, z)) return sector.find(x, z)
+  }
+  return null
+}
+
 export class World {
   constructor(game) {
     this.game = game
@@ -63,64 +183,6 @@ export class World {
     this.events = []
   }
 
-  clear() {
-    for (let i = 0; i < this.thingCount; i++) this.things[i] = null
-    for (let i = 0; i < this.missileCount; i++) this.missiles[i] = null
-    for (let i = 0; i < this.particleCount; i++) this.particles[i] = null
-    if (this.cells) for (let i = 0; i < this.cells.length; i++) this.cells[i].clear()
-    this.tick = 0
-    this.lines = null
-    this.sectors.length = 0
-    this.cells = null
-    this.columns = 0
-    this.rows = 0
-    this.things.length = 0
-    this.thingCount = 0
-    this.missiles.length = 0
-    this.missileCount = 0
-    this.particles.length = 0
-    this.particleCount = 0
-    this.decals.length = 0
-    this.decalQueue = 0
-    this.triggers.length = 0
-    this.events.length = 0
-  }
-
-  pushThing(thing) {
-    const things = this.things
-    if (things.length === this.thingCount) things.push(thing)
-    else things[this.thingCount] = thing
-    this.thingCount++
-  }
-
-  newMissile(x, y, z) {
-    const missiles = this.missiles
-    let missile
-    if (missiles.length === this.missileCount) {
-      missile = new Missile()
-      missiles.push(missile)
-    } else {
-      missile = missiles[this.missileCount]
-    }
-    this.missileCount++
-    missileInitialize(missile, this, x, y, z)
-    return missile
-  }
-
-  newParticle(x, y, z) {
-    const particles = this.particles
-    let particle
-    if (particles.length === this.particleCount) {
-      particle = new Particle()
-      particles.push(particle)
-    } else {
-      particle = particles[this.particleCount]
-    }
-    this.particleCount++
-    particleInitialize(particle, this, x, y, z)
-    return particle
-  }
-
   newDecal(texture) {
     const decals = this.decals
     let decal
@@ -136,70 +198,8 @@ export class World {
     return decal
   }
 
-  update() {
-    this.tick++
-
-    const triggers = this.triggers
-    let t = triggers.length
-    while (t--) {
-      const meta = triggers[t]
-      if (this.tick < meta.time) continue
-      meta.time += meta.interval
-      this.activateTrigger(meta.trigger)
-    }
-
-    const things = this.things
-    let i = this.thingCount
-    while (i--) {
-      if (things[i].update()) {
-        this.thingCount--
-        things[i] = things[this.thingCount]
-        things[this.thingCount] = null
-      }
-    }
-
-    const missiles = this.missiles
-    i = this.missileCount
-    while (i--) {
-      const missile = missiles[i]
-      if (missile.update()) {
-        this.missileCount--
-        missiles[i] = missiles[this.missileCount]
-        missiles[this.missileCount] = missile
-      }
-    }
-
-    const particles = this.particles
-    i = this.particleCount
-    while (i--) {
-      const particle = particles[i]
-      if (particle.update()) {
-        this.particleCount--
-        particles[i] = particles[this.particleCount]
-        particles[this.particleCount] = particle
-      }
-    }
-
-    const events = this.events
-    let e = events.length
-    if (e > 0) {
-      while (e--) this.doTriggerAction(...events[e])
-      this.events.length = 0
-    }
-  }
-
   pushSector(sector) {
     this.sectors.push(sector)
-  }
-
-  findSector(x, z) {
-    let i = this.sectors.length
-    while (i--) {
-      const sector = this.sectors[i]
-      if (sector.outside) continue
-      else if (sector.contains(x, z)) return sector.find(x, z)
-    }
-    return null
   }
 
   buildCellLines(line) {
@@ -369,31 +369,11 @@ export class World {
     // go to new map
   }
 
-  // trigger(trigger, conditions, events) {
-  //   let list = this.triggers.get(trigger)
-  //   if (!list) {
-  //     list = []
-  //     this.triggers.set(trigger, list)
-  //   }
-  //   list.push([conditions, events])
-  // }
-
   // notify(trigger, params) {
   //   let list = this.triggers.get(trigger)
   //   if (!list) {
   //     this.game.notify(trigger, params)
   //     return
-  //   }
-  //   for (const entry of list) {
-  //     let conditions = entry[0]
-  //     let events = entry[1]
-  //     console.log(trigger, params, '=>', conditions, events)
-  //     if (trigger === 'interact-line') {
-  //       let line = params[1]
-  //       if (line === conditions[0]) {
-  //         this.game.notify(events[0])
-  //       }
-  //     }
   //   }
   // }
 }

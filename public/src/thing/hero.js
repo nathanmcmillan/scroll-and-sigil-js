@@ -164,7 +164,8 @@ function heroInteract(self) {
         const line = cell.lines[i]
         const distance = heroDistanceToLine(self, box, line)
         if (distance !== null && distance < 2.0) {
-          self.world.notify('interact-line', [self, line])
+          const trigger = line.trigger
+          if (trigger) world.activateTrigger(trigger, self)
         }
       }
     }

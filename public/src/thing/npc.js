@@ -80,6 +80,7 @@ function thingTryOverlap(self, x, z, box, thing) {
   if (overlap) {
     const previous = Math.abs(self.x - thing.x) <= box && Math.abs(self.z - thing.z) <= box
     if (previous) return self.uid < thing.uid
+    return true
   }
   return false
 }
