@@ -55,60 +55,39 @@ export class LineReference {
     const st = uv + Math.sqrt(x * x + y * y) * scale
 
     if (this.top.use()) {
-      let ceiling = null
-      let top = null
-      if (plus) {
+      let ceiling, top
+      if (minus) {
+        ceiling = minus.ceiling
+        top = minus.top
+      } else {
         ceiling = plus.ceiling
         top = plus.top
-      }
-      if (minus) {
-        if (ceiling === null) {
-          ceiling = minus.ceiling
-          top = minus.top
-        } else if (ceiling < minus.ceiling) {
-          ceiling = minus.ceiling
-          top = minus.top
-        }
       }
       if (ceiling >= top) console.warn(`Invalid top wall: ceiling := ${ceiling}, top := ${top}, ${this.top.texture}`)
       this.top.update(ceiling, top, uv, ceiling * scale, st, top * scale, a, b)
     }
 
     if (this.middle.use()) {
-      let floor = null
-      let ceiling = null
-      if (plus) {
+      let floor, ceiling
+      if (minus) {
+        floor = minus.floor
+        ceiling = minus.ceiling
+      } else {
         floor = plus.floor
         ceiling = plus.ceiling
-      }
-      if (minus) {
-        if (floor === null) {
-          floor = minus.floor
-          ceiling = minus.ceiling
-        } else if (floor < minus.floor) {
-          floor = minus.floor
-          ceiling = minus.ceiling
-        }
       }
       if (floor >= ceiling) console.warn(`Invalid middle wall: floor := ${floor}, ceiling := ${ceiling}, ${this.middle.texture}`)
       this.middle.update(floor, ceiling, uv, floor * scale, st, ceiling * scale, a, b)
     }
 
     if (this.bottom.use()) {
-      let bottom = null
-      let floor = null
-      if (plus) {
+      let bottom, floor
+      if (minus) {
+        bottom = minus.bottom
+        floor = minus.floor
+      } else {
         bottom = plus.bottom
         floor = plus.floor
-      }
-      if (minus) {
-        if (bottom === null) {
-          bottom = minus.bottom
-          floor = minus.floor
-        } else {
-          if (minus.floor > floor) floor = minus.floor
-          if (minus.bottom < bottom) bottom = minus.bottom
-        }
       }
       if (bottom >= floor) console.warn(`Invalid bottom wall: bottom := ${bottom}, floor := ${floor}, ${this.bottom.texture}`)
       this.bottom.update(bottom, floor, uv, bottom * scale, st, floor * scale, a, b)

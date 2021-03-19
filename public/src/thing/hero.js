@@ -4,7 +4,7 @@ import { randomInt } from '../math/random.js'
 import { newPlasma } from '../missile/plasma.js'
 import { redBloodExplode, redBloodTowards } from '../thing/thing-util.js'
 import { Thing, thingApproximateDistance, thingIntegrate, thingSetAnimation, thingSetup, thingUpdateAnimation, thingUpdateSprite } from '../thing/thing.js'
-import { ANIMATION_ALMOST_DONE, ANIMATION_DONE, WORLD_CELL_SHIFT } from '../world/world.js'
+import { ANIMATION_ALMOST_DONE, ANIMATION_DONE, worldEventTrigger, WORLD_CELL_SHIFT } from '../world/world.js'
 
 // TODO
 // If thing interacting with dies / is busy then nullify hero interaction
@@ -134,10 +134,9 @@ function heroInteract(self) {
       thingSetAnimation(self, 'move')
       self.interactionWith = thing
       self.interaction = thing.interaction
-      if (self.interaction.get('type') === 'quest') {
-        self.world.notify('begin-cinema')
-      }
-      // self.world.notify('interact-thing', [self, thing])
+      if (self.interaction.get('type') === 'quest') self.world.notify('begin-cinema')
+      const trigger = thing.trigger
+      if (trigger) worldEventTrigger(world, 'interact', trigger, self)
       return true
     }
   }
@@ -165,7 +164,7 @@ function heroInteract(self) {
         const distance = heroDistanceToLine(self, box, line)
         if (distance !== null && distance < 2.0) {
           const trigger = line.trigger
-          if (trigger) world.activateTrigger(trigger, self)
+          if (trigger) worldEventTrigger(world, 'interact', trigger, self)
         }
       }
     }
@@ -308,7 +307,6 @@ function heroMove(self) {
     return
   } else if (self.input.pressRightTrigger()) {
     if (heroInteract(self)) return
-    else playSound('baron-scream')
   }
   if (self.input.pressSelect()) {
     heroOpenMenu(self)

@@ -13,6 +13,10 @@
     "eqeqeq": ["error", "always"],
     "lines-between-class-members": ["error", "always"],
     "no-constant-condition": 0,
+    "no-invalid-this": "error",
+    "no-multi-spaces": "error",
+    "no-multiple-empty-lines": "error",
+    "no-trailing-spaces": "error",
     "no-var": "error",
     "prefer-const": "error",
     "sort-imports": [
@@ -21,6 +25,7 @@
         "ignoreDeclarationSort": true,
         "ignoreMemberSort": true
       }
-    ]
+    ],
+    "yoda": "error"
   }
 }

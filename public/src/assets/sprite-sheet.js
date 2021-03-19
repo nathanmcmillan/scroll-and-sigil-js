@@ -1,6 +1,6 @@
 import { Sprite } from '../render/sprite.js'
 
-const SPRITE_SCALE = 1.0 / 8.0
+const SPRITE_SCALE = 1.0 / 10.0
 
 export function createSpriteSheet(width, height, list) {
   width = 1.0 / width

@@ -7,7 +7,7 @@ import { Sector } from '../map/sector.js'
 import { Vector2 } from '../math/vector.js'
 import { Hero } from '../thing/hero.js'
 import { Trigger } from '../world/trigger.js'
-import { World, worldClear, worldUpdate } from '../world/world.js'
+import { World, worldClear, worldPushTrigger, worldUpdate } from '../world/world.js'
 
 function texture(name) {
   if (name === 'none') return -1
@@ -144,7 +144,7 @@ export class Game {
           while (index < end) {
             if (map[index] === 'end triggers') break
             const trigger = new Trigger(map[index].split(' '))
-            world.pushTrigger(trigger)
+            worldPushTrigger(world, trigger)
             index++
           }
           index++

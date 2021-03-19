@@ -9,6 +9,7 @@ import {
   RESISTANCE,
   toCell,
   toFloatCell,
+  worldEventTrigger,
   worldFindSector,
   worldPushThing,
   WORLD_CELL_SHIFT,
@@ -159,7 +160,7 @@ function thingLineFloorAndCeiling(self, line) {
   if (sector !== old) {
     self.sector = sector
     const trigger = sector.trigger
-    if (trigger) self.world.activateTrigger(trigger, self)
+    if (trigger) worldEventTrigger(self.world, 'enter', trigger, self)
   }
   return true
 }
@@ -190,7 +191,7 @@ export function thingFindSector(self) {
   if (sector !== old) {
     self.sector = sector
     const trigger = sector.trigger
-    if (trigger) self.world.activateTrigger(trigger, self)
+    if (trigger) worldEventTrigger(self.world, 'enter', trigger, self)
   }
   self.floor = sector.floor
   self.ceiling = sector.ceiling
@@ -306,7 +307,7 @@ export function thingSet(self, x, z) {
   const sector = self.sector
   if (sector !== old) {
     const trigger = sector.trigger
-    if (trigger) world.activateTrigger(trigger, self)
+    if (trigger) worldEventTrigger(world, 'enter', trigger, self)
   }
   thingUpdateY(self)
   worldPushThing(world, self)
@@ -324,7 +325,7 @@ export function thingTeleport(self, x, z) {
   const sector = self.sector
   if (sector !== old) {
     const trigger = sector.trigger
-    if (trigger) world.activateTrigger(trigger, self)
+    if (trigger) worldEventTrigger(world, 'enter', trigger, self)
   }
   thingUpdateY(self)
 }

@@ -13,7 +13,7 @@ import { NonPlayerCharacter } from '../thing/npc.js'
 import { thingSet, thingTeleport } from '../thing/thing.js'
 import { Cell, cellClear } from '../world/cell.js'
 import { Decal, decalInitialize } from '../world/decal.js'
-import { IntervalTrigger } from '../world/trigger.js'
+import { IntervalTrigger } from './trigger.js'
 
 export const WORLD_SCALE = 0.25
 export const WORLD_CELL_SHIFT = 5
@@ -81,7 +81,7 @@ export function worldUpdate(world) {
     const meta = triggers[t]
     if (world.tick < meta.time) continue
     meta.time += meta.interval
-    world.activateTrigger(meta.trigger)
+    worldConditionTrigger(world, meta.trigger, null)
   }
 
   const things = world.things
@@ -119,7 +119,7 @@ export function worldUpdate(world) {
   const events = world.events
   let e = events.length
   if (e > 0) {
-    while (e--) world.doTriggerAction(...events[e])
+    while (e--) worldDoTriggerAction(world, events[e][0], events[e][1])
     world.events.length = 0
   }
 }
@@ -160,6 +160,83 @@ export function worldFindSector(world, x, z) {
     else if (sector.contains(x, z)) return sector.find(x, z)
   }
   return null
+}
+
+export function worldPushTrigger(world, trigger) {
+  const event = trigger.event
+  if (event[0] !== 'every') return
+  const value = parseInt(event[1])
+  const interval = event[2]
+  const ticks = ticksToTime(value, interval)
+  world.triggers.push(new IntervalTrigger(trigger, ticks, world.tick))
+}
+
+function triggerEvent(type, event) {
+  return type === event[0]
+}
+
+function triggerCondition(condition, source) {
+  if (condition === null) return true
+  let i = 0
+  while (i < condition.length) {
+    if (condition[i] === 'lte') {
+      const variable = condition[i + 1]
+      const number = parseInt(condition[i + 2])
+      if (variable === 'health') if (source.health > number) return false
+      i += 3
+    } else if (condition[i] === 'gte') {
+      const variable = condition[i + 1]
+      const number = parseInt(condition[i + 2])
+      if (variable === 'health') if (source.health < number) return false
+      i += 3
+    } else if (condition[i] === 'eq') {
+      const variable = condition[i + 1]
+      const constant = condition[i + 2]
+      if (variable === 'health') {
+        if (source.health !== parseInt(constant)) return false
+      } else if (variable === 'group') {
+        if (source.group !== constant) return false
+      }
+      i += 3
+    } else i++
+  }
+  return true
+}
+
+function worldConditionTrigger(world, trigger, source) {
+  if (!triggerCondition(trigger.condition, source)) return
+  world.events.push([trigger.action, source])
+}
+
+export function worldEventTrigger(world, type, trigger, source) {
+  if (!triggerEvent(type, trigger.event)) return
+  worldConditionTrigger(world, trigger, source)
+}
+
+function worldDoTriggerAction(world, action, source) {
+  let i = 0
+  while (i < action.length) {
+    if (action[i] === 'spawn') {
+      const name = action[i + 1]
+      const x = parseFloat(action[i + 2])
+      const z = parseFloat(action[i + 3])
+      world.spawnEntity(name, x, z)
+      i += 4
+    } else if (action[i] === 'teleport') {
+      const x = parseFloat(action[i + 1])
+      const z = parseFloat(action[i + 2])
+      thingTeleport(source, x, z)
+      i += 3
+    } else if (action[i] === 'music') {
+      playMusic(action[i + 1])
+      i += 2
+    } else if (action[i] === 'sound') {
+      playSound(action[i + 1])
+      i += 2
+    } else i++
+  }
+  // cinema
+  // go to new map
 }
 
 export class World {
@@ -296,77 +373,6 @@ export class World {
         return new Hero(this, entity, x, z, this.game.input)
     }
     return null
-  }
-
-  pushTrigger(trigger) {
-    const event = trigger.event
-    if (event[0] !== 'every') return
-    const value = parseInt(event[1])
-    const interval = event[2]
-    const ticks = ticksToTime(value, interval)
-    this.triggers.push(new IntervalTrigger(trigger, ticks, this.tick))
-  }
-
-  checkTriggerCondition(condition, source) {
-    console.debug('check', condition)
-    if (condition === null) return true
-    let i = 0
-    while (i < condition.length) {
-      if (condition[i] === 'lte') {
-        const variable = condition[i + 1]
-        const number = parseInt(condition[i + 2])
-        if (variable === 'health') if (source.health > number) return false
-        i += 3
-      } else if (condition[i] === 'gte') {
-        const variable = condition[i + 1]
-        const number = parseInt(condition[i + 2])
-        if (variable === 'health') if (source.health < number) return false
-        i += 3
-      } else if (condition[i] === 'eq') {
-        const variable = condition[i + 1]
-        const constant = condition[i + 2]
-        if (variable === 'health') {
-          if (source.health !== parseInt(constant)) return false
-        } else if (variable === 'group') {
-          if (source.group !== constant) return false
-        }
-        i += 3
-      } else i++
-    }
-    return true
-  }
-
-  activateTrigger(trigger, source = null) {
-    if (this.checkTriggerCondition(trigger.condition, source)) {
-      this.events.push([trigger.action, source])
-    }
-  }
-
-  doTriggerAction(action, source) {
-    console.debug('do', action)
-    let i = 0
-    while (i < action.length) {
-      if (action[i] === 'spawn') {
-        const name = action[i + 1]
-        const x = parseFloat(action[i + 2])
-        const z = parseFloat(action[i + 3])
-        this.spawnEntity(name, x, z)
-        i += 4
-      } else if (action[i] === 'teleport') {
-        const x = parseFloat(action[i + 1])
-        const z = parseFloat(action[i + 2])
-        thingTeleport(source, x, z)
-        i += 3
-      } else if (action[i] === 'music') {
-        playMusic(action[i + 1])
-        i += 2
-      } else if (action[i] === 'sound') {
-        playSound(action[i + 1])
-        i += 2
-      } else i++
-    }
-    // cinema
-    // go to new map
   }
 
   // notify(trigger, params) {

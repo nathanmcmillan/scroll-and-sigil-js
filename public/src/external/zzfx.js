@@ -33,7 +33,7 @@ export function zzfxpd(when, ...t) {
 export function zzfxg(q = 1, k = 0.05, c = 220, e = 0, t = 0, u = 0.1, r = 0, F = 1, v = 0, z = 0, w = 0, A = 0, l = 0, B = 0, x = 0, G = 0, d = 0, y = 1, m = 0, C = 0) {
   const b = 2 * Math.PI
   const H = (v *= (500 * b) / zzfxr ** 2)
-  const I = ((0 < x ? 1 : -1) * b) / 4
+  const I = ((x > 0 ? 1 : -1) * b) / 4
   let D = (c *= ((1 + 2 * k * Math.random() - k) * b) / zzfxr)
   const Z = []
   let g = 0
@@ -58,9 +58,9 @@ export function zzfxg(q = 1, k = 0.05, c = 220, e = 0, t = 0, u = 0.1, r = 0, F 
   for (h = (e + m + t + u + d) | 0; a < h; Z[a++] = f)
     ++K % ((100 * G) | 0) ||
       ((f = r
-        ? 1 < r
-          ? 2 < r
-            ? 3 < r
+        ? r > 1
+          ? r > 2
+            ? r > 3
               ? Math.sin((g % b) ** 3)
               : Math.max(Math.min(Math.tan(g), 1), -1)
             : 1 - (((((2 * g) / b) % 2) + 2) % 2)
@@ -68,7 +68,7 @@ export function zzfxg(q = 1, k = 0.05, c = 220, e = 0, t = 0, u = 0.1, r = 0, F 
         : Math.sin(g)),
       (f =
         (l ? 1 - C + C * Math.sin((2 * Math.PI * a) / l) : 1) *
-        (0 < f ? 1 : -1) *
+        (f > 0 ? 1 : -1) *
         Math.abs(f) ** F *
         q *
         zzfxv *
