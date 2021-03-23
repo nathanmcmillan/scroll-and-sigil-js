@@ -7,7 +7,7 @@ import { Sector } from '../map/sector.js'
 import { Vector2 } from '../math/vector.js'
 import { Hero } from '../thing/hero.js'
 import { Trigger } from '../world/trigger.js'
-import { World, worldClear, worldPushTrigger, worldUpdate } from '../world/world.js'
+import { World, worldBuild, worldClear, worldPushSector, worldPushTrigger, worldSetLines, worldSpawnEntity, worldUpdate } from '../world/world.js'
 
 function texture(name) {
   if (name === 'none') return -1
@@ -113,13 +113,13 @@ export class Game {
             i++
           } else i++
         }
-        world.pushSector(new Sector(bottom, floor, ceiling, top, floorTexture, ceilingTexture, flags, trigger, sectorVecs, sectorLines))
+        worldPushSector(world, new Sector(bottom, floor, ceiling, top, floorTexture, ceilingTexture, flags, trigger, sectorVecs, sectorLines))
         index++
       }
       index++
 
-      world.setLines(lines)
-      world.build()
+      worldSetLines(world, lines)
+      worldBuild(world)
 
       while (index < end) {
         const top = map[index]
@@ -131,7 +131,7 @@ export class Game {
             const x = parseFloat(thing[0])
             const z = parseFloat(thing[1])
             const name = thing[2]
-            const entity = world.spawnEntity(name, x, z)
+            const entity = worldSpawnEntity(world, name, x, z)
             if (entity instanceof Hero) {
               this.hero = entity
               this.camera.target = this.hero

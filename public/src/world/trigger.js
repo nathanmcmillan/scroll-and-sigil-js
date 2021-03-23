@@ -6,6 +6,10 @@ export class IntervalTrigger {
   }
 }
 
+export function triggerExport(trigger) {
+  return trigger.event.join(' ') + ' ' + trigger.action.join(' ') + (trigger.condition ? ' ' + trigger.condition.join(' ') : '')
+}
+
 export class Trigger {
   constructor(input) {
     this.event = null
@@ -47,9 +51,5 @@ export class Trigger {
       break
     }
     if (i > s) this.condition = input.slice(s, i)
-  }
-
-  export() {
-    return this.event.join(' ') + ' ' + this.action.join(' ') + (this.condition ? ' ' + this.condition.join(' ') : '')
   }
 }

@@ -45,32 +45,32 @@ function npcDead(self) {
   thingUpdateSprite(self)
 }
 
-function npcDamage(source, health) {
-  if (this.status === STATUS_DEAD || this.status === STATUS_FINAL) return
-  this.health -= health
-  if (this.health <= 0) {
-    this.health = 0
-    this.status = STATUS_DEAD
-    this.animationFrame = 0
-    this.animation = this.animations.get('death')
-    thingUpdateSprite(this)
+function npcDamage(npc, source, health) {
+  if (npc.status === STATUS_DEAD || npc.status === STATUS_FINAL) return
+  npc.health -= health
+  if (npc.health <= 0) {
+    npc.health = 0
+    npc.status = STATUS_DEAD
+    npc.animationFrame = 0
+    npc.animation = npc.animations.get('death')
+    thingUpdateSprite(npc)
     playSound('baron-death')
-    redBloodExplode(this)
+    redBloodExplode(npc)
   } else {
     playSound('baron-pain')
-    redBloodTowards(this, source)
+    redBloodTowards(npc, source)
   }
 }
 
-function npcUpdate() {
-  switch (this.status) {
+function npcUpdate(npc) {
+  switch (npc.status) {
     case STATUS_DEAD:
-      npcDead(this)
+      npcDead(npc)
       break
     case STATUS_FINAL:
       return false
   }
-  thingIntegrate(this)
+  thingIntegrate(npc)
   return false
 }
 

@@ -1,13 +1,15 @@
 import { textureByName } from '../assets/assets.js'
 import { renderDialogBox, renderStatus } from '../client/client-util.js'
 import { calcFontScale, defaultFont } from '../editor/editor-util.js'
-import { MusicEdit, lengthName } from '../editor/music.js'
+import { lengthName, MusicEdit } from '../editor/music.js'
 import { redf, slatef, whitef } from '../editor/palette.js'
 import { flexBox, flexSolve } from '../gui/flex.js'
 import { identity, multiply } from '../math/matrix.js'
 import { spr, sprcol } from '../render/pico.js'
 import { drawRectangle, drawTextFontSpecial } from '../render/render.js'
-import { SEMITONES, semitoneName } from '../sound/synth.js'
+import { semitoneName, SEMITONES } from '../sound/synth.js'
+import { bufferZero } from '../webgl/buffer.js'
+import { rendererSetProgram } from '../webgl/renderer.js'
 
 export class MusicState {
   constructor(client) {
@@ -110,7 +112,7 @@ export class MusicState {
     multiply(projection, client.orthographic, view)
 
     const buffer = client.bufferColor
-    buffer.zero()
+    bufferZero(buffer)
 
     const font = defaultFont()
     const fontScale = calcFontScale(scale)
@@ -119,14 +121,14 @@ export class MusicState {
 
     const pad = 2 * scale
 
-    rendering.setProgram('color2d')
+    rendererSetProgram(rendering, 'color2d')
     rendering.setView(0, client.top, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
 
     gl.clearColor(slatef(0), slatef(1), slatef(2), 1.0)
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
-    client.bufferGUI.zero()
+    bufferZero(client.bufferGUI)
 
     // top bar
 
@@ -141,11 +143,11 @@ export class MusicState {
 
     // text
 
-    rendering.setProgram('texture2d-font')
+    rendererSetProgram(rendering, 'texture2d-font')
     rendering.setView(0, client.top, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
 
-    client.bufferGUI.zero()
+    bufferZero(client.bufferGUI)
 
     const track = music.tracks[music.trackIndex]
     const notes = track.notes
@@ -209,11 +211,11 @@ export class MusicState {
     rendering.bindTexture(gl.TEXTURE0, textureByName(font.name).texture)
     rendering.updateAndDraw(client.bufferGUI)
 
-    client.bufferGUI.zero()
+    bufferZero(client.bufferGUI)
 
     // sprites
 
-    rendering.setProgram('texture2d-rgb')
+    rendererSetProgram(rendering, 'texture2d-rgb')
     rendering.setView(0, client.top, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
 

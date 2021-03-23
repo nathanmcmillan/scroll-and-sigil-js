@@ -2,6 +2,8 @@ import { textureByName } from '../assets/assets.js'
 import { calcFontPad, calcFontScale, calcLongest, calcThickness } from '../editor/editor-util.js'
 import { orange0f, orange1f, orange2f, peach0f, peach1f, peach2f, slate0f, slate1f, slate2f, white0f, white1f, white2f, wine0f, wine1f, wine2f } from '../editor/palette.js'
 import { drawHollowRectangle, drawRectangle, drawTextFont, drawTextFontSpecial } from '../render/render.js'
+import { bufferZero } from '../webgl/buffer.js'
+import { rendererSetProgram } from '../webgl/renderer.js'
 
 export function renderDialogBox(state, scale, font, dialog) {
   const client = state.client
@@ -22,11 +24,11 @@ export function renderDialogBox(state, scale, font, dialog) {
   const fontPad = calcFontPad(fontHeight)
   const fontHeightAndPad = fontHeight + fontPad
 
-  rendering.setProgram('color2d')
+  rendererSetProgram(rendering, 'color2d')
   rendering.setView(0, client.top, width, height)
   rendering.updateUniformMatrix('u_mvp', projection)
 
-  client.bufferColor.zero()
+  bufferZero(client.bufferColor)
 
   const options = dialog.options
   const title = dialog.title
@@ -46,11 +48,11 @@ export function renderDialogBox(state, scale, font, dialog) {
 
   rendering.updateAndDraw(client.bufferColor)
 
-  rendering.setProgram('texture2d-font')
+  rendererSetProgram(rendering, 'texture2d-font')
   rendering.setView(0, client.top, width, height)
   rendering.updateUniformMatrix('u_mvp', projection)
 
-  client.bufferGUI.zero()
+  bufferZero(client.bufferGUI)
 
   let yy = y + dialogHeight - 2 * fontHeightAndPad
   if (title !== null) yy -= fontHeightAndPad
@@ -99,11 +101,11 @@ export function renderTextBox(state, scale, font, box, x, y) {
   const fontPad = calcFontPad(fontHeight)
   const fontHeightAndPad = fontHeight + 3 * fontPad
 
-  rendering.setProgram('color2d')
+  rendererSetProgram(rendering, 'color2d')
   rendering.setView(0, client.top, width, height)
   rendering.updateUniformMatrix('u_mvp', projection)
 
-  client.bufferColor.zero()
+  bufferZero(client.bufferColor)
 
   const boxWidth = textBoxWidth(fontWidth, box)
   const boxHeight = textBoxHeight(fontHeightAndPad, box)
@@ -114,11 +116,11 @@ export function renderTextBox(state, scale, font, box, x, y) {
 
   rendering.updateAndDraw(client.bufferColor)
 
-  rendering.setProgram('texture2d-font')
+  rendererSetProgram(rendering, 'texture2d-font')
   rendering.setView(0, client.top, width, height)
   rendering.updateUniformMatrix('u_mvp', projection)
 
-  client.bufferGUI.zero()
+  bufferZero(client.bufferGUI)
 
   let yy = y + (box.cols.length - 1) * fontHeightAndPad + fontHeight
 

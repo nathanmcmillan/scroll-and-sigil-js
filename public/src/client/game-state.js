@@ -4,9 +4,11 @@ import { drawDecal } from '../client/render-sector.js'
 import { renderTouch } from '../client/render-touch.js'
 import { Game } from '../game/game.js'
 import { identity, multiply, multiplyVector3, rotateX, rotateY, translate } from '../math/matrix.js'
-import { TIC_FONT_HEIGHT, TIC_FONT_WIDTH, drawRectangle, drawSprite, drawText } from '../render/render.js'
+import { drawRectangle, drawSprite, drawText, TIC_FONT_HEIGHT, TIC_FONT_WIDTH } from '../render/render.js'
 import { animal } from '../sound/animal.js'
 import { speech } from '../sound/speech.js'
+import { bufferZero } from '../webgl/buffer.js'
+import { rendererSetProgram } from '../webgl/renderer.js'
 
 function drawTextSpecial(b, x, y, text, scale, red, green, blue) {
   drawText(b, x + scale, y - scale, text, scale, 0.0, 0.0, 0.0, 1.0)
@@ -61,7 +63,7 @@ export class GameState {
     const client = this.client
     const gl = client.gl
 
-    for (const buffer of client.sectorBuffers.values()) buffer.zero()
+    for (const buffer of client.sectorBuffers.values()) bufferZero(buffer)
     for (const sector of world.sectors) client.sectorRender(sector)
     for (const buffer of client.sectorBuffers.values()) client.rendering.updateVAO(buffer, gl.STATIC_DRAW)
 
@@ -114,7 +116,7 @@ export class GameState {
 
     // sky box
 
-    rendering.setProgram('texture3d-rgb')
+    rendererSetProgram(rendering, 'texture3d-rgb')
     rendering.setView(0, client.top, width, height)
 
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
@@ -153,7 +155,7 @@ export class GameState {
     }
 
     const buffers = client.spriteBuffers
-    for (const buffer of buffers.values()) buffer.zero()
+    for (const buffer of buffers.values()) bufferZero(buffer)
 
     const sine = Math.sin(-camera.ry)
     const cosine = Math.cos(-camera.ry)
@@ -192,7 +194,7 @@ export class GameState {
     let d = decals.length
     if (d > 0) {
       for (const buffer of buffers.values()) {
-        buffer.zero()
+        bufferZero(buffer)
       }
 
       gl.depthMask(false)
@@ -215,7 +217,7 @@ export class GameState {
       gl.disable(gl.POLYGON_OFFSET_FILL)
     }
 
-    rendering.setProgram('texture2d-font')
+    rendererSetProgram(rendering, 'texture2d-font')
     rendering.setView(0, client.top, width, height)
 
     gl.disable(gl.CULL_FACE)
@@ -225,7 +227,7 @@ export class GameState {
     multiply(projection, client.orthographic, view)
     rendering.updateUniformMatrix('u_mvp', projection)
 
-    client.bufferGUI.zero()
+    bufferZero(client.bufferGUI)
 
     const hero = game.hero
 
@@ -233,10 +235,10 @@ export class GameState {
 
     if (game.cinema) {
       const black = 60.0
-      rendering.setProgram('color2d')
+      rendererSetProgram(rendering, 'color2d')
       rendering.setView(0, client.top, width, height)
       rendering.updateUniformMatrix('u_mvp', projection)
-      client.bufferColor.zero()
+      bufferZero(client.bufferColor)
       drawRectangle(client.bufferColor, 0.0, 0.0, width, black, 0.0, 0.0, 0.0, 1.0)
       drawRectangle(client.bufferColor, 0.0, height - black, width, black, 0.0, 0.0, 0.0, 1.0)
       rendering.updateAndDraw(client.bufferColor)

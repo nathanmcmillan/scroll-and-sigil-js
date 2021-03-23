@@ -21,48 +21,48 @@ const COMBAT_TIMER = 300
 const MELEE_COST = 2
 const MISSILE_COST = 4
 
-function heroDamage(source, health) {
-  if (this.status === STATUS_BUSY) {
-    this.status = STATUS_IDLE
-    this.menu = null
-    this.interaction = null
-    this.interactionWith = null
+function heroDamage(hero, source, health) {
+  if (hero.status === STATUS_BUSY) {
+    hero.status = STATUS_IDLE
+    hero.menu = null
+    hero.interaction = null
+    hero.interactionWith = null
   }
-  this.health -= health
-  if (this.health <= 0) {
+  hero.health -= health
+  if (hero.health <= 0) {
     playSound('baron-death')
-    this.health = 0
-    this.status = STATUS_DEAD
-    thingSetAnimation(this, 'death')
-    this.combat = 0
-    redBloodExplode(this)
+    hero.health = 0
+    hero.status = STATUS_DEAD
+    thingSetAnimation(hero, 'death')
+    hero.combat = 0
+    redBloodExplode(hero)
   } else {
     playSound('baron-pain')
-    this.combat = COMBAT_TIMER
-    redBloodTowards(this, source)
+    hero.combat = COMBAT_TIMER
+    redBloodTowards(hero, source)
   }
 }
 
-function heroUpdate() {
-  switch (this.status) {
+function heroUpdate(hero) {
+  switch (hero.status) {
     case STATUS_IDLE:
     case STATUS_MOVE:
-      heroMove(this)
+      heroMove(hero)
       break
     case STATUS_MELEE:
-      heroMelee(this)
+      heroMelee(hero)
       break
     case STATUS_MISSILE:
-      heroMissile(this)
+      heroMissile(hero)
       break
     case STATUS_DEAD:
-      heroDead(this)
+      heroDead(hero)
       break
     case STATUS_BUSY:
-      heroBusy(this)
+      heroBusy(hero)
       break
   }
-  thingIntegrate(this)
+  thingIntegrate(hero)
   return false
 }
 
@@ -249,7 +249,7 @@ function heroMelee(self) {
     }
 
     if (target) {
-      target.damage(self, 1 + randomInt(3))
+      target.damage(target, self, 1 + randomInt(3))
       if (target.health <= 0) heroTakeExperience(self, target.experience)
     }
   } else if (frame === ANIMATION_DONE) {

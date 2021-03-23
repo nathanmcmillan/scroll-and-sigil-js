@@ -112,7 +112,7 @@ function monsterAttack(self) {
         if (distance < range) {
           const damage = attack.get('damage')
           const amount = parseInt(damage[0]) + randomInt(parseInt(damage[1]))
-          target.damage(self, amount)
+          target.damage(target, self, amount)
         }
       } else if (type === 'projectile') {
         const speed = 0.3
@@ -171,38 +171,38 @@ function monsterChase(self) {
   }
 }
 
-function monsterDamage(source, health) {
-  if (this.status === STATUS_DEAD || this.status === STATUS_FINAL) return
-  this.health -= health
-  if (this.health <= 0) {
-    playSound(this.soundOnDeath)
-    this.health = 0
-    this.status = STATUS_DEAD
-    thingSetAnimation(this, 'death')
-    redBloodExplode(this)
+function monsterDamage(monster, source, health) {
+  if (monster.status === STATUS_DEAD || monster.status === STATUS_FINAL) return
+  monster.health -= health
+  if (monster.health <= 0) {
+    playSound(monster.soundOnDeath)
+    monster.health = 0
+    monster.status = STATUS_DEAD
+    thingSetAnimation(monster, 'death')
+    redBloodExplode(monster)
   } else {
-    playSound(this.soundOnPain)
-    redBloodTowards(this, source)
+    playSound(monster.soundOnPain)
+    redBloodTowards(monster, source)
   }
 }
 
-function monsterUpdate() {
-  switch (this.status) {
+function monsterUpdate(monster) {
+  switch (monster.status) {
     case STATUS_LOOK:
-      monsterLook(this)
+      monsterLook(monster)
       break
     case STATUS_CHASE:
-      monsterChase(this)
+      monsterChase(monster)
       break
     case STATUS_ATTACK:
-      monsterAttack(this)
+      monsterAttack(monster)
       break
     case STATUS_DEAD:
-      monsterDead(this)
+      monsterDead(monster)
       break
     case STATUS_FINAL:
       return false
   }
-  thingY(this)
+  thingY(monster)
   return false
 }

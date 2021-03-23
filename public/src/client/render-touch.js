@@ -2,6 +2,8 @@ import { blackf, whitef } from '../editor/palette.js'
 import * as In from '../input/input.js'
 import { identity, multiply, orthographic } from '../math/matrix.js'
 import { drawRectangle } from '../render/render.js'
+import { bufferZero } from '../webgl/buffer.js'
+import { rendererSetProgram } from '../webgl/renderer.js'
 
 class TouchButton {
   constructor(input) {
@@ -107,7 +109,7 @@ export function renderTouch(touch) {
   const width = touch.width
   const height = touch.height
 
-  rendering.setProgram('color2d')
+  rendererSetProgram(rendering, 'color2d')
   rendering.setView(0, 0, width, height)
   rendering.updateUniformMatrix('u_mvp', projection)
 
@@ -121,7 +123,7 @@ export function renderTouch(touch) {
   multiply(projection, touch.orthographic, view)
   rendering.updateUniformMatrix('u_mvp', projection)
 
-  client.bufferColor.zero()
+  bufferZero(client.bufferColor)
 
   for (const button of touch.buttons) {
     drawRectangle(client.bufferColor, button.x, button.y, button.width, button.height, whitef(0), whitef(1), whitef(2), 1.0)

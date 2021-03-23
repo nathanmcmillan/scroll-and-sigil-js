@@ -18,7 +18,7 @@ import { drawSkyBox } from '../render/render.js'
 import { TwoWayMap } from '../util/collections.js'
 import * as Wad from '../wad/wad.js'
 import { Buffer } from '../webgl/buffer.js'
-import { Renderer } from '../webgl/renderer.js'
+import { Renderer, rendererInsertProgram, rendererMakeVAO } from '../webgl/renderer.js'
 import { compileProgram, createPixelsToTexture, createTexture } from '../webgl/webgl.js'
 
 export class Client {
@@ -145,7 +145,7 @@ export class Client {
     let buffer = this.sectorBuffers.get(texture)
     if (buffer === undefined) {
       buffer = new Buffer(3, 0, 2, 3, 4 * 800, 36 * 800)
-      this.rendering.makeVAO(buffer)
+      rendererMakeVAO(this.rendering, buffer)
       this.sectorBuffers.set(texture, buffer)
     }
     return buffer
@@ -155,7 +155,7 @@ export class Client {
     let buffer = this.spriteBuffers.get(texture)
     if (buffer === undefined) {
       buffer = new Buffer(3, 0, 2, 3, 4 * 800, 36 * 800)
-      this.rendering.makeVAO(buffer)
+      rendererMakeVAO(this.rendering, buffer)
       this.spriteBuffers.set(texture, buffer)
     }
     return buffer
@@ -308,16 +308,16 @@ export class Client {
     texture2d_font = await texture2d_font
     texture3d_rgb = await texture3d_rgb
 
-    rendering.insertProgram('color2d', compileProgram(gl, color2d))
-    rendering.insertProgram('texture2d', compileProgram(gl, texture2d))
-    rendering.insertProgram('texture3d', compileProgram(gl, texture3d))
-    rendering.insertProgram('texture2d-rgb', compileProgram(gl, texture2d_rgb))
-    rendering.insertProgram('texture2d-font', compileProgram(gl, texture2d_font))
-    rendering.insertProgram('texture3d-rgb', compileProgram(gl, texture3d_rgb))
+    rendererInsertProgram(rendering, 'color2d', compileProgram(gl, color2d))
+    rendererInsertProgram(rendering, 'texture2d', compileProgram(gl, texture2d))
+    rendererInsertProgram(rendering, 'texture3d', compileProgram(gl, texture3d))
+    rendererInsertProgram(rendering, 'texture2d-rgb', compileProgram(gl, texture2d_rgb))
+    rendererInsertProgram(rendering, 'texture2d-font', compileProgram(gl, texture2d_font))
+    rendererInsertProgram(rendering, 'texture3d-rgb', compileProgram(gl, texture3d_rgb))
 
-    rendering.makeVAO(this.bufferGUI)
-    rendering.makeVAO(this.bufferColor)
-    rendering.makeVAO(this.bufferSky)
+    rendererMakeVAO(rendering, this.bufferGUI)
+    rendererMakeVAO(rendering, this.bufferColor)
+    rendererMakeVAO(rendering, this.bufferSky)
 
     rendering.updateVAO(this.bufferSky, gl.STATIC_DRAW)
 

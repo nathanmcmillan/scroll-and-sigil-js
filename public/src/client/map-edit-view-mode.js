@@ -6,6 +6,8 @@ import { calcFontScale, defaultFont } from '../editor/editor-util.js'
 import { redf } from '../editor/palette.js'
 import { identity, multiply, rotateX, rotateY, translate } from '../math/matrix.js'
 import { drawSprite, drawTextFontSpecial } from '../render/render.js'
+import { bufferZero } from '../webgl/buffer.js'
+import { rendererSetProgram } from '../webgl/renderer.js'
 
 function lineRender(client, line) {
   let wall = line.top
@@ -39,7 +41,7 @@ export function updateMapEditViewSectorBuffer(state) {
   const client = state.client
   const gl = client.gl
 
-  for (const buffer of client.sectorBuffers.values()) buffer.zero()
+  for (const buffer of client.sectorBuffers.values()) bufferZero(buffer)
   for (const line of maps.lines) lineRender(client, line)
   for (const sector of maps.sectors) floorCeilRender(client, sector)
   for (const buffer of client.sectorBuffers.values()) client.rendering.updateVAO(buffer, gl.STATIC_DRAW)
@@ -61,7 +63,7 @@ export function renderMapEditViewMode(state) {
 
   // render world
 
-  rendering.setProgram('texture3d-rgb')
+  rendererSetProgram(rendering, 'texture3d-rgb')
   rendering.setView(0, client.top, width, height)
 
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
@@ -97,7 +99,7 @@ export function renderMapEditViewMode(state) {
 
   const buffers = client.spriteBuffers
   for (const buffer of buffers.values()) {
-    buffer.zero()
+    bufferZero(buffer)
   }
 
   const sine = Math.sin(-camera.ry)
@@ -119,7 +121,7 @@ export function renderMapEditViewMode(state) {
 
   // text
 
-  rendering.setProgram('texture2d-font')
+  rendererSetProgram(rendering, 'texture2d-font')
   rendering.setView(0, client.top, width, height)
 
   gl.disable(gl.CULL_FACE)
@@ -134,7 +136,7 @@ export function renderMapEditViewMode(state) {
   const fontWidth = fontScale * font.width
   const fontHeight = fontScale * font.base
 
-  client.bufferGUI.zero()
+  bufferZero(client.bufferGUI)
   const text = 'x:' + camera.x.toFixed(2) + ' y:' + camera.y.toFixed(2) + ' z:' + camera.z.toFixed(2)
   drawTextFontSpecial(client.bufferGUI, fontWidth, fontHeight, text, fontScale, redf(0), redf(1), redf(2), font)
   rendering.bindTexture(gl.TEXTURE0, textureByName(font.name).texture)

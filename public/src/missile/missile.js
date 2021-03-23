@@ -27,7 +27,7 @@ export class Missile {
 }
 
 export function missileHit(self, thing) {
-  if (thing) thing.damage(self, self.damage)
+  if (thing) thing.damage(thing, self, self.damage)
 }
 
 export function missileInitialize(self, world, x, y, z) {
@@ -108,13 +108,13 @@ export function missileLineOverlap(self, line) {
 
 export function missileCheck(self) {
   if (missileUpdateSector(self)) {
-    self.hit(null)
+    self.hit(self, null)
     return true
   } else if (self.y < self.sector.floor) {
-    self.hit(null)
+    self.hit(self, null)
     return true
   } else if (self.y + self.height > self.sector.ceiling) {
-    self.hit(null)
+    self.hit(self, null)
     return true
   }
   const box = self.box
@@ -132,14 +132,14 @@ export function missileCheck(self) {
         const thing = cell.things[i]
         if (self === thing) continue
         if (thing.isPhysical && missileOverlap(self, thing)) {
-          self.hit(thing)
+          self.hit(self, thing)
           return true
         }
       }
       i = cell.lines.length
       while (i--) {
         if (missileLineOverlap(self, cell.lines[i])) {
-          self.hit(null)
+          self.hit(self, null)
           return true
         }
       }

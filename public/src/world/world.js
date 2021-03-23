@@ -42,6 +42,28 @@ export function ticksToTime(value, interval) {
   return value
 }
 
+export class World {
+  constructor(game) {
+    this.game = game
+    this.tick = 0
+    this.lines = null
+    this.sectors = []
+    this.cells = null
+    this.columns = 0
+    this.rows = 0
+    this.things = []
+    this.thingCount = 0
+    this.missiles = []
+    this.missileCount = 0
+    this.particles = []
+    this.particleCount = 0
+    this.decals = []
+    this.decalQueue = 0
+    this.triggers = []
+    this.events = []
+  }
+}
+
 export function worldClear(world) {
   for (let i = 0; i < world.thingCount; i++) world.things[i] = null
   for (let i = 0; i < world.missileCount; i++) world.missiles[i] = null
@@ -87,7 +109,8 @@ export function worldUpdate(world) {
   const things = world.things
   let i = world.thingCount
   while (i--) {
-    if (things[i].update()) {
+    const thing = things[i]
+    if (thing.update(thing)) {
       world.thingCount--
       things[i] = things[world.thingCount]
       things[world.thingCount] = null
@@ -98,7 +121,7 @@ export function worldUpdate(world) {
   i = world.missileCount
   while (i--) {
     const missile = missiles[i]
-    if (missile.update()) {
+    if (missile.update(missile)) {
       world.missileCount--
       missiles[i] = missiles[world.missileCount]
       missiles[world.missileCount] = missile
@@ -109,7 +132,7 @@ export function worldUpdate(world) {
   i = world.particleCount
   while (i--) {
     const particle = particles[i]
-    if (particle.update()) {
+    if (particle.update(particle)) {
       world.particleCount--
       particles[i] = particles[world.particleCount]
       particles[world.particleCount] = particle
@@ -220,7 +243,7 @@ function worldDoTriggerAction(world, action, source) {
       const name = action[i + 1]
       const x = parseFloat(action[i + 2])
       const z = parseFloat(action[i + 3])
-      world.spawnEntity(name, x, z)
+      worldSpawnEntity(world, name, x, z)
       i += 4
     } else if (action[i] === 'teleport') {
       const x = parseFloat(action[i + 1])
@@ -239,147 +262,125 @@ function worldDoTriggerAction(world, action, source) {
   // go to new map
 }
 
-export class World {
-  constructor(game) {
-    this.game = game
-    this.tick = 0
-    this.lines = null
-    this.sectors = []
-    this.cells = null
-    this.columns = 0
-    this.rows = 0
-    this.things = []
-    this.thingCount = 0
-    this.missiles = []
-    this.missileCount = 0
-    this.particles = []
-    this.particleCount = 0
-    this.decals = []
-    this.decalQueue = 0
-    this.triggers = []
-    this.events = []
+export function worldNewDecal(world, texture) {
+  const decals = world.decals
+  let decal
+  if (decals.length === DECAL_LIMIT) {
+    decal = decals[world.decalQueue]
+    world.decalQueue++
+    if (world.decalQueue === DECAL_LIMIT) world.decalQueue = 0
+  } else {
+    decal = new Decal()
+    decals.push(decal)
   }
-
-  newDecal(texture) {
-    const decals = this.decals
-    let decal
-    if (decals.length === DECAL_LIMIT) {
-      decal = decals[this.decalQueue]
-      this.decalQueue++
-      if (this.decalQueue === DECAL_LIMIT) this.decalQueue = 0
-    } else {
-      decal = new Decal()
-      decals.push(decal)
-    }
-    decalInitialize(decal, texture)
-    return decal
-  }
-
-  pushSector(sector) {
-    this.sectors.push(sector)
-  }
-
-  buildCellLines(line) {
-    const xf = toFloatCell(line.a.x)
-    const yf = toFloatCell(line.a.y)
-    const dx = Math.abs(toFloatCell(line.b.x) - xf)
-    const dy = Math.abs(toFloatCell(line.b.y) - yf)
-    let x = toCell(line.a.x)
-    let y = toCell(line.a.y)
-    const xb = toCell(line.b.x)
-    const yb = toCell(line.b.y)
-    let n = 1
-    let error = 0.0
-    let incrementX = 0
-    let incrementY = 0
-    if (Float.zero(dx)) {
-      incrementX = 0
-      error = Number.MAX_VALUE
-    } else if (line.b.x > line.a.x) {
-      incrementX = 1
-      n += xb - x
-      error = (x + 1.0 - xf) * dy
-    } else {
-      incrementX = -1
-      n += x - xb
-      error = (xf - x) * dy
-    }
-    if (Float.zero(dy)) {
-      incrementY = 0
-      error = -Number.MAX_VALUE
-    } else if (line.b.y > line.a.y) {
-      incrementY = 1
-      n += yb - y
-      error -= (y + 1.0 - yf) * dx
-    } else {
-      incrementY = -1
-      n += y - yb
-      error -= (yf - y) * dx
-    }
-    for (; n > 0; n--) {
-      const cell = this.cells[x + y * this.columns]
-      cell.lines.push(line)
-      if (error > 0.0) {
-        y += incrementY
-        error -= dx
-      } else {
-        x += incrementX
-        error += dy
-      }
-    }
-  }
-
-  setLines(lines) {
-    this.lines = lines
-  }
-
-  build() {
-    let top = 0.0
-    let right = 0.0
-    for (const sector of this.sectors) {
-      for (const vec of sector.vecs) {
-        if (vec.y > top) top = vec.y
-        if (vec.x > right) right = vec.x
-      }
-    }
-    const size = 1 << WORLD_CELL_SHIFT
-    this.rows = Math.ceil(top / size)
-    this.columns = Math.ceil(right / size)
-    this.cells = new Array(this.rows * this.columns)
-    for (let i = 0; i < this.cells.length; i++) this.cells[i] = new Cell()
-    sectorInsideOutside(this.sectors)
-    for (const sector of this.sectors) sectorTriangulate(sector, WORLD_SCALE)
-    sectorLineNeighbors(this.sectors, this.lines, WORLD_SCALE)
-    for (const line of this.lines) this.buildCellLines(line)
-  }
-
-  spawnEntity(name, x, z) {
-    const entity = entityByName(name)
-    if (entity.has('class')) name = entity.get('class')
-    switch (name) {
-      case 'monster':
-        return new Monster(this, entity, x, z)
-      case 'doodad':
-        return new Doodad(this, entity, x, z)
-      case 'item':
-        return new Item(this, entity, x, z)
-      case 'npc':
-        return new NonPlayerCharacter(this, entity, x, z)
-      case 'hero':
-        if (this.game.hero) {
-          thingSet(this.hero, x, z)
-          return this.game.hero
-        }
-        return new Hero(this, entity, x, z, this.game.input)
-    }
-    return null
-  }
-
-  // notify(trigger, params) {
-  //   let list = this.triggers.get(trigger)
-  //   if (!list) {
-  //     this.game.notify(trigger, params)
-  //     return
-  //   }
-  // }
+  decalInitialize(decal, texture)
+  return decal
 }
+
+export function worldPushSector(world, sector) {
+  world.sectors.push(sector)
+}
+
+function worldBuildCellLines(world, line) {
+  const xf = toFloatCell(line.a.x)
+  const yf = toFloatCell(line.a.y)
+  const dx = Math.abs(toFloatCell(line.b.x) - xf)
+  const dy = Math.abs(toFloatCell(line.b.y) - yf)
+  let x = toCell(line.a.x)
+  let y = toCell(line.a.y)
+  const xb = toCell(line.b.x)
+  const yb = toCell(line.b.y)
+  let n = 1
+  let error = 0.0
+  let incrementX = 0
+  let incrementY = 0
+  if (Float.zero(dx)) {
+    incrementX = 0
+    error = Number.MAX_VALUE
+  } else if (line.b.x > line.a.x) {
+    incrementX = 1
+    n += xb - x
+    error = (x + 1.0 - xf) * dy
+  } else {
+    incrementX = -1
+    n += x - xb
+    error = (xf - x) * dy
+  }
+  if (Float.zero(dy)) {
+    incrementY = 0
+    error = -Number.MAX_VALUE
+  } else if (line.b.y > line.a.y) {
+    incrementY = 1
+    n += yb - y
+    error -= (y + 1.0 - yf) * dx
+  } else {
+    incrementY = -1
+    n += y - yb
+    error -= (yf - y) * dx
+  }
+  for (; n > 0; n--) {
+    const cell = world.cells[x + y * world.columns]
+    cell.lines.push(line)
+    if (error > 0.0) {
+      y += incrementY
+      error -= dx
+    } else {
+      x += incrementX
+      error += dy
+    }
+  }
+}
+
+export function worldSetLines(world, lines) {
+  world.lines = lines
+}
+
+export function worldBuild(world) {
+  let top = 0.0
+  let right = 0.0
+  for (const sector of world.sectors) {
+    for (const vec of sector.vecs) {
+      if (vec.y > top) top = vec.y
+      if (vec.x > right) right = vec.x
+    }
+  }
+  const size = 1 << WORLD_CELL_SHIFT
+  world.rows = Math.ceil(top / size)
+  world.columns = Math.ceil(right / size)
+  world.cells = new Array(world.rows * world.columns)
+  for (let i = 0; i < world.cells.length; i++) world.cells[i] = new Cell()
+  sectorInsideOutside(world.sectors)
+  for (const sector of world.sectors) sectorTriangulate(sector, WORLD_SCALE)
+  sectorLineNeighbors(world.sectors, world.lines, WORLD_SCALE)
+  for (const line of world.lines) worldBuildCellLines(world, line)
+}
+
+export function worldSpawnEntity(world, name, x, z) {
+  const entity = entityByName(name)
+  if (entity.has('class')) name = entity.get('class')
+  switch (name) {
+    case 'monster':
+      return new Monster(world, entity, x, z)
+    case 'doodad':
+      return new Doodad(world, entity, x, z)
+    case 'item':
+      return new Item(world, entity, x, z)
+    case 'npc':
+      return new NonPlayerCharacter(world, entity, x, z)
+    case 'hero':
+      if (world.game.hero) {
+        thingSet(world.hero, x, z)
+        return world.game.hero
+      }
+      return new Hero(world, entity, x, z, world.game.input)
+  }
+  return null
+}
+
+// export function worldNotify(world, trigger, params) {
+//   let list = world.triggers.get(trigger)
+//   if (!list) {
+//     world.game.notify(trigger, params)
+//     return
+//   }
+// }

@@ -4,14 +4,14 @@ import { missileHit, missileIntegrate, missileSetup } from '../missile/missile.j
 import { newPlasmaExplosion } from '../particle/plasma-explosion.js'
 import { worldNewMissile } from '../world/world.js'
 
-function plasmaHit(thing) {
-  missileHit(this, thing)
+function plasmaHit(plasma, thing) {
+  missileHit(plasma, thing)
   playSound('plasma-impact')
-  newPlasmaExplosion(this.world, entityByName('plasma-explosion'), this.x, this.y, this.z)
+  newPlasmaExplosion(plasma.world, entityByName('plasma-explosion'), plasma.x, plasma.y, plasma.z)
 }
 
-function plasmaUpdate() {
-  return missileIntegrate(this)
+function plasmaUpdate(plasma) {
+  return missileIntegrate(plasma)
 }
 
 function plasmaInit(plasma, entity, dx, dy, dz, damage) {

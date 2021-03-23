@@ -3,7 +3,7 @@ import { renderDialogBox, renderStatus, renderTextBox } from '../client/client-u
 import { renderTouch } from '../client/render-touch.js'
 import { compress, decompress } from '../compress/huffman.js'
 import { calcBottomBarHeight, calcFontScale, calcThickness, calcTopBarHeight, defaultFont } from '../editor/editor-util.js'
-import { PaintEdit, SPRITE_TOOL, exportPixels, exportToCanvas } from '../editor/paint.js'
+import { exportPixels, exportToCanvas, PaintEdit, SPRITE_TOOL } from '../editor/paint.js'
 import {
   black0f,
   black1f,
@@ -27,6 +27,8 @@ import { flexBox, flexSolve } from '../gui/flex.js'
 import { identity, multiply } from '../math/matrix.js'
 import { spr, sprcol } from '../render/pico.js'
 import { drawHollowRectangle, drawImage, drawRectangle, drawTextFont, drawTextFontSpecial } from '../render/render.js'
+import { bufferZero } from '../webgl/buffer.js'
+import { rendererSetProgram } from '../webgl/renderer.js'
 import { createPixelsToTexture } from '../webgl/webgl.js'
 
 function updatePixelsToTexture(gl, texture, width, height, pixels) {
@@ -264,7 +266,7 @@ export class PaintState {
 
     let magnify, top, left, boxWidth, boxHeight, box, x, y
 
-    rendering.setProgram('texture2d')
+    rendererSetProgram(rendering, 'texture2d')
     rendering.setView(0, client.top, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
 
@@ -274,7 +276,7 @@ export class PaintState {
     gl.disable(gl.CULL_FACE)
     gl.disable(gl.DEPTH_TEST)
 
-    client.bufferGUI.zero()
+    bufferZero(client.bufferGUI)
 
     const sheetBox = paint.sheetBox
     const viewBox = paint.viewBox
@@ -319,13 +321,13 @@ export class PaintState {
     rendering.bindTexture(gl.TEXTURE0, this.texture)
     rendering.updateAndDraw(client.bufferGUI)
 
-    rendering.setProgram('color2d')
+    rendererSetProgram(rendering, 'color2d')
     rendering.setView(0, client.top, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
 
     // box around view
 
-    client.bufferColor.zero()
+    bufferZero(client.bufferColor)
 
     drawHollowRectangle(client.bufferColor, left - thickness, top - thickness, boxWidth + doubleThick, boxHeight + doubleThick, thickness, black0f, black1f, black2f, 1.0)
 
@@ -483,11 +485,11 @@ export class PaintState {
 
     // special textures
 
-    rendering.setProgram('texture2d-rgb')
+    rendererSetProgram(rendering, 'texture2d-rgb')
     rendering.setView(0, client.top, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
 
-    client.bufferGUI.zero()
+    bufferZero(client.bufferGUI)
 
     // tools
 
@@ -509,11 +511,11 @@ export class PaintState {
 
     // text
 
-    rendering.setProgram('texture2d-font')
+    rendererSetProgram(rendering, 'texture2d-font')
     rendering.setView(0, client.top, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
 
-    client.bufferGUI.zero()
+    bufferZero(client.bufferGUI)
 
     let displayC = '' + (posC + posOffsetC)
     let displayR = '' + (posR + posOffsetR)
@@ -561,7 +563,7 @@ export class PaintState {
       const box = paint.textBox
       renderTextBox(this, scale, font, box, 200, 200)
 
-      client.bufferGUI.zero()
+      bufferZero(client.bufferGUI)
       drawTextFontSpecial(client.bufferGUI, 200, 500, box.text, fontScale, white0f, white1f, white2f, font)
       rendering.updateAndDraw(client.bufferGUI)
     }

@@ -7,6 +7,8 @@ import { blackf, greenf, redf, slatef, white0f, white1f, white2f, whitef, winef,
 import { identity, multiply } from '../math/matrix.js'
 import { spr } from '../render/pico.js'
 import { drawLine, drawRectangle, drawTextFontSpecial, drawTriangle } from '../render/render.js'
+import { bufferZero } from '../webgl/buffer.js'
+import { rendererSetProgram } from '../webgl/renderer.js'
 
 function mapX(x, zoom, camera) {
   return zoom * (x - camera.x)
@@ -103,7 +105,7 @@ export function renderMapEditTopMode(state) {
 
   if (client.touch) renderTouch(client.touchRender)
 
-  rendering.setProgram('color2d')
+  rendererSetProgram(rendering, 'color2d')
   rendering.setView(0, client.top, width, height)
 
   gl.clearColor(slatef(0), slatef(1), slatef(2), 1.0)
@@ -116,7 +118,7 @@ export function renderMapEditTopMode(state) {
   multiply(projection, client.orthographic, view)
   rendering.updateUniformMatrix('u_mvp', projection)
 
-  client.bufferColor.zero()
+  bufferZero(client.bufferColor)
 
   mapRender(client.bufferColor, maps)
 
@@ -140,11 +142,11 @@ export function renderMapEditTopMode(state) {
 
   rendering.updateAndDraw(client.bufferColor)
 
-  rendering.setProgram('texture2d-font')
+  rendererSetProgram(rendering, 'texture2d-font')
   rendering.setView(0, client.top, width, height)
   rendering.updateUniformMatrix('u_mvp', projection)
 
-  client.bufferGUI.zero()
+  bufferZero(client.bufferGUI)
 
   const font = defaultFont()
   const fontScale = calcFontScale(scale)
@@ -165,15 +167,15 @@ export function renderMapEditTopMode(state) {
     const box = maps.textBox
     renderTextBox(state, scale, font, box, 200, 200)
 
-    client.bufferGUI.zero()
+    bufferZero(client.bufferGUI)
     drawTextFontSpecial(client.bufferGUI, 200, 500, box.text, fontScale, white0f, white1f, white2f, font)
     rendering.updateAndDraw(client.bufferGUI)
   } else {
-    rendering.setProgram('texture2d-rgb')
+    rendererSetProgram(rendering, 'texture2d-rgb')
     rendering.setView(0, client.top, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
 
-    client.bufferGUI.zero()
+    bufferZero(client.bufferGUI)
     const cursor = textureByName('editor-sprites')
     const cursorSize = 8 * scale
     spr(client.bufferGUI, 9, 1.0, 1.0, maps.cursor.x, maps.cursor.y - cursorSize, cursorSize, cursorSize)

@@ -6,6 +6,8 @@ import { flexBox, flexSolve } from '../gui/flex.js'
 import { identity, multiply } from '../math/matrix.js'
 import { Dashboard, EDIT_NAME, PROGRAM_MENU, TAPE_MENU } from '../menu/dashboard.js'
 import { drawTextFontSpecial } from '../render/render.js'
+import { bufferZero } from '../webgl/buffer.js'
+import { rendererSetProgram } from '../webgl/renderer.js'
 import { renderTextBox, textBoxHeight, textBoxWidth } from './client-util.js'
 
 export class DashboardState {
@@ -88,7 +90,7 @@ export class DashboardState {
     multiply(projection, client.orthographic, view)
 
     // text
-    rendering.setProgram('texture2d-font')
+    rendererSetProgram(rendering, 'texture2d-font')
     rendering.setView(0, client.top, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
 
@@ -98,7 +100,7 @@ export class DashboardState {
     gl.disable(gl.CULL_FACE)
     gl.disable(gl.DEPTH_TEST)
 
-    client.bufferGUI.zero()
+    bufferZero(client.bufferGUI)
 
     let text = 'Scroll and Sigil Editor'
     const mainMenu = flexBox(fontWidth * text.length, fontHeight)

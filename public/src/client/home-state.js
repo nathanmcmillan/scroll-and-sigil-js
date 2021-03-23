@@ -7,7 +7,9 @@ import { Game } from '../game/game.js'
 import { flexSolve, flexText } from '../gui/flex.js'
 import { identity, multiply, rotateX, rotateY, translate } from '../math/matrix.js'
 import { Home } from '../menu/home.js'
-import { TIC_FONT_HEIGHT, TIC_FONT_WIDTH, drawSprite, drawTextSpecial } from '../render/render.js'
+import { drawSprite, drawTextSpecial, TIC_FONT_HEIGHT, TIC_FONT_WIDTH } from '../render/render.js'
+import { bufferZero } from '../webgl/buffer.js'
+import { rendererSetProgram } from '../webgl/renderer.js'
 
 export class HomeState {
   constructor(client) {
@@ -54,7 +56,7 @@ export class HomeState {
     const client = this.client
     const gl = client.gl
 
-    for (const buffer of client.sectorBuffers.values()) buffer.zero()
+    for (const buffer of client.sectorBuffers.values()) bufferZero(buffer)
     for (const sector of world.sectors) client.sectorRender(sector)
     for (const buffer of client.sectorBuffers.values()) client.rendering.updateVAO(buffer, gl.STATIC_DRAW)
 
@@ -108,7 +110,7 @@ export class HomeState {
     const world = game.world
     const camera = game.camera
 
-    rendering.setProgram('texture3d-rgb')
+    rendererSetProgram(rendering, 'texture3d-rgb')
     rendering.setView(0, client.top, width, height)
 
     gl.clearColor(0.0, 0.0, 0.0, 1.0)
@@ -144,7 +146,7 @@ export class HomeState {
     }
 
     const buffers = client.spriteBuffers
-    for (const buffer of buffers.values()) buffer.zero()
+    for (const buffer of buffers.values()) bufferZero(buffer)
 
     const sine = Math.sin(-camera.ry)
     const cosine = Math.cos(-camera.ry)
@@ -171,11 +173,11 @@ export class HomeState {
     identity(view)
     multiply(projection, client.orthographic, view)
 
-    client.bufferGUI.zero()
+    bufferZero(client.bufferGUI)
 
     // text
 
-    rendering.setProgram('texture2d-font')
+    rendererSetProgram(rendering, 'texture2d-font')
     rendering.setView(0, client.top, width, height)
     rendering.updateUniformMatrix('u_mvp', projection)
 

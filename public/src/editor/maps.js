@@ -9,7 +9,7 @@ import * as In from '../input/input.js'
 import { sectorInsideOutside, sectorLineNeighbors } from '../map/sector.js'
 import { sectorTriangulateForEditor } from '../map/triangulate.js'
 import { Vector2 } from '../math/vector.js'
-import { Trigger } from '../world/trigger.js'
+import { Trigger, triggerExport } from '../world/trigger.js'
 import { WORLD_SCALE } from '../world/world.js'
 
 export const TOP_MODE = 0
@@ -151,7 +151,7 @@ DESCRIBE_OPTIONS[OPTION_SECTOR_MODE_LINE_UNDER_CURSOR] = SECTOR_MODE_LINE_UNDER_
 const INPUT_RATE = 128
 
 function strvec(vec) {
-  return JSON.stringify({x: vec.x, y: vec.y})
+  return JSON.stringify({ x: vec.x, y: vec.y })
 }
 
 function texture(name) {
@@ -1687,7 +1687,7 @@ export class MapEdit {
     }
     if (this.triggers.length > 0) {
       content += 'triggers\n'
-      for (const trigger of this.triggers) content += trigger.export() + '\n'
+      for (const trigger of this.triggers) content += triggerExport(trigger) + '\n'
       content += 'end triggers\n'
     }
     if (this.meta.length > 0) {

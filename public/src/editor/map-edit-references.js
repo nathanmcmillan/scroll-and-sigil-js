@@ -1,5 +1,6 @@
 import { textureIndexForName } from '../assets/assets.js'
 import { Float } from '../math/vector.js'
+import { triggerExport } from '../world/trigger.js'
 
 export class VectorReference {
   constructor(x, y) {
@@ -137,7 +138,7 @@ export class LineReference {
     content += ` ${this.middleOffset()}`
     content += ` ${this.bottomOffset()}`
     if (this.flags) content += ` flags ${this.flags.join(' ')} end`
-    if (this.trigger) content += ` trigger ${this.trigger.export()} end`
+    if (this.trigger) content += ` trigger ${triggerExport(this.trigger)} end`
     return content
   }
 
@@ -302,7 +303,7 @@ export class SectorReference {
     content += ` ${this.lines.length}`
     for (const line of this.lines) content += ` ${line.index}`
     if (this.flags) content += ` flags ${this.flags.join(' ')} end`
-    if (this.trigger) content += ` trigger ${this.trigger.export()} end`
+    if (this.trigger) content += ` trigger ${triggerExport(this.trigger)} end`
     return content
   }
 }

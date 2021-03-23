@@ -4,7 +4,9 @@ import { calcFontScale } from '../editor/editor-util.js'
 import { blackf, whitef } from '../editor/palette.js'
 import { flexSolve, flexText } from '../gui/flex.js'
 import { identity, multiply } from '../math/matrix.js'
-import { TIC_FONT_HEIGHT, TIC_FONT_WIDTH, drawTextSpecial } from '../render/render.js'
+import { drawTextSpecial, TIC_FONT_HEIGHT, TIC_FONT_WIDTH } from '../render/render.js'
+import { bufferZero } from '../webgl/buffer.js'
+import { rendererSetProgram } from '../webgl/renderer.js'
 
 export function renderLoadingInProgress(client, view, projection) {
   const gl = client.gl
@@ -19,7 +21,7 @@ export function renderLoadingInProgress(client, view, projection) {
   const fontWidth = fontScale * TIC_FONT_WIDTH
   const fontHeight = fontScale * TIC_FONT_HEIGHT
 
-  rendering.setProgram('texture2d-font')
+  rendererSetProgram(rendering, 'texture2d-font')
   rendering.setView(0, client.top, width, height)
   rendering.updateUniformMatrix('u_mvp', projection)
 
@@ -30,7 +32,7 @@ export function renderLoadingInProgress(client, view, projection) {
   multiply(projection, client.orthographic, view)
   rendering.updateUniformMatrix('u_mvp', projection)
 
-  client.bufferGUI.zero()
+  bufferZero(client.bufferGUI)
 
   const text = 'Loading. Please wait...'
   const box = flexText(text, fontWidth * text.length, fontHeight)
