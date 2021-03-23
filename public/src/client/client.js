@@ -18,7 +18,7 @@ import { drawSkyBox } from '../render/render.js'
 import { TwoWayMap } from '../util/collections.js'
 import * as Wad from '../wad/wad.js'
 import { Buffer } from '../webgl/buffer.js'
-import { Renderer, rendererInsertProgram, rendererMakeVAO } from '../webgl/renderer.js'
+import { Renderer, rendererInsertProgram, rendererMakeVAO, rendererUpdateVAO } from '../webgl/renderer.js'
 import { compileProgram, createPixelsToTexture, createTexture } from '../webgl/webgl.js'
 
 export class Client {
@@ -319,7 +319,7 @@ export class Client {
     rendererMakeVAO(rendering, this.bufferColor)
     rendererMakeVAO(rendering, this.bufferSky)
 
-    rendering.updateVAO(this.bufferSky, gl.STATIC_DRAW)
+    rendererUpdateVAO(rendering, this.bufferSky, gl.STATIC_DRAW)
 
     const keys = new TwoWayMap()
 

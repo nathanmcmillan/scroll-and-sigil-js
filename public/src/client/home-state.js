@@ -9,7 +9,15 @@ import { identity, multiply, rotateX, rotateY, translate } from '../math/matrix.
 import { Home } from '../menu/home.js'
 import { drawSprite, drawTextSpecial, TIC_FONT_HEIGHT, TIC_FONT_WIDTH } from '../render/render.js'
 import { bufferZero } from '../webgl/buffer.js'
-import { rendererSetProgram } from '../webgl/renderer.js'
+import {
+  rendererBindAndDraw,
+  rendererBindTexture,
+  rendererSetProgram,
+  rendererSetView,
+  rendererUpdateAndDraw,
+  rendererUpdateUniformMatrix,
+  rendererUpdateVAO,
+} from '../webgl/renderer.js'
 
 export class HomeState {
   constructor(client) {
@@ -58,7 +66,7 @@ export class HomeState {
 
     for (const buffer of client.sectorBuffers.values()) bufferZero(buffer)
     for (const sector of world.sectors) client.sectorRender(sector)
-    for (const buffer of client.sectorBuffers.values()) client.rendering.updateVAO(buffer, gl.STATIC_DRAW)
+    for (const buffer of client.sectorBuffers.values()) rendererUpdateVAO(client.rendering, buffer, gl.STATIC_DRAW)
 
     this.loading = false
     this.game.update()
@@ -111,7 +119,7 @@ export class HomeState {
     const camera = game.camera
 
     rendererSetProgram(rendering, 'texture3d-rgb')
-    rendering.setView(0, client.top, width, height)
+    rendererSetView(rendering, 0, client.top, width, height)
 
     gl.clearColor(0.0, 0.0, 0.0, 1.0)
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
@@ -124,11 +132,11 @@ export class HomeState {
     rotateY(view, Math.sin(camera.ry), Math.cos(camera.ry))
     translate(view, 0.0, 0.0, 0.0)
     multiply(projection, client.perspective, view)
-    rendering.updateUniformMatrix('u_mvp', projection)
+    rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
     const sky = textureByName('sky-box-1')
-    rendering.bindTexture(gl.TEXTURE0, sky.texture)
-    rendering.bindAndDraw(client.bufferSky)
+    rendererBindTexture(rendering, gl.TEXTURE0, sky.texture)
+    rendererBindAndDraw(rendering, client.bufferSky)
 
     gl.enable(gl.CULL_FACE)
     gl.enable(gl.DEPTH_TEST)
@@ -138,11 +146,11 @@ export class HomeState {
     rotateY(view, Math.sin(camera.ry), Math.cos(camera.ry))
     translate(view, -camera.x, -camera.y, -camera.z)
     multiply(projection, client.perspective, view)
-    rendering.updateUniformMatrix('u_mvp', projection)
+    rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
     for (const [index, buffer] of client.sectorBuffers) {
-      rendering.bindTexture(gl.TEXTURE0, textureByIndex(index).texture)
-      rendering.bindAndDraw(buffer)
+      rendererBindTexture(rendering, gl.TEXTURE0, textureByIndex(index).texture)
+      rendererBindAndDraw(rendering, buffer)
     }
 
     const buffers = client.spriteBuffers
@@ -161,8 +169,8 @@ export class HomeState {
 
     for (const [index, buffer] of buffers) {
       if (buffer.indexPosition === 0) continue
-      rendering.bindTexture(gl.TEXTURE0, textureByIndex(index).texture)
-      rendering.updateAndDraw(buffer, gl.DYNAMIC_DRAW)
+      rendererBindTexture(rendering, gl.TEXTURE0, textureByIndex(index).texture)
+      rendererUpdateAndDraw(rendering, buffer, gl.DYNAMIC_DRAW)
     }
 
     // end render world
@@ -178,8 +186,8 @@ export class HomeState {
     // text
 
     rendererSetProgram(rendering, 'texture2d-font')
-    rendering.setView(0, client.top, width, height)
-    rendering.updateUniformMatrix('u_mvp', projection)
+    rendererSetView(rendering, 0, client.top, width, height)
+    rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
     const titleBox = home.titleBox
     drawTextSpecial(client.bufferGUI, titleBox.x, titleBox.y, titleBox.text, 2 * scale, white0f, white1f, white2f)
@@ -223,7 +231,7 @@ export class HomeState {
 
     drawTextSpecial(client.bufferGUI, indicatorBox.x, indicatorBox.y, indicatorBox.text, fontScale, white0f, white1f, white2f)
 
-    rendering.bindTexture(gl.TEXTURE0, textureByName('tic-80-wide-font').texture)
-    rendering.updateAndDraw(client.bufferGUI)
+    rendererBindTexture(rendering, gl.TEXTURE0, textureByName('tic-80-wide-font').texture)
+    rendererUpdateAndDraw(rendering, client.bufferGUI)
   }
 }

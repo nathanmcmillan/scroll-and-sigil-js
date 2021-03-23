@@ -94,6 +94,6 @@ export function rendererUpdateAndDraw(render, b) {
   const count = b.indexPosition
   if (count === 0) return
   const gl = render.gl
-  render.updateVAO(b, gl.DYNAMIC_DRAW)
+  rendererUpdateVAO(render, b, gl.DYNAMIC_DRAW)
   gl.drawElements(gl.TRIANGLES, count, gl.UNSIGNED_INT, 0)
 }

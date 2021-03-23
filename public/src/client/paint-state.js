@@ -28,7 +28,7 @@ import { identity, multiply } from '../math/matrix.js'
 import { spr, sprcol } from '../render/pico.js'
 import { drawHollowRectangle, drawImage, drawRectangle, drawTextFont, drawTextFontSpecial } from '../render/render.js'
 import { bufferZero } from '../webgl/buffer.js'
-import { rendererSetProgram } from '../webgl/renderer.js'
+import { rendererBindTexture, rendererSetProgram, rendererSetView, rendererUpdateAndDraw, rendererUpdateUniformMatrix } from '../webgl/renderer.js'
 import { createPixelsToTexture } from '../webgl/webgl.js'
 
 function updatePixelsToTexture(gl, texture, width, height, pixels) {
@@ -267,8 +267,8 @@ export class PaintState {
     let magnify, top, left, boxWidth, boxHeight, box, x, y
 
     rendererSetProgram(rendering, 'texture2d')
-    rendering.setView(0, client.top, width, height)
-    rendering.updateUniformMatrix('u_mvp', projection)
+    rendererSetView(rendering, 0, client.top, width, height)
+    rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
     gl.clearColor(slatef(0), slatef(1), slatef(2), 1.0)
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
@@ -318,12 +318,12 @@ export class PaintState {
 
     drawImage(client.bufferGUI, left, top, boxWidth, boxHeight, 1.0, 1.0, 1.0, 1.0, sl, st, sr, sb)
 
-    rendering.bindTexture(gl.TEXTURE0, this.texture)
-    rendering.updateAndDraw(client.bufferGUI)
+    rendererBindTexture(rendering, gl.TEXTURE0, this.texture)
+    rendererUpdateAndDraw(rendering, client.bufferGUI)
 
     rendererSetProgram(rendering, 'color2d')
-    rendering.setView(0, client.top, width, height)
-    rendering.updateUniformMatrix('u_mvp', projection)
+    rendererSetView(rendering, 0, client.top, width, height)
+    rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
     // box around view
 
@@ -481,13 +481,13 @@ export class PaintState {
     const bottomBarHeight = calcBottomBarHeight(scale)
     drawRectangle(client.bufferColor, 0, 0, width, bottomBarHeight, redf(0), redf(1), redf(2), 1.0)
 
-    rendering.updateAndDraw(client.bufferColor)
+    rendererUpdateAndDraw(rendering, client.bufferColor)
 
     // special textures
 
     rendererSetProgram(rendering, 'texture2d-rgb')
-    rendering.setView(0, client.top, width, height)
-    rendering.updateUniformMatrix('u_mvp', projection)
+    rendererSetView(rendering, 0, client.top, width, height)
+    rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
     bufferZero(client.bufferGUI)
 
@@ -506,14 +506,14 @@ export class PaintState {
       }
     }
 
-    rendering.bindTexture(gl.TEXTURE0, textureByName('editor-sprites').texture)
-    rendering.updateAndDraw(client.bufferGUI)
+    rendererBindTexture(rendering, gl.TEXTURE0, textureByName('editor-sprites').texture)
+    rendererUpdateAndDraw(rendering, client.bufferGUI)
 
     // text
 
     rendererSetProgram(rendering, 'texture2d-font')
-    rendering.setView(0, client.top, width, height)
-    rendering.updateUniformMatrix('u_mvp', projection)
+    rendererSetView(rendering, 0, client.top, width, height)
+    rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
     bufferZero(client.bufferGUI)
 
@@ -553,8 +553,8 @@ export class PaintState {
 
     renderStatus(client, width, height, font, fontWidth, fontScale, topBarHeight, paint)
 
-    rendering.bindTexture(gl.TEXTURE0, textureByName(font.name).texture)
-    rendering.updateAndDraw(client.bufferGUI)
+    rendererBindTexture(rendering, gl.TEXTURE0, textureByName(font.name).texture)
+    rendererUpdateAndDraw(rendering, client.bufferGUI)
 
     // dialog box or text box
 
@@ -565,7 +565,7 @@ export class PaintState {
 
       bufferZero(client.bufferGUI)
       drawTextFontSpecial(client.bufferGUI, 200, 500, box.text, fontScale, white0f, white1f, white2f, font)
-      rendering.updateAndDraw(client.bufferGUI)
+      rendererUpdateAndDraw(rendering, client.bufferGUI)
     }
   }
 }

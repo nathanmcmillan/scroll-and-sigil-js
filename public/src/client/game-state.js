@@ -8,7 +8,15 @@ import { drawRectangle, drawSprite, drawText, TIC_FONT_HEIGHT, TIC_FONT_WIDTH } 
 import { animal } from '../sound/animal.js'
 import { speech } from '../sound/speech.js'
 import { bufferZero } from '../webgl/buffer.js'
-import { rendererSetProgram } from '../webgl/renderer.js'
+import {
+  rendererBindAndDraw,
+  rendererBindTexture,
+  rendererSetProgram,
+  rendererSetView,
+  rendererUpdateAndDraw,
+  rendererUpdateUniformMatrix,
+  rendererUpdateVAO,
+} from '../webgl/renderer.js'
 
 function drawTextSpecial(b, x, y, text, scale, red, green, blue) {
   drawText(b, x + scale, y - scale, text, scale, 0.0, 0.0, 0.0, 1.0)
@@ -65,7 +73,7 @@ export class GameState {
 
     for (const buffer of client.sectorBuffers.values()) bufferZero(buffer)
     for (const sector of world.sectors) client.sectorRender(sector)
-    for (const buffer of client.sectorBuffers.values()) client.rendering.updateVAO(buffer, gl.STATIC_DRAW)
+    for (const buffer of client.sectorBuffers.values()) rendererUpdateVAO(client.rendering, buffer, gl.STATIC_DRAW)
 
     this.loading = false
   }
@@ -117,7 +125,7 @@ export class GameState {
     // sky box
 
     rendererSetProgram(rendering, 'texture3d-rgb')
-    rendering.setView(0, client.top, width, height)
+    rendererSetView(rendering, 0, client.top, width, height)
 
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
@@ -129,11 +137,11 @@ export class GameState {
     rotateY(view, Math.sin(camera.ry), Math.cos(camera.ry))
     translate(view, 0.0, 0.0, 0.0)
     multiply(projection, client.perspective, view)
-    rendering.updateUniformMatrix('u_mvp', projection)
+    rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
     const sky = textureByName('sky-box-1')
-    rendering.bindTexture(gl.TEXTURE0, sky.texture)
-    rendering.bindAndDraw(client.bufferSky)
+    rendererBindTexture(rendering, gl.TEXTURE0, sky.texture)
+    rendererBindAndDraw(rendering, client.bufferSky)
 
     // render world
 
@@ -145,13 +153,13 @@ export class GameState {
     rotateY(view, Math.sin(camera.ry), Math.cos(camera.ry))
     translate(view, -camera.x, -camera.y, -camera.z)
     multiply(projection, client.perspective, view)
-    rendering.updateUniformMatrix('u_mvp', projection)
+    rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
     const projection3d = projection.slice()
 
     for (const [index, buffer] of client.sectorBuffers) {
-      rendering.bindTexture(gl.TEXTURE0, textureByIndex(index).texture)
-      rendering.bindAndDraw(buffer)
+      rendererBindTexture(rendering, gl.TEXTURE0, textureByIndex(index).texture)
+      rendererBindAndDraw(rendering, buffer)
     }
 
     const buffers = client.spriteBuffers
@@ -186,8 +194,8 @@ export class GameState {
 
     for (const [index, buffer] of buffers) {
       if (buffer.indexPosition === 0) continue
-      rendering.bindTexture(gl.TEXTURE0, textureByIndex(index).texture)
-      rendering.updateAndDraw(buffer, gl.DYNAMIC_DRAW)
+      rendererBindTexture(rendering, gl.TEXTURE0, textureByIndex(index).texture)
+      rendererUpdateAndDraw(rendering, buffer, gl.DYNAMIC_DRAW)
     }
 
     const decals = world.decals
@@ -209,8 +217,8 @@ export class GameState {
 
       for (const [index, buffer] of buffers) {
         if (buffer.indexPosition === 0) continue
-        rendering.bindTexture(gl.TEXTURE0, textureByIndex(index).texture)
-        rendering.updateAndDraw(buffer, gl.DYNAMIC_DRAW)
+        rendererBindTexture(rendering, gl.TEXTURE0, textureByIndex(index).texture)
+        rendererUpdateAndDraw(rendering, buffer, gl.DYNAMIC_DRAW)
       }
 
       gl.depthMask(true)
@@ -218,14 +226,14 @@ export class GameState {
     }
 
     rendererSetProgram(rendering, 'texture2d-font')
-    rendering.setView(0, client.top, width, height)
+    rendererSetView(rendering, 0, client.top, width, height)
 
     gl.disable(gl.CULL_FACE)
     gl.disable(gl.DEPTH_TEST)
 
     identity(view)
     multiply(projection, client.orthographic, view)
-    rendering.updateUniformMatrix('u_mvp', projection)
+    rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
     bufferZero(client.bufferGUI)
 
@@ -236,12 +244,12 @@ export class GameState {
     if (game.cinema) {
       const black = 60.0
       rendererSetProgram(rendering, 'color2d')
-      rendering.setView(0, client.top, width, height)
-      rendering.updateUniformMatrix('u_mvp', projection)
+      rendererSetView(rendering, 0, client.top, width, height)
+      rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
       bufferZero(client.bufferColor)
       drawRectangle(client.bufferColor, 0.0, 0.0, width, black, 0.0, 0.0, 0.0, 1.0)
       drawRectangle(client.bufferColor, 0.0, height - black, width, black, 0.0, 0.0, 0.0, 1.0)
-      rendering.updateAndDraw(client.bufferColor)
+      rendererUpdateAndDraw(rendering, client.bufferColor)
     } else if (hero.menu) {
       const menu = hero.menu
       const page = menu.page
@@ -282,8 +290,8 @@ export class GameState {
           else drawTextSpecial(client.bufferGUI, pad, y, item.name, scale, 1.0, 0.0, 0.0)
           index++
         }
-        rendering.bindTexture(gl.TEXTURE0, textureByName('tic-80-wide-font').texture)
-        rendering.updateAndDraw(client.bufferGUI)
+        rendererBindTexture(rendering, gl.TEXTURE0, textureByName('tic-80-wide-font').texture)
+        rendererUpdateAndDraw(rendering, client.bufferGUI)
       }
     } else {
       if (hero.interaction) {
@@ -323,8 +331,8 @@ export class GameState {
         }
       }
       if (client.bufferGUI.indexPosition > 0) {
-        rendering.bindTexture(gl.TEXTURE0, textureByName('tic-80-wide-font').texture)
-        rendering.updateAndDraw(client.bufferGUI)
+        rendererBindTexture(rendering, gl.TEXTURE0, textureByName('tic-80-wide-font').texture)
+        rendererUpdateAndDraw(rendering, client.bufferGUI)
       }
     }
   }

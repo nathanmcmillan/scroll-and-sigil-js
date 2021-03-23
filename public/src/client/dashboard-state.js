@@ -7,7 +7,7 @@ import { identity, multiply } from '../math/matrix.js'
 import { Dashboard, EDIT_NAME, PROGRAM_MENU, TAPE_MENU } from '../menu/dashboard.js'
 import { drawTextFontSpecial } from '../render/render.js'
 import { bufferZero } from '../webgl/buffer.js'
-import { rendererSetProgram } from '../webgl/renderer.js'
+import { rendererBindTexture, rendererSetProgram, rendererSetView, rendererUpdateAndDraw, rendererUpdateUniformMatrix } from '../webgl/renderer.js'
 import { renderTextBox, textBoxHeight, textBoxWidth } from './client-util.js'
 
 export class DashboardState {
@@ -91,8 +91,8 @@ export class DashboardState {
 
     // text
     rendererSetProgram(rendering, 'texture2d-font')
-    rendering.setView(0, client.top, width, height)
-    rendering.updateUniformMatrix('u_mvp', projection)
+    rendererSetView(rendering, 0, client.top, width, height)
+    rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
     gl.clearColor(slate0f, slate1f, slate2f, 1.0)
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
@@ -215,8 +215,8 @@ export class DashboardState {
       flexSolve(width, height, indicator)
       drawTextFontSpecial(client.bufferGUI, indicator.x, indicator.y, text, fontScale, white0f, white1f, white2f, font)
 
-      rendering.bindTexture(gl.TEXTURE0, textureByName(font.name).texture)
-      rendering.updateAndDraw(client.bufferGUI)
+      rendererBindTexture(rendering, gl.TEXTURE0, textureByName(font.name).texture)
+      rendererUpdateAndDraw(rendering, client.bufferGUI)
     } else if (dashboard.menu === PROGRAM_MENU) {
       text = 'Maps'
       const optionMaps = flexBox(fontWidth * text.length, fontHeight)
@@ -297,13 +297,13 @@ export class DashboardState {
       flexSolve(width, height, indicator)
       drawTextFontSpecial(client.bufferGUI, indicator.x, indicator.y, text, fontScale, white0f, white1f, white2f, font)
 
-      rendering.bindTexture(gl.TEXTURE0, textureByName(font.name).texture)
-      rendering.updateAndDraw(client.bufferGUI)
+      rendererBindTexture(rendering, gl.TEXTURE0, textureByName(font.name).texture)
+      rendererUpdateAndDraw(rendering, client.bufferGUI)
     } else if (dashboard.menu === EDIT_NAME) {
       const box = dashboard.textBox
 
-      rendering.bindTexture(gl.TEXTURE0, textureByName(font.name).texture)
-      rendering.updateAndDraw(client.bufferGUI)
+      rendererBindTexture(rendering, gl.TEXTURE0, textureByName(font.name).texture)
+      rendererUpdateAndDraw(rendering, client.bufferGUI)
 
       const fontHeightAndPad = fontHeight + 3 * fontPad
 

@@ -9,7 +9,7 @@ import { spr, sprcol } from '../render/pico.js'
 import { drawRectangle, drawTextFontSpecial } from '../render/render.js'
 import { semitoneName, SEMITONES } from '../sound/synth.js'
 import { bufferZero } from '../webgl/buffer.js'
-import { rendererSetProgram } from '../webgl/renderer.js'
+import { rendererBindTexture, rendererSetProgram, rendererSetView, rendererUpdateAndDraw, rendererUpdateUniformMatrix } from '../webgl/renderer.js'
 
 export class MusicState {
   constructor(client) {
@@ -122,8 +122,8 @@ export class MusicState {
     const pad = 2 * scale
 
     rendererSetProgram(rendering, 'color2d')
-    rendering.setView(0, client.top, width, height)
-    rendering.updateUniformMatrix('u_mvp', projection)
+    rendererSetView(rendering, 0, client.top, width, height)
+    rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
     gl.clearColor(slatef(0), slatef(1), slatef(2), 1.0)
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
@@ -139,13 +139,13 @@ export class MusicState {
 
     drawRectangle(buffer, 0, 0, width, topBarHeight, redf(0), redf(1), redf(2), 1.0)
 
-    rendering.updateAndDraw(buffer)
+    rendererUpdateAndDraw(rendering, buffer)
 
     // text
 
     rendererSetProgram(rendering, 'texture2d-font')
-    rendering.setView(0, client.top, width, height)
-    rendering.updateUniformMatrix('u_mvp', projection)
+    rendererSetView(rendering, 0, client.top, width, height)
+    rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
     bufferZero(client.bufferGUI)
 
@@ -208,16 +208,16 @@ export class MusicState {
 
     renderStatus(client, width, height, font, fontWidth, fontScale, topBarHeight, music)
 
-    rendering.bindTexture(gl.TEXTURE0, textureByName(font.name).texture)
-    rendering.updateAndDraw(client.bufferGUI)
+    rendererBindTexture(rendering, gl.TEXTURE0, textureByName(font.name).texture)
+    rendererUpdateAndDraw(rendering, client.bufferGUI)
 
     bufferZero(client.bufferGUI)
 
     // sprites
 
     rendererSetProgram(rendering, 'texture2d-rgb')
-    rendering.setView(0, client.top, width, height)
-    rendering.updateUniformMatrix('u_mvp', projection)
+    rendererSetView(rendering, 0, client.top, width, height)
+    rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
     const spriteScale = Math.floor(1.5 * scale)
     const spriteSize = 8 * spriteScale
@@ -240,8 +240,8 @@ export class MusicState {
       pos += noteWidth
     }
 
-    rendering.bindTexture(gl.TEXTURE0, textureByName('editor-sprites').texture)
-    rendering.updateAndDraw(client.bufferGUI)
+    rendererBindTexture(rendering, gl.TEXTURE0, textureByName('editor-sprites').texture)
+    rendererUpdateAndDraw(rendering, client.bufferGUI)
 
     // dialog box
 

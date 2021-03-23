@@ -3,7 +3,7 @@ import * as In from '../input/input.js'
 import { identity, multiply, orthographic } from '../math/matrix.js'
 import { drawRectangle } from '../render/render.js'
 import { bufferZero } from '../webgl/buffer.js'
-import { rendererSetProgram } from '../webgl/renderer.js'
+import { rendererSetProgram, rendererSetView, rendererUpdateAndDraw, rendererUpdateUniformMatrix } from '../webgl/renderer.js'
 
 class TouchButton {
   constructor(input) {
@@ -110,8 +110,8 @@ export function renderTouch(touch) {
   const height = touch.height
 
   rendererSetProgram(rendering, 'color2d')
-  rendering.setView(0, 0, width, height)
-  rendering.updateUniformMatrix('u_mvp', projection)
+  rendererSetView(rendering, 0, 0, width, height)
+  rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
   gl.clearColor(blackf(0), blackf(1), blackf(2), 1.0)
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
@@ -121,7 +121,7 @@ export function renderTouch(touch) {
 
   identity(view)
   multiply(projection, touch.orthographic, view)
-  rendering.updateUniformMatrix('u_mvp', projection)
+  rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
   bufferZero(client.bufferColor)
 
@@ -129,5 +129,5 @@ export function renderTouch(touch) {
     drawRectangle(client.bufferColor, button.x, button.y, button.width, button.height, whitef(0), whitef(1), whitef(2), 1.0)
   }
 
-  rendering.updateAndDraw(client.bufferColor)
+  rendererUpdateAndDraw(rendering, client.bufferColor)
 }

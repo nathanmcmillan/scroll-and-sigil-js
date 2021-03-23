@@ -3,7 +3,7 @@ import { calcFontPad, calcFontScale, calcLongest, calcThickness } from '../edito
 import { orange0f, orange1f, orange2f, peach0f, peach1f, peach2f, slate0f, slate1f, slate2f, white0f, white1f, white2f, wine0f, wine1f, wine2f } from '../editor/palette.js'
 import { drawHollowRectangle, drawRectangle, drawTextFont, drawTextFontSpecial } from '../render/render.js'
 import { bufferZero } from '../webgl/buffer.js'
-import { rendererSetProgram } from '../webgl/renderer.js'
+import { rendererBindTexture, rendererSetProgram, rendererSetView, rendererUpdateAndDraw, rendererUpdateUniformMatrix } from '../webgl/renderer.js'
 
 export function renderDialogBox(state, scale, font, dialog) {
   const client = state.client
@@ -25,8 +25,8 @@ export function renderDialogBox(state, scale, font, dialog) {
   const fontHeightAndPad = fontHeight + fontPad
 
   rendererSetProgram(rendering, 'color2d')
-  rendering.setView(0, client.top, width, height)
-  rendering.updateUniformMatrix('u_mvp', projection)
+  rendererSetView(rendering, 0, client.top, width, height)
+  rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
   bufferZero(client.bufferColor)
 
@@ -46,11 +46,11 @@ export function renderDialogBox(state, scale, font, dialog) {
   if (title !== null)
     drawRectangle(client.bufferColor, x + thickness, y + dialogHeight - thickness - fontHeightAndPad - 2 * fontPad, dialogWidth, thickness, peach0f, peach1f, peach2f, 1.0)
 
-  rendering.updateAndDraw(client.bufferColor)
+  rendererUpdateAndDraw(rendering, client.bufferColor)
 
   rendererSetProgram(rendering, 'texture2d-font')
-  rendering.setView(0, client.top, width, height)
-  rendering.updateUniformMatrix('u_mvp', projection)
+  rendererSetView(rendering, 0, client.top, width, height)
+  rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
   bufferZero(client.bufferGUI)
 
@@ -70,8 +70,8 @@ export function renderDialogBox(state, scale, font, dialog) {
     drawTextFont(client.bufferGUI, x, yy, title, fontScale, white0f, white1f, white2f, 1.0, font)
   }
 
-  rendering.bindTexture(gl.TEXTURE0, textureByName(font.name).texture)
-  rendering.updateAndDraw(client.bufferGUI)
+  rendererBindTexture(rendering, gl.TEXTURE0, textureByName(font.name).texture)
+  rendererUpdateAndDraw(rendering, client.bufferGUI)
 }
 
 export function textBoxWidth(fontWidth, box) {
@@ -102,8 +102,8 @@ export function renderTextBox(state, scale, font, box, x, y) {
   const fontHeightAndPad = fontHeight + 3 * fontPad
 
   rendererSetProgram(rendering, 'color2d')
-  rendering.setView(0, client.top, width, height)
-  rendering.updateUniformMatrix('u_mvp', projection)
+  rendererSetView(rendering, 0, client.top, width, height)
+  rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
   bufferZero(client.bufferColor)
 
@@ -114,11 +114,11 @@ export function renderTextBox(state, scale, font, box, x, y) {
 
   drawHollowRectangle(client.bufferColor, x + thickness, y + thickness, boxWidth, boxHeight, thickness, peach0f, peach1f, peach2f, 1.0)
 
-  rendering.updateAndDraw(client.bufferColor)
+  rendererUpdateAndDraw(rendering, client.bufferColor)
 
   rendererSetProgram(rendering, 'texture2d-font')
-  rendering.setView(0, client.top, width, height)
-  rendering.updateUniformMatrix('u_mvp', projection)
+  rendererSetView(rendering, 0, client.top, width, height)
+  rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
   bufferZero(client.bufferGUI)
 
@@ -136,8 +136,8 @@ export function renderTextBox(state, scale, font, box, x, y) {
     yy -= fontHeightAndPad
   }
 
-  rendering.bindTexture(gl.TEXTURE0, textureByName(font.name).texture)
-  rendering.updateAndDraw(client.bufferGUI)
+  rendererBindTexture(rendering, gl.TEXTURE0, textureByName(font.name).texture)
+  rendererUpdateAndDraw(rendering, client.bufferGUI)
 }
 
 export function renderStatus(client, width, height, font, fontWidth, fontScale, topBarHeight, edit) {

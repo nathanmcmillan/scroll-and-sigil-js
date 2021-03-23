@@ -7,7 +7,7 @@ import { identity, multiply } from '../math/matrix.js'
 import { drawRectangle, drawTextFont } from '../render/render.js'
 import { diatonic, semitoneName, SEMITONES, WAVE_LIST } from '../sound/synth.js'
 import { bufferZero } from '../webgl/buffer.js'
-import { rendererSetProgram } from '../webgl/renderer.js'
+import { rendererBindTexture, rendererSetProgram, rendererSetView, rendererUpdateAndDraw, rendererUpdateUniformMatrix } from '../webgl/renderer.js'
 
 export class SfxState {
   constructor(client) {
@@ -114,8 +114,8 @@ export class SfxState {
     const fontHeightAndPad = fontHeight + fontPad
 
     rendererSetProgram(rendering, 'color2d')
-    rendering.setView(0, client.top, width, height)
-    rendering.updateUniformMatrix('u_mvp', projection)
+    rendererSetView(rendering, 0, client.top, width, height)
+    rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
     gl.clearColor(slatef(0), slatef(1), slatef(2), 1.0)
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
@@ -133,13 +133,13 @@ export class SfxState {
     const bottomBarHeight = calcBottomBarHeight(scale)
     drawRectangle(client.bufferColor, 0, 0, width, bottomBarHeight, red0f, red1f, red2f, 1.0)
 
-    rendering.updateAndDraw(client.bufferColor)
+    rendererUpdateAndDraw(rendering, client.bufferColor)
 
     // text
 
     rendererSetProgram(rendering, 'texture2d-font')
-    rendering.setView(0, 0, width, height)
-    rendering.updateUniformMatrix('u_mvp', projection)
+    rendererSetView(rendering, 0, 0, width, height)
+    rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
     //  status text
 
@@ -163,8 +163,8 @@ export class SfxState {
       y -= fontHeightAndPad
     }
 
-    rendering.bindTexture(gl.TEXTURE0, textureByName(font.name).texture)
-    rendering.updateAndDraw(client.bufferGUI)
+    rendererBindTexture(rendering, gl.TEXTURE0, textureByName(font.name).texture)
+    rendererUpdateAndDraw(rendering, client.bufferGUI)
 
     // dialog box
 

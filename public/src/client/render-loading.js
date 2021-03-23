@@ -6,7 +6,7 @@ import { flexSolve, flexText } from '../gui/flex.js'
 import { identity, multiply } from '../math/matrix.js'
 import { drawTextSpecial, TIC_FONT_HEIGHT, TIC_FONT_WIDTH } from '../render/render.js'
 import { bufferZero } from '../webgl/buffer.js'
-import { rendererSetProgram } from '../webgl/renderer.js'
+import { rendererBindTexture, rendererSetProgram, rendererSetView, rendererUpdateAndDraw, rendererUpdateUniformMatrix } from '../webgl/renderer.js'
 
 export function renderLoadingInProgress(client, view, projection) {
   const gl = client.gl
@@ -22,15 +22,15 @@ export function renderLoadingInProgress(client, view, projection) {
   const fontHeight = fontScale * TIC_FONT_HEIGHT
 
   rendererSetProgram(rendering, 'texture2d-font')
-  rendering.setView(0, client.top, width, height)
-  rendering.updateUniformMatrix('u_mvp', projection)
+  rendererSetView(rendering, 0, client.top, width, height)
+  rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
   gl.clearColor(blackf(0), blackf(1), blackf(2), 1.0)
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
   identity(view)
   multiply(projection, client.orthographic, view)
-  rendering.updateUniformMatrix('u_mvp', projection)
+  rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
   bufferZero(client.bufferGUI)
 
@@ -42,6 +42,6 @@ export function renderLoadingInProgress(client, view, projection) {
 
   drawTextSpecial(client.bufferGUI, box.x, box.y, box.text, fontScale, whitef(0), whitef(1), whitef(2))
 
-  rendering.bindTexture(gl.TEXTURE0, textureByName('tic-80-wide-font').texture)
-  rendering.updateAndDraw(client.bufferGUI)
+  rendererBindTexture(rendering, gl.TEXTURE0, textureByName('tic-80-wide-font').texture)
+  rendererUpdateAndDraw(rendering, client.bufferGUI)
 }

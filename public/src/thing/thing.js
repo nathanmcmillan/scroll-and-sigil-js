@@ -159,8 +159,8 @@ function thingLineFloorAndCeiling(self, line) {
   }
   if (sector !== old) {
     self.sector = sector
-    const trigger = sector.trigger
-    if (trigger) worldEventTrigger(self.world, 'enter', trigger, self)
+    if (old && old.trigger) worldEventTrigger(self.world, 'exit', old.trigger, self)
+    if (sector.trigger) worldEventTrigger(self.world, 'enter', sector.trigger, self)
   }
   return true
 }
@@ -190,8 +190,8 @@ export function thingFindSector(self) {
   else sector = sector.searchFor(self.x, self.z)
   if (sector !== old) {
     self.sector = sector
-    const trigger = sector.trigger
-    if (trigger) worldEventTrigger(self.world, 'enter', trigger, self)
+    if (old && old.trigger) worldEventTrigger(self.world, 'exit', old.trigger, self)
+    if (sector.trigger) worldEventTrigger(self.world, 'enter', sector.trigger, self)
   }
   self.floor = sector.floor
   self.ceiling = sector.ceiling
@@ -306,8 +306,8 @@ export function thingSet(self, x, z) {
   const world = self.world
   const sector = self.sector
   if (sector !== old) {
-    const trigger = sector.trigger
-    if (trigger) worldEventTrigger(world, 'enter', trigger, self)
+    if (old && old.trigger) worldEventTrigger(world, 'exit', old.trigger, self)
+    if (sector.trigger) worldEventTrigger(world, 'enter', sector.trigger, self)
   }
   thingUpdateY(self)
   worldPushThing(world, self)
@@ -324,8 +324,8 @@ export function thingTeleport(self, x, z) {
   const world = self.world
   const sector = self.sector
   if (sector !== old) {
-    const trigger = sector.trigger
-    if (trigger) worldEventTrigger(world, 'enter', trigger, self)
+    if (old && old.trigger) worldEventTrigger(world, 'exit', old.trigger, self)
+    if (sector.trigger) worldEventTrigger(world, 'enter', sector.trigger, self)
   }
   thingUpdateY(self)
 }

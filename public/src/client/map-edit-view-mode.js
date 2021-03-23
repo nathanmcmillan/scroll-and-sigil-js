@@ -7,7 +7,15 @@ import { redf } from '../editor/palette.js'
 import { identity, multiply, rotateX, rotateY, translate } from '../math/matrix.js'
 import { drawSprite, drawTextFontSpecial } from '../render/render.js'
 import { bufferZero } from '../webgl/buffer.js'
-import { rendererSetProgram } from '../webgl/renderer.js'
+import {
+  rendererBindAndDraw,
+  rendererBindTexture,
+  rendererSetProgram,
+  rendererSetView,
+  rendererUpdateAndDraw,
+  rendererUpdateUniformMatrix,
+  rendererUpdateVAO,
+} from '../webgl/renderer.js'
 
 function lineRender(client, line) {
   let wall = line.top
@@ -44,7 +52,7 @@ export function updateMapEditViewSectorBuffer(state) {
   for (const buffer of client.sectorBuffers.values()) bufferZero(buffer)
   for (const line of maps.lines) lineRender(client, line)
   for (const sector of maps.sectors) floorCeilRender(client, sector)
-  for (const buffer of client.sectorBuffers.values()) client.rendering.updateVAO(buffer, gl.STATIC_DRAW)
+  for (const buffer of client.sectorBuffers.values()) rendererUpdateVAO(client.rendering, buffer, gl.STATIC_DRAW)
 }
 
 export function renderMapEditViewMode(state) {
@@ -64,7 +72,7 @@ export function renderMapEditViewMode(state) {
   // render world
 
   rendererSetProgram(rendering, 'texture3d-rgb')
-  rendering.setView(0, client.top, width, height)
+  rendererSetView(rendering, 0, client.top, width, height)
 
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
@@ -76,11 +84,11 @@ export function renderMapEditViewMode(state) {
   rotateY(view, Math.sin(camera.ry), Math.cos(camera.ry))
   translate(view, 0.0, 0.0, 0.0)
   multiply(projection, client.perspective, view)
-  rendering.updateUniformMatrix('u_mvp', projection)
+  rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
   const sky = textureByName('sky-box-1')
-  rendering.bindTexture(gl.TEXTURE0, sky.texture)
-  rendering.bindAndDraw(client.bufferSky)
+  rendererBindTexture(rendering, gl.TEXTURE0, sky.texture)
+  rendererBindAndDraw(rendering, client.bufferSky)
 
   gl.enable(gl.CULL_FACE)
   gl.enable(gl.DEPTH_TEST)
@@ -90,11 +98,11 @@ export function renderMapEditViewMode(state) {
   rotateY(view, Math.sin(camera.ry), Math.cos(camera.ry))
   translate(view, -camera.x, -camera.y, -camera.z)
   multiply(projection, client.perspective, view)
-  rendering.updateUniformMatrix('u_mvp', projection)
+  rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
   for (const [index, buffer] of client.sectorBuffers) {
-    rendering.bindTexture(gl.TEXTURE0, textureByIndex(index).texture)
-    rendering.bindAndDraw(buffer)
+    rendererBindTexture(rendering, gl.TEXTURE0, textureByIndex(index).texture)
+    rendererBindAndDraw(rendering, buffer)
   }
 
   const buffers = client.spriteBuffers
@@ -115,21 +123,21 @@ export function renderMapEditViewMode(state) {
 
   for (const [index, buffer] of buffers) {
     if (buffer.indexPosition === 0) continue
-    rendering.bindTexture(gl.TEXTURE0, textureByIndex(index).texture)
-    rendering.updateAndDraw(buffer, gl.DYNAMIC_DRAW)
+    rendererBindTexture(rendering, gl.TEXTURE0, textureByIndex(index).texture)
+    rendererUpdateAndDraw(rendering, buffer, gl.DYNAMIC_DRAW)
   }
 
   // text
 
   rendererSetProgram(rendering, 'texture2d-font')
-  rendering.setView(0, client.top, width, height)
+  rendererSetView(rendering, 0, client.top, width, height)
 
   gl.disable(gl.CULL_FACE)
   gl.disable(gl.DEPTH_TEST)
 
   identity(view)
   multiply(projection, client.orthographic, view)
-  rendering.updateUniformMatrix('u_mvp', projection)
+  rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
   const font = defaultFont()
   const fontScale = calcFontScale(scale)
@@ -139,8 +147,8 @@ export function renderMapEditViewMode(state) {
   bufferZero(client.bufferGUI)
   const text = 'x:' + camera.x.toFixed(2) + ' y:' + camera.y.toFixed(2) + ' z:' + camera.z.toFixed(2)
   drawTextFontSpecial(client.bufferGUI, fontWidth, fontHeight, text, fontScale, redf(0), redf(1), redf(2), font)
-  rendering.bindTexture(gl.TEXTURE0, textureByName(font.name).texture)
-  rendering.updateAndDraw(client.bufferGUI)
+  rendererBindTexture(rendering, gl.TEXTURE0, textureByName(font.name).texture)
+  rendererUpdateAndDraw(rendering, client.bufferGUI)
 
   // dialog box
 
