@@ -299,18 +299,15 @@ export function thingSetup(self) {
 export function thingSet(self, x, z) {
   self.x = self.previousX = x
   self.z = self.previousZ = z
+  self.deltaX = 0.0
+  self.deltaY = 0.0
+  self.deltaZ = 0.0
   thingPushToCells(self)
-  const old = self.sector
   self.sector = null
   if (!thingFindSectorFromLine(self)) thingFindSector(self)
-  const world = self.world
-  const sector = self.sector
-  if (sector !== old) {
-    if (old && old.trigger) worldEventTrigger(world, 'exit', old.trigger, self)
-    if (sector.trigger) worldEventTrigger(world, 'enter', sector.trigger, self)
-  }
-  thingUpdateY(self)
-  worldPushThing(world, self)
+  self.ground = true
+  self.y = self.floor
+  worldPushThing(self.world, self)
 }
 
 export function thingTeleport(self, x, z) {
@@ -318,15 +315,7 @@ export function thingTeleport(self, x, z) {
   self.x = self.previousX = x
   self.z = self.previousZ = z
   thingPushToCells(self)
-  const old = self.sector
-  self.sector = null
   if (!thingFindSectorFromLine(self)) thingFindSector(self)
-  const world = self.world
-  const sector = self.sector
-  if (sector !== old) {
-    if (old && old.trigger) worldEventTrigger(world, 'exit', old.trigger, self)
-    if (sector.trigger) worldEventTrigger(world, 'enter', sector.trigger, self)
-  }
   thingUpdateY(self)
 }
 

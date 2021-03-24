@@ -27,7 +27,8 @@ export class Trigger {
     while (i < size) {
       if (input[i] === 'music') i += 2
       else if (input[i] === 'sound') i += 2
-      else if (input[i] === 'goto') i += 3
+      else if (input[i] === 'damage') i += 2
+      else if (input[i] === 'map') i += 3
       else if (input[i] === 'teleport') i += 3
       else if (input[i] === 'spawn') i += 4
       else i++

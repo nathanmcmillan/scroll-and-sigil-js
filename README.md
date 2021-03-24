@@ -16,15 +16,20 @@ A 3D adventure game with a strong focus on modding and user crafted content.
 
 ### Priority
 
+- Water and lava flags should make the floor rendering offset higher (but not the physical floor level)
+- Monsters aren't applying on enter or on exit event for sectors (but does apply on enter when first spawned)
+- Damage thing 5% per second if current sector flag is lava
+- Attack trigger event for melee
+- Hero interacting with lines is broken (wrong direction of normal?)
+
 - Single file format for entire data pack
-- Tiles as sprites specified in regular image. Auto-generate OpenGL single image for repeating
 - Snap/attach things to walls (like torches)
-- Tiles should just be paint:sprite index from regular paint image
 - Need a global ticker for animated tiles and doodads
 
 ### Needed
 
 - Paint
+
   - Fullscreen mode for sprite sheet
   - Smart undo redo history saving. Only save region that was changed
   - Undo redo is broken for edge cases

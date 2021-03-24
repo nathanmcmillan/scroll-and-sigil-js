@@ -1,10 +1,11 @@
 import { cellPushMissile, cellRemoveMissile } from '../world/cell.js'
-import { worldFindSector, WORLD_CELL_SHIFT } from '../world/world.js'
+import { worldEventTrigger, worldFindSector, WORLD_CELL_SHIFT } from '../world/world.js'
 
 export class Missile {
   constructor() {
     this.world = null
     this.sector = null
+    this.origin = null
     this.x = 0.0
     this.y = 0.0
     this.z = 0.0
@@ -138,7 +139,9 @@ export function missileCheck(self) {
       }
       i = cell.lines.length
       while (i--) {
-        if (missileLineOverlap(self, cell.lines[i])) {
+        const line = cell.lines[i]
+        if (missileLineOverlap(self, line)) {
+          if (line.trigger) worldEventTrigger(self.world, 'attack', line.trigger, self.origin)
           self.hit(self, null)
           return true
         }

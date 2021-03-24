@@ -13,6 +13,10 @@ export class Line {
     this.middle = middle >= 0 ? new Wall(middle) : null
     this.bottom = bottom >= 0 ? new Wall(bottom) : null
     this.physical = this.middle !== null
+    if (flags) {
+      if (flags.includes('physical')) this.physical = true
+      if (flags.includes('not-physical')) this.physical = false
+    }
   }
 
   updateSectorsForLine(scale) {

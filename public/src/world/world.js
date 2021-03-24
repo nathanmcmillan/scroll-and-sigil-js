@@ -143,7 +143,7 @@ export function worldUpdate(world) {
   let e = events.length
   if (e > 0) {
     while (e--) worldDoTriggerAction(world, events[e][0], events[e][1])
-    world.events.length = 0
+    events.length = 0
   }
 }
 
@@ -256,10 +256,20 @@ function worldDoTriggerAction(world, action, source) {
     } else if (action[i] === 'sound') {
       playSound(action[i + 1])
       i += 2
+    } else if (action[i] === 'damage') {
+      if (source) source.damage(source, null, parseInt(action[i + 1]))
+      i += 2
+    } else if (action[i] === 'map') {
+      world.game.notify('map', action[i + 1])
+      i += 2
+    } else if (action[i] === 'cinema') {
+      world.game.notify('cinema')
+      i++
+    } else if (action[i] === 'no-cinema') {
+      world.game.notify('no-cinema')
+      i++
     } else i++
   }
-  // cinema
-  // go to new map
 }
 
 export function worldNewDecal(world, texture) {
@@ -369,18 +379,10 @@ export function worldSpawnEntity(world, name, x, z) {
       return new NonPlayerCharacter(world, entity, x, z)
     case 'hero':
       if (world.game.hero) {
-        thingSet(world.hero, x, z)
+        thingSet(world.game.hero, x, z)
         return world.game.hero
       }
       return new Hero(world, entity, x, z, world.game.input)
   }
   return null
 }
-
-// export function worldNotify(world, trigger, params) {
-//   let list = world.triggers.get(trigger)
-//   if (!list) {
-//     world.game.notify(trigger, params)
-//     return
-//   }
-// }

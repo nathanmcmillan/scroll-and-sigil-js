@@ -78,22 +78,38 @@ export class GameState {
     this.loading = false
   }
 
-  handle(event) {
-    const trigger = event[0]
-    const params = event[1]
-    switch (trigger) {
-      case 'hero-goto-map':
+  notify(type, args) {
+    switch (type) {
+      case 'map':
+        this.events.push([type, args])
+        return
+      case 'death':
+        return
+    }
+  }
+
+  doEvent(event) {
+    const type = event[0]
+    const args = event[1]
+    switch (type) {
+      case 'map':
         this.loading = true
-        this.load('./pack/' + this.client.pack + '/maps/' + params + '.txt')
+        this.load('./pack/' + this.client.pack + '/maps/' + args + '.txt')
         return
     }
   }
 
   update() {
     if (this.loading) return
+
     this.game.update()
-    for (const event of this.events) this.handle(event)
-    this.events.length = 0
+
+    const events = this.events
+    let e = events.length
+    if (e > 0) {
+      while (e--) this.doEvent(events[e])
+      events.length = 0
+    }
   }
 
   render() {
@@ -334,16 +350,6 @@ export class GameState {
         rendererBindTexture(rendering, gl.TEXTURE0, textureByName('tic-80-wide-font').texture)
         rendererUpdateAndDraw(rendering, client.bufferGUI)
       }
-    }
-  }
-
-  notify(trigger, params) {
-    switch (trigger) {
-      case 'goto-map':
-        this.events.push([trigger, params])
-        return
-      case 'death-menu':
-        return
     }
   }
 }

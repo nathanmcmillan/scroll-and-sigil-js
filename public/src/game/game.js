@@ -200,15 +200,15 @@ export class Game {
     else cameraFollowCinema(camera, this.world)
   }
 
-  notify(trigger, params) {
-    switch (trigger) {
-      case 'begin-cinema':
+  notify(type, args) {
+    switch (type) {
+      case 'cinema':
         this.cinema = true
         return
-      case 'end-cinema':
+      case 'no-cinema':
         this.cinema = false
         return
     }
-    this.parent.notify(trigger, params)
+    this.parent.notify(type, args)
   }
 }

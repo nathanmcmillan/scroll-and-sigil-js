@@ -14,7 +14,8 @@ function plasmaUpdate(plasma) {
   return missileIntegrate(plasma)
 }
 
-function plasmaInit(plasma, entity, dx, dy, dz, damage) {
+function plasmaInit(plasma, entity, origin, dx, dy, dz, damage) {
+  plasma.origin = origin
   plasma.hit = plasmaHit
   plasma.update = plasmaUpdate
   plasma.box = entity.box()
@@ -27,8 +28,8 @@ function plasmaInit(plasma, entity, dx, dy, dz, damage) {
   missileSetup(plasma)
 }
 
-export function newPlasma(world, entity, x, y, z, dx, dy, dz, damage) {
+export function newPlasma(world, entity, origin, x, y, z, dx, dy, dz, damage) {
   const missile = worldNewMissile(world, x, y, z)
-  plasmaInit(missile, entity, dx, dy, dz, damage)
+  plasmaInit(missile, entity, origin, dx, dy, dz, damage)
   return missile
 }

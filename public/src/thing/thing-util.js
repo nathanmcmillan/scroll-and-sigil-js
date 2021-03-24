@@ -3,6 +3,10 @@ import { atan2, cos, sin } from '../math/approximate.js'
 import { newBlood } from '../particle/blood.js'
 
 export function redBloodTowards(thing, other) {
+  if (other === null) {
+    redBloodExplode(thing)
+    return
+  }
   const tau = 2.0 * Math.PI
   const angle = atan2(other.z - thing.z, other.x - thing.x)
   for (let i = 0; i < 20; i++) {

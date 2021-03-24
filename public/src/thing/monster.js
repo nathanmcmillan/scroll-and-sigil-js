@@ -127,7 +127,7 @@ function monsterAttack(self) {
         const y = self.y + 0.5 * self.height
         const damage = attack.get('damage')
         const amount = parseInt(damage[0]) + randomInt(parseInt(damage[1]))
-        newPlasma(self.world, entityByName(projectile), x, y, z, dx * speed, dy, dz * speed, amount)
+        newPlasma(self.world, entityByName(projectile), self, x, y, z, dx * speed, dy, dz * speed, amount)
       }
     }
   }

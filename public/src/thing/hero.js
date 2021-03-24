@@ -21,6 +21,48 @@ const COMBAT_TIMER = 300
 const MELEE_COST = 2
 const MISSILE_COST = 4
 
+export class Hero extends Thing {
+  constructor(world, entity, x, z, input) {
+    super(world, x, z)
+    this.box = entity.box()
+    this.height = entity.height()
+    this.input = input
+    this.animations = entity.stamps()
+    this.animation = this.animations.get('move')
+    this.stamp = this.animation[0]
+    this.speed = entity.speed()
+    this.maxHealth = entity.health()
+    this.health = this.maxHealth
+    this.maxStamina = entity.stamina()
+    this.stamina = this.maxStamina
+    this.staminaRate = 0
+    this.staminaBound = 32
+    this.status = STATUS_IDLE
+    this.reaction = 0
+    this.group = 'human'
+    this.level = 1
+    this.experience = 0
+    this.experienceNeeded = 20
+    this.skills = 0
+    this.tree = {}
+    this.outfit = null
+    this.headpiece = null
+    this.weapon = null
+    this.nearby = null
+    this.quests = []
+    this.inventory = []
+    this.combat = 0
+    this.menu = null
+    this.menuSub = 0
+    this.menuColumn = 0
+    this.menuRow = 0
+    this.interactionWith = null
+    this.damage = heroDamage
+    this.update = heroUpdate
+    thingSetup(this)
+  }
+}
+
 function heroDamage(hero, source, health) {
   if (hero.status === STATUS_BUSY) {
     hero.status = STATUS_IDLE
@@ -251,6 +293,8 @@ function heroMelee(self) {
     if (target) {
       target.damage(target, self, 1 + randomInt(3))
       if (target.health <= 0) heroTakeExperience(self, target.experience)
+    } else {
+      // TODO: Check walls and apply 'attack' trigger
     }
   } else if (frame === ANIMATION_DONE) {
     self.status = STATUS_IDLE
@@ -270,7 +314,7 @@ function heroMissile(self) {
     const x = self.x + dx * (self.box + 2.0)
     const z = self.z + dz * (self.box + 2.0)
     const y = self.y + 0.5 * self.height
-    newPlasma(self.world, entityByName('plasma'), x, y, z, dx * speed, 0.0, dz * speed, 1 + randomInt(3))
+    newPlasma(self.world, entityByName('plasma'), self, x, y, z, dx * speed, 0.0, dz * speed, 1 + randomInt(3))
   } else if (frame === ANIMATION_DONE) {
     self.status = STATUS_IDLE
     thingSetAnimation(self, 'move')
@@ -371,47 +415,5 @@ function heroMove(self) {
         thingUpdateSprite(self)
       }
     }
-  }
-}
-
-export class Hero extends Thing {
-  constructor(world, entity, x, z, input) {
-    super(world, x, z)
-    this.box = entity.box()
-    this.height = entity.height()
-    this.input = input
-    this.animations = entity.stamps()
-    this.animation = this.animations.get('move')
-    this.stamp = this.animation[0]
-    this.speed = entity.speed()
-    this.maxHealth = entity.health()
-    this.health = this.maxHealth
-    this.maxStamina = entity.stamina()
-    this.stamina = this.maxStamina
-    this.staminaRate = 0
-    this.staminaBound = 32
-    this.status = STATUS_IDLE
-    this.reaction = 0
-    this.group = 'human'
-    this.level = 1
-    this.experience = 0
-    this.experienceNeeded = 20
-    this.skills = 0
-    this.tree = {}
-    this.outfit = null
-    this.headpiece = null
-    this.weapon = null
-    this.nearby = null
-    this.quests = []
-    this.inventory = []
-    this.combat = 0
-    this.menu = null
-    this.menuSub = 0
-    this.menuColumn = 0
-    this.menuRow = 0
-    this.interactionWith = null
-    this.damage = heroDamage
-    this.update = heroUpdate
-    thingSetup(this)
   }
 }
