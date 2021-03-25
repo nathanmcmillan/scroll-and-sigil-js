@@ -81,6 +81,12 @@ export function thingY(self) {
   thingUpdateY(self)
 }
 
+export function thingSpecialSector(self) {
+  const flags = self.sector.flags
+  if (flags === null) return
+  if (self.ground && (self.world.tick & 63) === 0 && flags.includes('lava')) self.damage(self, null, 1)
+}
+
 function thingLineCollision(self, line) {
   const box = self.box
   const vx = line.b.x - line.a.x
@@ -449,4 +455,5 @@ export function thingIntegrate(self) {
   }
 
   thingY(self)
+  thingSpecialSector(self)
 }

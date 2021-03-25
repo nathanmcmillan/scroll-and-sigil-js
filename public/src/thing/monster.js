@@ -1,7 +1,7 @@
 import { entityByName } from '../assets/assets.js'
 import { playSound } from '../assets/sounds.js'
 import { atan2, cos, sin } from '../math/approximate.js'
-import { randomInt } from '../math/random.js'
+import { pRandom, pRandomOf, randomFloat } from '../math/random.js'
 import { newPlasma } from '../missile/plasma.js'
 import { thingMove } from '../thing/npc.js'
 import { redBloodExplode, redBloodTowards } from '../thing/thing-util.js'
@@ -43,14 +43,14 @@ export class Monster extends Thing {
 
 function monsterTestMove(self) {
   if (!thingMove(self)) return false
-  self.moveCount = 16 + randomInt(32)
+  self.moveCount = 16 + pRandomOf(32)
   return true
 }
 
 function chaseDirection(self) {
   let angle = atan2(self.target.z - self.z, self.target.x - self.x)
   for (let i = 0; i < 4; i++) {
-    self.rotation = angle - 0.785375 + 1.57075 * Math.random()
+    self.rotation = angle - 0.785375 + 1.57075 * randomFloat()
     if (monsterTestMove(self)) return
     angle += Math.PI
   }
@@ -80,7 +80,7 @@ function monsterLook(self) {
       if (thing.group === 'human' && thing.health > 0) {
         if (thingApproximateDistance(self, thing) <= self.sight) {
           if (thingCheckSight(self, thing)) {
-            if (Math.random() < 0.9) playSound(self.soundOnWake)
+            if (pRandom() < 229) playSound(self.soundOnWake)
             self.target = thing
             self.status = STATUS_CHASE
             thingSetAnimation(self, 'move')
@@ -89,7 +89,7 @@ function monsterLook(self) {
         }
       }
     }
-    self.reaction = 10 + randomInt(20)
+    self.reaction = 10 + pRandomOf(20)
   }
   if (thingUpdateAnimation(self) === ANIMATION_DONE) self.animationFrame = 0
   thingUpdateSprite(self)
@@ -111,7 +111,7 @@ function monsterAttack(self) {
         const range = parseFloat(attack.get('range'))
         if (distance < range) {
           const damage = attack.get('damage')
-          const amount = parseInt(damage[0]) + randomInt(parseInt(damage[1]))
+          const amount = parseInt(damage[0]) + pRandomOf(parseInt(damage[1]))
           target.damage(target, self, amount)
         }
       } else if (type === 'projectile') {
@@ -126,7 +126,7 @@ function monsterAttack(self) {
         const z = self.z + dz * (self.box + 2.0)
         const y = self.y + 0.5 * self.height
         const damage = attack.get('damage')
-        const amount = parseInt(damage[0]) + randomInt(parseInt(damage[1]))
+        const amount = parseInt(damage[0]) + pRandomOf(parseInt(damage[1]))
         newPlasma(self.world, entityByName(projectile), self, x, y, z, dx * speed, dy, dz * speed, amount)
       }
     }
@@ -154,7 +154,7 @@ function monsterChase(self) {
           const reaction = attack.get('reaction')
           if (attack.get('type') === 'instant' || thingCheckSight(self, self.target)) {
             self.attack = attack
-            self.reaction = parseInt(reaction[0]) + randomInt(parseInt(reaction[1]))
+            self.reaction = parseInt(reaction[0]) + pRandomOf(parseInt(reaction[1]))
             self.status = STATUS_ATTACK
             thingSetAnimation(self, attack.get('animation'))
             break

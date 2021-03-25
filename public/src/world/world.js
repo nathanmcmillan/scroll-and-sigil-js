@@ -2,6 +2,7 @@ import { entityByName } from '../assets/assets.js'
 import { playMusic, playSound } from '../assets/sounds.js'
 import { sectorInsideOutside, sectorLineNeighbors } from '../map/sector.js'
 import { sectorTriangulate } from '../map/triangulate.js'
+import { clearRandom } from '../math/random.js'
 import { Float } from '../math/vector.js'
 import { Missile, missileInitialize } from '../missile/missile.js'
 import { Particle, particleInitialize } from '../particle/particle.js'
@@ -85,6 +86,7 @@ export function worldClear(world) {
   world.decalQueue = 0
   world.triggers.length = 0
   world.events.length = 0
+  clearRandom()
 }
 
 export function worldPushThing(world, thing) {

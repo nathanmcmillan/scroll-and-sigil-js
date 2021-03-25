@@ -1,6 +1,6 @@
 import { entityByName } from '../assets/assets.js'
 import { playSound } from '../assets/sounds.js'
-import { randomInt } from '../math/random.js'
+import { pRandomOf } from '../math/random.js'
 import { newPlasma } from '../missile/plasma.js'
 import { redBloodExplode, redBloodTowards } from '../thing/thing-util.js'
 import { Thing, thingApproximateDistance, thingIntegrate, thingSetAnimation, thingSetup, thingUpdateAnimation, thingUpdateSprite } from '../thing/thing.js'
@@ -69,7 +69,7 @@ function heroDamage(hero, source, health) {
     hero.menu = null
     hero.interaction = null
     hero.interactionWith = null
-  }
+  } else if (hero.status === STATUS_DEAD) return
   hero.health -= health
   if (hero.health <= 0) {
     playSound('baron-death')
@@ -113,7 +113,7 @@ function heroDistanceToLine(self, box, line) {
   const vz = line.b.y - line.a.y
   const wx = self.x - line.a.x
   const wz = self.z - line.a.y
-  if (vx * wz - vz * wx < 0.0) return null
+  if (vx * wz - vz * wx >= 0.0) return null
   let t = (wx * vx + wz * vz) / (vx * vx + vz * vz)
   if (t < 0.0) t = 0.0
   else if (t > 1.0) t = 1.0
@@ -287,14 +287,21 @@ function heroMelee(self) {
             target = thing
           }
         }
+        i = cell.lines.length
+        while (i--) {
+          const line = cell.lines[i]
+          const distance = heroDistanceToLine(self, box, line)
+          if (distance !== null) {
+            const trigger = line.trigger
+            if (trigger) worldEventTrigger(world, 'attack', trigger, self)
+          }
+        }
       }
     }
 
     if (target) {
-      target.damage(target, self, 1 + randomInt(3))
+      target.damage(target, self, 1 + pRandomOf(3))
       if (target.health <= 0) heroTakeExperience(self, target.experience)
-    } else {
-      // TODO: Check walls and apply 'attack' trigger
     }
   } else if (frame === ANIMATION_DONE) {
     self.status = STATUS_IDLE
@@ -314,7 +321,7 @@ function heroMissile(self) {
     const x = self.x + dx * (self.box + 2.0)
     const z = self.z + dz * (self.box + 2.0)
     const y = self.y + 0.5 * self.height
-    newPlasma(self.world, entityByName('plasma'), self, x, y, z, dx * speed, 0.0, dz * speed, 1 + randomInt(3))
+    newPlasma(self.world, entityByName('plasma'), self, x, y, z, dx * speed, 0.0, dz * speed, 1 + pRandomOf(3))
   } else if (frame === ANIMATION_DONE) {
     self.status = STATUS_IDLE
     thingSetAnimation(self, 'move')

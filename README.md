@@ -18,9 +18,6 @@ A 3D adventure game with a strong focus on modding and user crafted content.
 
 - Water and lava flags should make the floor rendering offset higher (but not the physical floor level)
 - Monsters aren't applying on enter or on exit event for sectors (but does apply on enter when first spawned)
-- Damage thing 5% per second if current sector flag is lava
-- Attack trigger event for melee
-- Hero interacting with lines is broken (wrong direction of normal?)
 
 - Single file format for entire data pack
 - Snap/attach things to walls (like torches)
