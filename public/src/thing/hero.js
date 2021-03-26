@@ -4,7 +4,7 @@ import { pRandomOf } from '../math/random.js'
 import { newPlasma } from '../missile/plasma.js'
 import { redBloodExplode, redBloodTowards } from '../thing/thing-util.js'
 import { Thing, thingApproximateDistance, thingIntegrate, thingSetAnimation, thingSetup, thingUpdateAnimation, thingUpdateSprite } from '../thing/thing.js'
-import { ANIMATION_ALMOST_DONE, ANIMATION_DONE, worldEventTrigger, WORLD_CELL_SHIFT } from '../world/world.js'
+import { ANIMATION_ALMOST_DONE, ANIMATION_DONE, triggerEvent, worldConditionTrigger, worldEventTrigger, WORLD_CELL_SHIFT } from '../world/world.js'
 
 // TODO
 // If thing interacting with dies / is busy then nullify hero interaction
@@ -290,10 +290,10 @@ function heroMelee(self) {
         i = cell.lines.length
         while (i--) {
           const line = cell.lines[i]
-          const distance = heroDistanceToLine(self, box, line)
-          if (distance !== null) {
-            const trigger = line.trigger
-            if (trigger) worldEventTrigger(world, 'attack', trigger, self)
+          const trigger = line.trigger
+          if (trigger && triggerEvent('attack', trigger.event)) {
+            const distance = heroDistanceToLine(self, box, line)
+            if (distance !== null) worldConditionTrigger(world, trigger, self)
           }
         }
       }

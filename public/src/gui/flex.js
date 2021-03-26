@@ -28,72 +28,104 @@ class FlexText extends FlexBox {
   }
 }
 
+const FLEX_BOX_POOL = []
+const FLEX_TEXT_POOL = []
+
+let FLEX_BOX_POOL_COUNT = 0
+let FLEX_TEXT_POOL_COUNT = 0
+
 export function flexBox(width = 0, height = 0) {
-  const flex = new FlexBox()
+  let flex
+  if (FLEX_BOX_POOL_COUNT === FLEX_BOX_POOL.length) {
+    flex = new FlexBox()
+    FLEX_BOX_POOL.push(flex)
+  } else {
+    flex = FLEX_BOX_POOL[FLEX_BOX_POOL_COUNT]
+  }
+  FLEX_BOX_POOL_COUNT++
   flex.width = width
   flex.height = height
   return flex
 }
 
 export function flexText(text, width = 0, height = 0) {
-  const flex = new FlexText()
+  let flex
+  if (FLEX_TEXT_POOL_COUNT === FLEX_TEXT_POOL.length) {
+    flex = new FlexText()
+    FLEX_TEXT_POOL.push(flex)
+  } else {
+    flex = FLEX_TEXT_POOL[FLEX_TEXT_POOL_COUNT]
+  }
+  FLEX_TEXT_POOL_COUNT++
   flex.text = text
   flex.width = width
   flex.height = height
   return flex
 }
 
-export function flexSolve(width, height, ...list) {
-  for (const flex of list) {
-    const funX = flex.funX
-    if (funX !== null) {
-      if (funX === 'center') {
-        if (flex.fromX) {
-          flex.x = Math.floor(flex.fromX.x + 0.5 * flex.fromX.width - 0.5 * flex.width)
-        } else {
-          flex.x = Math.floor(0.5 * width - 0.5 * flex.width)
-        }
-      } else if (funX === 'left-of') {
-        flex.x = flex.fromX.x - flex.fromX.leftSpace - flex.width
-      } else if (funX === 'right-of') {
-        flex.x = flex.fromX.x + flex.fromX.width + flex.fromX.rightSpace
-      } else if (funX === 'align-left') {
-        flex.x = flex.fromX.x
-      } else if (funX === 'align-right') {
-        flex.x = flex.fromX.x + flex.fromX.width - flex.width
-      } else if (funX === '%') {
-        flex.x = Math.floor((parseFloat(flex.argX) / 100.0) * width)
-      }
-    } else {
-      flex.x = parseFloat(flex.argX)
-    }
+export function returnFlexBox(flex) {
+  const index = FLEX_BOX_POOL.indexOf(flex)
+  FLEX_BOX_POOL_COUNT--
+  FLEX_BOX_POOL[index] = FLEX_BOX_POOL[FLEX_BOX_POOL_COUNT]
+  FLEX_BOX_POOL[FLEX_BOX_POOL_COUNT] = flex
+}
 
-    const funY = flex.funY
-    if (funY !== null) {
-      if (funY === 'center') {
-        if (flex.fromY) {
-          flex.y = Math.floor(flex.fromY.y + 0.5 * flex.fromY.height - 0.5 * flex.height)
-        } else {
-          flex.y = Math.floor(0.5 * height - 0.5 * flex.height)
-        }
-      } else if (funY === 'above') {
-        flex.y = flex.fromY.y + flex.fromY.height + flex.fromY.topSpace
-      } else if (funY === 'below') {
-        flex.y = flex.fromY.y - flex.fromY.bottomSpace - flex.height
-      } else if (funY === 'align-top') {
-        flex.y = flex.fromY.y + flex.fromY.height - flex.height
-      } else if (funY === 'align-bottom') {
-        flex.y = flex.fromY.y
-      } else if (funY === '%') {
-        flex.y = Math.floor((parseFloat(flex.argY) / 100.0) * height)
+export function returnFlexText(flex) {
+  const index = FLEX_TEXT_POOL.indexOf(flex)
+  FLEX_TEXT_POOL_COUNT--
+  FLEX_TEXT_POOL[index] = FLEX_TEXT_POOL[FLEX_TEXT_POOL_COUNT]
+  FLEX_TEXT_POOL[FLEX_TEXT_POOL_COUNT] = flex
+}
+
+export function flexSolve(width, height, flex) {
+  const funX = flex.funX
+  if (funX !== null) {
+    if (funX === 'center') {
+      if (flex.fromX) {
+        flex.x = Math.floor(flex.fromX.x + 0.5 * flex.fromX.width - 0.5 * flex.width)
+      } else {
+        flex.x = Math.floor(0.5 * width - 0.5 * flex.width)
       }
-    } else {
-      flex.y = parseFloat(flex.argY)
+    } else if (funX === 'left-of') {
+      flex.x = flex.fromX.x - flex.fromX.leftSpace - flex.width
+    } else if (funX === 'right-of') {
+      flex.x = flex.fromX.x + flex.fromX.width + flex.fromX.rightSpace
+    } else if (funX === 'align-left') {
+      flex.x = flex.fromX.x
+    } else if (funX === 'align-right') {
+      flex.x = flex.fromX.x + flex.fromX.width - flex.width
+    } else if (funX === '%') {
+      flex.x = Math.floor((parseFloat(flex.argX) / 100.0) * width)
     }
+  } else {
+    flex.x = parseFloat(flex.argX)
+  }
+
+  const funY = flex.funY
+  if (funY !== null) {
+    if (funY === 'center') {
+      if (flex.fromY) {
+        flex.y = Math.floor(flex.fromY.y + 0.5 * flex.fromY.height - 0.5 * flex.height)
+      } else {
+        flex.y = Math.floor(0.5 * height - 0.5 * flex.height)
+      }
+    } else if (funY === 'above') {
+      flex.y = flex.fromY.y + flex.fromY.height + flex.fromY.topSpace
+    } else if (funY === 'below') {
+      flex.y = flex.fromY.y - flex.fromY.bottomSpace - flex.height
+    } else if (funY === 'align-top') {
+      flex.y = flex.fromY.y + flex.fromY.height - flex.height
+    } else if (funY === 'align-bottom') {
+      flex.y = flex.fromY.y
+    } else if (funY === '%') {
+      flex.y = Math.floor((parseFloat(flex.argY) / 100.0) * height)
+    }
+  } else {
+    flex.y = parseFloat(flex.argY)
   }
 }
 
-export function flexSize(...list) {
+export function flexSize(list) {
   let x = Number.MAX_VALUE
   let y = Number.MAX_VALUE
   let right = 0

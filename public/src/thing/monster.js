@@ -5,7 +5,17 @@ import { pRandom, pRandomOf, randomFloat } from '../math/random.js'
 import { newPlasma } from '../missile/plasma.js'
 import { thingMove } from '../thing/npc.js'
 import { redBloodExplode, redBloodTowards } from '../thing/thing-util.js'
-import { Thing, thingApproximateDistance, thingCheckSight, thingSetAnimation, thingSetup, thingUpdateAnimation, thingUpdateSprite, thingY } from '../thing/thing.js'
+import {
+  Thing,
+  thingApproximateDistance,
+  thingCheckSight,
+  thingSetAnimation,
+  thingSetup,
+  thingSpecialSector,
+  thingUpdateAnimation,
+  thingUpdateSprite,
+  thingY,
+} from '../thing/thing.js'
 import { ANIMATION_DONE } from '../world/world.js'
 
 const STATUS_LOOK = 0
@@ -204,5 +214,6 @@ function monsterUpdate(monster) {
       return false
   }
   thingY(monster)
+  thingSpecialSector(monster)
   return false
 }

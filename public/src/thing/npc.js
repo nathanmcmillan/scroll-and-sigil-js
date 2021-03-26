@@ -2,7 +2,7 @@ import { playSound } from '../assets/sounds.js'
 import { cos, sin } from '../math/approximate.js'
 import { redBloodExplode, redBloodTowards } from '../thing/thing-util.js'
 import { Thing, thingFindSector, thingIntegrate, thingPushToCells, thingRemoveFromCells, thingSetup, thingUpdateAnimation, thingUpdateSprite } from '../thing/thing.js'
-import { WORLD_CELL_SHIFT } from '../world/world.js'
+import { worldEventTrigger, WORLD_CELL_SHIFT } from '../world/world.js'
 
 const STATUS_STAND = 0
 const STATUS_DEAD = 1
@@ -163,7 +163,15 @@ export function thingMove(self) {
     if (tempSector === null) {
       if (self.wasOnLine) thingFindSector(self)
     } else {
-      self.sector = tempSector
+      const old = self.sector
+      if (tempSector !== old) {
+        if (old && old.trigger) {
+          console.log(old, '->', tempSector)
+          worldEventTrigger(self.world, 'exit', old.trigger, self)
+        }
+        if (tempSector.trigger) worldEventTrigger(self.world, 'enter', tempSector.trigger, self)
+        self.sector = tempSector
+      }
       self.floor = tempFloor
       self.ceiling = tempCeiling
     }

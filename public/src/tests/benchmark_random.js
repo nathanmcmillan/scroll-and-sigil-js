@@ -41,3 +41,5 @@ function testPrecomputeInteger() {
 testMathRandom() // ~ 7
 testMathRandomInteger() // ~ 6
 testPrecomputeInteger() // ~ 6
+
+// conclusion: no significant difference

@@ -196,7 +196,7 @@ export function worldPushTrigger(world, trigger) {
   world.triggers.push(new IntervalTrigger(trigger, ticks, world.tick))
 }
 
-function triggerEvent(type, event) {
+export function triggerEvent(type, event) {
   return type === event[0]
 }
 
@@ -228,7 +228,7 @@ function triggerCondition(condition, source) {
   return true
 }
 
-function worldConditionTrigger(world, trigger, source) {
+export function worldConditionTrigger(world, trigger, source) {
   if (!triggerCondition(trigger.condition, source)) return
   world.events.push([trigger.action, source])
 }
