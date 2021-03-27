@@ -2,6 +2,7 @@ import { textureByIndex, textureByName, textureIndexForName } from '../assets/as
 import { renderDialogBox } from '../client/client-util.js'
 import { drawFloorCeil, drawWall } from '../client/render-sector.js'
 import { renderTouch } from '../client/render-touch.js'
+import { tableIter, tableIterHasNext, tableIterNext, tableIterStart } from '../collections/table.js'
 import { calcFontScale, defaultFont } from '../editor/editor-util.js'
 import { redf } from '../editor/palette.js'
 import { identity, multiply, rotateX, rotateY, translate } from '../math/matrix.js'
@@ -49,10 +50,14 @@ export function updateMapEditViewSectorBuffer(state) {
   const client = state.client
   const gl = client.gl
 
-  for (const buffer of client.sectorBuffers.values()) bufferZero(buffer)
+  const sectorIter = tableIter(client.sectorBuffers)
+  while (tableIterHasNext(sectorIter)) bufferZero(tableIterNext(sectorIter).value)
+
   for (const line of maps.lines) lineRender(client, line)
   for (const sector of maps.sectors) floorCeilRender(client, sector)
-  for (const buffer of client.sectorBuffers.values()) rendererUpdateVAO(client.rendering, buffer, gl.STATIC_DRAW)
+
+  tableIterStart(sectorIter)
+  while (tableIterHasNext(sectorIter)) rendererUpdateVAO(client.rendering, tableIterNext(sectorIter).value, gl.STATIC_DRAW)
 }
 
 export function renderMapEditViewMode(state) {
@@ -100,15 +105,19 @@ export function renderMapEditViewMode(state) {
   multiply(projection, client.perspective, view)
   rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
-  for (const [index, buffer] of client.sectorBuffers) {
+  const sectorIter = tableIter(client.sectorBuffers)
+  while (tableIterHasNext(sectorIter)) {
+    const entry = tableIterNext(sectorIter)
+    const index = entry.key
+    const buffer = entry.value
     rendererBindTexture(rendering, gl.TEXTURE0, textureByIndex(index).texture)
     rendererBindAndDraw(rendering, buffer)
   }
 
   const buffers = client.spriteBuffers
-  for (const buffer of buffers.values()) {
-    bufferZero(buffer)
-  }
+
+  const iter = tableIter(buffers)
+  while (tableIterHasNext(iter)) bufferZero(tableIterNext(iter).value)
 
   const sine = Math.sin(-camera.ry)
   const cosine = Math.cos(-camera.ry)
@@ -121,8 +130,12 @@ export function renderMapEditViewMode(state) {
     drawSprite(buffer, thing.x, thing.y, thing.z, thing.stamp.sprite, sine, cosine)
   }
 
-  for (const [index, buffer] of buffers) {
+  tableIterStart(iter)
+  while (tableIterHasNext(iter)) {
+    const entry = tableIterNext(iter)
+    const buffer = entry.value
     if (buffer.indexPosition === 0) continue
+    const index = entry.key
     rendererBindTexture(rendering, gl.TEXTURE0, textureByIndex(index).texture)
     rendererUpdateAndDraw(rendering, buffer, gl.DYNAMIC_DRAW)
   }

@@ -10,6 +10,7 @@ import { PaintState } from '../client/paint-state.js'
 import { drawFloorCeil, drawWall } from '../client/render-sector.js'
 import { TouchRender, touchRenderEvent, touchRenderResize } from '../client/render-touch.js'
 import { SfxState } from '../client/sfx-state.js'
+import { intHashCode, Table, tableGet, tablePut } from '../collections/table.js'
 import { TwoWayMap } from '../collections/two-way-map.js'
 import { newPalette } from '../editor/palette.js'
 import { Tape } from '../game/tape.js'
@@ -35,9 +36,8 @@ export class Client {
     this.bufferGUI = null
     this.bufferColor = null
     this.bufferSky = null
-    // TODO: Use Table() instead
-    this.sectorBuffers = new Map()
-    this.spriteBuffers = new Map()
+    this.sectorBuffers = new Table(intHashCode)
+    this.spriteBuffers = new Table(intHashCode)
     this.pack = null
     this.paint = null
     this.sfx = null
@@ -143,21 +143,21 @@ export class Client {
   }
 
   getSectorBuffer(texture) {
-    let buffer = this.sectorBuffers.get(texture)
-    if (buffer === undefined) {
+    let buffer = tableGet(this.sectorBuffers, texture)
+    if (buffer === null) {
       buffer = new Buffer(3, 0, 2, 3, 4 * 800, 36 * 800)
       rendererMakeVAO(this.rendering, buffer)
-      this.sectorBuffers.set(texture, buffer)
+      tablePut(this.sectorBuffers, texture, buffer)
     }
     return buffer
   }
 
   getSpriteBuffer(texture) {
-    let buffer = this.spriteBuffers.get(texture)
-    if (buffer === undefined) {
+    let buffer = tableGet(this.spriteBuffers, texture)
+    if (buffer === null) {
       buffer = new Buffer(3, 0, 2, 3, 4 * 800, 36 * 800)
       rendererMakeVAO(this.rendering, buffer)
-      this.spriteBuffers.set(texture, buffer)
+      tablePut(this.spriteBuffers, texture, buffer)
     }
     return buffer
   }

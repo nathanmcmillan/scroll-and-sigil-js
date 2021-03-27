@@ -84,13 +84,29 @@ function customHashSet() {
   console.log('time (hash set)', performance.now() - perf)
 }
 
+function builtinArray() {
+  const iterations = 80000 * 2
+  const perf = performance.now()
+  const array = []
+  let sum = 0.0
+  for (let i = 0; i < iterations; i++) {
+    array.length = 0
+    for (let n = 0; n < numbers.length; n++) array.push(Math.random())
+    let i = array.length
+    while (i--) sum += array[i]
+    while (array.length > 0) array.splice(0, 1)
+  }
+  console.log(sum)
+  console.log('time (array)', performance.now() - perf)
+}
+
 if (false) loopOf() // ~ 415 and 7,969,120 bytes
 if (false) loopIndex() // ~ 72 and 0 bytes
 
 // conclusion: for (const x of y) is terrible for performance and heap management
 
 if (false) builtinMap() // ~ 1,860 and 7,930,912 bytes
-if (true) customTable() // ~ 1,230 and 3,000 bytes | before using a 'dead' item pool it was ~ 1,223 and 11,890,368 bytes
+if (false) customTable() // ~ 1,230 and 3,000 bytes | before using a 'dead' item pool it was ~ 1,223 and 11,890,368 bytes
 
 // conclusion: custom map is faster but uses more memory on insert
 
@@ -98,3 +114,5 @@ if (false) builtinSet() // ~ 1,450 and 7,928,784 bytes
 if (false) customHashSet() // ~ 1,110 and 10,000 bytes | before using a 'dead' item pool it was ~ 1,330 and 11,891,424 bytes
 
 // conclusion: custom set is also faster and also uses more memory
+
+if (true) builtinArray()

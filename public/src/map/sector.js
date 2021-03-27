@@ -1,6 +1,7 @@
 const MAX_SECTOR_HEIGHT = 9999
 
 const SEARCH_DONE = []
+const NEIGHBOR_QUEUE = []
 
 export class Sector {
   constructor(bottom, floor, ceiling, top, floorTexture, ceilingTexture, flags, trigger, vecs, lines) {
@@ -60,25 +61,24 @@ export class Sector {
     let i = this.inside.length
     while (i--) {
       const inside = this.inside[i]
-      if (inside.contains(x, z)) {
-        return inside.find(x, z)
-      }
+      if (inside.contains(x, z)) return inside.find(x, z)
     }
     return this
   }
 
   searchFor(x, z) {
     if (this.contains(x, z)) return this.find(x, z)
-    const queue = this.neighbors.slice()
     SEARCH_DONE.length = 0
-    while (queue.length > 0) {
-      const current = queue.shift()
+    NEIGHBOR_QUEUE.length = 0
+    for (let n = 0; n < this.neighbors.length; n++) NEIGHBOR_QUEUE.push(this.neighbors[n])
+    while (NEIGHBOR_QUEUE.length > 0) {
+      const current = NEIGHBOR_QUEUE.shift()
       if (current.contains(x, z)) return current.find(x, z)
       const neighbors = current.neighbors
       for (let i = 0; i < neighbors.length; i++) {
         const neighbor = neighbors[i]
-        if (neighbor === current || queue.includes(neighbor) || SEARCH_DONE.includes(neighbor)) continue
-        queue.push(neighbor)
+        if (neighbor === current || NEIGHBOR_QUEUE.includes(neighbor) || SEARCH_DONE.includes(neighbor)) continue
+        NEIGHBOR_QUEUE.push(neighbor)
       }
       SEARCH_DONE.push(current)
     }

@@ -2,6 +2,7 @@ import { textureByIndex, textureByName } from '../assets/assets.js'
 import { renderLoadingInProgress } from '../client/render-loading.js'
 import { drawDecal } from '../client/render-sector.js'
 import { renderTouch } from '../client/render-touch.js'
+import { tableIter, tableIterHasNext, tableIterNext, tableIterStart } from '../collections/table.js'
 import { Game } from '../game/game.js'
 import { identity, multiply, multiplyVector3, rotateX, rotateY, translate } from '../math/matrix.js'
 import { drawRectangle, drawSprite, drawText, TIC_FONT_HEIGHT, TIC_FONT_WIDTH } from '../render/render.js'
@@ -34,6 +35,7 @@ export class GameState {
 
     this.view = new Float32Array(16)
     this.projection = new Float32Array(16)
+    this.projection3d = new Float32Array(16)
 
     if (true) {
       const text = 'scrol and sigil'
@@ -71,9 +73,13 @@ export class GameState {
     const client = this.client
     const gl = client.gl
 
-    for (const buffer of client.sectorBuffers.values()) bufferZero(buffer)
+    const sectorIter = tableIter(client.sectorBuffers)
+    while (tableIterHasNext(sectorIter)) bufferZero(tableIterNext(sectorIter).value)
+
     for (const sector of world.sectors) client.sectorRender(sector)
-    for (const buffer of client.sectorBuffers.values()) rendererUpdateVAO(client.rendering, buffer, gl.STATIC_DRAW)
+
+    tableIterStart(sectorIter)
+    while (tableIterHasNext(sectorIter)) rendererUpdateVAO(client.rendering, tableIterNext(sectorIter).value, gl.STATIC_DRAW)
 
     this.loading = false
   }
@@ -171,15 +177,22 @@ export class GameState {
     multiply(projection, client.perspective, view)
     rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
-    const projection3d = projection.slice()
+    const projection3d = this.projection3d
+    for (let p = 0; p < 16; p++) projection3d[p] = projection[p]
 
-    for (const [index, buffer] of client.sectorBuffers) {
+    const sectorIter = tableIter(client.sectorBuffers)
+    while (tableIterHasNext(sectorIter)) {
+      const entry = tableIterNext(sectorIter)
+      const index = entry.key
+      const buffer = entry.value
       rendererBindTexture(rendering, gl.TEXTURE0, textureByIndex(index).texture)
       rendererBindAndDraw(rendering, buffer)
     }
 
     const buffers = client.spriteBuffers
-    for (const buffer of buffers.values()) bufferZero(buffer)
+
+    const iter = tableIter(buffers)
+    while (tableIterHasNext(iter)) bufferZero(tableIterNext(iter).value)
 
     const sine = Math.sin(-camera.ry)
     const cosine = Math.cos(-camera.ry)
@@ -208,8 +221,12 @@ export class GameState {
       drawSprite(buffer, particle.x, particle.y, particle.z, particle.stamp.sprite, sine, cosine)
     }
 
-    for (const [index, buffer] of buffers) {
+    tableIterStart(iter)
+    while (tableIterHasNext(iter)) {
+      const entry = tableIterNext(iter)
+      const buffer = entry.value
       if (buffer.indexPosition === 0) continue
+      const index = entry.key
       rendererBindTexture(rendering, gl.TEXTURE0, textureByIndex(index).texture)
       rendererUpdateAndDraw(rendering, buffer, gl.DYNAMIC_DRAW)
     }
@@ -217,9 +234,8 @@ export class GameState {
     const decals = world.decals
     let d = decals.length
     if (d > 0) {
-      for (const buffer of buffers.values()) {
-        bufferZero(buffer)
-      }
+      tableIterStart(iter)
+      while (tableIterHasNext(iter)) bufferZero(tableIterNext(iter).value)
 
       gl.depthMask(false)
       gl.enable(gl.POLYGON_OFFSET_FILL)
@@ -231,8 +247,12 @@ export class GameState {
         drawDecal(buffer, decal)
       }
 
-      for (const [index, buffer] of buffers) {
+      tableIterStart(iter)
+      while (tableIterHasNext(iter)) {
+        const entry = tableIterNext(iter)
+        const buffer = entry.value
         if (buffer.indexPosition === 0) continue
+        const index = entry.key
         rendererBindTexture(rendering, gl.TEXTURE0, textureByIndex(index).texture)
         rendererUpdateAndDraw(rendering, buffer, gl.DYNAMIC_DRAW)
       }

@@ -193,17 +193,17 @@ export class TableIterator {
     this.pointer = table
     this.bin = 0
     this.item = null
-    iterStart(this)
+    tableIterStart(this)
   }
 }
 
 export function tableIter(table) {
   if (table.iter === null) table.iter = new TableIterator(table)
-  else iterStart(table.iter)
+  else tableIterStart(table.iter)
   return table.iter
 }
 
-function iterStart(iter) {
+export function tableIterStart(iter) {
   const table = iter.pointer
   iter.bin = 0
   iter.item = null

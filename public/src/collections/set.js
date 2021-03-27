@@ -169,17 +169,17 @@ export class SetIterator {
     this.pointer = set
     this.bin = 0
     this.item = null
-    iterStart(this)
+    setIterStart(this)
   }
 }
 
 export function setIter(set) {
   if (set.iter === null) set.iter = new SetIterator(set)
-  else iterStart(set.iter)
+  else setIterStart(set.iter)
   return set.iter
 }
 
-function iterStart(iter) {
+export function setIterStart(iter) {
   const set = iter.pointer
   iter.bin = 0
   iter.item = null
