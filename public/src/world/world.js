@@ -350,8 +350,10 @@ export function worldSetLines(world, lines) {
 export function worldBuild(world) {
   let top = 0.0
   let right = 0.0
-  for (const sector of world.sectors) {
-    for (const vec of sector.vecs) {
+  for (let s = 0; s < world.sectors.length; s++) {
+    const sector = world.sectors[s]
+    for (let v = 0; v < sector.vecs.length; v++) {
+      const vec = sector.vecs[v]
       if (vec.y > top) top = vec.y
       if (vec.x > right) right = vec.x
     }
@@ -362,9 +364,9 @@ export function worldBuild(world) {
   world.cells = new Array(world.rows * world.columns)
   for (let i = 0; i < world.cells.length; i++) world.cells[i] = new Cell()
   sectorInsideOutside(world.sectors)
-  for (const sector of world.sectors) sectorTriangulate(sector, WORLD_SCALE)
+  for (let s = 0; s < world.sectors.length; s++) sectorTriangulate(world.sectors[s], WORLD_SCALE)
   sectorLineNeighbors(world.sectors, world.lines, WORLD_SCALE)
-  for (const line of world.lines) worldBuildCellLines(world, line)
+  for (let i = 0; i < world.lines.length; i++) worldBuildCellLines(world, world.lines[i])
 }
 
 export function worldSpawnEntity(world, name, x, z) {

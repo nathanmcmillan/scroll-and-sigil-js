@@ -2,16 +2,20 @@ export class Renderer {
   constructor(gl) {
     this.gl = gl
     this.program = null
+    this.uniform = null
     this.programs = new Map()
+    this.uniforms = new Map()
   }
 }
 
 export function rendererInsertProgram(render, id, program) {
   render.programs.set(id, program)
+  render.uniforms.set(id, new Map())
 }
 
 export function rendererSetProgram(render, id) {
   render.program = render.programs.get(id)
+  render.uniform = render.uniforms.get(id)
   render.gl.useProgram(render.program)
 }
 
@@ -64,7 +68,11 @@ export function rendererBindTexture(render, active, texture) {
 }
 
 export function rendererUpdateUniformMatrix(render, name, matrix) {
-  const location = render.gl.getUniformLocation(render.program, name)
+  let location = render.uniform.get(name)
+  if (location === undefined) {
+    location = render.gl.getUniformLocation(render.program, name)
+    render.uniform.set(name, location)
+  }
   render.gl.uniformMatrix4fv(location, false, matrix)
 }
 

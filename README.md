@@ -17,10 +17,6 @@ A 3D adventure game with a strong focus on modding and user crafted content.
 ### Priority
 
 - Water and lava flags should make the floor rendering offset higher (but not the physical floor level)
-- Monsters aren't applying on enter or on exit event for sectors (but does apply on enter when first spawned)
-- Remove all heavy heap allocations e.g. arrays and hashmaps from the core game update and render loop
-- Remove all heavy usage of `for (... of ...)` due to implicit heap allocation and poor performance
-
 - Single file format for entire data pack
 - Snap/attach things to walls (like torches)
 - Need a global ticker for animated tiles and doodads

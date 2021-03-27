@@ -68,7 +68,7 @@ export class HomeState {
     const sectorIter = tableIter(client.sectorBuffers)
     while (tableIterHasNext(sectorIter)) bufferZero(tableIterNext(sectorIter).value)
 
-    for (const sector of world.sectors) client.sectorRender(sector)
+    for (let s = 0; s < world.sectors.length; s++) client.sectorRender(world.sectors[s])
 
     tableIterStart(sectorIter)
     while (tableIterHasNext(sectorIter)) rendererUpdateVAO(client.rendering, tableIterNext(sectorIter).value, gl.STATIC_DRAW)

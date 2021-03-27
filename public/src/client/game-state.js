@@ -24,6 +24,8 @@ function drawTextSpecial(b, x, y, text, scale, red, green, blue) {
   drawText(b, x, y, text, scale, red, green, blue, 1.0)
 }
 
+const POSITION = new Array(3)
+
 export class GameState {
   constructor(client) {
     this.client = client
@@ -76,7 +78,7 @@ export class GameState {
     const sectorIter = tableIter(client.sectorBuffers)
     while (tableIterHasNext(sectorIter)) bufferZero(tableIterNext(sectorIter).value)
 
-    for (const sector of world.sectors) client.sectorRender(sector)
+    for (let s = 0; s < world.sectors.length; s++) client.sectorRender(world.sectors[s])
 
     tableIterStart(sectorIter)
     while (tableIterHasNext(sectorIter)) rendererUpdateVAO(client.rendering, tableIterNext(sectorIter).value, gl.STATIC_DRAW)
@@ -320,7 +322,8 @@ export class GameState {
         let y = height - pad - fontHeight
         drawTextSpecial(client.bufferGUI, pad, y, 'Inventory', scale, 1.0, 0.0, 0.0)
         let index = 0
-        for (const item of hero.inventory) {
+        for (let i = 0; i < hero.inventory.length; i++) {
+          const item = hero.inventory[i]
           y -= fontHeight
           if (index === hero.menuRow) drawTextSpecial(client.bufferGUI, pad, y, item.name, scale, 1.0, 1.0, 0.0)
           else drawTextSpecial(client.bufferGUI, pad, y, item.name, scale, 1.0, 0.0, 0.0)
@@ -344,15 +347,14 @@ export class GameState {
           const thing = hero.nearby
           const text = thing.isItem ? 'COLLECT' : 'SPEAK'
           const vec = [thing.x, thing.y + thing.height, thing.z]
-          const position = []
-          multiplyVector3(position, projection3d, vec)
-          position[0] /= position[2]
-          position[1] /= position[2]
-          position[0] = 0.5 * ((position[0] + 1.0) * width)
-          position[1] = 0.5 * ((position[1] + 1.0) * height)
-          position[0] = Math.floor(position[0])
-          position[1] = Math.floor(position[1])
-          drawTextSpecial(client.bufferGUI, position[0], position[1], text, scale, 1.0, 0.0, 0.0)
+          multiplyVector3(POSITION, projection3d, vec)
+          POSITION[0] /= POSITION[2]
+          POSITION[1] /= POSITION[2]
+          POSITION[0] = 0.5 * ((POSITION[0] + 1.0) * width)
+          POSITION[1] = 0.5 * ((POSITION[1] + 1.0) * height)
+          POSITION[0] = Math.floor(POSITION[0])
+          POSITION[1] = Math.floor(POSITION[1])
+          drawTextSpecial(client.bufferGUI, POSITION[0], POSITION[1], text, scale, 1.0, 0.0, 0.0)
         }
         if (hero.combat) {
           let text = ''

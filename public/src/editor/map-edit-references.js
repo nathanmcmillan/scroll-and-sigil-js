@@ -203,8 +203,11 @@ export class WallReference {
   }
 }
 
+let REF_SECTOR_UID = 0
+
 export class SectorReference {
   constructor(bottom, floor, ceiling, top, floorTexture, ceilingTexture, flags, trigger, vecs, lines) {
+    this.uid = REF_SECTOR_UID++
     this.bottom = bottom
     this.floor = floor
     this.ceiling = ceiling
@@ -268,7 +271,8 @@ export class SectorReference {
   }
 
   otherIsInside(sector) {
-    for (const inside of this.inside) {
+    for (let i = 0; i < this.inside.length; i++) {
+      const inside = this.inside[i]
       if (inside === sector) return true
       if (inside.otherIsInside(sector)) return true
     }

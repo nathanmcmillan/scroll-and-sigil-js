@@ -111,7 +111,8 @@ export function flexSize(list) {
   let y = Number.MAX_VALUE
   let right = 0
   let bottom = 0
-  for (const flex of list) {
+  for (let f = 0; f < list.length; f++) {
+    const flex = list[f]
     if (flex.x < x) x = flex.x
     if (flex.y < y) y = flex.y
     if (flex.x + flex.width > right) right = flex.x + flex.width
