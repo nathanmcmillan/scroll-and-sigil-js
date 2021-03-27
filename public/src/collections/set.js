@@ -2,16 +2,15 @@ const LOAD_FACTOR = 0.8
 const INITIAL_BINS = 1 << 3
 const MAXIMUM_BINS = 1 << 30
 
-class TableItem {
-  constructor(hash, key, value) {
+class HashSetItem {
+  constructor(hash, value) {
     this.hash = hash
-    this.key = key
     this.value = value
     this.next = null
   }
 }
 
-export class Table {
+export class HashSet {
   constructor(hashfunc) {
     this.size = 0
     this.bins = INITIAL_BINS
@@ -22,35 +21,21 @@ export class Table {
   }
 }
 
-export function intHashCode(num) {
-  return num
-}
-
-export function strHashCode(str) {
-  const len = str.length
-  let hash = 0
-  for (let i = 0; i < len; i++) {
-    hash = 31 * hash + str.charCodeAt(i)
-    hash |= 0
-  }
-  return hash
-}
-
-function getBin(table, hash) {
-  return (table.bins - 1) & hash
+function getBin(set, hash) {
+  return (set.bins - 1) & hash
 }
 
 function mix(hash) {
   return hash ^ (hash >> 16)
 }
 
-function resize(table) {
-  const binsOld = table.bins
+function resize(set) {
+  const binsOld = set.bins
   const bins = binsOld << 1
 
   if (bins > MAXIMUM_BINS) return
 
-  const itemsOld = table.items
+  const itemsOld = set.items
   const items = new Array(bins).fill(null)
   for (let i = 0; i < binsOld; i++) {
     let item = itemsOld[i]
@@ -87,73 +72,64 @@ function resize(table) {
     }
   }
 
-  table.bins = bins
-  table.items = items
+  set.bins = bins
+  set.items = items
 }
 
-function pool(table, hash, key, value) {
-  if (table.dead.length === 0) return new TableItem(hash, key, value)
-  const item = table.dead.pop()
+function pool(set, hash, value) {
+  if (set.dead.length === 0) return new HashSetItem(hash, value)
+  const item = set.dead.pop()
   item.hash = hash
-  item.key = key
   item.value = value
   return item
 }
 
-function recycle(table, item) {
-  item.key = null
+function recycle(set, item) {
   item.value = null
   item.next = null
-  table.dead.push(item)
+  set.dead.push(item)
 }
 
-export function tablePut(table, key, value) {
-  const hash = mix(table.hashfunc(key))
-  const bin = getBin(table, hash)
-  let item = table.items[bin]
+export function setAdd(set, value) {
+  const hash = mix(set.hashfunc(value))
+  const bin = getBin(set, hash)
+  let item = set.items[bin]
   let previous = null
   while (item !== null) {
-    if (hash === item.hash && key === item.key) {
-      item.value = value
-      return
-    }
+    if (hash === item.hash && value === item.value) return
     previous = item
     item = item.next
   }
-  item = pool(table, hash, key, value)
-  if (previous === null) table.items[bin] = item
+  item = pool(set, hash, value)
+  if (previous === null) set.items[bin] = item
   else previous.next = item
-  table.size++
-  if (table.size > table.bins * LOAD_FACTOR) resize(table)
+  set.size++
+  if (set.size > set.bins * LOAD_FACTOR) resize(set)
 }
 
-export function tableGet(table, key) {
-  const hash = mix(table.hashfunc(key))
-  const bin = getBin(table, hash)
-  let item = table.items[bin]
+export function setHas(set, value) {
+  const hash = mix(set.hashfunc(value))
+  const bin = getBin(set, hash)
+  let item = set.items[bin]
   while (item !== null) {
-    if (hash === item.hash && key === item.key) return item.value
+    if (hash === item.hash && value === item.value) return true
     item = item.next
   }
-  return null
+  return false
 }
 
-export function tableHas(table, key) {
-  return tableGet(table, key) !== null
-}
-
-export function tableRemove(table, key) {
-  const hash = mix(table.hashfunc(key))
-  const bin = getBin(table, hash)
-  let item = table.items[bin]
+export function setRemove(set, value) {
+  const hash = mix(set.hashfunc(value))
+  const bin = getBin(set, hash)
+  let item = set.items[bin]
   let previous = null
   while (item !== null) {
-    if (hash === item.hash && key === item.key) {
-      if (previous === null) table.items[bin] = item.next
+    if (hash === item.hash && value === item.value) {
+      if (previous === null) set.items[bin] = item.next
       else previous.next = item.next
-      table.size--
+      set.size--
       const value = item.value
-      recycle(table, item)
+      recycle(set, item)
       return value
     }
     previous = item
@@ -162,55 +138,55 @@ export function tableRemove(table, key) {
   return null
 }
 
-export function tableClear(table) {
-  const bins = table.bins
+export function setClear(set) {
+  const bins = set.bins
   for (let i = 0; i < bins; i++) {
-    let item = table.items[i]
+    let item = set.items[i]
     while (item !== null) {
       const next = item.next
-      recycle(table, item)
+      recycle(set, item)
       item = next
     }
-    table.items[i] = null
+    set.items[i] = null
   }
-  table.size = 0
+  set.size = 0
 }
 
-export function tableIsEmpty(table) {
-  return table.size === 0
+export function setIsEmpty(set) {
+  return set.size === 0
 }
 
-export function tableNotEmpty(table) {
-  return table.size !== 0
+export function setNotEmpty(set) {
+  return set.size !== 0
 }
 
-export function tableSize(table) {
-  return table.size
+export function setSize(set) {
+  return set.size
 }
 
-export class TableIterator {
-  constructor(table) {
-    this.pointer = table
+export class SetIterator {
+  constructor(set) {
+    this.pointer = set
     this.bin = 0
     this.item = null
     iterStart(this)
   }
 }
 
-export function tableIter(table) {
-  if (table.iter === null) table.iter = new TableIterator(table)
-  else iterStart(table.iter)
-  return table.iter
+export function setIter(set) {
+  if (set.iter === null) set.iter = new SetIterator(set)
+  else iterStart(set.iter)
+  return set.iter
 }
 
 function iterStart(iter) {
-  const table = iter.pointer
+  const set = iter.pointer
   iter.bin = 0
   iter.item = null
-  if (table.size !== 0) {
-    const bins = table.bins
+  if (set.size !== 0) {
+    const bins = set.bins
     for (let i = 0; i < bins; i++) {
-      const start = table.items[i]
+      const start = set.items[i]
       if (start !== null) {
         iter.bin = i
         iter.item = start
@@ -220,14 +196,14 @@ function iterStart(iter) {
   }
 }
 
-export function tableIterHasNext(iter) {
+export function setIterHasNext(iter) {
   return iter.item !== null
 }
 
-export function tableIterNext(iter) {
+export function setIterNext(iter) {
   let item = iter.item
   if (item === null) return null
-  const result = item
+  const result = item.value
   item = item.next
   if (item === null) {
     let bin = iter.bin + 1

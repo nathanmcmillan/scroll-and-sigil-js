@@ -35,6 +35,7 @@ export class Client {
     this.bufferGUI = null
     this.bufferColor = null
     this.bufferSky = null
+    // TODO: Use Table() instead
     this.sectorBuffers = new Map()
     this.spriteBuffers = new Map()
     this.pack = null

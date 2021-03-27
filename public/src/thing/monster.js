@@ -158,7 +158,8 @@ function monsterChase(self) {
   } else {
     if (self.reaction <= 0) {
       const distance = thingApproximateDistance(self, self.target) - self.box - self.target.box
-      for (const attack of self.attackOptions) {
+      for (let a = 0; a < self.attackOptions.length; a++) {
+        const attack = self.attackOptions[a]
         const range = parseFloat(attack.get('range'))
         if (distance < range) {
           const reaction = attack.get('reaction')

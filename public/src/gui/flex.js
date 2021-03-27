@@ -31,18 +31,10 @@ class FlexText extends FlexBox {
 const FLEX_BOX_POOL = []
 const FLEX_TEXT_POOL = []
 
-let FLEX_BOX_POOL_COUNT = 0
-let FLEX_TEXT_POOL_COUNT = 0
-
 export function flexBox(width = 0, height = 0) {
   let flex
-  if (FLEX_BOX_POOL_COUNT === FLEX_BOX_POOL.length) {
-    flex = new FlexBox()
-    FLEX_BOX_POOL.push(flex)
-  } else {
-    flex = FLEX_BOX_POOL[FLEX_BOX_POOL_COUNT]
-  }
-  FLEX_BOX_POOL_COUNT++
+  if (FLEX_BOX_POOL.length === 0) flex = new FlexBox()
+  else flex = FLEX_BOX_POOL.pop()
   flex.width = width
   flex.height = height
   return flex
@@ -50,13 +42,8 @@ export function flexBox(width = 0, height = 0) {
 
 export function flexText(text, width = 0, height = 0) {
   let flex
-  if (FLEX_TEXT_POOL_COUNT === FLEX_TEXT_POOL.length) {
-    flex = new FlexText()
-    FLEX_TEXT_POOL.push(flex)
-  } else {
-    flex = FLEX_TEXT_POOL[FLEX_TEXT_POOL_COUNT]
-  }
-  FLEX_TEXT_POOL_COUNT++
+  if (FLEX_TEXT_POOL.length === 0) flex = new FlexText()
+  else flex = FLEX_TEXT_POOL.pop()
   flex.text = text
   flex.width = width
   flex.height = height
@@ -64,17 +51,11 @@ export function flexText(text, width = 0, height = 0) {
 }
 
 export function returnFlexBox(flex) {
-  const index = FLEX_BOX_POOL.indexOf(flex)
-  FLEX_BOX_POOL_COUNT--
-  FLEX_BOX_POOL[index] = FLEX_BOX_POOL[FLEX_BOX_POOL_COUNT]
-  FLEX_BOX_POOL[FLEX_BOX_POOL_COUNT] = flex
+  FLEX_BOX_POOL.push(flex)
 }
 
 export function returnFlexText(flex) {
-  const index = FLEX_TEXT_POOL.indexOf(flex)
-  FLEX_TEXT_POOL_COUNT--
-  FLEX_TEXT_POOL[index] = FLEX_TEXT_POOL[FLEX_TEXT_POOL_COUNT]
-  FLEX_TEXT_POOL[FLEX_TEXT_POOL_COUNT] = flex
+  FLEX_TEXT_POOL.push(flex)
 }
 
 export function flexSolve(width, height, flex) {

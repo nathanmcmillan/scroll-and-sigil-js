@@ -8,9 +8,9 @@ const STATUS_STAND = 0
 const STATUS_DEAD = 1
 const STATUS_FINAL = 2
 
-let tempSector = null
-let tempFloor = 0.0
-let tempCeiling = 0.0
+let TEMP_SECTOR = null
+let TEMP_FLOOR = 0.0
+let TEMP_CEILING = 0.0
 
 export class NonPlayerCharacter extends Thing {
   constructor(world, entity, x, z) {
@@ -86,27 +86,6 @@ function thingTryOverlap(self, x, z, box, thing) {
 }
 
 function thingTryLineOverlap(self, x, z, line) {
-  if (!line.physical) {
-    if (line.plus) {
-      if (line.plus.floor > tempFloor) {
-        tempSector = line.plus
-        tempFloor = line.plus.floor
-      }
-      if (line.plus.ceiling < tempCeiling) tempCeiling = line.plus.ceiling
-    }
-    if (line.minus) {
-      if (line.minus.floor > tempFloor) {
-        tempSector = line.minus
-        tempFloor = line.minus.floor
-      }
-      if (line.minus.ceiling < tempCeiling) tempCeiling = line.minus.ceiling
-    }
-    const step = 1.0
-    const min = self.y + step
-    const max = self.y + self.height
-    if (line.plus && min > line.plus.floor && max < line.plus.ceiling) return false
-    if (line.minus && min > line.minus.floor && max < line.minus.ceiling) return false
-  }
   const box = self.box
   const vx = line.b.x - line.a.x
   const vz = line.b.y - line.a.y
@@ -117,13 +96,35 @@ function thingTryLineOverlap(self, x, z, line) {
   else if (t > 1.0) t = 1.0
   const px = line.a.x + vx * t - x
   const pz = line.a.y + vz * t - z
-  return px * px + pz * pz <= box * box
+  const on = px * px + pz * pz <= box * box
+  if (on && !line.physical) {
+    if (line.plus) {
+      if (line.plus.floor > TEMP_FLOOR) {
+        TEMP_SECTOR = line.plus
+        TEMP_FLOOR = line.plus.floor
+      }
+      if (line.plus.ceiling < TEMP_CEILING) TEMP_CEILING = line.plus.ceiling
+    }
+    if (line.minus) {
+      if (line.minus.floor > TEMP_FLOOR) {
+        TEMP_SECTOR = line.minus
+        TEMP_FLOOR = line.minus.floor
+      }
+      if (line.minus.ceiling < TEMP_CEILING) TEMP_CEILING = line.minus.ceiling
+    }
+    const step = 1.0
+    const min = self.y + step
+    const max = self.y + self.height
+    if (line.plus && min > line.plus.floor && max < line.plus.ceiling) return false
+    if (line.minus && min > line.minus.floor && max < line.minus.ceiling) return false
+  }
+  return on
 }
 
 function thingTryMove(self, x, z) {
-  tempSector = null
-  tempFloor = -Number.MAX_VALUE
-  tempCeiling = Number.MAX_VALUE
+  TEMP_SECTOR = null
+  TEMP_FLOOR = -Number.MAX_VALUE
+  TEMP_CEILING = Number.MAX_VALUE
   const box = self.box
   const minC = Math.floor(x - box) >> WORLD_CELL_SHIFT
   const maxC = Math.floor(x + box) >> WORLD_CELL_SHIFT
@@ -160,22 +161,19 @@ export function thingMove(self) {
     self.x = x
     self.z = z
     thingPushToCells(self)
-    if (tempSector === null) {
+    if (TEMP_SECTOR === null) {
       if (self.wasOnLine) thingFindSector(self)
     } else {
       const old = self.sector
-      if (tempSector !== old) {
-        if (old && old.trigger) {
-          console.log(old, '->', tempSector)
-          worldEventTrigger(self.world, 'exit', old.trigger, self)
-        }
-        if (tempSector.trigger) worldEventTrigger(self.world, 'enter', tempSector.trigger, self)
-        self.sector = tempSector
+      if (TEMP_SECTOR !== old) {
+        if (old && old.trigger) worldEventTrigger(self.world, 'exit', old.trigger, self)
+        if (TEMP_SECTOR.trigger) worldEventTrigger(self.world, 'enter', TEMP_SECTOR.trigger, self)
+        self.sector = TEMP_SECTOR
       }
-      self.floor = tempFloor
-      self.ceiling = tempCeiling
+      self.floor = TEMP_FLOOR
+      self.ceiling = TEMP_CEILING
     }
-    self.wasOnLine = tempSector !== null
+    self.wasOnLine = TEMP_SECTOR !== null
     return true
   }
   return false

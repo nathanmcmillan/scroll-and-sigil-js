@@ -1,5 +1,7 @@
 const MAX_SECTOR_HEIGHT = 9999
 
+const SEARCH_DONE = []
+
 export class Sector {
   constructor(bottom, floor, ceiling, top, floorTexture, ceilingTexture, flags, trigger, vecs, lines) {
     this.bottom = Math.min(bottom, floor)
@@ -68,23 +70,24 @@ export class Sector {
   searchFor(x, z) {
     if (this.contains(x, z)) return this.find(x, z)
     const queue = this.neighbors.slice()
-    const done = []
+    SEARCH_DONE.length = 0
     while (queue.length > 0) {
       const current = queue.shift()
       if (current.contains(x, z)) return current.find(x, z)
       const neighbors = current.neighbors
       for (let i = 0; i < neighbors.length; i++) {
         const neighbor = neighbors[i]
-        if (neighbor === current || queue.includes(neighbor) || done.includes(neighbor)) continue
+        if (neighbor === current || queue.includes(neighbor) || SEARCH_DONE.includes(neighbor)) continue
         queue.push(neighbor)
       }
-      done.push(current)
+      SEARCH_DONE.push(current)
     }
     return null
   }
 
   otherIsInside(other) {
-    for (const inside of this.inside) {
+    for (let i = 0; i < this.inside.length; i++) {
+      const inside = this.inside[i]
       if (inside === other) return true
       if (inside.otherIsInside(other)) return true
     }
@@ -92,7 +95,8 @@ export class Sector {
 }
 
 function deleteNestedInside(set, inner) {
-  for (const nested of inner.inside) {
+  for (let i = 0; i < inner.inside.length; i++) {
+    const nested = inner.inside[i]
     set.add(nested)
     deleteNestedInside(set, nested)
   }

@@ -1,3 +1,4 @@
+import { HashSet, setAdd, setClear, setHas, setIter, setIterHasNext, setIterNext, setNotEmpty, setRemove } from '../collections/set.js'
 import { Float, lineIntersect } from '../math/vector.js'
 import { cellPushThing, cellRemoveThing } from '../world/cell.js'
 import {
@@ -17,8 +18,12 @@ import {
 
 let THING_UID = 0
 
-const collided = new Set()
-const collisions = new Set()
+function thingHashCode(thing) {
+  return thing.uid
+}
+
+const COLLIDED = new HashSet(thingHashCode)
+const COLLISIONS = new HashSet(thingHashCode)
 
 export class Thing {
   constructor(world, x, z) {
@@ -407,8 +412,10 @@ export function thingIntegrate(self) {
     if (maxC >= columns) maxC = columns - 1
     if (maxR >= world.rows) maxR = world.rows - 1
 
-    collided.clear()
-    collisions.clear()
+    // FIXME: Just use arrays instead. These will never be big enough to be worth the hashing overhead
+
+    setClear(COLLIDED)
+    setClear(COLLISIONS)
 
     for (let r = minR; r <= maxR; r++) {
       for (let c = minC; c <= maxC; c++) {
@@ -416,17 +423,19 @@ export function thingIntegrate(self) {
         let i = cell.thingCount
         while (i--) {
           const thing = cell.things[i]
-          if (!thing.isPhysical || collisions.has(thing)) continue
-          if (thingCollision(self, thing)) collided.add(thing)
-          collisions.add(thing)
+          if (!thing.isPhysical || setHas(COLLISIONS, thing)) continue
+          if (thingCollision(self, thing)) setAdd(COLLIDED, thing)
+          setAdd(COLLISIONS, thing)
         }
       }
     }
 
-    while (collided.size > 0) {
+    while (setNotEmpty(COLLIDED)) {
       let closest = null
       let manhattan = Number.MAX_VALUE
-      for (const thing of collided) {
+      const iter = setIter(COLLIDED)
+      while (setIterHasNext(iter)) {
+        const thing = setIterNext(iter)
         const distance = Math.abs(self.previousX - thing.x) + Math.abs(self.previousZ - thing.z)
         if (distance < manhattan) {
           manhattan = distance
@@ -434,7 +443,7 @@ export function thingIntegrate(self) {
         }
       }
       thingResolveCollision(self, closest)
-      collided.delete(closest)
+      setRemove(COLLIDED, closest)
     }
 
     let on = false

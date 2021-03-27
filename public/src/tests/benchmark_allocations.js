@@ -1,4 +1,5 @@
-import { intHashCode, Table, tableClear, TableIterator, tableIterHasNext, tableIterNext, tablePut } from '../collections/table.js'
+import { HashSet, setAdd, setClear, setIter, setIterHasNext, setIterNext } from '../collections/set.js'
+import { intHashCode, Table, tableClear, tableIter, tableIterHasNext, tableIterNext, tablePut } from '../collections/table.js'
 
 const ITERATIONS = 80000
 
@@ -29,7 +30,7 @@ function randomInt(number) {
   return Math.floor(Math.random() * number)
 }
 
-function regularMap() {
+function builtinMap() {
   const perf = performance.now()
   const map = new Map()
   let sum = 0.0
@@ -49,19 +50,51 @@ function customTable() {
   for (let i = 0; i < ITERATIONS; i++) {
     tableClear(table)
     for (let n = 0; n < numbers.length; n++) tablePut(table, randomInt(128), Math.random())
-    const iter = new TableIterator(table)
+    const iter = tableIter(table)
     while (tableIterHasNext(iter)) sum += tableIterNext(iter).value
   }
   console.log(sum)
   console.log('time (table)', performance.now() - perf)
 }
 
-loopOf() // ~ 415 and 7,969,120 bytes
-loopIndex() // ~ 72 and 0 bytes
+function builtinSet() {
+  const perf = performance.now()
+  const set = new Set()
+  let sum = 0.0
+  for (let i = 0; i < ITERATIONS; i++) {
+    set.clear()
+    for (let n = 0; n < numbers.length; n++) set.add(randomInt(128))
+    for (const value of set) sum += value
+  }
+  console.log(sum)
+  console.log('time (set)', performance.now() - perf)
+}
+
+function customHashSet() {
+  const perf = performance.now()
+  const set = new HashSet(intHashCode)
+  let sum = 0.0
+  for (let i = 0; i < ITERATIONS; i++) {
+    setClear(set)
+    for (let n = 0; n < numbers.length; n++) setAdd(set, randomInt(128))
+    const iter = setIter(set)
+    while (setIterHasNext(iter)) sum += setIterNext(iter)
+  }
+  console.log(sum)
+  console.log('time (hash set)', performance.now() - perf)
+}
+
+if (false) loopOf() // ~ 415 and 7,969,120 bytes
+if (false) loopIndex() // ~ 72 and 0 bytes
 
 // conclusion: for (const x of y) is terrible for performance and heap management
 
-regularMap() // ~ 1,860 and 7,930,912 bytes
-customTable() // ~ 1,223 and 118,90,368 bytes
+if (false) builtinMap() // ~ 1,860 and 7,930,912 bytes
+if (true) customTable() // ~ 1,230 and 3,000 bytes | before using a 'dead' item pool it was ~ 1,223 and 11,890,368 bytes
 
-// conclusion: custom map is faster but uses significantly more memory on insert
+// conclusion: custom map is faster but uses more memory on insert
+
+if (false) builtinSet() // ~ 1,450 and 7,928,784 bytes
+if (false) customHashSet() // ~ 1,110 and 10,000 bytes | before using a 'dead' item pool it was ~ 1,330 and 11,891,424 bytes
+
+// conclusion: custom set is also faster and also uses more memory
