@@ -1,4 +1,4 @@
-import { Float, lineIntersect } from '../math/vector.js'
+import { floatZero, lineIntersect } from '../math/vector.js'
 import { cellPushThing, cellRemoveThing } from '../world/cell.js'
 import {
   ANIMATION_ALMOST_DONE,
@@ -74,7 +74,7 @@ function thingUpdateY(self) {
 }
 
 export function thingY(self) {
-  if (self.ground === false || !Float.zero(self.deltaY)) {
+  if (self.ground === false || !floatZero(self.deltaY)) {
     self.deltaY -= GRAVITY
     self.y += self.deltaY
   }
@@ -239,7 +239,7 @@ export function thingCheckSight(self, thing) {
   let error = 0.0
   let incrementX = 0
   let incrementY = 0
-  if (Float.zero(dx)) {
+  if (floatZero(dx)) {
     incrementX = 0
     error = Number.MAX_VALUE
   } else if (thing.x > self.x) {
@@ -251,7 +251,7 @@ export function thingCheckSight(self, thing) {
     n += x - xb
     error = (xf - x) * dy
   }
-  if (Float.zero(dy)) {
+  if (floatZero(dy)) {
     incrementY = 0
     error = -Number.MAX_VALUE
   } else if (thing.z > self.z) {
@@ -386,7 +386,7 @@ export function thingIntegrate(self) {
     self.deltaZ *= RESISTANCE
   }
 
-  if (!Float.zero(self.deltaX) || !Float.zero(self.deltaZ)) {
+  if (!floatZero(self.deltaX) || !floatZero(self.deltaZ)) {
     self.previousX = self.x
     self.previousZ = self.z
 

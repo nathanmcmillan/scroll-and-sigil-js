@@ -1,5 +1,5 @@
 import { Triangle } from '../map/triangle.js'
-import { Float } from '../math/vector.js'
+import { floatEq, floatZero } from '../math/vector.js'
 
 export function clockwiseReflex(a, b, c) {
   return (b.x - c.x) * (a.y - b.y) - (a.x - b.x) * (b.y - c.y) > 0.0
@@ -54,20 +54,21 @@ function lineIntersect(a, b, c, d) {
   const c1 = b.x * a.y - a.x * b.y
   const r3 = a1 * c.x + b1 * c.y + c1
   const r4 = a1 * d.x + b1 * d.y + c1
-  if (!Float.zero(r3) && !Float.zero(r4) && r3 * r4 >= 0.0) return false
+  if (!floatZero(r3) && !floatZero(r4) && r3 * r4 >= 0.0) return false
   const a2 = d.y - c.y
   const b2 = c.x - d.x
   const c2 = d.x * c.y - c.x * d.y
   const r1 = a2 * a.x + b2 * a.y + c2
   const r2 = a2 * b.x + b2 * b.y + c2
-  if (!Float.zero(r1) && !Float.zero(r2) && r1 * r2 >= 0.0) return false
+  if (!floatZero(r1) && !floatZero(r2) && r1 * r2 >= 0.0) return false
   const denominator = a1 * b2 - a2 * b1
-  if (Float.zero(denominator)) return false
+  if (floatZero(denominator)) return false
   return true
 }
 
 function safeDiagonal(polygon, a, b) {
-  for (const point of polygon) {
+  for (let p = 0; p < polygon.length; p++) {
+    const point = polygon[p]
     const c = point.vec
     const d = point.previous.vec
     if (a === c || a === d || b === c || b === d) continue
@@ -148,7 +149,8 @@ function clip(sector, floor, scale, triangles, verts) {
 
 function monotone(sector, floor, scale, starting, triangles) {
   const verts = []
-  for (const start of starting) {
+  for (let s = 0; s < starting.length; s++) {
+    const start = starting[s]
     const initial = start.a
     let current = start.b
     let previous = initial.vec
@@ -162,7 +164,8 @@ function monotone(sector, floor, scale, starting, triangles) {
       if (current.diagonals.length > 0) {
         let best = next
         let angle = clockwiseInterior(previous, vec, next.vec)
-        for (const diagonal of current.diagonals) {
+        for (let d = 0; d < current.diagonals.length; d++) {
+          const diagonal = current.diagonals[d]
           if (previous === diagonal.vec) continue
           const other = clockwiseInterior(previous, vec, diagonal.vec)
           if (other < angle) {
@@ -186,7 +189,8 @@ function classify(points) {
   const monotone = []
   const merge = []
   const split = []
-  for (const current of points) {
+  for (let c = 0; c < points.length; c++) {
+    const current = points[c]
     const vec = current.vec
     const previous = current.previous.vec
     const next = current.next.vec
@@ -204,7 +208,8 @@ function classify(points) {
       else if (below) merge.push(current)
     }
   }
-  for (const point of merge) {
+  for (let m = 0; m < merge.length; m++) {
+    const point = merge[m]
     const vec = point.vec
     for (let k = point.index + 1; k < points.length; k++) {
       const diagonal = points[k]
@@ -215,7 +220,8 @@ function classify(points) {
       break
     }
   }
-  for (const point of split) {
+  for (let s = 0; s < split.length; s++) {
+    const point = split[s]
     const vec = point.vec
     for (let k = point.index - 1; k >= 0; k--) {
       const diagonal = points[k]
@@ -236,9 +242,7 @@ function classify(points) {
 }
 
 function find(points, vec) {
-  for (const point of points) {
-    if (vec === point.vec) return point
-  }
+  for (let p = 0; p < points.length; p++) if (vec === points[p].vec) return points[p]
   return null
 }
 
@@ -250,33 +254,34 @@ function skip(sector, floor) {
 
 class InnerReference {
   constructor(inner) {
-    this.vecSet = [inner.vecs]
+    this.vecList = [inner.vecs]
     this.vecs = null
   }
 
   add(inner) {
-    this.vecSet.push(inner.vecs)
+    this.vecList.push(inner.vecs)
   }
 
   has(d) {
-    for (const vecs of this.vecSet) {
-      for (const vec of vecs) {
-        if (vec === d) return true
-      }
+    for (let i = 0; i < this.vecList.length; i++) {
+      const vecs = this.vecList[i]
+      for (let v = 0; v < vecs.length; v++) if (vecs[v] === d) return true
     }
     return false
   }
 
   topLeft() {
     let top = null
-    for (const vecs of this.vecSet) {
-      for (const vec of vecs) {
+    for (let i = 0; i < this.vecList.length; i++) {
+      const vecs = this.vecList[i]
+      for (let v = 0; v < vecs.length; v++) {
+        const vec = vecs[v]
         if (top === null) {
           top = vec
           continue
         }
         if (vec.y < top.y) continue
-        if (Float.eq(vec.y, top.y) && vec.x > top.x) continue
+        if (floatEq(vec.y, top.y) && vec.x > top.x) continue
         top = vec
       }
     }
@@ -285,8 +290,8 @@ class InnerReference {
 
   startOf(top) {
     let start = null
-    for (let v = 0; v < this.vecSet.length; v++) {
-      const vecs = this.vecSet[v]
+    for (let v = 0; v < this.vecList.length; v++) {
+      const vecs = this.vecList[v]
       for (let i = 0; i < vecs.length; i++) {
         const vec = vecs[i]
         if (vec === top) continue
@@ -298,7 +303,7 @@ class InnerReference {
             continue
           }
           if (vec.x > start.x) continue
-          if (Float.eq(vec.x, start.x) && vec.y < start.y) continue
+          if (floatEq(vec.x, start.x) && vec.y < start.y) continue
           start = vec
         }
       }
@@ -308,8 +313,8 @@ class InnerReference {
 
   next(previous, current) {
     let result = null
-    for (let v = 0; v < this.vecSet.length; v++) {
-      const vecs = this.vecSet[v]
+    for (let v = 0; v < this.vecList.length; v++) {
+      const vecs = this.vecList[v]
       for (let i = 0; i < vecs.length; i++) {
         const vec = vecs[i]
         if (vec !== current) continue
@@ -336,7 +341,8 @@ function populateInside(inside, floor) {
     clusters.push(reference)
     for (let r = i + 1; r < remaining.length; r++) {
       const other = remaining[r]
-      iter: for (const d of other.vecs) {
+      iter: for (let o = 0; o < other.vecs.length; o++) {
+        const d = other.vecs[o]
         if (reference.has(d)) {
           reference.add(other)
           remaining.splice(r, 1)
@@ -346,9 +352,10 @@ function populateInside(inside, floor) {
       }
     }
   }
-  for (const cluster of clusters) {
-    if (cluster.vecSet.length === 1) {
-      cluster.vecs = cluster.vecSet[0]
+  for (let c = 0; c < clusters.length; c++) {
+    const cluster = clusters[c]
+    if (cluster.vecList.length === 1) {
+      cluster.vecs = cluster.vecList[0]
       continue
     }
     const top = cluster.topLeft()
@@ -391,9 +398,11 @@ function populateReferences(vecs, points, clockwise) {
 }
 
 function populateVectors(vecs, points) {
-  for (const vec of vecs) {
+  for (let v = 0; v < vecs.length; v++) {
+    const vec = vecs[v]
     let exists = false
-    for (const point of points) {
+    for (let p = 0; p < points.length; p++) {
+      const point = points[p]
       if (vec === point.vec) {
         exists = true
         break
@@ -407,8 +416,8 @@ function populateVectors(vecs, points) {
 function populate(sector, floor) {
   const points = []
   const inside = populateInside(sector.inside, floor)
-  for (const inner of inside) populateVectors(inner, points)
-  for (const inner of inside) populateReferences(inner, points, false)
+  for (let i = 0; i < inside.length; i++) populateVectors(inside[i], points)
+  for (let i = 0; i < inside.length; i++) populateReferences(inside[i], points, false)
   populateVectors(sector.vecs, points)
   populateReferences(sector.vecs, points, true)
   for (let i = 0; i < points.length; i++) points[i].index = i

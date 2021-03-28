@@ -3,7 +3,7 @@ import { playMusic, playSound } from '../assets/sounds.js'
 import { sectorInsideOutside, sectorLineNeighbors } from '../map/sector.js'
 import { sectorTriangulate } from '../map/triangulate.js'
 import { clearRandom } from '../math/random.js'
-import { Float } from '../math/vector.js'
+import { floatZero } from '../math/vector.js'
 import { Missile, missileInitialize } from '../missile/missile.js'
 import { Particle, particleInitialize } from '../particle/particle.js'
 import { Doodad } from '../thing/doodad.js'
@@ -306,7 +306,7 @@ function worldBuildCellLines(world, line) {
   let error = 0.0
   let incrementX = 0
   let incrementY = 0
-  if (Float.zero(dx)) {
+  if (floatZero(dx)) {
     incrementX = 0
     error = Number.MAX_VALUE
   } else if (line.b.x > line.a.x) {
@@ -318,7 +318,7 @@ function worldBuildCellLines(world, line) {
     n += x - xb
     error = (xf - x) * dy
   }
-  if (Float.zero(dy)) {
+  if (floatZero(dy)) {
     incrementY = 0
     error = -Number.MAX_VALUE
   } else if (line.b.y > line.a.y) {

@@ -1,5 +1,5 @@
 import { textureIndexForName } from '../assets/assets.js'
-import { Float } from '../math/vector.js'
+import { floatEq } from '../math/vector.js'
 import { triggerExport } from '../world/trigger.js'
 
 export class VectorReference {
@@ -10,7 +10,7 @@ export class VectorReference {
   }
 
   eq(b) {
-    return Float.eq(this.x, b.x) && Float.eq(this.y, b.y)
+    return floatEq(this.x, b.x) && floatEq(this.y, b.y)
   }
 
   normal(b) {
