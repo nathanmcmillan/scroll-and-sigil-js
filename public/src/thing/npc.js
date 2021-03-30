@@ -139,7 +139,7 @@ function thingTryMove(self, x, z) {
       let i = cell.thingCount
       while (i--) {
         const thing = cell.things[i]
-        if (self === thing) continue
+        if (self === thing || !thing.isPhysical) continue
         if (thingTryOverlap(self, x, z, box, thing)) return false
       }
       i = cell.lines.length

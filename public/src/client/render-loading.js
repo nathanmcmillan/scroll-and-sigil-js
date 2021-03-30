@@ -21,12 +21,13 @@ export function renderLoadingInProgress(client, view, projection) {
   const fontWidth = fontScale * TIC_FONT_WIDTH
   const fontHeight = fontScale * TIC_FONT_HEIGHT
 
-  rendererSetProgram(rendering, 'texture2d-font')
   rendererSetView(rendering, 0, client.top, width, height)
-  rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
   gl.clearColor(black0f, black1f, black2f, 1.0)
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+
+  rendererSetProgram(rendering, 'texture2d-font')
+  rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
   identity(view)
   multiply(projection, client.orthographic, view)

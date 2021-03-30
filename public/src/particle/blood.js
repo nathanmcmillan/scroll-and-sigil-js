@@ -4,6 +4,9 @@ import { worldNewDecal, worldNewParticle, WORLD_CELL_SHIFT } from '../world/worl
 
 function bloodHitFloor(self) {
   const sector = self.sector
+
+  if (sector.liquid) return
+
   const decal = worldNewDecal(self.world, self.stamp.texture)
 
   const sprite = self.stamp.sprite

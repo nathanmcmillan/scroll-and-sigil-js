@@ -113,15 +113,16 @@ export class SfxState {
     const fontPad = calcFontPad(fontHeight)
     const fontHeightAndPad = fontHeight + fontPad
 
-    rendererSetProgram(rendering, 'color2d')
     rendererSetView(rendering, 0, client.top, width, height)
-    rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
     gl.clearColor(slatef(0), slatef(1), slatef(2), 1.0)
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
     gl.disable(gl.CULL_FACE)
     gl.disable(gl.DEPTH_TEST)
+
+    rendererSetProgram(rendering, 'color2d')
+    rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
     // top and bottom bar
 
@@ -138,7 +139,6 @@ export class SfxState {
     // text
 
     rendererSetProgram(rendering, 'texture2d-font')
-    rendererSetView(rendering, 0, 0, width, height)
     rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
     //  status text

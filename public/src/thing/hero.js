@@ -57,6 +57,7 @@ export class Hero extends Thing {
     this.menuColumn = 0
     this.menuRow = 0
     this.interactionWith = null
+    this.boss = null
     this.damage = heroDamage
     this.update = heroUpdate
     thingSetup(this)
@@ -64,6 +65,14 @@ export class Hero extends Thing {
 }
 
 function heroDamage(hero, source, health) {
+  if (source) {
+    if (source.flags && source.flags.includes('boss')) {
+      hero.boss = source
+    } else {
+      const origin = source.origin
+      if (origin && origin.flags && origin.flags.includes('boss')) hero.boss = origin
+    }
+  }
   if (hero.status === STATUS_BUSY) {
     hero.status = STATUS_IDLE
     hero.menu = null

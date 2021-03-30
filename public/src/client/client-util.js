@@ -24,8 +24,9 @@ export function renderDialogBox(state, scale, font, dialog) {
   const fontPad = calcFontPad(fontHeight)
   const fontHeightAndPad = fontHeight + fontPad
 
-  rendererSetProgram(rendering, 'color2d')
   rendererSetView(rendering, 0, client.top, width, height)
+
+  rendererSetProgram(rendering, 'color2d')
   rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
   bufferZero(client.bufferColor)
@@ -49,7 +50,6 @@ export function renderDialogBox(state, scale, font, dialog) {
   rendererUpdateAndDraw(rendering, client.bufferColor)
 
   rendererSetProgram(rendering, 'texture2d-font')
-  rendererSetView(rendering, 0, client.top, width, height)
   rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
   bufferZero(client.bufferGUI)
@@ -101,8 +101,9 @@ export function renderTextBox(state, scale, font, box, x, y) {
   const fontPad = calcFontPad(fontHeight)
   const fontHeightAndPad = fontHeight + 3 * fontPad
 
-  rendererSetProgram(rendering, 'color2d')
   rendererSetView(rendering, 0, client.top, width, height)
+
+  rendererSetProgram(rendering, 'color2d')
   rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
   bufferZero(client.bufferColor)
@@ -117,7 +118,6 @@ export function renderTextBox(state, scale, font, box, x, y) {
   rendererUpdateAndDraw(rendering, client.bufferColor)
 
   rendererSetProgram(rendering, 'texture2d-font')
-  rendererSetView(rendering, 0, client.top, width, height)
   rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
   bufferZero(client.bufferGUI)

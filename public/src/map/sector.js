@@ -32,6 +32,13 @@ export class Sector {
     this.inside = []
     this.outside = null
     this.neighbors = []
+    this.liquid = this.flags && (this.flags.includes('lava') || this.flags.includes('water'))
+    this.special = this.liquid ? 1 : 0
+  }
+
+  floorRenderHeight() {
+    if (this.liquid) return this.floor + this.special
+    return this.floor
   }
 
   hasFloor() {

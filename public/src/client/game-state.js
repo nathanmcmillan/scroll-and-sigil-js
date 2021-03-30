@@ -15,7 +15,10 @@ import {
   rendererSetProgram,
   rendererSetView,
   rendererUpdateAndDraw,
+  rendererUpdateUniformFloat,
+  rendererUpdateUniformInt,
   rendererUpdateUniformMatrix,
+  rendererUpdateUniformVec3,
   rendererUpdateVAO,
 } from '../webgl/renderer.js'
 
@@ -39,7 +42,7 @@ export class GameState {
     this.projection = new Float32Array(16)
     this.projection3d = new Float32Array(16)
 
-    if (true) {
+    if (false) {
       const text = 'scrol and sigil'
       const base = 60
       const speed = 1.5
@@ -146,15 +149,16 @@ export class GameState {
 
     if (client.touch) renderTouch(client.touchRender)
 
-    // sky box
-
-    rendererSetProgram(rendering, 'texture3d-rgb')
     rendererSetView(rendering, 0, client.top, width, height)
 
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
+    // sky box
+
     gl.disable(gl.CULL_FACE)
     gl.disable(gl.DEPTH_TEST)
+
+    rendererSetProgram(rendering, 'texture3d-rgb')
 
     identity(view)
     rotateX(view, Math.sin(camera.rx), Math.cos(camera.rx))
@@ -172,12 +176,28 @@ export class GameState {
     gl.enable(gl.CULL_FACE)
     gl.enable(gl.DEPTH_TEST)
 
+    rendererSetProgram(rendering, 'texture3d-light')
+
     identity(view)
     rotateX(view, Math.sin(camera.rx), Math.cos(camera.rx))
     rotateY(view, Math.sin(camera.ry), Math.cos(camera.ry))
     translate(view, -camera.x, -camera.y, -camera.z)
     multiply(projection, client.perspective, view)
     rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
+    rendererUpdateUniformMatrix(rendering, 'u_view', view)
+
+    if (true) {
+      const missiles = world.missiles
+      const count = Math.min(world.missileCount, 8)
+      rendererUpdateUniformInt(rendering, 'u_light_count', count)
+      for (let m = 0; m < count; m++) {
+        const missile = missiles[m]
+        rendererUpdateUniformVec3(rendering, 'u_light_color[' + m + ']', 0.0, 0.4, 0.0)
+        rendererUpdateUniformVec3(rendering, 'u_light_position[' + m + ']', missile.x, missile.y, missile.z)
+        const radius = 10.0
+        rendererUpdateUniformFloat(rendering, 'u_light_strength[' + m + ']', 1.0 / (radius * radius))
+      }
+    }
 
     const projection3d = this.projection3d
     for (let p = 0; p < 16; p++) projection3d[p] = projection[p]
@@ -264,7 +284,6 @@ export class GameState {
     }
 
     rendererSetProgram(rendering, 'texture2d-font')
-    rendererSetView(rendering, 0, client.top, width, height)
 
     gl.disable(gl.CULL_FACE)
     gl.disable(gl.DEPTH_TEST)
@@ -282,7 +301,6 @@ export class GameState {
     if (game.cinema) {
       const black = 60.0
       rendererSetProgram(rendering, 'color2d')
-      rendererSetView(rendering, 0, client.top, width, height)
       rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
       bufferZero(client.bufferColor)
       drawRectangle(client.bufferColor, 0.0, 0.0, width, black, 0.0, 0.0, 0.0, 1.0)
@@ -366,6 +384,11 @@ export class GameState {
           y += fontHeight
           for (let i = 0; i < hero.stamina; i++) text += 'x'
           drawTextSpecial(client.bufferGUI, x, y, text, scale, 0.0, 1.0, 0.0)
+          if (hero.boss) {
+            text = hero.boss.name
+            y += fontHeight
+            drawTextSpecial(client.bufferGUI, x, y, text, scale, 1.0, 1.0, 1.0)
+          }
         }
       }
       if (client.bufferGUI.indexPosition > 0) {

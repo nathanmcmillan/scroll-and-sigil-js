@@ -67,12 +67,32 @@ export function rendererBindTexture(render, active, texture) {
   render.gl.bindTexture(render.gl.TEXTURE_2D, texture)
 }
 
-export function rendererUpdateUniformMatrix(render, name, matrix) {
+export function rendererUniformLocation(render, name) {
   let location = render.uniform.get(name)
   if (location === undefined) {
     location = render.gl.getUniformLocation(render.program, name)
     render.uniform.set(name, location)
   }
+  return location
+}
+
+export function rendererUpdateUniformInt(render, name, value) {
+  const location = rendererUniformLocation(render, name)
+  render.gl.uniform1i(location, value)
+}
+
+export function rendererUpdateUniformFloat(render, name, value) {
+  const location = rendererUniformLocation(render, name)
+  render.gl.uniform1f(location, value)
+}
+
+export function rendererUpdateUniformVec3(render, name, x, y, z) {
+  const location = rendererUniformLocation(render, name)
+  render.gl.uniform3f(location, x, y, z)
+}
+
+export function rendererUpdateUniformMatrix(render, name, matrix) {
+  const location = rendererUniformLocation(render, name)
   render.gl.uniformMatrix4fv(location, false, matrix)
 }
 

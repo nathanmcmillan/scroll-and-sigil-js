@@ -369,12 +369,12 @@ export function worldBuild(world) {
   for (let i = 0; i < world.lines.length; i++) worldBuildCellLines(world, world.lines[i])
 }
 
-export function worldSpawnEntity(world, name, x, z) {
+export function worldSpawnEntity(world, name, x, z, flags = null, trigger = null) {
   const entity = entityByName(name)
   if (entity.has('class')) name = entity.get('class')
   switch (name) {
     case 'monster':
-      return new Monster(world, entity, x, z)
+      return new Monster(world, entity, x, z, flags, trigger)
     case 'doodad':
       return new Doodad(world, entity, x, z)
     case 'item':

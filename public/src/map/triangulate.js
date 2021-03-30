@@ -98,7 +98,7 @@ function safeTriangle(verts, a, b, c) {
 
 function add(sector, floor, scale, triangles, a, b, c) {
   let triangle = null
-  if (floor) triangle = new Triangle(sector.floor, sector.getFloorTexture(), c, b, a, floor, scale)
+  if (floor) triangle = new Triangle(sector.floorRenderHeight(), sector.getFloorTexture(), c, b, a, floor, scale)
   else triangle = new Triangle(sector.ceiling, sector.getCeilingTexture(), a, b, c, floor, scale)
   triangles.push(triangle)
 }

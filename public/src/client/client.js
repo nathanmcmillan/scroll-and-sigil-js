@@ -230,6 +230,7 @@ export class Client {
     let texture2d_rgb = fetchText('./shaders/texture2d-rgb.glsl')
     let texture2d_font = fetchText('./shaders/texture2d-font.glsl')
     let texture3d_rgb = fetchText('./shaders/texture3d-rgb.glsl')
+    let texture3d_light = fetchText('./shaders/texture3d-light.glsl')
 
     const textures = []
     const palette = newPalette()
@@ -308,6 +309,7 @@ export class Client {
     texture2d_rgb = await texture2d_rgb
     texture2d_font = await texture2d_font
     texture3d_rgb = await texture3d_rgb
+    texture3d_light = await texture3d_light
 
     rendererInsertProgram(rendering, 'color2d', compileProgram(gl, color2d))
     rendererInsertProgram(rendering, 'texture2d', compileProgram(gl, texture2d))
@@ -315,6 +317,7 @@ export class Client {
     rendererInsertProgram(rendering, 'texture2d-rgb', compileProgram(gl, texture2d_rgb))
     rendererInsertProgram(rendering, 'texture2d-font', compileProgram(gl, texture2d_font))
     rendererInsertProgram(rendering, 'texture3d-rgb', compileProgram(gl, texture3d_rgb))
+    rendererInsertProgram(rendering, 'texture3d-light', compileProgram(gl, texture3d_light))
 
     rendererMakeVAO(rendering, this.bufferGUI)
     rendererMakeVAO(rendering, this.bufferColor)

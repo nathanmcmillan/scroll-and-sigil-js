@@ -131,7 +131,25 @@ export class Game {
             const x = parseFloat(thing[0])
             const z = parseFloat(thing[1])
             const name = thing[2]
-            const entity = worldSpawnEntity(world, name, x, z)
+            let flags = null
+            let trigger = null
+            let i = 3
+            while (i < thing.length) {
+              if (thing[i] === 'flags') {
+                i++
+                const start = i
+                while (i < thing.length && thing[i] !== 'end') i++
+                flags = thing.slice(start, i)
+                i++
+              } else if (thing[i] === 'trigger') {
+                i++
+                const start = i
+                while (i < thing.length && thing[i] !== 'end') i++
+                trigger = new Trigger(thing.slice(start, i))
+                i++
+              } else i++
+            }
+            const entity = worldSpawnEntity(world, name, x, z, flags, trigger)
             if (entity instanceof Hero) {
               this.hero = entity
               this.camera.target = this.hero

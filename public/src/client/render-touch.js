@@ -110,15 +110,16 @@ export function renderTouch(touch) {
   const width = touch.width
   const height = touch.height
 
-  rendererSetProgram(rendering, 'color2d')
   rendererSetView(rendering, 0, 0, width, height)
-  rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
   gl.clearColor(black0f, black1f, black2f, 1.0)
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
   gl.disable(gl.CULL_FACE)
   gl.disable(gl.DEPTH_TEST)
+
+  rendererSetProgram(rendering, 'color2d')
+  rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
   identity(view)
   multiply(projection, touch.orthographic, view)

@@ -512,7 +512,7 @@ export class PaintState {
     // text
 
     rendererSetProgram(rendering, 'texture2d-font')
-    rendererSetView(rendering, 0, client.top, width, height)
+    rendererSetView(rendering, 0, client.top, width, height) // FIXME
     rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
     bufferZero(client.bufferGUI)

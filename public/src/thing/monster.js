@@ -3,6 +3,7 @@ import { playSound } from '../assets/sounds.js'
 import { atan2, cos, sin } from '../math/approximate.js'
 import { pRandom, pRandomOf, randomFloat } from '../math/random.js'
 import { newPlasma } from '../missile/plasma.js'
+import { monsterName } from '../thing/name-gen.js'
 import { thingMove } from '../thing/npc.js'
 import { redBloodExplode, redBloodTowards } from '../thing/thing-util.js'
 import {
@@ -25,11 +26,14 @@ const STATUS_DEAD = 3
 const STATUS_FINAL = 4
 
 export class Monster extends Thing {
-  constructor(world, entity, x, z) {
+  constructor(world, entity, x, z, flags, trigger) {
     super(world, x, z)
+    this.flags = flags
+    this.trigger = trigger
     this.box = entity.box()
     this.height = entity.height()
     this.name = entity.name()
+    if (flags && flags.includes('boss')) this.name = monsterName()
     this.group = entity.group()
     this.health = entity.health()
     this.speed = entity.speed()

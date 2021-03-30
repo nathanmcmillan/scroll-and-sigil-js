@@ -35,7 +35,9 @@ function compileShader(gl, code, type) {
   gl.shaderSource(shader, code)
   gl.compileShader(shader)
   if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    throw code + '\n' + gl.getShaderInfoLog(shader)
+    const lines = code.split('\n')
+    for (let i = 0; i < lines.length; i++) lines[i] = i + 1 + ' ' + lines[i]
+    throw '\n' + lines.join('\n') + '\n' + gl.getShaderInfoLog(shader)
   }
   return shader
 }

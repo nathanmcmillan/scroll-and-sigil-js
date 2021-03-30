@@ -16,20 +16,26 @@ A 3D adventure game with a strong focus on modding and user crafted content.
 
 ### Priority
 
-- Water and lava flags should make the floor rendering offset higher (but not the physical floor level)
+- Add arguments for flags e.g. water 2 (for +2 height) lava 2 3 (for +2 height and 3 damage per ticks)
+- trigger condition require-item arg:name-of-item
+- trigger action floor 10 (raise floor +10)
+- trigger action ceiling 10 (raise ceiling +10)
+- Add random name generator for unique monsters (and show name somewhere in UI) -> boss flag on monster? display health bar and name center top of screen
+- Top down view, show red for monsters, yellow for doodads, green for friendly, etc
 - Single file format for entire data pack
 - Snap/attach things to walls (like torches)
 - Need a global ticker for animated tiles and doodads
-- Improve GC allocations
 
-### Needed
+### Bugs
 
+- Paint: Undo redo is broken for edge cases
+
+### Ideas
+
+- Add replay files (record user input deltas per tick)
 - Paint
-
   - Fullscreen mode for sprite sheet
   - Smart undo redo history saving. Only save region that was changed
-  - Undo redo is broken for edge cases
-
 - Forward rendered light shader
 - Forward rendered built-in palette mapper. Reduce incoming final colors to 16 color map
 - Equiptable Items

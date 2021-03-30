@@ -89,16 +89,18 @@ export class DashboardState {
     identity(view)
     multiply(projection, client.orthographic, view)
 
-    // text
-    rendererSetProgram(rendering, 'texture2d-font')
     rendererSetView(rendering, 0, client.top, width, height)
-    rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
     gl.clearColor(slate0f, slate1f, slate2f, 1.0)
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
+    // text
+
     gl.disable(gl.CULL_FACE)
     gl.disable(gl.DEPTH_TEST)
+
+    rendererSetProgram(rendering, 'texture2d-font')
+    rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
     bufferZero(client.bufferGUI)
 
