@@ -29,6 +29,10 @@ export class Entity {
     return this.wad.get(key)
   }
 
+  id() {
+    return this.wad.get('_wad')
+  }
+
   name() {
     return this.wad.get('name')
   }

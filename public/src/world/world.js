@@ -223,6 +223,33 @@ function triggerCondition(condition, source) {
         if (source.group !== constant) return false
       }
       i += 3
+    } else if (condition[i] === 'need') {
+      const item = condition[i + 1]
+      const inventory = source.inventory
+      if (!inventory) return false
+      let found = false
+      for (let h = 0; h < inventory.length; h++) {
+        if (inventory[h].entity.id() === item) {
+          found = true
+          break
+        }
+      }
+      if (!found) return false
+      i += 2
+    } else if (condition[i] === 'missing') {
+      const item = condition[i + 1]
+      const inventory = source.inventory
+      if (inventory) {
+        let found = false
+        for (let h = 0; h < inventory.length; h++) {
+          if (inventory[h].entity.id() === item) {
+            found = true
+            break
+          }
+        }
+        if (found) return false
+      }
+      i += 2
     } else i++
   }
   return true

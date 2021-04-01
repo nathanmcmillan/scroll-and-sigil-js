@@ -380,7 +380,7 @@ export class MapEdit {
       this.dialog = change
       this.forcePaint = true
     } else if (event === 'thing-set as default') {
-      this.defaultEntity = this.selectedThing.entity.get('_wad')
+      this.defaultEntity = this.selectedThing.entity.id()
       this.dialogEnd()
     } else if (event === 'creator-back') {
       this.dialog = this.editThingDialog
@@ -1216,7 +1216,7 @@ export class MapEdit {
             } else if (option === DO_DELETE_THING) {
               this.deleteSelectedThing()
             } else if (option === DO_EDIT_THING) {
-              this.editThingDialog.title = this.selectedThing.entity.get('_wad')
+              this.editThingDialog.title = this.selectedThing.entity.id()
               this.dialog = this.editThingDialog
             }
           }
@@ -1590,7 +1590,7 @@ export class MapEdit {
       return 'VEC ' + this.selectedVec.x.toFixed(2) + ', ' + this.selectedVec.y.toFixed(2)
     } else if (this.selectedThing) {
       const thing = this.selectedThing
-      return 'THING ' + thing.entity.get('_wad').toUpperCase() + ' ' + thing.x.toFixed(2) + ', ' + thing.z.toFixed(2)
+      return 'THING ' + thing.entity.id().toUpperCase() + ' ' + thing.x.toFixed(2) + ', ' + thing.z.toFixed(2)
     } else if (this.selectedLine) {
       const line = this.selectedLine
       return 'LINE B' + line.bottom.offset + ' M' + line.middle.offset + ' T' + line.top.offset

@@ -28,7 +28,10 @@ export class Missile {
 }
 
 export function missileHit(self, thing) {
-  if (thing) thing.damage(thing, self, self.damage)
+  if (thing) {
+    thing.damage(thing, self, self.damage)
+    if (self.origin && self.origin.attack) self.origin.attack(self.origin, thing)
+  }
 }
 
 export function missileInitialize(self, world, x, y, z) {

@@ -14,7 +14,7 @@ let TEMP_CEILING = 0.0
 
 export class NonPlayerCharacter extends Thing {
   constructor(world, entity, x, z) {
-    super(world, x, z)
+    super(world, entity, x, z)
     this.box = entity.box()
     this.height = entity.height()
     this.name = entity.name()

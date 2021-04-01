@@ -23,7 +23,7 @@ const MISSILE_COST = 4
 
 export class Hero extends Thing {
   constructor(world, entity, x, z, input) {
-    super(world, x, z)
+    super(world, entity, x, z)
     this.box = entity.box()
     this.height = entity.height()
     this.input = input
@@ -60,19 +60,29 @@ export class Hero extends Thing {
     this.boss = null
     this.damage = heroDamage
     this.update = heroUpdate
+    this.attack = heroAttack
     thingSetup(this)
   }
 }
 
-function heroDamage(hero, source, health) {
-  if (source) {
-    if (source.flags && source.flags.includes('boss')) {
-      hero.boss = source
+function heroSetBoss(hero, thing) {
+  if (thing) {
+    if (thing.flags && thing.flags.includes('boss')) {
+      hero.boss = thing
     } else {
-      const origin = source.origin
+      const origin = thing.origin
       if (origin && origin.flags && origin.flags.includes('boss')) hero.boss = origin
     }
   }
+}
+
+function heroAttack(hero, target) {
+  heroSetBoss(hero, target)
+  if (target.health <= 0) heroTakeExperience(self, target.experience)
+}
+
+function heroDamage(hero, source, health) {
+  heroSetBoss(hero, source)
   if (hero.status === STATUS_BUSY) {
     hero.status = STATUS_IDLE
     hero.menu = null
@@ -310,7 +320,7 @@ function heroMelee(self) {
 
     if (target) {
       target.damage(target, self, 1 + pRandomOf(3))
-      if (target.health <= 0) heroTakeExperience(self, target.experience)
+      self.attack(self, target)
     }
   } else if (frame === ANIMATION_DONE) {
     self.status = STATUS_IDLE

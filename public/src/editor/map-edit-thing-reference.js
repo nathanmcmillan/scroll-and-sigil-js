@@ -24,7 +24,7 @@ export class ThingReference {
   }
 
   export() {
-    let content = `${this.x} ${this.z} ${this.entity.get('_wad')}`
+    let content = `${this.x} ${this.z} ${this.entity.id()}`
     if (this.flags) content += ` flags ${this.flags.join(' ')} end`
     if (this.trigger) content += ` trigger ${triggerExport(this.trigger)} end`
     return content

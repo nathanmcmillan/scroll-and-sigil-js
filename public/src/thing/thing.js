@@ -21,8 +21,9 @@ const COLLIDED = []
 const COLLISIONS = []
 
 export class Thing {
-  constructor(world, x, z) {
+  constructor(world, entity, x, z) {
     this.world = world
+    this.entity = entity
     this.uid = THING_UID++
     this.sector = null
     this.floor = 0.0

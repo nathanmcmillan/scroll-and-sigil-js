@@ -17,10 +17,8 @@ A 3D adventure game with a strong focus on modding and user crafted content.
 ### Priority
 
 - Add arguments for flags e.g. water 2 (for +2 height) lava 2 3 (for +2 height and 3 damage per ticks)
-- trigger condition require-item arg:name-of-item
 - trigger action floor 10 (raise floor +10)
 - trigger action ceiling 10 (raise ceiling +10)
-- Add random name generator for unique monsters (and show name somewhere in UI) -> boss flag on monster? display health bar and name center top of screen
 - Top down view, show red for monsters, yellow for doodads, green for friendly, etc
 - Single file format for entire data pack
 - Snap/attach things to walls (like torches)

@@ -27,7 +27,7 @@ const STATUS_FINAL = 4
 
 export class Monster extends Thing {
   constructor(world, entity, x, z, flags, trigger) {
-    super(world, x, z)
+    super(world, entity, x, z)
     this.flags = flags
     this.trigger = trigger
     this.box = entity.box()
@@ -45,6 +45,7 @@ export class Monster extends Thing {
     this.moveCount = 0
     this.status = STATUS_LOOK
     this.reaction = 0
+    this.activeAttack = null
     this.soundOnPain = entity.get('sound-pain')
     this.soundOnDeath = entity.get('sound-death')
     this.soundOnWake = entity.get('sound-wake')
@@ -111,8 +112,8 @@ function monsterLook(self) {
 
 function monsterAttack(self) {
   const anime = thingUpdateAnimation(self)
-  const attack = self.attack
   if (self.animationMod === 0) {
+    const attack = self.activeAttack
     const frame = self.animationFrame
     const soundOnFrame = parseInt(attack.get('sound-on-frame'))
     const damageOnFrame = parseInt(attack.get('damage-on-frame'))
@@ -168,7 +169,7 @@ function monsterChase(self) {
         if (distance < range) {
           const reaction = attack.get('reaction')
           if (attack.get('type') === 'instant' || thingCheckSight(self, self.target)) {
-            self.attack = attack
+            self.activeAttack = attack
             self.reaction = parseInt(reaction[0]) + pRandomOf(parseInt(reaction[1]))
             self.status = STATUS_ATTACK
             thingSetAnimation(self, attack.get('animation'))

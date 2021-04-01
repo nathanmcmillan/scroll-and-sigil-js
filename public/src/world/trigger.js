@@ -41,7 +41,9 @@ export class Trigger {
     this.action = input.slice(s, i)
     s = i
     while (i < size) {
-      if (input[i] === 'eq') i += 3
+      if (input[i] === 'need') i += 2
+      else if (input[i] === 'missing') i += 2
+      else if (input[i] === 'eq') i += 3
       else if (input[i] === 'lte') i += 3
       else if (input[i] === 'gte') i += 3
       else i++
