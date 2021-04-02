@@ -12,6 +12,7 @@ import * as In from '../input/input.js'
 import { sectorInsideOutside, sectorLineNeighbors } from '../map/sector.js'
 import { sectorTriangulateForEditor } from '../map/triangulate.js'
 import { Vector2 } from '../math/vector.js'
+import { Flags } from '../world/flags.js'
 import { Trigger, triggerExport } from '../world/trigger.js'
 import { WORLD_SCALE } from '../world/world.js'
 
@@ -582,7 +583,7 @@ export class MapEdit {
               i++
               const start = i
               while (i < line.length && line[i] !== 'end') i++
-              flags = line.slice(start, i)
+              flags = new Flags(line.slice(start, i))
               i++
             } else if (line[i] === 'trigger') {
               i++
@@ -626,7 +627,7 @@ export class MapEdit {
               i++
               const start = i
               while (i < sector.length && sector[i] !== 'end') i++
-              flags = sector.slice(start, i)
+              flags = new Flags(sector.slice(start, i))
               i++
             } else if (sector[i] === 'trigger') {
               i++
@@ -671,7 +672,7 @@ export class MapEdit {
                   i++
                   const start = i
                   while (i < thing.length && thing[i] !== 'end') i++
-                  flags = thing.slice(start, i)
+                  flags = new Flags(thing.slice(start, i))
                   i++
                 } else if (thing[i] === 'trigger') {
                   i++

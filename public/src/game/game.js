@@ -6,6 +6,7 @@ import { Line } from '../map/line.js'
 import { Sector } from '../map/sector.js'
 import { Vector2 } from '../math/vector.js'
 import { Hero } from '../thing/hero.js'
+import { Flags } from '../world/flags.js'
 import { Trigger } from '../world/trigger.js'
 import { World, worldBuild, worldClear, worldPushSector, worldPushTrigger, worldSetLines, worldSpawnEntity, worldUpdate } from '../world/world.js'
 
@@ -61,7 +62,7 @@ export class Game {
             i++
             const start = i
             while (i < line.length && line[i] !== 'end') i++
-            flags = line.slice(start, i)
+            flags = new Flags(line.slice(start, i))
             i++
           } else if (line[i] === 'trigger') {
             i++
@@ -103,7 +104,7 @@ export class Game {
             i++
             const start = i
             while (i < sector.length && sector[i] !== 'end') i++
-            flags = sector.slice(start, i)
+            flags = new Flags(sector.slice(start, i))
             i++
           } else if (sector[i] === 'trigger') {
             i++
@@ -139,7 +140,7 @@ export class Game {
                 i++
                 const start = i
                 while (i < thing.length && thing[i] !== 'end') i++
-                flags = thing.slice(start, i)
+                flags = new Flags(thing.slice(start, i))
                 i++
               } else if (thing[i] === 'trigger') {
                 i++

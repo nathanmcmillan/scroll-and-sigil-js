@@ -21,7 +21,7 @@ export class Trigger {
     let s = 0
     if (input[i] === 'every') i += 3
     else i++
-    if (i >= size) throw 'Parsed bad trigger'
+    if (i >= size) throw 'Parsed bad trigger: ' + input
     this.event = input.slice(s, i)
     s = i
     while (i < size) {

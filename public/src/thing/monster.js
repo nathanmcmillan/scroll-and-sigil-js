@@ -17,6 +17,7 @@ import {
   thingUpdateSprite,
   thingY,
 } from '../thing/thing.js'
+import { FLAG_BOSS } from '../world/flags.js'
 import { ANIMATION_DONE } from '../world/world.js'
 
 const STATUS_LOOK = 0
@@ -33,7 +34,7 @@ export class Monster extends Thing {
     this.box = entity.box()
     this.height = entity.height()
     this.name = entity.name()
-    if (flags && flags.includes('boss')) this.name = monsterName()
+    if (flags && flags.includes(FLAG_BOSS)) this.name = monsterName()
     this.group = entity.group()
     this.health = entity.health()
     this.speed = entity.speed()

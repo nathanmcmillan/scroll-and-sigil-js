@@ -1,5 +1,6 @@
 import { floatZero, lineIntersect } from '../math/vector.js'
 import { cellPushThing, cellRemoveThing } from '../world/cell.js'
+import { FLAG_LAVA } from '../world/flags.js'
 import {
   ANIMATION_ALMOST_DONE,
   ANIMATION_DONE,
@@ -85,7 +86,10 @@ export function thingY(self) {
 export function thingSpecialSector(self) {
   const flags = self.sector.flags
   if (flags === null) return
-  if (self.ground && (self.world.tick & 63) === 0 && flags.includes('lava')) self.damage(self, null, 1)
+  if (self.ground && (self.world.tick & 63) === 0) {
+    const lava = flags.includes(FLAG_LAVA)
+    if (lava) self.damage(self, null, lava.values[1])
+  }
 }
 
 function thingLineCollision(self, line) {

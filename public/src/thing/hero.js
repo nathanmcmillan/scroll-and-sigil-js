@@ -4,6 +4,7 @@ import { pRandomOf } from '../math/random.js'
 import { newPlasma } from '../missile/plasma.js'
 import { redBloodExplode, redBloodTowards } from '../thing/thing-util.js'
 import { Thing, thingApproximateDistance, thingIntegrate, thingSetAnimation, thingSetup, thingUpdateAnimation, thingUpdateSprite } from '../thing/thing.js'
+import { FLAG_BOSS } from '../world/flags.js'
 import { ANIMATION_ALMOST_DONE, ANIMATION_DONE, triggerEvent, worldConditionTrigger, worldEventTrigger, WORLD_CELL_SHIFT } from '../world/world.js'
 
 // TODO
@@ -67,11 +68,11 @@ export class Hero extends Thing {
 
 function heroSetBoss(hero, thing) {
   if (thing) {
-    if (thing.flags && thing.flags.includes('boss')) {
+    if (thing.flags && thing.flags.includes(FLAG_BOSS)) {
       hero.boss = thing
     } else {
       const origin = thing.origin
-      if (origin && origin.flags && origin.flags.includes('boss')) hero.boss = origin
+      if (origin && origin.flags && origin.flags.includes(FLAG_BOSS)) hero.boss = origin
     }
   }
 }

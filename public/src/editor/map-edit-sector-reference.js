@@ -1,5 +1,6 @@
 import { textureIndexForName } from '../assets/assets.js'
 import { triggerExport } from '../world/trigger.js'
+import { flagsExport, FLAG_LAVA, FLAG_WATER } from '../world/flags.js'
 
 let REF_SECTOR_UID = 0
 
@@ -21,7 +22,7 @@ export class SectorReference {
     this.outside = null
     this.neighbors = []
     this.view = []
-    this.liquid = this.flags && (this.flags.includes('lava') || this.flags.includes('water'))
+    this.liquid = this.flags && (this.flags.includes(FLAG_WATER) || this.flags.includes(FLAG_LAVA))
     this.special = this.liquid ? 1 : 0
   }
 
@@ -125,7 +126,7 @@ export class SectorReference {
     for (const vec of this.vecs) content += ` ${vec.index}`
     content += ` ${this.lines.length}`
     for (const line of this.lines) content += ` ${line.index}`
-    if (this.flags) content += ` flags ${this.flags.join(' ')} end`
+    if (this.flags) content += ` flags ${flagsExport(this.flags)} end`
     if (this.trigger) content += ` trigger ${triggerExport(this.trigger)} end`
     return content
   }

@@ -1,4 +1,5 @@
 import { Wall } from '../map/wall.js'
+import { FLAG_NOT_PHYSICAL, FLAG_PHYSICAL } from '../world/flags.js'
 
 export class Line {
   constructor(top, middle, bottom, a, b, flags, trigger) {
@@ -14,8 +15,8 @@ export class Line {
     this.bottom = bottom >= 0 ? new Wall(bottom) : null
     this.physical = this.middle !== null
     if (flags) {
-      if (flags.includes('physical')) this.physical = true
-      if (flags.includes('not-physical')) this.physical = false
+      if (flags.includes(FLAG_PHYSICAL)) this.physical = true
+      else if (flags.includes(FLAG_NOT_PHYSICAL)) this.physical = false
     }
   }
 

@@ -1,5 +1,6 @@
 import { WallReference } from '../editor/map-edit-wall-reference.js'
 import { triggerExport } from '../world/trigger.js'
+import { flagsExport } from '../world/flags.js'
 
 export class LineReference {
   constructor(bottom, middle, top, a, b, flags, trigger) {
@@ -110,7 +111,7 @@ export class LineReference {
     content += ` ${this.topOffset()}`
     content += ` ${this.middleOffset()}`
     content += ` ${this.bottomOffset()}`
-    if (this.flags) content += ` flags ${this.flags.join(' ')} end`
+    if (this.flags) content += ` flags ${flagsExport(this.flags)} end`
     if (this.trigger) content += ` trigger ${triggerExport(this.trigger)} end`
     return content
   }

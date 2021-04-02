@@ -1,4 +1,5 @@
 import { HashSet, setAdd, setClear, setIter, setIterHasNext, setIterNext } from '../collections/set.js'
+import { FLAG_LAVA, FLAG_WATER } from '../world/flags.js'
 
 const MAX_SECTOR_HEIGHT = 9999
 
@@ -32,8 +33,21 @@ export class Sector {
     this.inside = []
     this.outside = null
     this.neighbors = []
-    this.liquid = this.flags && (this.flags.includes('lava') || this.flags.includes('water'))
-    this.special = this.liquid ? 1 : 0
+    this.liquid = false
+    this.special = 0
+    if (this.flags) {
+      const water = this.flags.includes(FLAG_WATER)
+      if (water) {
+        this.liquid = true
+        this.special = water.values[0]
+      } else {
+        const lava = this.flags.includes(FLAG_LAVA)
+        if (lava) {
+          this.liquid = true
+          this.special = lava.values[0]
+        }
+      }
+    }
   }
 
   floorRenderHeight() {

@@ -1,4 +1,5 @@
 import { triggerExport } from '../world/trigger.js'
+import { flagsExport } from '../world/flags.js'
 
 export class ThingReference {
   constructor(entity, x, z, flags, trigger) {
@@ -25,7 +26,7 @@ export class ThingReference {
 
   export() {
     let content = `${this.x} ${this.z} ${this.entity.id()}`
-    if (this.flags) content += ` flags ${this.flags.join(' ')} end`
+    if (this.flags) content += ` flags ${flagsExport(this.flags.join)} end`
     if (this.trigger) content += ` trigger ${triggerExport(this.trigger)} end`
     return content
   }
