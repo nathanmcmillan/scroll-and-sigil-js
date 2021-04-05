@@ -15,8 +15,8 @@ export class Line {
     this.bottom = bottom >= 0 ? new Wall(bottom) : null
     this.physical = this.middle !== null
     if (flags) {
-      if (flags.includes(FLAG_PHYSICAL)) this.physical = true
-      else if (flags.includes(FLAG_NOT_PHYSICAL)) this.physical = false
+      if (flags.get(FLAG_PHYSICAL)) this.physical = true
+      else if (flags.get(FLAG_NOT_PHYSICAL)) this.physical = false
     }
   }
 

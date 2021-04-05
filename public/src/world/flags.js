@@ -26,7 +26,6 @@ class Flag {
     this.id = id
     this.number = flagNumber(id)
     this.values = values
-    console.debug('flag parsed:', this.id, this.number, this.values)
   }
 }
 
@@ -38,7 +37,6 @@ export function flagsExport(flags) {
     content += flag.id
     if (flag.values) content += flag.values.join(' ')
   }
-  console.debug('export flags:', content)
   return content
 }
 
@@ -67,7 +65,7 @@ export class Flags {
     }
   }
 
-  includes(number) {
+  get(number) {
     const flags = this.flags
     for (let f = 0; f < flags.length; f++) if (flags[f].number === number) return flags[f]
     return null

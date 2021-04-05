@@ -22,8 +22,21 @@ export class SectorReference {
     this.outside = null
     this.neighbors = []
     this.view = []
-    this.liquid = this.flags && (this.flags.includes(FLAG_WATER) || this.flags.includes(FLAG_LAVA))
-    this.special = this.liquid ? 1 : 0
+    this.liquid = false
+    this.depth = 0
+    if (this.flags) {
+      const water = this.flags.get(FLAG_WATER)
+      if (water) {
+        this.liquid = true
+        this.depth = water.values[0]
+      } else {
+        const lava = this.flags.get(FLAG_LAVA)
+        if (lava) {
+          this.liquid = true
+          this.depth = lava.values[0]
+        }
+      }
+    }
   }
 
   copy(dest) {
@@ -37,11 +50,16 @@ export class SectorReference {
     dest.flags = this.flags
     dest.trigger = this.trigger
     dest.liquid = this.liquid
-    dest.special = this.special
+    dest.depth = this.depth
   }
 
+  // floorPhysicalHeight() {
+  //   if (this.liquid) return this.floor - this.depth
+  //   return this.floor
+  // }
+
   floorRenderHeight() {
-    if (this.liquid) return this.floor + this.special
+    // if (this.liquid) return this.floor + this.depth
     return this.floor
   }
 

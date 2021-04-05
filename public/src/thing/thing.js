@@ -87,7 +87,7 @@ export function thingSpecialSector(self) {
   const flags = self.sector.flags
   if (flags === null) return
   if (self.ground && (self.world.tick & 63) === 0) {
-    const lava = flags.includes(FLAG_LAVA)
+    const lava = flags.get(FLAG_LAVA)
     if (lava) self.damage(self, null, lava.values[1])
   }
 }

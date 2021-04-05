@@ -34,7 +34,7 @@ export class Monster extends Thing {
     this.box = entity.box()
     this.height = entity.height()
     this.name = entity.name()
-    if (flags && flags.includes(FLAG_BOSS)) this.name = monsterName()
+    if (flags && flags.get(FLAG_BOSS)) this.name = monsterName()
     this.group = entity.group()
     this.health = entity.health()
     this.speed = entity.speed()

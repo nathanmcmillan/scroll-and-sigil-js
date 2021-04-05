@@ -68,11 +68,11 @@ export class Hero extends Thing {
 
 function heroSetBoss(hero, thing) {
   if (thing) {
-    if (thing.flags && thing.flags.includes(FLAG_BOSS)) {
+    if (thing.flags && thing.flags.get(FLAG_BOSS)) {
       hero.boss = thing
     } else {
       const origin = thing.origin
-      if (origin && origin.flags && origin.flags.includes(FLAG_BOSS)) hero.boss = origin
+      if (origin && origin.flags && origin.flags.get(FLAG_BOSS)) hero.boss = origin
     }
   }
 }

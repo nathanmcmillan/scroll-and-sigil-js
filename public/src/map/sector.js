@@ -1,8 +1,6 @@
 import { HashSet, setAdd, setClear, setIter, setIterHasNext, setIterNext } from '../collections/set.js'
 import { FLAG_LAVA, FLAG_WATER } from '../world/flags.js'
 
-const MAX_SECTOR_HEIGHT = 9999
-
 const SEARCH_DONE = []
 const NEIGHBOR_QUEUE = []
 
@@ -19,8 +17,6 @@ export class Sector {
     this.uid = SECTOR_UID++
     this.bottom = Math.min(bottom, floor)
     this.floor = Math.max(bottom, floor)
-    if (ceiling === 0) ceiling = MAX_SECTOR_HEIGHT
-    if (top === 0) top = MAX_SECTOR_HEIGHT
     this.ceiling = Math.min(ceiling, top)
     this.top = Math.max(ceiling, top)
     this.floorTexture = floorTexture
@@ -34,24 +30,25 @@ export class Sector {
     this.outside = null
     this.neighbors = []
     this.liquid = false
-    this.special = 0
+    this.depth = 0
     if (this.flags) {
-      const water = this.flags.includes(FLAG_WATER)
+      const water = this.flags.get(FLAG_WATER)
       if (water) {
         this.liquid = true
-        this.special = water.values[0]
+        this.depth = water.values[0]
       } else {
-        const lava = this.flags.includes(FLAG_LAVA)
+        const lava = this.flags.get(FLAG_LAVA)
         if (lava) {
           this.liquid = true
-          this.special = lava.values[0]
+          this.depth = lava.values[0]
         }
       }
+      if (this.depth !== 0) this.floor -= this.depth
     }
   }
 
   floorRenderHeight() {
-    if (this.liquid) return this.floor + this.special
+    if (this.liquid) return this.floor + this.depth
     return this.floor
   }
 
