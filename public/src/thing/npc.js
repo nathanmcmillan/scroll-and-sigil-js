@@ -2,6 +2,7 @@ import { playSound } from '../assets/sounds.js'
 import { cos, sin } from '../math/approximate.js'
 import { redBloodExplode, redBloodTowards } from '../thing/thing-util.js'
 import { Thing, thingFindSector, thingIntegrate, thingPushToCells, thingRemoveFromCells, thingSetup, thingUpdateAnimation, thingUpdateSprite } from '../thing/thing.js'
+import { TRIGGER_ENTER, TRIGGER_EXIT } from '../world/trigger.js'
 import { worldEventTrigger, WORLD_CELL_SHIFT } from '../world/world.js'
 
 const STATUS_STAND = 0
@@ -166,8 +167,8 @@ export function thingMove(self) {
     } else {
       const old = self.sector
       if (TEMP_SECTOR !== old) {
-        if (old && old.trigger) worldEventTrigger(self.world, 'exit', old.trigger, self)
-        if (TEMP_SECTOR.trigger) worldEventTrigger(self.world, 'enter', TEMP_SECTOR.trigger, self)
+        if (old && old.trigger) worldEventTrigger(self.world, TRIGGER_EXIT, old.trigger, self)
+        if (TEMP_SECTOR.trigger) worldEventTrigger(self.world, TRIGGER_ENTER, TEMP_SECTOR.trigger, self)
         self.sector = TEMP_SECTOR
       }
       self.floor = TEMP_FLOOR

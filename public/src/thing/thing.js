@@ -1,6 +1,7 @@
 import { floatZero, lineIntersect } from '../math/vector.js'
 import { cellPushThing, cellRemoveThing } from '../world/cell.js'
 import { FLAG_LAVA } from '../world/flags.js'
+import { TRIGGER_ENTER, TRIGGER_EXIT } from '../world/trigger.js'
 import {
   ANIMATION_ALMOST_DONE,
   ANIMATION_DONE,
@@ -170,8 +171,8 @@ function thingLineFloorAndCeiling(self, line) {
   }
   if (sector !== old) {
     self.sector = sector
-    if (old && old.trigger) worldEventTrigger(self.world, 'exit', old.trigger, self)
-    if (sector.trigger) worldEventTrigger(self.world, 'enter', sector.trigger, self)
+    if (old && old.trigger) worldEventTrigger(self.world, TRIGGER_EXIT, old.trigger, self)
+    if (sector.trigger) worldEventTrigger(self.world, TRIGGER_ENTER, sector.trigger, self)
   }
   return true
 }
@@ -201,8 +202,8 @@ export function thingFindSector(self) {
   else sector = sector.searchFor(self.x, self.z)
   if (sector !== old) {
     self.sector = sector
-    if (old && old.trigger) worldEventTrigger(self.world, 'exit', old.trigger, self)
-    if (sector.trigger) worldEventTrigger(self.world, 'enter', sector.trigger, self)
+    if (old && old.trigger) worldEventTrigger(self.world, TRIGGER_EXIT, old.trigger, self)
+    if (sector.trigger) worldEventTrigger(self.world, TRIGGER_ENTER, sector.trigger, self)
   }
   self.floor = sector.floor
   self.ceiling = sector.ceiling

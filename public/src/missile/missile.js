@@ -1,4 +1,5 @@
 import { cellPushMissile, cellRemoveMissile } from '../world/cell.js'
+import { TRIGGER_ATTACK } from '../world/trigger.js'
 import { worldEventTrigger, worldFindSector, WORLD_CELL_SHIFT } from '../world/world.js'
 
 export class Missile {
@@ -144,7 +145,7 @@ export function missileCheck(self) {
       while (i--) {
         const line = cell.lines[i]
         if (missileLineOverlap(self, line)) {
-          if (line.trigger) worldEventTrigger(self.world, 'attack', line.trigger, self.origin)
+          if (line.trigger) worldEventTrigger(self.world, TRIGGER_ATTACK, line.trigger, self.origin)
           self.hit(self, null)
           return true
         }
