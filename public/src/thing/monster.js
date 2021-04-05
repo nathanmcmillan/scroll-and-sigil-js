@@ -18,7 +18,8 @@ import {
   thingY,
 } from '../thing/thing.js'
 import { FLAG_BOSS } from '../world/flags.js'
-import { ANIMATION_DONE } from '../world/world.js'
+import { ANIMATION_DONE, worldEventTrigger } from '../world/world.js'
+import { TRIGGER_DEAD } from '../world/trigger.js'
 
 const STATUS_LOOK = 0
 const STATUS_CHASE = 1
@@ -197,6 +198,7 @@ function monsterDamage(monster, source, health) {
     monster.status = STATUS_DEAD
     thingSetAnimation(monster, 'death')
     redBloodExplode(monster)
+    if (monster.trigger) worldEventTrigger(monster.world, TRIGGER_DEAD, monster.trigger, self)
   } else {
     playSound(monster.soundOnPain)
     redBloodTowards(monster, source)

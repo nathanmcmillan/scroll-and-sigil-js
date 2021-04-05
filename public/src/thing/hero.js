@@ -5,6 +5,7 @@ import { newPlasma } from '../missile/plasma.js'
 import { redBloodExplode, redBloodTowards } from '../thing/thing-util.js'
 import { Thing, thingApproximateDistance, thingIntegrate, thingSetAnimation, thingSetup, thingUpdateAnimation, thingUpdateSprite } from '../thing/thing.js'
 import { FLAG_BOSS } from '../world/flags.js'
+import { TRIGGER_ATTACK, TRIGGER_INTERACT } from '../world/trigger.js'
 import { ANIMATION_ALMOST_DONE, ANIMATION_DONE, triggerEvent, worldConditionTrigger, worldEventTrigger, WORLD_CELL_SHIFT } from '../world/world.js'
 
 // TODO
@@ -198,7 +199,7 @@ function heroInteract(self) {
       self.interaction = thing.interaction
       if (self.interaction.get('type') === 'quest') self.world.notify('begin-cinema')
       const trigger = thing.trigger
-      if (trigger) worldEventTrigger(world, 'interact', trigger, self)
+      if (trigger) worldEventTrigger(world, TRIGGER_INTERACT, trigger, self)
       return true
     }
   }
@@ -226,7 +227,7 @@ function heroInteract(self) {
         const distance = heroDistanceToLine(self, box, line)
         if (distance !== null && distance < 2.0) {
           const trigger = line.trigger
-          if (trigger) worldEventTrigger(world, 'interact', trigger, self)
+          if (trigger) worldEventTrigger(world, TRIGGER_INTERACT, trigger, self)
         }
       }
     }
@@ -311,7 +312,7 @@ function heroMelee(self) {
         while (i--) {
           const line = cell.lines[i]
           const trigger = line.trigger
-          if (trigger && triggerEvent('attack', trigger.event)) {
+          if (trigger && triggerEvent(TRIGGER_ATTACK, trigger.event)) {
             const distance = heroDistanceToLine(self, box, line)
             if (distance !== null) worldConditionTrigger(world, trigger, self)
           }

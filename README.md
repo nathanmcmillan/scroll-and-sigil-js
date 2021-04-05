@@ -16,7 +16,6 @@ A 3D adventure game with a strong focus on modding and user crafted content.
 
 ### Priority
 
-- Add arguments for flags e.g. water 2 (for +2 height) lava 2 3 (for +2 height and 3 damage per ticks)
 - trigger action floor 10 (raise floor +10)
 - trigger action ceiling 10 (raise ceiling +10)
 - Top down view, show red for monsters, yellow for doodads, green for friendly, etc
@@ -41,16 +40,8 @@ A 3D adventure game with a strong focus on modding and user crafted content.
 - Experience Points
 - Triggers
   - Events
-    - On enter sector
-    - On leave sector
     - On enter line
     - On leave line
-    - On entity death
-    - On interact with line
-    - On interact with entity
-  - Conditions
-    - Health less than
-    - Entity group is
   - Actions
     - End map
     - Go to new map
@@ -60,7 +51,6 @@ A 3D adventure game with a strong focus on modding and user crafted content.
     - Move towards point
     - Follow target
     - Quest Complete
-    - Sound effect
     - Particle effect
     - Set target to
 - NPC Interactions

@@ -3,7 +3,7 @@ import { playMusic, playSound } from '../assets/sounds.js'
 import { sectorInsideOutside, sectorLineNeighbors } from '../map/sector.js'
 import { sectorTriangulate } from '../map/triangulate.js'
 import { clearRandom } from '../math/random.js'
-import { floatZero } from '../math/vector.js'
+import { floatEq, floatZero } from '../math/vector.js'
 import { Missile, missileInitialize } from '../missile/missile.js'
 import { Particle, particleInitialize } from '../particle/particle.js'
 import { Doodad } from '../thing/doodad.js'
@@ -62,6 +62,7 @@ export class World {
     this.decalQueue = 0
     this.triggers = []
     this.events = []
+    this.variables = new Map()
   }
 }
 
@@ -86,6 +87,7 @@ export function worldClear(world) {
   world.decalQueue = 0
   world.triggers.length = 0
   world.events.length = 0
+  world.variables.clear()
   clearRandom()
 }
 
@@ -200,7 +202,7 @@ export function triggerEvent(type, event) {
   return type === event[0]
 }
 
-function triggerCondition(condition, source) {
+function triggerCondition(world, condition, source) {
   if (condition === null) return true
   let i = 0
   while (i < condition.length) {
@@ -223,6 +225,22 @@ function triggerCondition(condition, source) {
         if (source.group !== constant) return false
       }
       i += 3
+    } else if (condition[i] === 'get') {
+      const variable = condition[i + 1]
+      const operator = condition[i + 2]
+      const constant = condition[i + 3]
+      const get = world.variables.get(variable)
+      if (operator === 'lte') {
+        if (get === null || get === undefined) return false
+        if (parseFloat(get) > parseFloat(constant)) return false
+      } else if (operator === 'gte') {
+        if (get === null || get === undefined) return false
+        if (parseFloat(get) < parseFloat(constant)) return false
+      } else {
+        if ((get === null || get === undefined) && constant !== 'null') return false
+        if (!floatEq(parseFloat(get), parseFloat(constant))) return false
+      }
+      i += 4
     } else if (condition[i] === 'need') {
       const item = condition[i + 1]
       const inventory = source.inventory
@@ -256,7 +274,7 @@ function triggerCondition(condition, source) {
 }
 
 export function worldConditionTrigger(world, trigger, source) {
-  if (!triggerCondition(trigger.condition, source)) return
+  if (!triggerCondition(world, trigger.condition, source)) return
   world.events.push([trigger.action, source])
 }
 
@@ -291,6 +309,9 @@ function worldDoTriggerAction(world, action, source) {
     } else if (action[i] === 'map') {
       world.game.notify('map', action[i + 1])
       i += 2
+    } else if (action[i] === 'set') {
+      world.variables[action[i + 1]] = action[i + 2]
+      i += 3
     } else if (action[i] === 'cinema') {
       world.game.notify('cinema')
       i++
