@@ -1,6 +1,6 @@
 {
   "name": "tape",
-  "displayName": "tape",
+  "displayName": "Tape",
   "description": "Space and line deliminated data format.",
   "version": "0.0.1",
   "engines": {

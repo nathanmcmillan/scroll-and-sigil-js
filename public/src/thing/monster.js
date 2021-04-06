@@ -52,6 +52,7 @@ export class Monster extends Thing {
     this.soundOnDeath = entity.get('sound-death')
     this.soundOnWake = entity.get('sound-wake')
     this.attackOptions = entity.get('attack')
+    this.experience = entity.experience()
     this.damage = monsterDamage
     this.update = monsterUpdate
     thingSetup(this)

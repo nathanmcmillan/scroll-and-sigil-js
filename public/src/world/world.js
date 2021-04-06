@@ -225,7 +225,7 @@ function triggerCondition(world, condition, source) {
         if (source.group !== constant) return false
       }
       i += 3
-    } else if (condition[i] === 'get') {
+    } else if (condition[i] === 'is') {
       const variable = condition[i + 1]
       const operator = condition[i + 2]
       const constant = condition[i + 3]
@@ -238,7 +238,9 @@ function triggerCondition(world, condition, source) {
         if (parseFloat(get) < parseFloat(constant)) return false
       } else {
         if ((get === null || get === undefined) && constant !== 'null') return false
-        if (!floatEq(parseFloat(get), parseFloat(constant))) return false
+        if (isNaN(get) || isNaN(constant)) {
+          if (get !== constant) return false
+        } else if (!floatEq(parseFloat(get), parseFloat(constant))) return false
       }
       i += 4
     } else if (condition[i] === 'need') {
@@ -310,7 +312,7 @@ function worldDoTriggerAction(world, action, source) {
       world.game.notify('map', action[i + 1])
       i += 2
     } else if (action[i] === 'set') {
-      world.variables[action[i + 1]] = action[i + 2]
+      world.variables.set(action[i + 1], action[i + 2])
       i += 3
     } else if (action[i] === 'cinema') {
       world.game.notify('cinema')

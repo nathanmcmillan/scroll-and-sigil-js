@@ -65,6 +65,12 @@ export class Entity {
     return parseInt(this.wad.get('stamina'))
   }
 
+  experience() {
+    const experience = this.wad.get('experience')
+    if (experience) return parseInt(experience)
+    return 0
+  }
+
   spriteName() {
     return spriteName(this.wad.get('sprite'))
   }

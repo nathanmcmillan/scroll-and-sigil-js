@@ -57,7 +57,7 @@ export class Thing {
     this.name = null
     this.group = null
     this.interaction = null
-    this.experience = 1
+    this.experience = 0
     this.damage = thingDamage
   }
 }

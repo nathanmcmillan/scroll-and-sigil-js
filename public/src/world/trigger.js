@@ -54,7 +54,7 @@ export class Trigger {
       else if (input[i] === 'damage') i += 2
       else if (input[i] === 'floor') i += 2
       else if (input[i] === 'ceiling') i += 2
-      else if (input[i] === 'set') i += 2
+      else if (input[i] === 'set') i += 3
       else if (input[i] === 'map') i += 3
       else if (input[i] === 'teleport') i += 3
       else if (input[i] === 'spawn') i += 4
@@ -73,7 +73,7 @@ export class Trigger {
       else if (input[i] === 'eq') i += 3
       else if (input[i] === 'lte') i += 3
       else if (input[i] === 'gte') i += 3
-      else if (input[i] === 'get') i += 4
+      else if (input[i] === 'is') i += 4
       else i++
       if (i < size && (input[i] === 'and' || input[i] === 'or')) {
         i++

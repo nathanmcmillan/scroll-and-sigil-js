@@ -33,7 +33,6 @@ A 3D adventure game with a strong focus on modding and user crafted content.
 - Paint
   - Fullscreen mode for sprite sheet
   - Smart undo redo history saving. Only save region that was changed
-- Forward rendered light shader
 - Forward rendered built-in palette mapper. Reduce incoming final colors to 16 color map
 - Equiptable Items
 - Cinema camera (floating, de-attached from a target)
@@ -44,9 +43,6 @@ A 3D adventure game with a strong focus on modding and user crafted content.
     - On leave line
   - Actions
     - End map
-    - Go to new map
-    - Kill entity
-    - Spawn entity
     - Wake up entity
     - Move towards point
     - Follow target

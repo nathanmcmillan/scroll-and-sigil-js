@@ -76,7 +76,7 @@ end lines
 sectors
 0 0 10 10 none none 12 18 8 9 13 12 16 17 15 14 10 11 19 12 8 9 14 13 17 18 16 15 11 12 20 19
 0 1 10 12 none none 12 30 20 21 25 24 28 29 27 26 22 23 31 12 21 22 27 26 30 31 29 28 24 25 33 32
-0 0 10 10 plank-floor plank 8 9 10 14 15 17 16 12 13 8 10 11 15 16 18 17 13 14 trigger exit sound beep get x eq foobar end
+0 0 10 10 plank-floor plank 8 9 10 14 15 17 16 12 13 8 10 11 15 16 18 17 13 14 trigger exit sound beep is x eq foobar end
 0 1 10 12 stone-floor stone 8 21 22 26 27 29 28 24 25 8 23 24 28 29 31 30 26 27 flags lava 1 1 end trigger enter sound beep missing medkit end
 -2 -2 0 0 water none 6 3 2 4 6 7 5 6 3 2 4 6 7 5 flags water 2 end
 0 0 20 22 grass none 4 32 0 1 33 4 0 1 35 34

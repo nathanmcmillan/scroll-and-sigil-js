@@ -12,11 +12,12 @@ import { TouchRender, touchRenderEvent, touchRenderResize } from '../client/rend
 import { SfxState } from '../client/sfx-state.js'
 import { intHashCode, Table, tableGet, tablePut } from '../collections/table.js'
 import { TwoWayMap } from '../collections/two-way-map.js'
-import { newPalette } from '../editor/palette.js'
+import { newPalette, newPaletteFloat } from '../editor/palette.js'
 import { Tape } from '../game/tape.js'
 import * as In from '../input/input.js'
 import { orthographic, perspective } from '../math/matrix.js'
 import { drawSkyBox } from '../render/render.js'
+import { shadePalette } from '../render/shading.js'
 import * as Wad from '../wad/wad.js'
 import { Buffer } from '../webgl/buffer.js'
 import { Renderer, rendererInsertProgram, rendererMakeVAO, rendererUpdateVAO } from '../webgl/renderer.js'
@@ -293,6 +294,10 @@ export class Client {
         saveTexture(texture.name, createTexture(gl, texture.image, gl.NEAREST, wrap))
       }
     }
+
+    const lights = shadePalette(64, 32, newPaletteFloat())
+    const shading = createPixelsToTexture(gl, 64, 32, lights, gl.RGB, gl.NEAREST, gl.CLAMP_TO_EDGE)
+    saveTexture('_shading', shading)
 
     this.rendering = new Renderer(gl)
     this.bufferGUI = new Buffer(2, 4, 2, 0, 4 * 800, 36 * 800)
