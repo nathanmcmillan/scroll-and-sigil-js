@@ -1,4 +1,4 @@
-import { createNewTexturesAndSpriteSheets, readPaintFile, saveEntity, saveTexture, saveTile, waitForResources } from '../assets/assets.js'
+import { createNewTexturesAndSpriteSheets, readPaintFile, readPaintFileAsLookup, saveEntity, saveTexture, saveTile, waitForResources } from '../assets/assets.js'
 import { pauseMusic, resumeMusic, saveMusic, saveSound } from '../assets/sounds.js'
 import { DashboardState } from '../client/dashboard-state.js'
 import { GameState } from '../client/game-state.js'
@@ -12,7 +12,7 @@ import { TouchRender, touchRenderEvent, touchRenderResize } from '../client/rend
 import { SfxState } from '../client/sfx-state.js'
 import { intHashCode, Table, tableGet, tablePut } from '../collections/table.js'
 import { TwoWayMap } from '../collections/two-way-map.js'
-import { newPalette, newPaletteFloat } from '../editor/palette.js'
+import { newPalette } from '../editor/palette.js'
 import { Tape } from '../game/tape.js'
 import * as In from '../input/input.js'
 import { orthographic, perspective } from '../math/matrix.js'
@@ -232,6 +232,7 @@ export class Client {
     let texture2d_font = fetchText('./shaders/texture2d-font.glsl')
     let texture3d_rgb = fetchText('./shaders/texture3d-rgb.glsl')
     let texture3d_light = fetchText('./shaders/texture3d-light.glsl')
+    let texture3d_lookup = fetchText('./shaders/texture3d-lookup.glsl')
 
     const textures = []
     const palette = newPalette()
@@ -240,7 +241,8 @@ export class Client {
       if (texture.endsWith('.txt')) {
         textures.push(
           fetchText(directory + '/sprites/' + texture).then((text) => {
-            return readPaintFile(text, palette)
+            // return readPaintFile(text, palette)
+            return readPaintFileAsLookup(text, palette)
           })
         )
       } else {
@@ -260,10 +262,15 @@ export class Client {
       return createPixelsToTexture(gl, image.width, image.height, image.pixels, gl.RGB, gl.NEAREST, gl.CLAMP_TO_EDGE)
     })
 
+    const lights = shadePalette(64, 32, newPalette())
+    const shading = createPixelsToTexture(gl, 64, 32, lights, gl.RGB, gl.NEAREST, gl.CLAMP_TO_EDGE)
+    saveTexture('_shading', shading)
+
     for (let texture of textures) {
       texture = await texture
       const wrap = texture.wrap === 'repeat' ? gl.REPEAT : gl.CLAMP_TO_EDGE
       if (texture.pixels) {
+        // saveTexture(texture.name, createPixelsToTexture(gl, texture.width, texture.height, texture.pixels, gl.R, gl.NEAREST, wrap))
         saveTexture(texture.name, createPixelsToTexture(gl, texture.width, texture.height, texture.pixels, gl.RGB, gl.NEAREST, wrap))
         if (texture.sprites) {
           for (const sprite of texture.sprites) {
@@ -287,6 +294,7 @@ export class Client {
                 pixels[d + 2] = source[s + 2]
               }
             }
+            // saveTile(sprite[0], createPixelsToTexture(gl, width, height, pixels, gl.R, gl.NEAREST, gl.REPEAT))
             saveTile(sprite[0], createPixelsToTexture(gl, width, height, pixels, gl.RGB, gl.NEAREST, gl.REPEAT))
           }
         }
@@ -294,10 +302,6 @@ export class Client {
         saveTexture(texture.name, createTexture(gl, texture.image, gl.NEAREST, wrap))
       }
     }
-
-    const lights = shadePalette(64, 32, newPaletteFloat())
-    const shading = createPixelsToTexture(gl, 64, 32, lights, gl.RGB, gl.NEAREST, gl.CLAMP_TO_EDGE)
-    saveTexture('_shading', shading)
 
     this.rendering = new Renderer(gl)
     this.bufferGUI = new Buffer(2, 4, 2, 0, 4 * 800, 36 * 800)
@@ -315,6 +319,7 @@ export class Client {
     texture2d_font = await texture2d_font
     texture3d_rgb = await texture3d_rgb
     texture3d_light = await texture3d_light
+    texture3d_lookup = await texture3d_lookup
 
     rendererInsertProgram(rendering, 'color2d', compileProgram(gl, color2d))
     rendererInsertProgram(rendering, 'texture2d', compileProgram(gl, texture2d))
@@ -323,6 +328,7 @@ export class Client {
     rendererInsertProgram(rendering, 'texture2d-font', compileProgram(gl, texture2d_font))
     rendererInsertProgram(rendering, 'texture3d-rgb', compileProgram(gl, texture3d_rgb))
     rendererInsertProgram(rendering, 'texture3d-light', compileProgram(gl, texture3d_light))
+    rendererInsertProgram(rendering, 'texture3d-lookup', compileProgram(gl, texture3d_lookup))
 
     rendererMakeVAO(rendering, this.bufferGUI)
     rendererMakeVAO(rendering, this.bufferColor)

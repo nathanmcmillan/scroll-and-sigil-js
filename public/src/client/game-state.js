@@ -182,7 +182,10 @@ export class GameState {
     gl.enable(gl.CULL_FACE)
     gl.enable(gl.DEPTH_TEST)
 
-    rendererSetProgram(rendering, 'texture3d-light')
+    // rendererSetProgram(rendering, 'texture3d-light')
+
+    rendererSetProgram(rendering, 'texture3d-lookup')
+    // rendererBindTexture(rendering, gl.TEXTURE1, textureByName('_shading').texture)
 
     identity(view)
     rotateX(view, Math.sin(camera.rx), Math.cos(camera.rx))
