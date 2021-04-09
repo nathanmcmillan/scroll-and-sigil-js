@@ -80,7 +80,7 @@ export class PaintState {
     const pixels = exportPixels(paint)
 
     const gl = client.gl
-    this.texture = createPixelsToTexture(gl, columns, rows, pixels, gl.RGB, gl.NEAREST, gl.CLAMP_TO_EDGE).texture
+    this.texture = createPixelsToTexture(gl, columns, rows, pixels, gl.RGB, gl.RGB, gl.NEAREST, gl.CLAMP_TO_EDGE).texture
   }
 
   reset() {

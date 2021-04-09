@@ -117,17 +117,17 @@ export class HomeState {
 
     if (client.touch) renderTouch(client.touchRender)
 
-    // render world
+    rendererSetView(rendering, 0, client.top, width, height)
+
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
     const game = this.game
     const world = game.world
     const camera = game.camera
 
     rendererSetProgram(rendering, 'texture3d-rgb')
-    rendererSetView(rendering, 0, client.top, width, height)
 
-    gl.clearColor(0.0, 0.0, 0.0, 1.0)
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+    // sky box
 
     gl.disable(gl.CULL_FACE)
     gl.disable(gl.DEPTH_TEST)
@@ -143,8 +143,13 @@ export class HomeState {
     rendererBindTexture(rendering, gl.TEXTURE0, sky.texture)
     rendererBindAndDraw(rendering, client.bufferSky)
 
+    // render world
+
     gl.enable(gl.CULL_FACE)
     gl.enable(gl.DEPTH_TEST)
+
+    rendererSetProgram(rendering, 'texture3d-lookup')
+    rendererBindTexture(rendering, gl.TEXTURE1, textureByName('_shading').texture, 'u_lookup', 1)
 
     identity(view)
     rotateX(view, Math.sin(camera.rx), Math.cos(camera.rx))

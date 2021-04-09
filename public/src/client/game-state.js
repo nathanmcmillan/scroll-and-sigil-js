@@ -185,7 +185,7 @@ export class GameState {
     // rendererSetProgram(rendering, 'texture3d-light')
 
     rendererSetProgram(rendering, 'texture3d-lookup')
-    // rendererBindTexture(rendering, gl.TEXTURE1, textureByName('_shading').texture)
+    rendererBindTexture(rendering, gl.TEXTURE1, textureByName('_shading').texture, 'u_lookup', 1)
 
     identity(view)
     rotateX(view, Math.sin(camera.rx), Math.cos(camera.rx))

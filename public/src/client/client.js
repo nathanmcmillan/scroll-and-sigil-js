@@ -1,4 +1,4 @@
-import { createNewTexturesAndSpriteSheets, readPaintFile, readPaintFileAsLookup, saveEntity, saveTexture, saveTile, waitForResources } from '../assets/assets.js'
+import { createNewTexturesAndSpriteSheets, readPaintFileAsLookup, saveEntity, saveTexture, saveTile, waitForResources } from '../assets/assets.js'
 import { pauseMusic, resumeMusic, saveMusic, saveSound } from '../assets/sounds.js'
 import { DashboardState } from '../client/dashboard-state.js'
 import { GameState } from '../client/game-state.js'
@@ -241,8 +241,9 @@ export class Client {
       if (texture.endsWith('.txt')) {
         textures.push(
           fetchText(directory + '/sprites/' + texture).then((text) => {
+            // DEBUg
             // return readPaintFile(text, palette)
-            return readPaintFileAsLookup(text, palette)
+            return readPaintFileAsLookup(text)
           })
         )
       } else {
@@ -259,19 +260,20 @@ export class Client {
     await waitForResources()
 
     createNewTexturesAndSpriteSheets(palette, (image) => {
-      return createPixelsToTexture(gl, image.width, image.height, image.pixels, gl.RGB, gl.NEAREST, gl.CLAMP_TO_EDGE)
+      return createPixelsToTexture(gl, image.width, image.height, image.pixels, gl.R8, gl.RED, gl.NEAREST, gl.CLAMP_TO_EDGE)
+      // return createPixelsToTexture(gl, image.width, image.height, image.pixels, gl.RGB, gl.RGB, gl.NEAREST, gl.CLAMP_TO_EDGE)
     })
 
     const lights = shadePalette(64, 32, newPalette())
-    const shading = createPixelsToTexture(gl, 64, 32, lights, gl.RGB, gl.NEAREST, gl.CLAMP_TO_EDGE)
+    const shading = createPixelsToTexture(gl, 64, 32, lights, gl.RGB, gl.RGB, gl.NEAREST, gl.CLAMP_TO_EDGE)
     saveTexture('_shading', shading)
 
     for (let texture of textures) {
       texture = await texture
       const wrap = texture.wrap === 'repeat' ? gl.REPEAT : gl.CLAMP_TO_EDGE
       if (texture.pixels) {
-        // saveTexture(texture.name, createPixelsToTexture(gl, texture.width, texture.height, texture.pixels, gl.R, gl.NEAREST, wrap))
-        saveTexture(texture.name, createPixelsToTexture(gl, texture.width, texture.height, texture.pixels, gl.RGB, gl.NEAREST, wrap))
+        // saveTexture(texture.name, createPixelsToTexture(gl, texture.width, texture.height, texture.pixels, gl.RGB, gl.RGB, gl.NEAREST, wrap))
+        saveTexture(texture.name, createPixelsToTexture(gl, texture.width, texture.height, texture.pixels, gl.R8, gl.RED, gl.NEAREST, wrap))
         if (texture.sprites) {
           for (const sprite of texture.sprites) {
             if (sprite.length < 6 || sprite[5] !== 'tile') continue
@@ -283,19 +285,32 @@ export class Client {
             const height = bottom - top
             const source = texture.pixels
             const srcwid = texture.width
-            const pixels = new Uint8Array(width * height * 3)
-            for (let h = 0; h < height; h++) {
-              const row = top + h
-              for (let c = 0; c < width; c++) {
-                const s = (left + c + row * srcwid) * 3
-                const d = (c + h * width) * 3
-                pixels[d] = source[s]
-                pixels[d + 1] = source[s + 1]
-                pixels[d + 2] = source[s + 2]
+            const oneByte = true
+            if (oneByte) {
+              const pixels = new Uint8Array(width * height)
+              for (let h = 0; h < height; h++) {
+                const row = top + h
+                for (let c = 0; c < width; c++) {
+                  const s = left + c + row * srcwid
+                  const d = c + h * width
+                  pixels[d] = source[s]
+                }
               }
+              saveTile(sprite[0], createPixelsToTexture(gl, width, height, pixels, gl.R8, gl.RED, gl.NEAREST, gl.REPEAT))
+            } else {
+              const pixels = new Uint8Array(width * height * 3)
+              for (let h = 0; h < height; h++) {
+                const row = top + h
+                for (let c = 0; c < width; c++) {
+                  const s = (left + c + row * srcwid) * 3
+                  const d = (c + h * width) * 3
+                  pixels[d] = source[s]
+                  pixels[d + 1] = source[s + 1]
+                  pixels[d + 2] = source[s + 2]
+                }
+              }
+              saveTile(sprite[0], createPixelsToTexture(gl, width, height, pixels, gl.RGB, gl.RGB, gl.NEAREST, gl.REPEAT))
             }
-            // saveTile(sprite[0], createPixelsToTexture(gl, width, height, pixels, gl.R, gl.NEAREST, gl.REPEAT))
-            saveTile(sprite[0], createPixelsToTexture(gl, width, height, pixels, gl.RGB, gl.NEAREST, gl.REPEAT))
           }
         }
       } else {

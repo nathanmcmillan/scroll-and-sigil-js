@@ -62,9 +62,10 @@ export function rendererMakeVAO(render, b) {
   rendererBindAttributes(render, b)
 }
 
-export function rendererBindTexture(render, active, texture) {
+export function rendererBindTexture(render, active, texture, name = 'u_texture', index = 0) {
   render.gl.activeTexture(active)
   render.gl.bindTexture(render.gl.TEXTURE_2D, texture)
+  rendererUpdateUniformInt(render, name, index)
 }
 
 export function rendererUniformLocation(render, name) {
