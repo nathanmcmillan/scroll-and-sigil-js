@@ -148,8 +148,11 @@ export class HomeState {
     gl.enable(gl.CULL_FACE)
     gl.enable(gl.DEPTH_TEST)
 
-    rendererSetProgram(rendering, 'texture3d-lookup')
-    rendererBindTexture(rendering, gl.TEXTURE1, textureByName('_shading').texture, 'u_lookup', 1)
+    const trueColor = true
+    if (!trueColor) {
+      rendererSetProgram(rendering, 'texture3d-lookup')
+      rendererBindTexture(rendering, gl.TEXTURE1, textureByName('_shading').texture, 'u_lookup', 1)
+    }
 
     identity(view)
     rotateX(view, Math.sin(camera.rx), Math.cos(camera.rx))
@@ -157,6 +160,7 @@ export class HomeState {
     translate(view, -camera.x, -camera.y, -camera.z)
     multiply(projection, client.perspective, view)
     rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
+    rendererUpdateUniformMatrix(rendering, 'u_view', view)
 
     const sectorIter = tableIter(client.sectorBuffers)
     while (tableIterHasNext(sectorIter)) {

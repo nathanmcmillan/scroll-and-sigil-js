@@ -239,13 +239,15 @@ export function spritesByName(name) {
   return SPRITE_SHEETS.get(name)
 }
 
+const trueColor = false
+
 export function createNewTexturesAndSpriteSheets(palette, closure) {
   for (const sprite of ASYNC_SPRITE_NAMES) {
     if (SPRITE_SHEETS.has(sprite)) continue
     const image = SPRITE_IMAGES.get(sprite)
-    // DEBUG
-    // const paint = readPaintFile(image, palette)
-    const paint = readPaintFileAsLookup(image)
+    let paint
+    if (trueColor) paint = readPaintFile(image, palette)
+    else paint = readPaintFileAsLookup(image)
     const texture = closure(paint)
     saveTexture(sprite, texture)
     if (paint.sprites) {

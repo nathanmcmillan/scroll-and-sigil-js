@@ -5,13 +5,13 @@ uniform int u_light_count;
 uniform vec3 u_light_position[8];
 layout (location = 0) in vec3 in_position;
 layout (location = 1) in vec2 in_texture;
-out vec2 v_texture;
 out vec3 v_position;
+out vec2 v_texture;
 out vec3 v_lights[8];
 void main() {
   vec4 position = vec4(in_position, 1.0);
-  v_texture = in_texture;
   v_position = (u_view * position).xyz;
+  v_texture = in_texture;
   for (int i = 0; i < u_light_count; i++) v_lights[i] = u_light_position[i] - in_position.xyz;
   gl_Position = u_mvp * position;
 }
@@ -23,10 +23,10 @@ uniform highp int u_light_count;
 uniform vec3 u_light_color[8];
 uniform float u_light_strength[8];
 const vec3 fog_color = vec3(0.0, 0.0, 0.0);
-const float near = 50.0;
-const float far = 100.0;
-in vec2 v_texture;
+const float near = 10.0;
+const float far = 80.0;
 in vec3 v_position;
+in vec2 v_texture;
 in vec3 v_lights[8];
 layout (location = 0) out vec4 color;
 const vec3[32] table = vec3[] (

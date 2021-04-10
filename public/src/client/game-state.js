@@ -182,10 +182,13 @@ export class GameState {
     gl.enable(gl.CULL_FACE)
     gl.enable(gl.DEPTH_TEST)
 
-    // rendererSetProgram(rendering, 'texture3d-light')
-
-    rendererSetProgram(rendering, 'texture3d-lookup')
-    rendererBindTexture(rendering, gl.TEXTURE1, textureByName('_shading').texture, 'u_lookup', 1)
+    const trueColor = false
+    if (trueColor) {
+      rendererSetProgram(rendering, 'texture3d-light')
+    } else {
+      rendererSetProgram(rendering, 'texture3d-lookup')
+      rendererBindTexture(rendering, gl.TEXTURE1, textureByName('_shading').texture, 'u_lookup', 1)
+    }
 
     identity(view)
     rotateX(view, Math.sin(camera.rx), Math.cos(camera.rx))
@@ -203,7 +206,7 @@ export class GameState {
         const missile = missiles[m]
         rendererUpdateUniformVec3(rendering, 'u_light_color[' + m + ']', 0.0, 0.4, 0.0)
         rendererUpdateUniformVec3(rendering, 'u_light_position[' + m + ']', missile.x, missile.y, missile.z)
-        const radius = 10.0
+        const radius = 15.0
         rendererUpdateUniformFloat(rendering, 'u_light_strength[' + m + ']', 1.0 / (radius * radius))
       }
     }

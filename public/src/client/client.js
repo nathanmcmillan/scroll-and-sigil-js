@@ -1,4 +1,4 @@
-import { createNewTexturesAndSpriteSheets, readPaintFileAsLookup, saveEntity, saveTexture, saveTile, waitForResources } from '../assets/assets.js'
+import { createNewTexturesAndSpriteSheets, readPaintFile, readPaintFileAsLookup, saveEntity, saveTexture, saveTile, waitForResources } from '../assets/assets.js'
 import { pauseMusic, resumeMusic, saveMusic, saveSound } from '../assets/sounds.js'
 import { DashboardState } from '../client/dashboard-state.js'
 import { GameState } from '../client/game-state.js'
@@ -231,19 +231,21 @@ export class Client {
     let texture2d_rgb = fetchText('./shaders/texture2d-rgb.glsl')
     let texture2d_font = fetchText('./shaders/texture2d-font.glsl')
     let texture3d_rgb = fetchText('./shaders/texture3d-rgb.glsl')
+    let texture3d_palette = fetchText('./shaders/texture3d-palette.glsl')
     let texture3d_light = fetchText('./shaders/texture3d-light.glsl')
     let texture3d_lookup = fetchText('./shaders/texture3d-lookup.glsl')
 
     const textures = []
     const palette = newPalette()
 
+    const trueColor = false
+
     for (const texture of contents.get('sprites')) {
       if (texture.endsWith('.txt')) {
         textures.push(
           fetchText(directory + '/sprites/' + texture).then((text) => {
-            // DEBUg
-            // return readPaintFile(text, palette)
-            return readPaintFileAsLookup(text)
+            if (trueColor) return readPaintFile(text, palette)
+            else return readPaintFileAsLookup(text)
           })
         )
       } else {
@@ -260,20 +262,22 @@ export class Client {
     await waitForResources()
 
     createNewTexturesAndSpriteSheets(palette, (image) => {
-      return createPixelsToTexture(gl, image.width, image.height, image.pixels, gl.R8, gl.RED, gl.NEAREST, gl.CLAMP_TO_EDGE)
-      // return createPixelsToTexture(gl, image.width, image.height, image.pixels, gl.RGB, gl.RGB, gl.NEAREST, gl.CLAMP_TO_EDGE)
+      if (trueColor) return createPixelsToTexture(gl, image.width, image.height, image.pixels, gl.RGB, gl.RGB, gl.NEAREST, gl.CLAMP_TO_EDGE)
+      else return createPixelsToTexture(gl, image.width, image.height, image.pixels, gl.R8, gl.RED, gl.NEAREST, gl.CLAMP_TO_EDGE)
     })
 
-    const lights = shadePalette(64, 32, newPalette())
-    const shading = createPixelsToTexture(gl, 64, 32, lights, gl.RGB, gl.RGB, gl.NEAREST, gl.CLAMP_TO_EDGE)
-    saveTexture('_shading', shading)
+    if (!trueColor) {
+      const lights = shadePalette(64, 32, newPalette())
+      const shading = createPixelsToTexture(gl, 64, 32, lights, gl.RGB, gl.RGB, gl.NEAREST, gl.CLAMP_TO_EDGE)
+      saveTexture('_shading', shading)
+    }
 
     for (let texture of textures) {
       texture = await texture
       const wrap = texture.wrap === 'repeat' ? gl.REPEAT : gl.CLAMP_TO_EDGE
       if (texture.pixels) {
-        // saveTexture(texture.name, createPixelsToTexture(gl, texture.width, texture.height, texture.pixels, gl.RGB, gl.RGB, gl.NEAREST, wrap))
-        saveTexture(texture.name, createPixelsToTexture(gl, texture.width, texture.height, texture.pixels, gl.R8, gl.RED, gl.NEAREST, wrap))
+        if (trueColor) saveTexture(texture.name, createPixelsToTexture(gl, texture.width, texture.height, texture.pixels, gl.RGB, gl.RGB, gl.NEAREST, wrap))
+        else saveTexture(texture.name, createPixelsToTexture(gl, texture.width, texture.height, texture.pixels, gl.R8, gl.RED, gl.NEAREST, wrap))
         if (texture.sprites) {
           for (const sprite of texture.sprites) {
             if (sprite.length < 6 || sprite[5] !== 'tile') continue
@@ -285,19 +289,7 @@ export class Client {
             const height = bottom - top
             const source = texture.pixels
             const srcwid = texture.width
-            const oneByte = true
-            if (oneByte) {
-              const pixels = new Uint8Array(width * height)
-              for (let h = 0; h < height; h++) {
-                const row = top + h
-                for (let c = 0; c < width; c++) {
-                  const s = left + c + row * srcwid
-                  const d = c + h * width
-                  pixels[d] = source[s]
-                }
-              }
-              saveTile(sprite[0], createPixelsToTexture(gl, width, height, pixels, gl.R8, gl.RED, gl.NEAREST, gl.REPEAT))
-            } else {
+            if (trueColor) {
               const pixels = new Uint8Array(width * height * 3)
               for (let h = 0; h < height; h++) {
                 const row = top + h
@@ -310,6 +302,17 @@ export class Client {
                 }
               }
               saveTile(sprite[0], createPixelsToTexture(gl, width, height, pixels, gl.RGB, gl.RGB, gl.NEAREST, gl.REPEAT))
+            } else {
+              const pixels = new Uint8Array(width * height)
+              for (let h = 0; h < height; h++) {
+                const row = top + h
+                for (let c = 0; c < width; c++) {
+                  const s = left + c + row * srcwid
+                  const d = c + h * width
+                  pixels[d] = source[s]
+                }
+              }
+              saveTile(sprite[0], createPixelsToTexture(gl, width, height, pixels, gl.R8, gl.RED, gl.NEAREST, gl.REPEAT))
             }
           }
         }
@@ -333,6 +336,7 @@ export class Client {
     texture2d_rgb = await texture2d_rgb
     texture2d_font = await texture2d_font
     texture3d_rgb = await texture3d_rgb
+    texture3d_palette = await texture3d_palette
     texture3d_light = await texture3d_light
     texture3d_lookup = await texture3d_lookup
 
@@ -342,6 +346,7 @@ export class Client {
     rendererInsertProgram(rendering, 'texture2d-rgb', compileProgram(gl, texture2d_rgb))
     rendererInsertProgram(rendering, 'texture2d-font', compileProgram(gl, texture2d_font))
     rendererInsertProgram(rendering, 'texture3d-rgb', compileProgram(gl, texture3d_rgb))
+    rendererInsertProgram(rendering, 'texture3d-palette', compileProgram(gl, texture3d_palette))
     rendererInsertProgram(rendering, 'texture3d-light', compileProgram(gl, texture3d_light))
     rendererInsertProgram(rendering, 'texture3d-lookup', compileProgram(gl, texture3d_lookup))
 

@@ -18,6 +18,8 @@ export function createTexture(gl, image, filter, wrap) {
   return new Texture(image.width, image.height, texture)
 }
 
+const useMipmap = false
+
 export function createPixelsToTexture(gl, width, height, pixels, internal, format, filter, wrap) {
   const texture = gl.createTexture()
   gl.bindTexture(gl.TEXTURE_2D, texture)
@@ -26,6 +28,7 @@ export function createPixelsToTexture(gl, width, height, pixels, internal, forma
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter)
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrap)
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wrap)
+  if (useMipmap) gl.generateMipmap(gl.TEXTURE_2D)
   gl.bindTexture(gl.TEXTURE_2D, null)
   return new Texture(width, height, texture)
 }
