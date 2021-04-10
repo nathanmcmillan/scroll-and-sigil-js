@@ -61,7 +61,16 @@ function tick(timestamp) {
 
 async function main() {
   const canvas = newCanvas(window.innerWidth, window.innerHeight)
-  const gl = canvas.getContext('webgl2', { antialias: false })
+
+  let gl = canvas.getContext('webgl2', { antialias: false })
+  if (!gl) {
+    gl = canvas.getContext('webgl', { antialias: false })
+    if (!gl) {
+      throw 'Your browser does not support WebGL'
+    } else {
+      console.warn('WebGL2 is not supported')
+    }
+  }
 
   client = new Client(canvas, gl)
 
