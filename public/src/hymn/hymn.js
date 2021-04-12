@@ -285,7 +285,13 @@ class Interpreter {
   }
 }
 
-export function script(code) {
-  const interpreter = new Interpreter()
-  console.log(interpreter.interpret(code))
+export class Hymn {
+  constructor(script) {
+    this.script = script
+  }
+
+  eval() {
+    const interpreter = new Interpreter()
+    return interpreter.interpret(this.script)
+  }
 }
