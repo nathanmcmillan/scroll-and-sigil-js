@@ -16,12 +16,14 @@ A 3D adventure game with a strong focus on modding and user crafted content.
 
 ### Priority
 
-- trigger action floor 10 (raise floor +10)
-- trigger action ceiling 10 (raise ceiling +10)
+- Trigger action floor 10 (raise floor +10)
+- Trigger action ceiling 10 (raise ceiling +10)
 - Top down view, show red for monsters, yellow for doodads, green for friendly, etc
 - Single file format for entire data pack
 - Snap/attach things to walls (like torches)
 - Need a global ticker for animated tiles and doodads
+
+- Synth sound visualizer
 
 ### Bugs
 

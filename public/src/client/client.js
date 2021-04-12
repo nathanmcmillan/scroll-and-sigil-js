@@ -238,7 +238,7 @@ export class Client {
     const textures = []
     const palette = newPalette()
 
-    const trueColor = false
+    const trueColor = true
 
     for (const texture of contents.get('sprites')) {
       if (texture.endsWith('.txt')) {

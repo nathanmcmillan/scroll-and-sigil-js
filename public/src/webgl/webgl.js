@@ -33,6 +33,13 @@ export function createPixelsToTexture(gl, width, height, pixels, internal, forma
   return new Texture(width, height, texture)
 }
 
+export function updatePixelsToTexture(gl, texture, width, height, pixels) {
+  gl.bindTexture(gl.TEXTURE_2D, texture)
+  gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, width, height, gl.RGB, gl.UNSIGNED_BYTE, pixels, 0)
+  gl.bindTexture(gl.TEXTURE_2D, null)
+  return texture
+}
+
 function compileShader(gl, code, type) {
   const shader = gl.createShader(type)
   gl.shaderSource(shader, code)

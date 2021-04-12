@@ -64,6 +64,8 @@ export class PaintEdit {
     let i = this.sheet.length
     while (i--) this.sheet[i] = 0
 
+    this.pixels = new Uint8Array(this.sheetRows * this.sheetColumns * 3)
+
     this.sprites = []
 
     this.paletteC = 0
@@ -942,12 +944,12 @@ export class PaintEdit {
   }
 }
 
-export function exportPixels(paint) {
+export function paintUpdatePixels(paint) {
   const sheet = paint.sheet
   const rows = paint.sheetRows
   const columns = paint.sheetColumns
   const palette = paint.palette
-  const pixels = new Uint8Array(rows * columns * 3)
+  const pixels = paint.pixels
   for (let r = 0; r < rows; r++) {
     const row = r * columns
     for (let c = 0; c < columns; c++) {
@@ -962,7 +964,7 @@ export function exportPixels(paint) {
   return pixels
 }
 
-export function exportToCanvas(paint, out) {
+export function paintExportToCanvas(paint, out) {
   const sheet = paint.sheet
   const rows = paint.sheetRows
   const columns = paint.sheetColumns

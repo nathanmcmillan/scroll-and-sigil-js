@@ -239,7 +239,7 @@ export function spritesByName(name) {
   return SPRITE_SHEETS.get(name)
 }
 
-const trueColor = false
+const trueColor = true
 
 export function createNewTexturesAndSpriteSheets(palette, closure) {
   for (const sprite of ASYNC_SPRITE_NAMES) {

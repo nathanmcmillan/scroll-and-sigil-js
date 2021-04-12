@@ -1,6 +1,7 @@
 import { fetchText } from '../client/net.js'
 import { Dialog } from '../gui/dialog.js'
-import { SEMITONES, WAVE_LIST, diatonic, pulse, waveFromName } from '../sound/synth.js'
+import { diatonic, pulse, SEMITONES, waveFromName, WAVE_LIST } from '../sound/synth.js'
+import { dusk0, dusk1, dusk2, silver0, silver1, silver2 } from './palette.js'
 
 // TODO: Every sound effect needs to be chainable e.g. (noise for 1s + sine for 1s + etc)
 
@@ -26,8 +27,24 @@ export class SfxEdit {
     this.row = 0
 
     this.name = 'untitled'
+
+    this.waveGroup = ['wave', 'cycle']
+    this.freqGroup = ['freq', 'speed', 'accel', 'jerk']
+    this.volumeGroup = ['attack', 'decay', 'sustain', 'length', 'release']
+    this.modulateGroup = ['tremolo', 'modulation', 'noise', 'bit crush', 'delay', 'tremolo']
+
     this.parameters = ['Wave', 'Frequency', 'Duration', 'Volume', 'Attack', 'Delay', 'Sustain', 'Release', 'Modulation', 'Noise', 'Bit Crush', 'Delay', 'Tremolo', 'Pulse Cycle']
     this.arguments = [0, 49, 1000.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5]
+
+    this.visualWidth = 200
+    this.visualHeight = 80
+    this.visualPixels = new Uint8Array(this.visualWidth * this.visualHeight * 3)
+    for (let p = 0; p < this.visualPixels.length; p += 3) {
+      this.visualPixels[p] = silver0
+      this.visualPixels[p + 1] = silver1
+      this.visualPixels[p + 2] = silver2
+    }
+    this.refreshPixels = false
 
     this.sounds = []
 
@@ -186,7 +203,7 @@ export class SfxEdit {
       else return
     } else this.shadowInput = true
     this.doPaint = true
-    this.hasUpdates = false
+    this.refreshPixels = false
 
     const input = this.input
 
@@ -212,12 +229,15 @@ export class SfxEdit {
       const pitch = diatonic(this.arguments[FREQUENCY_INDEX] - SEMITONES)
       const seconds = this.arguments[DURATION_INDEX]
       const amplitude = this.arguments[VOLUME_INDEX]
+      let source
       if (waveform === pulse) {
         const cycle = this.arguments[CYCLE_INDEX]
-        this.sounds.push(waveform(amplitude, pitch, cycle, seconds / 1000.0))
+        source = waveform(amplitude, pitch, cycle, seconds / 1000.0)
       } else {
-        this.sounds.push(waveform(amplitude, pitch, seconds / 1000.0))
+        source = waveform(amplitude, pitch, seconds / 1000.0)
       }
+      this.sounds.push(source)
+      this.updatePixels(source)
     }
 
     if (input.timerStickUp(timestamp, INPUT_RATE)) {
@@ -253,6 +273,87 @@ export class SfxEdit {
         if (this.arguments[row] < 10.0) this.arguments[row] += 0.2
       }
     }
+  }
+
+  updatePixels(source) {
+    const data = source.buffer.getChannelData(0)
+    const samples = data.length
+    const width = this.visualWidth
+    const height = this.visualHeight
+    // const middle = Math.floor(0.5 * height)
+    const pixels = this.visualPixels
+    const size = pixels.length
+    for (let p = 0; p < size; p += 3) {
+      pixels[p] = silver0
+      pixels[p + 1] = silver1
+      pixels[p + 2] = silver2
+    }
+    // let min = Number.MAX_VALUE
+    // let max = -Number.MAX_VALUE
+    // for (let s = 0; s < samples; s++) {
+    //   const sample = data[s]
+    //   if (sample < min) min = sample
+    //   if (sample > max) max = sample
+    // }
+    // const range = max - min
+
+    const parition = Math.floor(samples / width)
+    console.debug('partition =', parition)
+    let n = 0
+    let e = parition
+
+    for (let c = 0; c < width; c++) {
+      // const slice = Math.floor((c / width) * samples)
+      // const normalized = (data[slice] - min) / range
+      // const r = Math.floor(height * normalized)
+
+      // let min = Number.MAX_VALUE
+      // let max = -Number.MAX_VALUE
+      // for (let s = n; s < e; s++) {
+      //   const sample = data[s]
+      //   if (sample < min) min = sample
+      //   if (sample > max) max = sample
+      // }
+
+      let pos = 0
+      let neg = 0
+      let posc = 0
+      let negc = 0
+      for (let s = n; s < e; s++) {
+        const sample = data[s]
+        if (sample > 0) {
+          pos += sample
+          posc++
+        } else {
+          neg += sample
+          negc++
+        }
+      }
+      if (posc > 0) pos /= posc
+      if (negc > 0) neg /= negc
+
+      // const range = max - min
+      // const slice = Math.floor((c / width) * samples)
+      // const normalized = (data[slice] - min) / range
+      // const r = Math.floor(0.5 * height + (normalized - 0.5) * height)
+
+      let b = Math.floor(height - (pos + 1.0) * 0.5 * height)
+      let t = Math.floor(height - (neg + 1.0) * 0.5 * height)
+      if (b < 0) b = 0
+      if (t >= height) t = height - 1
+
+      for (let r = b; r < t; r++) {
+        const i = (c + r * width) * 3
+        pixels[i] = dusk0
+        pixels[i + 1] = dusk1
+        pixels[i + 2] = dusk2
+      }
+
+      n = e
+      e += parition
+      if (e > samples) e = samples
+    }
+    this.refreshPixels = true
   }
 
   export() {

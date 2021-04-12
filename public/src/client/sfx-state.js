@@ -1,13 +1,15 @@
 import { textureByName } from '../assets/assets.js'
 import { renderDialogBox, renderStatus } from '../client/client-util.js'
 import { calcBottomBarHeight, calcFontPad, calcFontScale, calcTopBarHeight, defaultFont } from '../editor/editor-util.js'
-import { orange0f, orange1f, orange2f, red0f, red1f, red2f, silver0f, silver1f, silver2f, slatef } from '../editor/palette.js'
+import { orange0f, orange1f, orange2f, ember0f, ember1f, ember2f, silver0f, silver1f, silver2f, slatef } from '../editor/palette.js'
 import { DURATION_INDEX, FREQUENCY_INDEX, SfxEdit, WAVE_INDEX } from '../editor/sfx.js'
+import { flexBox, flexSolve, returnFlexBox } from '../gui/flex.js'
 import { identity, multiply } from '../math/matrix.js'
-import { drawRectangle, drawTextFont } from '../render/render.js'
+import { drawImage, drawRectangle, drawTextFont } from '../render/render.js'
 import { diatonic, semitoneName, SEMITONES, WAVE_LIST } from '../sound/synth.js'
 import { bufferZero } from '../webgl/buffer.js'
 import { rendererBindTexture, rendererSetProgram, rendererSetView, rendererUpdateAndDraw, rendererUpdateUniformMatrix } from '../webgl/renderer.js'
+import { createPixelsToTexture, updatePixelsToTexture } from '../webgl/webgl.js'
 
 export class SfxState {
   constructor(client) {
@@ -19,6 +21,13 @@ export class SfxState {
 
     const sfx = new SfxEdit(this, client.width, client.height - client.top, client.scale, client.input)
     this.sfx = sfx
+
+    const width = sfx.visualWidth
+    const height = sfx.visualHeight
+    const pixels = sfx.visualPixels
+
+    const gl = client.gl
+    this.texture = createPixelsToTexture(gl, width, height, pixels, gl.RGB, gl.RGB, gl.NEAREST, gl.CLAMP_TO_EDGE).texture
   }
 
   reset() {}
@@ -41,6 +50,7 @@ export class SfxState {
 
   async initialize() {
     await this.sfx.load()
+    this.updateTexture()
   }
 
   eventCall(event) {
@@ -86,8 +96,18 @@ export class SfxState {
     download.click()
   }
 
+  updateTexture() {
+    const sfx = this.sfx
+    const width = sfx.visualWidth
+    const height = sfx.visualHeight
+    const pixels = sfx.visualPixels
+    updatePixelsToTexture(this.client.gl, this.texture, width, height, pixels)
+  }
+
   update(timestamp) {
-    this.sfx.update(timestamp)
+    const sfx = this.sfx
+    sfx.update(timestamp)
+    if (sfx.refreshPixels) this.updateTexture()
   }
 
   render() {
@@ -129,10 +149,10 @@ export class SfxState {
     bufferZero(client.bufferColor)
 
     const topBarHeight = calcTopBarHeight(scale)
-    drawRectangle(client.bufferColor, 0, height - topBarHeight, width, topBarHeight, red0f, red1f, red2f, 1.0)
+    drawRectangle(client.bufferColor, 0, height - topBarHeight, width, topBarHeight, ember0f, ember1f, ember2f, 1.0)
 
     const bottomBarHeight = calcBottomBarHeight(scale)
-    drawRectangle(client.bufferColor, 0, 0, width, bottomBarHeight, red0f, red1f, red2f, 1.0)
+    drawRectangle(client.bufferColor, 0, 0, width, bottomBarHeight, ember0f, ember1f, ember2f, 1.0)
 
     rendererUpdateAndDraw(rendering, client.bufferColor)
 
@@ -153,7 +173,7 @@ export class SfxState {
     let y = 600
 
     for (let i = 0; i < sfx.parameters.length; i++) {
-      let text = sfx.parameters[i] + ': '
+      let text = sfx.parameters[i] + ' = '
       if (i === WAVE_INDEX) text += WAVE_LIST[sfx.arguments[i]]
       else if (i === FREQUENCY_INDEX) text += diatonic(sfx.arguments[i] - SEMITONES).toFixed(2) + ' (' + semitoneName(sfx.arguments[i] - SEMITONES) + ')'
       else if (i === DURATION_INDEX) text += sfx.arguments[i] + ' ms'
@@ -164,6 +184,20 @@ export class SfxState {
     }
 
     rendererBindTexture(rendering, gl.TEXTURE0, textureByName(font.name).texture)
+    rendererUpdateAndDraw(rendering, client.bufferGUI)
+
+    // visualize
+
+    bufferZero(client.bufferGUI)
+
+    const visual = flexBox(sfx.visualWidth, sfx.visualHeight)
+    visual.funX = 'center'
+    visual.funY = 'center'
+    flexSolve(width, height, visual)
+    drawImage(client.bufferGUI, visual.x, visual.y, visual.width, visual.height, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0)
+    returnFlexBox(visual)
+
+    rendererBindTexture(rendering, gl.TEXTURE0, this.texture)
     rendererUpdateAndDraw(rendering, client.bufferGUI)
 
     // dialog box
