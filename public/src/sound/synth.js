@@ -4,6 +4,20 @@ export const SYNTH_RATE = 44100
 
 export const SEMITONES = 49
 
+export const WAVE = 0
+export const CYCLE = 1
+export const FREQ = 2
+export const SPEED = 3
+export const ACCEL = 4
+export const JERK = 5
+export const ATTACK = 6
+export const DECAY = 7
+export const SUSTAIN = 8
+export const LENGTH = 9
+export const RELEASE = 10
+export const VOLUME = 11
+export const PARAMETER_COUNT = 12
+
 const rate = 1.0 / SYNTH_RATE
 const pi = Math.PI
 const tau = 2.0 * pi
@@ -104,18 +118,42 @@ function algoTriangle(data, amplitude, frequency) {
   }
 }
 
-function algoSawtooth(data, amplitude, frequency) {
-  const len = data.length
-  const increment = tau * frequency * rate
+// function algoPureSawtooth(data, parameters) {
+//   const frequency = diatonic(parameters[FREQ] - SEMITONES)
+//   const amplitude = parameters[VOLUME]
+
+//   const len = data.length
+//   const increment = tau * frequency * rate
+//   let phase = 0
+//   for (let i = 0; i < len; i++) {
+//     data[i] = amplitude - (amplitude / pi) * phase
+//     phase += increment
+//     if (phase > tau) phase -= tau
+//   }
+// }
+
+function algoSawtooth(data, parameters) {
+  const amplitude = parameters[VOLUME]
+
+  let frequency = diatonic(parameters[FREQ] - SEMITONES)
+  let speed = parameters[SPEED]
+  let acceleration = parameters[ACCEL] / 1000
+  const jerk = parameters[JERK] / 1000 / 1000
+
+  const size = data.length
   let phase = 0
-  for (let i = 0; i < len; i++) {
+  for (let i = 0; i < size; i++) {
     data[i] = amplitude - (amplitude / pi) * phase
+    const increment = tau * frequency * rate
     phase += increment
     if (phase > tau) phase -= tau
+    frequency += speed
+    speed += acceleration
+    acceleration += jerk
   }
 }
 
-function play(amplitude, frequency, parameters, seconds, algo, when = 0) {
+function create(amplitude, frequency, parameters, seconds, algo, when = 0) {
   const buffer = context.createBuffer(1, Math.ceil(SYNTH_RATE * seconds), SYNTH_RATE)
   const data = buffer.getChannelData(0)
   algo(data, amplitude, frequency, parameters)
@@ -127,34 +165,43 @@ function play(amplitude, frequency, parameters, seconds, algo, when = 0) {
 }
 
 export function pure(amplitude, frequency, seconds, when = 0) {
-  return play(amplitude, frequency, null, seconds, algoPureNoise, when)
+  return create(amplitude, frequency, null, seconds, algoPureNoise, when)
 }
 
 export function noise(amplitude, frequency, seconds, when = 0) {
-  return play(amplitude, frequency, null, seconds, algoNoiseFrequency, when)
+  return create(amplitude, frequency, null, seconds, algoNoiseFrequency, when)
 }
 
 export function sine(amplitude, frequency, seconds, when = 0) {
-  return play(amplitude, frequency, null, seconds, algoSine, when)
+  return create(amplitude, frequency, null, seconds, algoSine, when)
 }
 
 export function square(amplitude, frequency, seconds, when = 0) {
-  return play(amplitude, frequency, null, seconds, algoSquare, when)
+  return create(amplitude, frequency, null, seconds, algoSquare, when)
 }
 
 export function pulse(amplitude, frequency, cycle, seconds, when = 0) {
-  return play(amplitude, frequency, cycle, seconds, algoPulse, when)
+  return create(amplitude, frequency, cycle, seconds, algoPulse, when)
 }
 
 export function triangle(amplitude, frequency, seconds, when = 0) {
-  return play(amplitude, frequency, null, seconds, algoTriangle, when)
+  return create(amplitude, frequency, null, seconds, algoTriangle, when)
 }
 
-export function sawtooth(amplitude, frequency, seconds, when = 0) {
-  return play(amplitude, frequency, null, seconds, algoSawtooth, when)
+export function sawtooth(parameters, when = 0) {
+  const seconds = parameters[LENGTH] / 1000
+
+  const buffer = context.createBuffer(1, Math.ceil(SYNTH_RATE * seconds), SYNTH_RATE)
+  const data = buffer.getChannelData(0)
+  algoSawtooth(data, parameters)
+  const source = context.createBufferSource()
+  source.buffer = buffer
+  source.connect(context.destination)
+  source.start(when)
+  return source
 }
 
-export const WAVE_LIST = ['sine', 'square', 'pulse', 'triangle', 'sawtooth', 'noise', 'static']
+export const WAVEFORMS = ['Sine', 'Square', 'Pulse', 'Triangle', 'Sawtooth', 'Noise', 'Static']
 
 export function waveFromName(name) {
   switch (name) {
@@ -173,6 +220,7 @@ export function waveFromName(name) {
     case 'static':
       return pure
   }
+  console.error('Bad waveform: ' + name)
   return sine
 }
 

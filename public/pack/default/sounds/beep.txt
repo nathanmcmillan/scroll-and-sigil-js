@@ -1,5 +1,5 @@
 sound untitled
-wave 3
+wave sine
 frequency 43
 duration 296
 volume 1
@@ -12,5 +12,5 @@ noise 0
 bit_crush 0
 delay 0
 tremolo 0
-pulse_cycle 0.5
+cycle 0.5
 end sound

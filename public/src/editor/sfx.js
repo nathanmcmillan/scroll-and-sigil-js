@@ -1,15 +1,9 @@
 import { fetchText } from '../client/net.js'
 import { Dialog } from '../gui/dialog.js'
-import { diatonic, pulse, SEMITONES, waveFromName, WAVE_LIST } from '../sound/synth.js'
+import { ACCEL, ATTACK, CYCLE, DECAY, FREQ, JERK, LENGTH, PARAMETER_COUNT, RELEASE, SPEED, SUSTAIN, VOLUME, WAVE, WAVEFORMS, waveFromName } from '../sound/synth.js'
 import { dusk0, dusk1, dusk2, silver0, silver1, silver2 } from './palette.js'
 
 // TODO: Every sound effect needs to be chainable e.g. (noise for 1s + sine for 1s + etc)
-
-export const WAVE_INDEX = 0
-export const FREQUENCY_INDEX = 1
-export const DURATION_INDEX = 2
-export const VOLUME_INDEX = 3
-export const CYCLE_INDEX = 13
 
 const INPUT_RATE = 128
 
@@ -28,13 +22,43 @@ export class SfxEdit {
 
     this.name = 'untitled'
 
-    this.waveGroup = ['wave', 'cycle']
-    this.freqGroup = ['freq', 'speed', 'accel', 'jerk']
-    this.volumeGroup = ['attack', 'decay', 'sustain', 'length', 'release']
-    this.modulateGroup = ['tremolo', 'modulation', 'noise', 'bit crush', 'delay', 'tremolo']
+    this.waveGroup = ['Wave', 'Cycle']
+    this.frequencyGroup = ['Frequency', 'Speed', 'Accel', 'Jerk']
+    this.volumeGroup = ['Attack', 'Decay', 'Sustain', 'Length', 'Release', 'Volume']
+    // this.modulateGroup = ['tremolo', 'modulation', 'noise', 'bit crush', 'delay', 'tremolo']
 
-    this.parameters = ['Wave', 'Frequency', 'Duration', 'Volume', 'Attack', 'Delay', 'Sustain', 'Release', 'Modulation', 'Noise', 'Bit Crush', 'Delay', 'Tremolo', 'Pulse Cycle']
-    this.arguments = [0, 49, 1000.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5]
+    this.arguments = [].concat(this.waveGroup).concat(this.frequencyGroup).concat(this.volumeGroup)
+
+    this.parameters = new Array(PARAMETER_COUNT).fill(null)
+
+    this.parameters[WAVE] = 0
+    this.parameters[CYCLE] = 0.5
+
+    this.parameters[FREQ] = 49
+    this.parameters[SPEED] = 0.0
+    this.parameters[ACCEL] = 0.0
+    this.parameters[JERK] = 0.0
+
+    this.parameters[ATTACK] = 0.0
+    this.parameters[DECAY] = 0.0
+    this.parameters[SUSTAIN] = 0.5
+    this.parameters[LENGTH] = 1000.0
+    this.parameters[RELEASE] = 0.0
+    this.parameters[VOLUME] = 1.0
+
+    this.range = new Array(PARAMETER_COUNT).fill(null)
+
+    this.range[WAVE] = [1, 0, WAVEFORMS.length - 1]
+    this.range[CYCLE] = [0.05, 0.0, 1.0]
+
+    this.range[FREQ] = [1, 1, 99]
+    this.range[SPEED] = [0.001, -1.0, 1.0]
+    this.range[ACCEL] = [0.001, -1.0, 1.0]
+    this.range[JERK] = [0.001, -1.0, 1.0]
+
+    this.range[SUSTAIN] = [0.05, 0.0, 1.0]
+    this.range[LENGTH] = [16, 16, 16000]
+    this.range[VOLUME] = [0.1, 0.1, 2.0]
 
     this.visualWidth = 200
     this.visualHeight = 80
@@ -136,13 +160,26 @@ export class SfxEdit {
     this.clear()
     try {
       const sfx = content.split('\n')
-      let x = 0
       for (let i = 1; i < sfx.length; i++) {
         if (sfx[i] === 'end sound') break
         const line = sfx[i].split(' ')
-        const value = line[line.length - 1]
-        this.arguments[x] = parseFloat(value)
-        x++
+        const name = line[0]
+        const value = line[1]
+        for (let a = 0; a < this.arguments.length; a++) {
+          if (this.arguments[a].toLowerCase() === name) {
+            if (name === 'wave') {
+              for (let w = 0; w < WAVEFORMS.length; w++) {
+                if (WAVEFORMS[w].toLowerCase() === value) {
+                  this.parameters[a] = w
+                  break
+                }
+              }
+            } else {
+              this.parameters[a] = parseFloat(value)
+            }
+            break
+          }
+        }
       }
     } catch (e) {
       console.error(e)
@@ -225,17 +262,18 @@ export class SfxEdit {
     if (input.pressX()) {
       for (const sound of this.sounds) sound.stop()
       this.sounds.length = 0
-      const waveform = waveFromName(WAVE_LIST[this.arguments[WAVE_INDEX]].toLowerCase())
-      const pitch = diatonic(this.arguments[FREQUENCY_INDEX] - SEMITONES)
-      const seconds = this.arguments[DURATION_INDEX]
-      const amplitude = this.arguments[VOLUME_INDEX]
-      let source
-      if (waveform === pulse) {
-        const cycle = this.arguments[CYCLE_INDEX]
-        source = waveform(amplitude, pitch, cycle, seconds / 1000.0)
-      } else {
-        source = waveform(amplitude, pitch, seconds / 1000.0)
-      }
+      const waveFunc = waveFromName(WAVEFORMS[this.parameters[WAVE]].toLowerCase())
+      // const pitch = diatonic(this.parameters[FREQ] - SEMITONES)
+      // const seconds = this.parameters[LENGTH]
+      // const amplitude = this.parameters[VOLUME]
+      // let source
+      // if (waveFunc === pulse) {
+      //   const cycle = this.parameters[CYCLE]
+      //   source = waveFunc(amplitude, pitch, cycle, seconds / 1000.0)
+      // } else {
+      //   source = waveFunc(amplitude, pitch, seconds / 1000.0)
+      // }
+      const source = waveFunc(this.parameters)
       this.sounds.push(source)
       this.updatePixels(source)
     }
@@ -248,29 +286,23 @@ export class SfxEdit {
 
     if (input.timerStickLeft(timestamp, INPUT_RATE)) {
       const row = this.row
-      if (row === WAVE_INDEX) {
-        if (this.arguments[row] > 0) this.arguments[row]--
-      } else if (row === FREQUENCY_INDEX) {
-        if (this.arguments[row] > 0) this.arguments[row]--
-      } else if (row === DURATION_INDEX) {
-        if (this.arguments[row] > 16) this.arguments[row] -= 16
-      } else if (row === CYCLE_INDEX) {
-        if (this.arguments[row] > 0.1) this.arguments[row] -= 0.05
+      const range = this.range[row]
+      if (!range) {
+        this.parameters[row] -= 0.1
+        if (this.parameters[row] < 0.0) this.parameters[row] = 0.0
       } else {
-        if (this.arguments[row] > 0.2) this.arguments[row] -= 0.2
+        this.parameters[row] -= range[0]
+        if (this.parameters[row] < range[1]) this.parameters[row] = range[1]
       }
     } else if (input.timerStickRight(timestamp, INPUT_RATE)) {
       const row = this.row
-      if (row === WAVE_INDEX) {
-        if (this.arguments[row] < WAVE_LIST.length - 1) this.arguments[row]++
-      } else if (row === FREQUENCY_INDEX) {
-        if (this.arguments[row] < 99) this.arguments[row]++
-      } else if (row === DURATION_INDEX) {
-        if (this.arguments[row] < 8172) this.arguments[row] += 16
-      } else if (row === CYCLE_INDEX) {
-        if (this.arguments[row] < 0.95) this.arguments[row] += 0.05
+      const range = this.range[row]
+      if (!range) {
+        this.parameters[row] += 0.1
+        if (this.parameters[row] > 1.0) this.parameters[row] = 1.0
       } else {
-        if (this.arguments[row] < 10.0) this.arguments[row] += 0.2
+        this.parameters[row] += range[0]
+        if (this.parameters[row] > range[2]) this.parameters[row] = range[2]
       }
     }
   }
@@ -298,7 +330,6 @@ export class SfxEdit {
     // const range = max - min
 
     const parition = Math.floor(samples / width)
-    console.debug('partition =', parition)
     let n = 0
     let e = parition
 
@@ -359,7 +390,8 @@ export class SfxEdit {
   export() {
     let content = `sound ${this.name}\n`
     for (let i = 0; i < this.parameters.length; i++) {
-      content += `${this.parameters[i].toLowerCase().replace(' ', '_')} ${this.arguments[i]}\n`
+      if (i === WAVE) content += `wave ${WAVEFORMS[this.parameters[i]].toLowerCase()}\n`
+      else content += `${this.arguments[i].toLowerCase().replace(' ', '_')} ${this.parameters[i]}\n`
     }
     content += 'end sound\n'
     return content
