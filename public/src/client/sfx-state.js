@@ -6,7 +6,23 @@ import { SfxEdit } from '../editor/sfx.js'
 import { flexBox, flexSolve, returnFlexBox } from '../gui/flex.js'
 import { identity, multiply } from '../math/matrix.js'
 import { drawImage, drawRectangle, drawTextFont } from '../render/render.js'
-import { ACCEL, diatonic, FREQ, JERK, semitoneName, SEMITONES, SPEED, SUSTAIN, VOLUME, WAVE, WAVEFORMS } from '../sound/synth.js'
+import {
+  ACCEL,
+  diatonic,
+  FREQ,
+  JERK,
+  semitoneName,
+  SEMITONES,
+  SPEED,
+  SUSTAIN,
+  TREMOLO_FREQ,
+  TREMOLO_WAVE,
+  VIBRATO_FREQ,
+  VIBRATO_WAVE,
+  VOLUME,
+  WAVE,
+  WAVEFORMS,
+} from '../sound/synth.js'
 import { bufferZero } from '../webgl/buffer.js'
 import { rendererBindTexture, rendererSetProgram, rendererSetView, rendererUpdateAndDraw, rendererUpdateUniformMatrix } from '../webgl/renderer.js'
 import { createPixelsToTexture, updatePixelsToTexture } from '../webgl/webgl.js'
@@ -223,7 +239,9 @@ export class SfxState {
 
     for (let i = 0; i < sfx.vibratoGroup.length; i++) {
       let text = sfx.arguments[index] + ' = '
-      text += sfx.parameters[index].toFixed(2)
+      if (index === VIBRATO_WAVE) text += WAVEFORMS[sfx.parameters[index]]
+      else if (index === VIBRATO_FREQ) text += diatonic(sfx.parameters[index] - SEMITONES).toFixed(2) + ' hz (' + semitoneName(sfx.parameters[index] - SEMITONES) + ')'
+      else text += sfx.parameters[index].toFixed(2)
       if (index === sfx.row) drawTextFont(client.bufferGUI, x, y, text, fontScale, orange0f, orange1f, orange2f, 1.0, font)
       else drawTextFont(client.bufferGUI, x, y, text, fontScale, silver0f, silver1f, silver2f, 1.0, font)
       y -= fontHeightAndPad
@@ -234,7 +252,9 @@ export class SfxState {
 
     for (let i = 0; i < sfx.tremoloGroup.length; i++) {
       let text = sfx.arguments[index] + ' = '
-      text += sfx.parameters[index].toFixed(2)
+      if (index === TREMOLO_WAVE) text += WAVEFORMS[sfx.parameters[index]]
+      else if (index === TREMOLO_FREQ) text += diatonic(sfx.parameters[index] - SEMITONES).toFixed(2) + ' hz (' + semitoneName(sfx.parameters[index] - SEMITONES) + ')'
+      else text += sfx.parameters[index].toFixed(2)
       if (index === sfx.row) drawTextFont(client.bufferGUI, x, y, text, fontScale, orange0f, orange1f, orange2f, 1.0, font)
       else drawTextFont(client.bufferGUI, x, y, text, fontScale, silver0f, silver1f, silver2f, 1.0, font)
       y -= fontHeightAndPad
@@ -260,7 +280,8 @@ export class SfxState {
     bufferZero(client.bufferGUI)
 
     const visual = flexBox(sfx.visualWidth, sfx.visualHeight)
-    visual.funX = 'center'
+    visual.funX = '%'
+    visual.argX = 80
     visual.funY = 'center'
     flexSolve(width, height, visual)
     drawImage(client.bufferGUI, visual.x, visual.y, visual.width, visual.height, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0)

@@ -31,8 +31,6 @@ import {
 } from '../sound/synth.js'
 import { dusk0, dusk1, dusk2, silver0, silver1, silver2 } from './palette.js'
 
-// TODO: Every sound effect needs to be chainable e.g. (noise for 1s + sine for 1s + etc)
-
 const INPUT_RATE = 128
 
 export class SfxEdit {
@@ -61,7 +59,7 @@ export class SfxEdit {
 
     this.parameters = new Array(PARAMETER_COUNT).fill(null)
 
-    this.parameters[WAVE] = 0
+    this.parameters[WAVE] = 1
     this.parameters[CYCLE] = 0.5
 
     this.parameters[FREQ] = 49
@@ -93,7 +91,7 @@ export class SfxEdit {
 
     this.range = new Array(PARAMETER_COUNT).fill(null)
 
-    this.range[WAVE] = [1, 0, WAVEFORMS.length - 1]
+    this.range[WAVE] = [1, 1, WAVEFORMS.length - 1]
     this.range[CYCLE] = [0.05, 0.0, 1.0]
 
     this.range[FREQ] = [1, 1, 99]
@@ -107,6 +105,21 @@ export class SfxEdit {
     this.range[LENGTH] = [10, 10, 10000]
     this.range[RELEASE] = [10, 0, 5000]
     this.range[VOLUME] = [0.1, 0.1, 2.0]
+
+    this.range[VIBRATO_WAVE] = [1, 0, WAVEFORMS.length - 1]
+    this.range[VIBRATO_FREQ] = [1, 1, 99]
+    this.range[VIBRATO_PERC] = [0.05, 0.05, 1.0]
+
+    this.range[TREMOLO_WAVE] = [1, 0, WAVEFORMS.length - 1]
+    this.range[TREMOLO_FREQ] = [1, 1, 99]
+    this.range[TREMOLO_PERC] = [0.05, 0.05, 1.0]
+
+    this.range[BIT_CRUSH] = [0.05, 0.0, 1.0]
+    this.range[NOISE] = [0.05, 0.0, 1.0]
+    this.range[DISTORTION] = [0.05, 0.0, 1.0]
+    this.range[LOW_PASS] = [0.05, 0.0, 1.0]
+    this.range[HIGH_PASS] = [0.05, 0.0, 1.0]
+    this.range[REPEATING] = [0.05, 0.0, 1.0]
 
     this.visualWidth = 200
     this.visualHeight = 80
@@ -335,23 +348,13 @@ export class SfxEdit {
     if (input.timerStickLeft(timestamp, INPUT_RATE)) {
       const row = this.row
       const range = this.range[row]
-      if (!range) {
-        this.parameters[row] -= 0.1
-        if (this.parameters[row] < 0.0) this.parameters[row] = 0.0
-      } else {
-        this.parameters[row] -= range[0]
-        if (this.parameters[row] < range[1]) this.parameters[row] = range[1]
-      }
+      this.parameters[row] -= range[0]
+      if (this.parameters[row] < range[1]) this.parameters[row] = range[1]
     } else if (input.timerStickRight(timestamp, INPUT_RATE)) {
       const row = this.row
       const range = this.range[row]
-      if (!range) {
-        this.parameters[row] += 0.1
-        if (this.parameters[row] > 1.0) this.parameters[row] = 1.0
-      } else {
-        this.parameters[row] += range[0]
-        if (this.parameters[row] > range[2]) this.parameters[row] = range[2]
-      }
+      this.parameters[row] += range[0]
+      if (this.parameters[row] > range[2]) this.parameters[row] = range[2]
     }
   }
 

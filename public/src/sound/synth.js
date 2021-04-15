@@ -64,15 +64,68 @@ function algoNoiseFrequency(data, amplitude, frequency) {
     }
   }
 }
+// function algoSine(data, amplitude, frequency) {
+//   const len = data.length
+//   const increment = tau * frequency * rate
+//   let phase = 0
+//   for (let i = 0; i < len; i++) {
+//     data[i] = amplitude * Math.sin(phase)
+//     phase += increment
+//     if (phase > tau) phase -= tau
+//   }
+// }
 
-function algoSine(data, amplitude, frequency) {
-  const len = data.length
-  const increment = tau * frequency * rate
+function algoSine(data, parameters) {
+  let attack = parameters[ATTACK]
+  let decay = parameters[DECAY]
+  let length = parameters[LENGTH]
+  let release = parameters[RELEASE]
+
+  if (attack === 0) attack = 4
+  if (decay === 0) decay = 4
+  if (release === 0) release = 4
+
+  attack = Math.floor((attack / 1000) * SYNTH_RATE)
+  decay = Math.floor((decay / 1000) * SYNTH_RATE)
+  length = Math.floor((length / 1000) * SYNTH_RATE)
+  release = Math.floor((release / 1000) * SYNTH_RATE)
+
+  const volume = parameters[VOLUME]
+  const sustain = parameters[SUSTAIN]
+  const hold = volume * sustain
+
+  const attackRate = volume / attack
+  const decayRate = (volume - hold) / decay
+  const releaseRate = hold / release
+
+  const decayEnd = attack + decay
+  const lengthEnd = decayEnd + length
+
+  let amplitude = 0
+
+  let frequency = diatonic(parameters[FREQ] - SEMITONES)
+  let speed = parameters[SPEED]
+  let acceleration = parameters[ACCEL] / SYNTH_RATE
+  const jerk = parameters[JERK] / SYNTH_RATE / SYNTH_RATE
+
+  const size = data.length
   let phase = 0
-  for (let i = 0; i < len; i++) {
+
+  for (let i = 0; i < size; i++) {
+    if (i < attack) amplitude += attackRate
+    else if (i < decayEnd) amplitude -= decayRate
+    else if (i > lengthEnd) amplitude -= releaseRate
+    else amplitude = hold
+
     data[i] = amplitude * Math.sin(phase)
+
+    const increment = tau * frequency * rate
     phase += increment
     if (phase > tau) phase -= tau
+
+    frequency += speed
+    speed += acceleration
+    acceleration += jerk
   }
 }
 
@@ -199,8 +252,18 @@ export function noise(amplitude, frequency, seconds, when = 0) {
   return create(amplitude, frequency, null, seconds, algoNoiseFrequency, when)
 }
 
-export function sine(amplitude, frequency, seconds, when = 0) {
-  return create(amplitude, frequency, null, seconds, algoSine, when)
+export function sine(parameters, when = 0) {
+  // return create(amplitude, frequency, null, seconds, algoSine, when)
+  const seconds = (parameters[ATTACK] + parameters[DECAY] + parameters[LENGTH] + parameters[RELEASE]) / 1000
+
+  const buffer = context.createBuffer(1, Math.ceil(SYNTH_RATE * seconds), SYNTH_RATE)
+  const data = buffer.getChannelData(0)
+  algoSine(data, parameters)
+  const source = context.createBufferSource()
+  source.buffer = buffer
+  source.connect(context.destination)
+  source.start(when)
+  return source
 }
 
 export function square(amplitude, frequency, seconds, when = 0) {
@@ -228,10 +291,12 @@ export function sawtooth(parameters, when = 0) {
   return source
 }
 
-export const WAVEFORMS = ['Sine', 'Square', 'Pulse', 'Triangle', 'Sawtooth', 'Noise', 'Static']
+export const WAVEFORMS = ['None', 'Sine', 'Square', 'Pulse', 'Triangle', 'Sawtooth', 'Noise', 'Static']
 
 export function waveFromName(name) {
   switch (name) {
+    case 'none':
+      return null
     case 'sine':
       return sine
     case 'square':
@@ -248,7 +313,7 @@ export function waveFromName(name) {
       return pure
   }
   console.error('Bad waveform: ' + name)
-  return sine
+  return null
 }
 
 const notes = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'G#', 'A', 'Bb', 'B']

@@ -22,7 +22,6 @@ A 3D adventure game with a strong focus on modding and user crafted content.
 - Single file format for entire data pack
 - Snap/attach things to walls (like torches)
 - Need a global ticker for animated tiles and doodads
-
 - Synth sound visualizer
 
 ### Bugs
@@ -31,11 +30,12 @@ A 3D adventure game with a strong focus on modding and user crafted content.
 
 ### Ideas
 
-- Add replay files (record user input deltas per tick)
+- SFX
+  - Every sound effect needs to be chainable e.g. (noise for 1s + sine for 1s + etc)
 - Paint
   - Fullscreen mode for sprite sheet
   - Smart undo redo history saving. Only save region that was changed
-- Forward rendered built-in palette mapper. Reduce incoming final colors to 16 color map
+- Add replay files (record user input deltas per tick)
 - Equiptable Items
 - Cinema camera (floating, de-attached from a target)
 - Experience Points

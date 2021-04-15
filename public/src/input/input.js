@@ -16,6 +16,10 @@ export const RIGHT_TRIGGER = 11
 
 const DOUBLE_RATE = 64
 
+// TODO:
+// controller mapping
+// e.g. if xbox detected X -> B ; if mkb X -> I ; etc
+
 export class Input {
   constructor() {
     this.in = new Array(12).fill(false)
