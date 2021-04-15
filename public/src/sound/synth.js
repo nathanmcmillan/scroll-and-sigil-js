@@ -6,46 +6,40 @@ export const SEMITONES = 49
 
 export const WAVE = 0
 export const CYCLE = 1
+
 export const FREQ = 2
 export const SPEED = 3
 export const ACCEL = 4
 export const JERK = 5
+
 export const ATTACK = 6
 export const DECAY = 7
 export const SUSTAIN = 8
 export const LENGTH = 9
 export const RELEASE = 10
 export const VOLUME = 11
-export const PARAMETER_COUNT = 12
+
+export const VIBRATO_WAVE = 12
+export const VIBRATO_FREQ = 13
+export const VIBRATO_PERC = 14
+
+export const TREMOLO_WAVE = 15
+export const TREMOLO_FREQ = 16
+export const TREMOLO_PERC = 17
+
+export const BIT_CRUSH = 18
+export const NOISE = 19
+export const DISTORTION = 20
+export const LOW_PASS = 21
+export const HIGH_PASS = 22
+export const REPEATING = 23
+
+export const PARAMETER_COUNT = 24
 
 const rate = 1.0 / SYNTH_RATE
 const pi = Math.PI
 const tau = 2.0 * pi
 const context = newAudioContext()
-
-// todo: envelope
-// attack
-// decay
-// sustain
-// release
-
-// todo: combined wave forms
-
-// todo:
-// slide
-// pitch jump
-// modulation
-// repeat time
-// extra noise
-// bit crush
-// delay
-// tremolo
-
-// gain
-// overdrive / distortion  (clipping)
-// compression
-// low pass filter
-// high pass filter
 
 export function synthTime() {
   return context.currentTime
@@ -133,20 +127,53 @@ function algoTriangle(data, amplitude, frequency) {
 // }
 
 function algoSawtooth(data, parameters) {
-  const amplitude = parameters[VOLUME]
+  let attack = parameters[ATTACK]
+  let decay = parameters[DECAY]
+  let length = parameters[LENGTH]
+  let release = parameters[RELEASE]
+
+  if (attack === 0) attack = 4
+  if (decay === 0) decay = 4
+  if (release === 0) release = 4
+
+  attack = Math.floor((attack / 1000) * SYNTH_RATE)
+  decay = Math.floor((decay / 1000) * SYNTH_RATE)
+  length = Math.floor((length / 1000) * SYNTH_RATE)
+  release = Math.floor((release / 1000) * SYNTH_RATE)
+
+  const volume = parameters[VOLUME]
+  const sustain = parameters[SUSTAIN]
+  const hold = volume * sustain
+
+  const attackRate = volume / attack
+  const decayRate = (volume - hold) / decay
+  const releaseRate = hold / release
+
+  const decayEnd = attack + decay
+  const lengthEnd = decayEnd + length
+
+  let amplitude = 0
 
   let frequency = diatonic(parameters[FREQ] - SEMITONES)
   let speed = parameters[SPEED]
-  let acceleration = parameters[ACCEL] / 1000
-  const jerk = parameters[JERK] / 1000 / 1000
+  let acceleration = parameters[ACCEL] / SYNTH_RATE
+  const jerk = parameters[JERK] / SYNTH_RATE / SYNTH_RATE
 
   const size = data.length
   let phase = 0
+
   for (let i = 0; i < size; i++) {
+    if (i < attack) amplitude += attackRate
+    else if (i < decayEnd) amplitude -= decayRate
+    else if (i > lengthEnd) amplitude -= releaseRate
+    else amplitude = hold
+
     data[i] = amplitude - (amplitude / pi) * phase
+
     const increment = tau * frequency * rate
     phase += increment
     if (phase > tau) phase -= tau
+
     frequency += speed
     speed += acceleration
     acceleration += jerk
@@ -189,7 +216,7 @@ export function triangle(amplitude, frequency, seconds, when = 0) {
 }
 
 export function sawtooth(parameters, when = 0) {
-  const seconds = parameters[LENGTH] / 1000
+  const seconds = (parameters[ATTACK] + parameters[DECAY] + parameters[LENGTH] + parameters[RELEASE]) / 1000
 
   const buffer = context.createBuffer(1, Math.ceil(SYNTH_RATE * seconds), SYNTH_RATE)
   const data = buffer.getChannelData(0)

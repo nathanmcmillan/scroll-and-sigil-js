@@ -169,7 +169,7 @@ export class SfxState {
 
     // sound
 
-    const box = flexBox(0, (sfx.waveGroup.length + sfx.frequencyGroup.length + sfx.volumeGroup.length + 2) * fontHeightAndPad)
+    const box = flexBox(0, (sfx.arguments.length + 5) * fontHeightAndPad)
     box.funX = '%'
     box.argX = 5
     box.funY = 'center'
@@ -212,7 +212,40 @@ export class SfxState {
     for (let i = 0; i < sfx.volumeGroup.length; i++) {
       let text = sfx.arguments[index] + ' = '
       if (index === SUSTAIN || index === VOLUME) text += (sfx.parameters[index] * 100).toFixed(0) + ' %'
-      else text += sfx.parameters[index] + ' ms'
+      else text += sfx.parameters[index].toFixed(0) + ' ms'
+      if (index === sfx.row) drawTextFont(client.bufferGUI, x, y, text, fontScale, orange0f, orange1f, orange2f, 1.0, font)
+      else drawTextFont(client.bufferGUI, x, y, text, fontScale, silver0f, silver1f, silver2f, 1.0, font)
+      y -= fontHeightAndPad
+      index++
+    }
+
+    y -= fontHeightAndPad
+
+    for (let i = 0; i < sfx.vibratoGroup.length; i++) {
+      let text = sfx.arguments[index] + ' = '
+      text += sfx.parameters[index].toFixed(2)
+      if (index === sfx.row) drawTextFont(client.bufferGUI, x, y, text, fontScale, orange0f, orange1f, orange2f, 1.0, font)
+      else drawTextFont(client.bufferGUI, x, y, text, fontScale, silver0f, silver1f, silver2f, 1.0, font)
+      y -= fontHeightAndPad
+      index++
+    }
+
+    y -= fontHeightAndPad
+
+    for (let i = 0; i < sfx.tremoloGroup.length; i++) {
+      let text = sfx.arguments[index] + ' = '
+      text += sfx.parameters[index].toFixed(2)
+      if (index === sfx.row) drawTextFont(client.bufferGUI, x, y, text, fontScale, orange0f, orange1f, orange2f, 1.0, font)
+      else drawTextFont(client.bufferGUI, x, y, text, fontScale, silver0f, silver1f, silver2f, 1.0, font)
+      y -= fontHeightAndPad
+      index++
+    }
+
+    y -= fontHeightAndPad
+
+    for (let i = 0; i < sfx.otherGroup.length; i++) {
+      let text = sfx.arguments[index] + ' = '
+      text += sfx.parameters[index].toFixed(2)
       if (index === sfx.row) drawTextFont(client.bufferGUI, x, y, text, fontScale, orange0f, orange1f, orange2f, 1.0, font)
       else drawTextFont(client.bufferGUI, x, y, text, fontScale, silver0f, silver1f, silver2f, 1.0, font)
       y -= fontHeightAndPad

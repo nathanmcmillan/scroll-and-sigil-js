@@ -1,6 +1,34 @@
 import { fetchText } from '../client/net.js'
 import { Dialog } from '../gui/dialog.js'
-import { ACCEL, ATTACK, CYCLE, DECAY, FREQ, JERK, LENGTH, PARAMETER_COUNT, RELEASE, SPEED, SUSTAIN, VOLUME, WAVE, WAVEFORMS, waveFromName } from '../sound/synth.js'
+import {
+  ACCEL,
+  ATTACK,
+  CYCLE,
+  DECAY,
+  FREQ,
+  JERK,
+  LENGTH,
+  PARAMETER_COUNT,
+  RELEASE,
+  SPEED,
+  SUSTAIN,
+  TREMOLO_FREQ,
+  TREMOLO_WAVE,
+  VIBRATO_FREQ,
+  VIBRATO_WAVE,
+  VIBRATO_PERC,
+  TREMOLO_PERC,
+  VOLUME,
+  WAVE,
+  WAVEFORMS,
+  waveFromName,
+  BIT_CRUSH,
+  NOISE,
+  DISTORTION,
+  LOW_PASS,
+  HIGH_PASS,
+  REPEATING,
+} from '../sound/synth.js'
 import { dusk0, dusk1, dusk2, silver0, silver1, silver2 } from './palette.js'
 
 // TODO: Every sound effect needs to be chainable e.g. (noise for 1s + sine for 1s + etc)
@@ -25,9 +53,11 @@ export class SfxEdit {
     this.waveGroup = ['Wave', 'Cycle']
     this.frequencyGroup = ['Frequency', 'Speed', 'Accel', 'Jerk']
     this.volumeGroup = ['Attack', 'Decay', 'Sustain', 'Length', 'Release', 'Volume']
-    // this.modulateGroup = ['tremolo', 'modulation', 'noise', 'bit crush', 'delay', 'tremolo']
+    this.vibratoGroup = ['Vibrato Wave', 'Vibrato Freq', 'Vibrato %']
+    this.tremoloGroup = ['Tremolo Wave', 'Tremolo Freq', 'Tremolo %']
+    this.otherGroup = ['Bit Crush', 'Noise', 'Distortion', 'Low Pass', 'High Pass', 'Repeat']
 
-    this.arguments = [].concat(this.waveGroup).concat(this.frequencyGroup).concat(this.volumeGroup)
+    this.arguments = [].concat(this.waveGroup).concat(this.frequencyGroup).concat(this.volumeGroup).concat(this.vibratoGroup).concat(this.tremoloGroup).concat(this.otherGroup)
 
     this.parameters = new Array(PARAMETER_COUNT).fill(null)
 
@@ -39,12 +69,27 @@ export class SfxEdit {
     this.parameters[ACCEL] = 0.0
     this.parameters[JERK] = 0.0
 
-    this.parameters[ATTACK] = 0.0
-    this.parameters[DECAY] = 0.0
+    this.parameters[ATTACK] = 0
+    this.parameters[DECAY] = 0
     this.parameters[SUSTAIN] = 0.5
-    this.parameters[LENGTH] = 1000.0
-    this.parameters[RELEASE] = 0.0
+    this.parameters[LENGTH] = 1000
+    this.parameters[RELEASE] = 0
     this.parameters[VOLUME] = 1.0
+
+    this.parameters[VIBRATO_WAVE] = 0
+    this.parameters[VIBRATO_FREQ] = 49
+    this.parameters[VIBRATO_PERC] = 0.5
+
+    this.parameters[TREMOLO_WAVE] = 0
+    this.parameters[TREMOLO_FREQ] = 49
+    this.parameters[TREMOLO_PERC] = 0.5
+
+    this.parameters[BIT_CRUSH] = 0.0
+    this.parameters[NOISE] = 0.0
+    this.parameters[DISTORTION] = 0.0
+    this.parameters[LOW_PASS] = 0.0
+    this.parameters[HIGH_PASS] = 0.0
+    this.parameters[REPEATING] = 0.0
 
     this.range = new Array(PARAMETER_COUNT).fill(null)
 
@@ -56,8 +101,11 @@ export class SfxEdit {
     this.range[ACCEL] = [0.001, -1.0, 1.0]
     this.range[JERK] = [0.001, -1.0, 1.0]
 
-    this.range[SUSTAIN] = [0.05, 0.0, 1.0]
-    this.range[LENGTH] = [16, 16, 16000]
+    this.range[ATTACK] = [10, 0, 5000]
+    this.range[DECAY] = [10, 0, 5000]
+    this.range[SUSTAIN] = [0.05, 0.05, 1.0]
+    this.range[LENGTH] = [10, 10, 10000]
+    this.range[RELEASE] = [10, 0, 5000]
     this.range[VOLUME] = [0.1, 0.1, 2.0]
 
     this.visualWidth = 200
