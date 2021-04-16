@@ -1,3 +1,7 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
+
 import { fetchText } from '../client/net.js'
 import { Dialog } from '../gui/dialog.js'
 import {
@@ -27,7 +31,7 @@ import {
   DISTORTION,
   LOW_PASS,
   HIGH_PASS,
-  REPEATING,
+  REPEAT,
 } from '../sound/synth.js'
 import { dusk0, dusk1, dusk2, silver0, silver1, silver2 } from './palette.js'
 
@@ -60,7 +64,7 @@ export class SfxEdit {
     this.parameters = new Array(PARAMETER_COUNT).fill(null)
 
     this.parameters[WAVE] = 1
-    this.parameters[CYCLE] = 0.5
+    this.parameters[CYCLE] = 0.25
 
     this.parameters[FREQ] = 49
     this.parameters[SPEED] = 0.0
@@ -87,7 +91,7 @@ export class SfxEdit {
     this.parameters[DISTORTION] = 0.0
     this.parameters[LOW_PASS] = 0.0
     this.parameters[HIGH_PASS] = 0.0
-    this.parameters[REPEATING] = 0.0
+    this.parameters[REPEAT] = 0.0
 
     this.range = new Array(PARAMETER_COUNT).fill(null)
 
@@ -119,7 +123,7 @@ export class SfxEdit {
     this.range[DISTORTION] = [0.05, 0.0, 1.0]
     this.range[LOW_PASS] = [0.05, 0.0, 1.0]
     this.range[HIGH_PASS] = [0.05, 0.0, 1.0]
-    this.range[REPEATING] = [0.05, 0.0, 1.0]
+    this.range[REPEAT] = [0.05, 0.0, 1.0]
 
     this.visualWidth = 200
     this.visualHeight = 80

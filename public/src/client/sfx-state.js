@@ -1,3 +1,7 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
+
 import { textureByName } from '../assets/assets.js'
 import { renderDialogBox, renderStatus } from '../client/client-util.js'
 import { calcBottomBarHeight, calcFontPad, calcFontScale, calcTopBarHeight, defaultFont } from '../editor/editor-util.js'
