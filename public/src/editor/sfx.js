@@ -7,31 +7,32 @@ import { Dialog } from '../gui/dialog.js'
 import {
   ACCEL,
   ATTACK,
+  BIT_CRUSH,
   CYCLE,
   DECAY,
+  DISTORTION,
   FREQ,
+  HIGH_PASS,
   JERK,
   LENGTH,
-  PARAMETER_COUNT,
+  LOW_PASS,
+  newSynthParameters,
+  NOISE,
   RELEASE,
+  REPEAT,
   SPEED,
   SUSTAIN,
+  synth,
+  SYNTH_ARGUMENTS,
   TREMOLO_FREQ,
+  TREMOLO_PERC,
   TREMOLO_WAVE,
   VIBRATO_FREQ,
-  VIBRATO_WAVE,
   VIBRATO_PERC,
-  TREMOLO_PERC,
+  VIBRATO_WAVE,
   VOLUME,
   WAVE,
   WAVEFORMS,
-  waveFromName,
-  BIT_CRUSH,
-  NOISE,
-  DISTORTION,
-  LOW_PASS,
-  HIGH_PASS,
-  REPEAT,
 } from '../sound/synth.js'
 import { dusk0, dusk1, dusk2, silver0, silver1, silver2 } from './palette.js'
 
@@ -52,16 +53,7 @@ export class SfxEdit {
 
     this.name = 'untitled'
 
-    this.waveGroup = ['Wave', 'Cycle']
-    this.frequencyGroup = ['Frequency', 'Speed', 'Accel', 'Jerk']
-    this.volumeGroup = ['Attack', 'Decay', 'Sustain', 'Length', 'Release', 'Volume']
-    this.vibratoGroup = ['Vibrato Wave', 'Vibrato Freq', 'Vibrato %']
-    this.tremoloGroup = ['Tremolo Wave', 'Tremolo Freq', 'Tremolo %']
-    this.otherGroup = ['Bit Crush', 'Noise', 'Distortion', 'Low Pass', 'High Pass', 'Repeat']
-
-    this.arguments = [].concat(this.waveGroup).concat(this.frequencyGroup).concat(this.volumeGroup).concat(this.vibratoGroup).concat(this.tremoloGroup).concat(this.otherGroup)
-
-    this.parameters = new Array(PARAMETER_COUNT).fill(null)
+    this.parameters = newSynthParameters()
 
     this.parameters[WAVE] = 1
     this.parameters[CYCLE] = 0.25
@@ -79,11 +71,11 @@ export class SfxEdit {
     this.parameters[VOLUME] = 1.0
 
     this.parameters[VIBRATO_WAVE] = 0
-    this.parameters[VIBRATO_FREQ] = 49
+    this.parameters[VIBRATO_FREQ] = 5.0
     this.parameters[VIBRATO_PERC] = 0.5
 
     this.parameters[TREMOLO_WAVE] = 0
-    this.parameters[TREMOLO_FREQ] = 49
+    this.parameters[TREMOLO_FREQ] = 9.0
     this.parameters[TREMOLO_PERC] = 0.5
 
     this.parameters[BIT_CRUSH] = 0.0
@@ -93,37 +85,37 @@ export class SfxEdit {
     this.parameters[HIGH_PASS] = 0.0
     this.parameters[REPEAT] = 0.0
 
-    this.range = new Array(PARAMETER_COUNT).fill(null)
+    this.range = newSynthParameters()
 
-    this.range[WAVE] = [1, 1, WAVEFORMS.length - 1]
-    this.range[CYCLE] = [0.05, 0.0, 1.0]
+    this.range[WAVE] = [1, 1, WAVEFORMS.length - 1, WAVEFORMS.length]
+    this.range[CYCLE] = [0.05, 0.0, 1.0, 0.2]
 
-    this.range[FREQ] = [1, 1, 99]
-    this.range[SPEED] = [0.001, -1.0, 1.0]
-    this.range[ACCEL] = [0.001, -1.0, 1.0]
-    this.range[JERK] = [0.001, -1.0, 1.0]
+    this.range[FREQ] = [1, 1, 99, 12]
+    this.range[SPEED] = [0.001, -1.0, 1.0, 0.1]
+    this.range[ACCEL] = [0.001, -1.0, 1.0, 0.1]
+    this.range[JERK] = [0.001, -1.0, 1.0, 0.1]
 
-    this.range[ATTACK] = [10, 0, 5000]
-    this.range[DECAY] = [10, 0, 5000]
-    this.range[SUSTAIN] = [0.05, 0.05, 1.0]
-    this.range[LENGTH] = [10, 10, 10000]
-    this.range[RELEASE] = [10, 0, 5000]
-    this.range[VOLUME] = [0.1, 0.1, 2.0]
+    this.range[ATTACK] = [10, 0, 5000, 500]
+    this.range[DECAY] = [10, 0, 5000, 500]
+    this.range[SUSTAIN] = [0.05, 0.05, 1.0, 500]
+    this.range[LENGTH] = [10, 10, 10000, 500]
+    this.range[RELEASE] = [10, 0, 5000, 500]
+    this.range[VOLUME] = [0.1, 0.1, 2.0, 0.25]
 
-    this.range[VIBRATO_WAVE] = [1, 0, WAVEFORMS.length - 1]
-    this.range[VIBRATO_FREQ] = [1, 1, 99]
-    this.range[VIBRATO_PERC] = [0.05, 0.05, 1.0]
+    this.range[VIBRATO_WAVE] = [1, 0, WAVEFORMS.length - 1, WAVEFORMS.length]
+    this.range[VIBRATO_FREQ] = [1.0, 1.0, 36.0, 2.0]
+    this.range[VIBRATO_PERC] = [0.05, 0.05, 1.0, 0.2]
 
-    this.range[TREMOLO_WAVE] = [1, 0, WAVEFORMS.length - 1]
-    this.range[TREMOLO_FREQ] = [1, 1, 99]
-    this.range[TREMOLO_PERC] = [0.05, 0.05, 1.0]
+    this.range[TREMOLO_WAVE] = [1, 0, WAVEFORMS.length - 1, WAVEFORMS.length]
+    this.range[TREMOLO_FREQ] = [1.0, 1.0, 36.0, 2.0]
+    this.range[TREMOLO_PERC] = [0.05, 0.05, 1.0, 0.2]
 
-    this.range[BIT_CRUSH] = [0.05, 0.0, 1.0]
-    this.range[NOISE] = [0.05, 0.0, 1.0]
-    this.range[DISTORTION] = [0.05, 0.0, 1.0]
-    this.range[LOW_PASS] = [0.05, 0.0, 1.0]
-    this.range[HIGH_PASS] = [0.05, 0.0, 1.0]
-    this.range[REPEAT] = [0.05, 0.0, 1.0]
+    this.range[BIT_CRUSH] = [0.05, 0.0, 1.0, 0.2]
+    this.range[NOISE] = [0.05, 0.0, 1.0, 0.2]
+    this.range[DISTORTION] = [0.05, 0.0, 4.0, 0.2]
+    this.range[LOW_PASS] = [0.05, 0.0, 1.0, 0.2]
+    this.range[HIGH_PASS] = [0.05, 0.0, 1.0, 0.2]
+    this.range[REPEAT] = [0.05, 0.0, 1.0, 0.2]
 
     this.visualWidth = 200
     this.visualHeight = 80
@@ -230,8 +222,8 @@ export class SfxEdit {
         const line = sfx[i].split(' ')
         const name = line[0]
         const value = line[1]
-        for (let a = 0; a < this.arguments.length; a++) {
-          if (this.arguments[a].toLowerCase() === name) {
+        for (let a = 0; a < SYNTH_ARGUMENTS.length; a++) {
+          if (SYNTH_ARGUMENTS[a].toLowerCase() === name) {
             if (name === 'wave') {
               for (let w = 0; w < WAVEFORMS.length; w++) {
                 if (WAVEFORMS[w].toLowerCase() === value) {
@@ -327,18 +319,7 @@ export class SfxEdit {
     if (input.pressX()) {
       for (const sound of this.sounds) sound.stop()
       this.sounds.length = 0
-      const waveFunc = waveFromName(WAVEFORMS[this.parameters[WAVE]].toLowerCase())
-      // const pitch = diatonic(this.parameters[FREQ] - SEMITONES)
-      // const seconds = this.parameters[LENGTH]
-      // const amplitude = this.parameters[VOLUME]
-      // let source
-      // if (waveFunc === pulse) {
-      //   const cycle = this.parameters[CYCLE]
-      //   source = waveFunc(amplitude, pitch, cycle, seconds / 1000.0)
-      // } else {
-      //   source = waveFunc(amplitude, pitch, seconds / 1000.0)
-      // }
-      const source = waveFunc(this.parameters)
+      const source = synth(this.parameters)
       this.sounds.push(source)
       this.updatePixels(source)
     }
@@ -352,12 +333,14 @@ export class SfxEdit {
     if (input.timerStickLeft(timestamp, INPUT_RATE)) {
       const row = this.row
       const range = this.range[row]
-      this.parameters[row] -= range[0]
+      if (input.leftTrigger()) this.parameters[row] -= range[3]
+      else this.parameters[row] -= range[0]
       if (this.parameters[row] < range[1]) this.parameters[row] = range[1]
     } else if (input.timerStickRight(timestamp, INPUT_RATE)) {
       const row = this.row
       const range = this.range[row]
-      this.parameters[row] += range[0]
+      if (input.leftTrigger()) this.parameters[row] += range[3]
+      else this.parameters[row] += range[0]
       if (this.parameters[row] > range[2]) this.parameters[row] = range[2]
     }
   }
@@ -367,66 +350,57 @@ export class SfxEdit {
     const samples = data.length
     const width = this.visualWidth
     const height = this.visualHeight
-    // const middle = Math.floor(0.5 * height)
     const pixels = this.visualPixels
-    const size = pixels.length
-    for (let p = 0; p < size; p += 3) {
-      pixels[p] = silver0
-      pixels[p + 1] = silver1
-      pixels[p + 2] = silver2
-    }
-    // let min = Number.MAX_VALUE
-    // let max = -Number.MAX_VALUE
-    // for (let s = 0; s < samples; s++) {
-    //   const sample = data[s]
-    //   if (sample < min) min = sample
-    //   if (sample > max) max = sample
-    // }
-    // const range = max - min
 
     const parition = Math.floor(samples / width)
     let n = 0
     let e = parition
 
+    const average = false
+
     for (let c = 0; c < width; c++) {
-      // const slice = Math.floor((c / width) * samples)
-      // const normalized = (data[slice] - min) / range
-      // const r = Math.floor(height * normalized)
+      let b, t
 
-      // let min = Number.MAX_VALUE
-      // let max = -Number.MAX_VALUE
-      // for (let s = n; s < e; s++) {
-      //   const sample = data[s]
-      //   if (sample < min) min = sample
-      //   if (sample > max) max = sample
-      // }
-
-      let pos = 0
-      let neg = 0
-      let posc = 0
-      let negc = 0
-      for (let s = n; s < e; s++) {
-        const sample = data[s]
-        if (sample > 0) {
-          pos += sample
-          posc++
-        } else {
-          neg += sample
-          negc++
+      if (average) {
+        let pos = 0
+        let neg = 0
+        let posc = 0
+        let negc = 0
+        for (let s = n; s < e; s++) {
+          const sample = data[s]
+          if (sample > 0) {
+            pos += sample
+            posc++
+          } else {
+            neg += sample
+            negc++
+          }
         }
+        if (posc > 0) pos /= posc
+        if (negc > 0) neg /= negc
+        b = Math.floor(height - (pos + 1.0) * 0.5 * height)
+        t = Math.ceil(height - (neg + 1.0) * 0.5 * height)
+      } else {
+        let min = Number.MAX_VALUE
+        let max = -Number.MAX_VALUE
+        for (let s = n; s < e; s++) {
+          const sample = data[s]
+          if (sample < min) min = sample
+          if (sample > max) max = sample
+        }
+        b = Math.floor(height - (max + 1.0) * 0.5 * height)
+        t = Math.ceil(height - (min + 1.0) * 0.5 * height)
       }
-      if (posc > 0) pos /= posc
-      if (negc > 0) neg /= negc
 
-      // const range = max - min
-      // const slice = Math.floor((c / width) * samples)
-      // const normalized = (data[slice] - min) / range
-      // const r = Math.floor(0.5 * height + (normalized - 0.5) * height)
-
-      let b = Math.floor(height - (pos + 1.0) * 0.5 * height)
-      let t = Math.floor(height - (neg + 1.0) * 0.5 * height)
       if (b < 0) b = 0
       if (t >= height) t = height - 1
+
+      for (let r = 0; r < b; r++) {
+        const i = (c + r * width) * 3
+        pixels[i] = silver0
+        pixels[i + 1] = silver1
+        pixels[i + 2] = silver2
+      }
 
       for (let r = b; r < t; r++) {
         const i = (c + r * width) * 3
@@ -435,10 +409,18 @@ export class SfxEdit {
         pixels[i + 2] = dusk2
       }
 
+      for (let r = t; r < height; r++) {
+        const i = (c + r * width) * 3
+        pixels[i] = silver0
+        pixels[i + 1] = silver1
+        pixels[i + 2] = silver2
+      }
+
       n = e
       e += parition
       if (e > samples) e = samples
     }
+
     this.refreshPixels = true
   }
 
@@ -446,7 +428,7 @@ export class SfxEdit {
     let content = `sound ${this.name}\n`
     for (let i = 0; i < this.parameters.length; i++) {
       if (i === WAVE) content += `wave ${WAVEFORMS[this.parameters[i]].toLowerCase()}\n`
-      else content += `${this.arguments[i].toLowerCase().replace(' ', '_')} ${this.parameters[i]}\n`
+      else content += `${SYNTH_ARGUMENTS[i].toLowerCase().replace(' ', '_')} ${this.parameters[i]}\n`
     }
     content += 'end sound\n'
     return content

@@ -14,18 +14,25 @@ import {
   ACCEL,
   diatonic,
   FREQ,
+  FREQ_GROUP,
   JERK,
+  OTHER_GROUP,
   semitoneName,
   SEMITONES,
   SPEED,
   SUSTAIN,
+  SYNTH_ARGUMENTS,
   TREMOLO_FREQ,
+  TREMOLO_GROUP,
   TREMOLO_WAVE,
   VIBRATO_FREQ,
+  VIBRATO_GROUP,
   VIBRATO_WAVE,
   VOLUME,
+  VOLUME_GROUP,
   WAVE,
   WAVEFORMS,
+  WAVE_GROUP,
 } from '../sound/synth.js'
 import { bufferZero } from '../webgl/buffer.js'
 import { rendererBindTexture, rendererSetProgram, rendererSetView, rendererUpdateAndDraw, rendererUpdateUniformMatrix } from '../webgl/renderer.js'
@@ -189,7 +196,7 @@ export class SfxState {
 
     // sound
 
-    const box = flexBox(0, (sfx.arguments.length + 5) * fontHeightAndPad)
+    const box = flexBox(0, (SYNTH_ARGUMENTS.length + 5) * fontHeightAndPad)
     box.funX = '%'
     box.argX = 5
     box.funY = 'center'
@@ -202,8 +209,8 @@ export class SfxState {
 
     let index = 0
 
-    for (let i = 0; i < sfx.waveGroup.length; i++) {
-      let text = sfx.arguments[index] + ' = '
+    for (let i = 0; i < WAVE_GROUP.length; i++) {
+      let text = SYNTH_ARGUMENTS[index] + ' = '
       if (index === WAVE) text += WAVEFORMS[sfx.parameters[index]]
       else text += sfx.parameters[index].toFixed(2)
       if (index === sfx.row) drawTextFont(client.bufferGUI, x, y, text, fontScale, orange0f, orange1f, orange2f, 1.0, font)
@@ -214,8 +221,8 @@ export class SfxState {
 
     y -= fontHeightAndPad
 
-    for (let i = 0; i < sfx.frequencyGroup.length; i++) {
-      let text = sfx.arguments[index] + ' = '
+    for (let i = 0; i < FREQ_GROUP.length; i++) {
+      let text = SYNTH_ARGUMENTS[index] + ' = '
       if (index === FREQ) text += diatonic(sfx.parameters[index] - SEMITONES).toFixed(2) + ' hz (' + semitoneName(sfx.parameters[index] - SEMITONES) + ')'
       else if (index === SPEED) text += sfx.parameters[index].toFixed(3) + ' hz/sec'
       else if (index === ACCEL) text += sfx.parameters[index].toFixed(3) + ' hz/sec/sec'
@@ -229,8 +236,8 @@ export class SfxState {
 
     y -= fontHeightAndPad
 
-    for (let i = 0; i < sfx.volumeGroup.length; i++) {
-      let text = sfx.arguments[index] + ' = '
+    for (let i = 0; i < VOLUME_GROUP.length; i++) {
+      let text = SYNTH_ARGUMENTS[index] + ' = '
       if (index === SUSTAIN || index === VOLUME) text += (sfx.parameters[index] * 100).toFixed(0) + ' %'
       else text += sfx.parameters[index].toFixed(0) + ' ms'
       if (index === sfx.row) drawTextFont(client.bufferGUI, x, y, text, fontScale, orange0f, orange1f, orange2f, 1.0, font)
@@ -241,10 +248,10 @@ export class SfxState {
 
     y -= fontHeightAndPad
 
-    for (let i = 0; i < sfx.vibratoGroup.length; i++) {
-      let text = sfx.arguments[index] + ' = '
+    for (let i = 0; i < VIBRATO_GROUP.length; i++) {
+      let text = SYNTH_ARGUMENTS[index] + ' = '
       if (index === VIBRATO_WAVE) text += WAVEFORMS[sfx.parameters[index]]
-      else if (index === VIBRATO_FREQ) text += diatonic(sfx.parameters[index] - SEMITONES).toFixed(2) + ' hz (' + semitoneName(sfx.parameters[index] - SEMITONES) + ')'
+      else if (index === VIBRATO_FREQ) text += sfx.parameters[index].toFixed(2) + ' hz'
       else text += sfx.parameters[index].toFixed(2)
       if (index === sfx.row) drawTextFont(client.bufferGUI, x, y, text, fontScale, orange0f, orange1f, orange2f, 1.0, font)
       else drawTextFont(client.bufferGUI, x, y, text, fontScale, silver0f, silver1f, silver2f, 1.0, font)
@@ -254,10 +261,10 @@ export class SfxState {
 
     y -= fontHeightAndPad
 
-    for (let i = 0; i < sfx.tremoloGroup.length; i++) {
-      let text = sfx.arguments[index] + ' = '
+    for (let i = 0; i < TREMOLO_GROUP.length; i++) {
+      let text = SYNTH_ARGUMENTS[index] + ' = '
       if (index === TREMOLO_WAVE) text += WAVEFORMS[sfx.parameters[index]]
-      else if (index === TREMOLO_FREQ) text += diatonic(sfx.parameters[index] - SEMITONES).toFixed(2) + ' hz (' + semitoneName(sfx.parameters[index] - SEMITONES) + ')'
+      else if (index === TREMOLO_FREQ) text += sfx.parameters[index].toFixed(2) + ' hz'
       else text += sfx.parameters[index].toFixed(2)
       if (index === sfx.row) drawTextFont(client.bufferGUI, x, y, text, fontScale, orange0f, orange1f, orange2f, 1.0, font)
       else drawTextFont(client.bufferGUI, x, y, text, fontScale, silver0f, silver1f, silver2f, 1.0, font)
@@ -267,8 +274,8 @@ export class SfxState {
 
     y -= fontHeightAndPad
 
-    for (let i = 0; i < sfx.otherGroup.length; i++) {
-      let text = sfx.arguments[index] + ' = '
+    for (let i = 0; i < OTHER_GROUP.length; i++) {
+      let text = SYNTH_ARGUMENTS[index] + ' = '
       text += sfx.parameters[index].toFixed(2)
       if (index === sfx.row) drawTextFont(client.bufferGUI, x, y, text, fontScale, orange0f, orange1f, orange2f, 1.0, font)
       else drawTextFont(client.bufferGUI, x, y, text, fontScale, silver0f, silver1f, silver2f, 1.0, font)
@@ -284,8 +291,8 @@ export class SfxState {
     bufferZero(client.bufferGUI)
 
     const visual = flexBox(sfx.visualWidth, sfx.visualHeight)
-    visual.funX = '%'
-    visual.argX = 80
+    visual.funX = '%-left'
+    visual.argX = 90
     visual.funY = 'center'
     flexSolve(width, height, visual)
     drawImage(client.bufferGUI, visual.x, visual.y, visual.width, visual.height, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0)

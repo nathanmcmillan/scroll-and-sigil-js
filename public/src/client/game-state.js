@@ -4,7 +4,7 @@ import { drawDecal } from '../client/render-sector.js'
 import { renderTouch } from '../client/render-touch.js'
 import { tableIter, tableIterHasNext, tableIterNext, tableIterStart } from '../collections/table.js'
 import { calcFontPad, calcFontScale, defaultFont } from '../editor/editor-util.js'
-import { black0f, black1f, black2f, lime0f, lime1f, lime2f, ember0f, ember1f, ember2f, white0f, white1f, white2f } from '../editor/palette.js'
+import { black0f, black1f, black2f, ember0f, ember1f, ember2f, lime0f, lime1f, lime2f, white0f, white1f, white2f } from '../editor/palette.js'
 import { Game } from '../game/game.js'
 import { flexSolve, flexText, returnFlexText } from '../gui/flex.js'
 import { identity, multiply, multiplyVector3, rotateX, rotateY, translate } from '../math/matrix.js'
@@ -116,6 +116,35 @@ export class GameState {
 
   update() {
     if (this.loading) return
+
+    if (this.client.controllers.length > 0) {
+      // button mapping
+      // index | xbox | ps4
+      //  0 | A       | X
+      //  1 | B       | O
+      //  2 | X       | Square
+      //  3 | Y       | Triangle
+      //  4 | LB      | L1
+      //  5 | RB      | R1
+      //  6 | LT      | L2
+      //  7 | RT      | R2
+      //  8 | Bar     | Share
+      //  9 | Menu    | Options
+      // 10 | L Press | '
+      // 11 | R Press | '
+      // 12 | D Up    | '
+      // 13 | D Down  | '
+      // 14 | D Left  | '
+      // 15 | D Right | '
+      // 16 | Logo    | '
+
+      for (const controller of this.client.controllers.values()) {
+        // console.debug(controller.buttons, controller.buttons[0])
+        if (controller.buttons[0].pressed) {
+          console.log('button 0 down')
+        }
+      }
+    }
 
     this.game.update()
 

@@ -52,6 +52,7 @@ export class Client {
     this.input = null
     this.touch = false
     this.touchRender = null
+    this.controllers = new Map()
   }
 
   keyEvent(code, down) {

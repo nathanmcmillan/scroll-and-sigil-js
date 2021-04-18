@@ -27,10 +27,10 @@ let perfStart = 0.0
 
 let active = true
 let client = null
-const ongoingTouches = []
+
+const touches = []
 
 function touchIndexById(identifier) {
-  const touches = ongoingTouches
   for (let i = 0; i < touches.length; i++) {
     if (touches[i].identifier === identifier) return i
   }
@@ -110,20 +110,20 @@ async function main() {
   if ('ontouchstart' in window) {
     document.ontouchstart = (event) => {
       event.preventDefault()
-      const touches = event.changedTouches
-      for (let i = 0; i < touches.length; i++) {
-        const touch = touches[i]
+      const changed = event.changedTouches
+      for (let i = 0; i < changed.length; i++) {
+        const touch = changed[i]
         const content = { identifier: touch.identifier, pageX: touch.pageX, pageY: client.height - touch.pageY }
-        ongoingTouches.push(content)
+        touches.push(content)
         client.touchStart(content)
       }
     }
 
     document.ontouchmove = (event) => {
       event.preventDefault()
-      const touches = event.changedTouches
-      for (let i = 0; i < touches.length; i++) {
-        const touch = touches[i]
+      const changed = event.changedTouches
+      for (let i = 0; i < changed.length; i++) {
+        const touch = changed[i]
         const content = { identifier: touch.identifier, pageX: touch.pageX, pageY: client.height - touch.pageY }
         client.touchMove(content)
       }
@@ -131,12 +131,12 @@ async function main() {
 
     document.ontouchend = (event) => {
       event.preventDefault()
-      const touches = event.changedTouches
-      for (let i = 0; i < touches.length; i++) {
-        const touch = touches[i]
+      const changed = event.changedTouches
+      for (let i = 0; i < changed.length; i++) {
+        const touch = changed[i]
         const index = touchIndexById(touch.identifier)
         if (index >= 0) {
-          const start = ongoingTouches.splice(index, 1)[0]
+          const start = touches.splice(index, 1)[0]
           client.touchEnd(start)
         }
       }
@@ -144,14 +144,25 @@ async function main() {
 
     document.ontouchcancel = (event) => {
       event.preventDefault()
-      const touches = event.changedTouches
-      for (let i = 0; i < touches.length; i++) {
-        const touch = touches[i]
+      const changed = event.changedTouches
+      for (let i = 0; i < changed.length; i++) {
+        const touch = changed[i]
         const index = touchIndexById(touch.identifier)
-        if (index >= 0) ongoingTouches.splice(index, 1)
+        if (index >= 0) touches.splice(index, 1)
       }
     }
   }
+
+  window.addEventListener('gamepadconnected', (event) => {
+    const controller = event.gamepad
+    console.log('controller connected: %d: %d buttons, %d axes', controller.index, controller.buttons.length, controller.axes.length)
+    client.controllers.set(controller.index, controller)
+  })
+
+  window.addEventListener('gamepaddisconnected', (event) => {
+    console.log('controller disconnected: %d', event.gamepad.index)
+    client.controllers.delete(event)
+  })
 
   window.onresize = () => {
     client.resize(window.innerWidth, window.innerHeight)

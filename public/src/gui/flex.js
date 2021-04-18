@@ -77,6 +77,8 @@ export function flexSolve(width, height, flex) {
       flex.x = flex.fromX.x + flex.fromX.width - flex.width
     } else if (funX === '%') {
       flex.x = Math.floor((parseFloat(flex.argX) / 100.0) * width)
+    } else if (funX === '%-left') {
+      flex.x = Math.floor((parseFloat(flex.argX) / 100.0) * width) - flex.width
     }
   } else {
     flex.x = parseFloat(flex.argX)
@@ -100,6 +102,8 @@ export function flexSolve(width, height, flex) {
       flex.y = flex.fromY.y
     } else if (funY === '%') {
       flex.y = Math.floor((parseFloat(flex.argY) / 100.0) * height)
+    } else if (funY === '%-below') {
+      flex.y = Math.floor((parseFloat(flex.argY) / 100.0) * height) - flex.height
     }
   } else {
     flex.y = parseFloat(flex.argY)
