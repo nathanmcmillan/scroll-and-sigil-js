@@ -143,6 +143,18 @@ export class GameState {
         if (controller.buttons[0].pressed) {
           console.log('button 0 down')
         }
+        if (controller.axes[0] !== 0.0) {
+          console.log('axis 0', controller.axes[0])
+        }
+        if (controller.axes[1] !== 0.0) {
+          console.log('axis 1', controller.axes[1])
+        }
+        if (controller.axes[2] !== 0.0) {
+          console.log('axis 2', controller.axes[2])
+        }
+        if (controller.axes[3] !== 0.0) {
+          console.log('axis 3', controller.axes[3])
+        }
       }
     }
 

@@ -1,4 +1,5 @@
-#!/bin/bash -eu
+#!/bin/bash
+set -euo pipefail
 
 dir='../scroll-and-sigil-website'
 

@@ -155,13 +155,14 @@ async function main() {
 
   window.addEventListener('gamepadconnected', (event) => {
     const controller = event.gamepad
-    console.log('controller connected: %d: %d buttons, %d axes', controller.index, controller.buttons.length, controller.axes.length)
+    console.log('controller connected', controller.buttons.length, 'buttons', controller.axes.length, 'axes')
     client.controllers.set(controller.index, controller)
   })
 
   window.addEventListener('gamepaddisconnected', (event) => {
-    console.log('controller disconnected: %d', event.gamepad.index)
-    client.controllers.delete(event)
+    const controller = event.gamepad
+    console.log('controller disconnected: %d', controller.index)
+    client.controllers.delete(controller.index)
   })
 
   window.onresize = () => {

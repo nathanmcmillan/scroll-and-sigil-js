@@ -20,15 +20,60 @@ export const RIGHT_TRIGGER = 11
 
 const DOUBLE_RATE = 64
 
-// TODO:
-// controller mapping
-// e.g. if xbox detected X -> B ; if mkb X -> I ; etc
+export function usingKeyboardMouse(input) {
+  const names = input.names
+  names[BUTTON_START] = 'ENTER'
+  names[BUTTON_SELECT] = 'SPACE'
+  names[STICK_UP] = 'W'
+  names[STICK_DOWN] = 'S'
+  names[STICK_LEFT] = 'A'
+  names[STICK_RIGHT] = 'D'
+  names[BUTTON_X] = 'I'
+  names[BUTTON_Y] = 'J'
+  names[BUTTON_A] = 'K'
+  names[BUTTON_B] = 'L'
+  names[LEFT_TRIGGER] = 'Q'
+  names[RIGHT_TRIGGER] = 'P'
+}
+
+export function usingXbox(input) {
+  const names = input.names
+  names[BUTTON_START] = 'START'
+  names[BUTTON_SELECT] = 'SPACE'
+  names[STICK_UP] = 'LEFT STICK UP'
+  names[STICK_DOWN] = 'LEFT STICK DOWN'
+  names[STICK_LEFT] = 'LEFT STICK LEFT'
+  names[STICK_RIGHT] = 'LEFT STICK RIGHT'
+  names[BUTTON_X] = 'A'
+  names[BUTTON_Y] = 'B'
+  names[BUTTON_A] = 'X'
+  names[BUTTON_B] = 'Y'
+  names[LEFT_TRIGGER] = 'LEFT TRIGGER'
+  names[RIGHT_TRIGGER] = 'RIGHT TRIGGER'
+}
+
+export function usingPlayStation(input) {
+  const names = input.names
+  names[BUTTON_START] = 'START'
+  names[BUTTON_SELECT] = 'SPACE'
+  names[STICK_UP] = 'LEFT STICK UP'
+  names[STICK_DOWN] = 'LEFT STICK DOWN'
+  names[STICK_LEFT] = 'LEFT STICK LEFT'
+  names[STICK_RIGHT] = 'LEFT STICK RIGHT'
+  names[BUTTON_X] = 'X'
+  names[BUTTON_Y] = 'Circle'
+  names[BUTTON_A] = 'Square'
+  names[BUTTON_B] = 'Triangle'
+  names[LEFT_TRIGGER] = 'LEFT TRIGGER'
+  names[RIGHT_TRIGGER] = 'RIGHT TRIGGER'
+}
 
 export class Input {
   constructor() {
     this.in = new Array(12).fill(false)
     this.ghost = new Array(12).fill(0)
     this.timers = new Array(12).fill(0)
+    this.names = new Array(12).fill('')
     this.mouseLeftDown = false
     this.mouseRightDown = false
     this.mouseDidMove = false
