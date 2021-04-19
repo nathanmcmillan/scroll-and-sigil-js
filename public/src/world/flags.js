@@ -33,9 +33,10 @@ class Flag {
   }
 }
 
-export function flagsExport(flags) {
+export function flagsExport(self) {
+  const flags = self.flags
   let content = ''
-  for (let f = 0; f < flags.flags.length; f++) {
+  for (let f = 0; f < flags.length; f++) {
     const flag = flags[f]
     if (content !== '') content += ' '
     content += flag.id

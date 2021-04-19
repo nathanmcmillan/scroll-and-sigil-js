@@ -1629,7 +1629,7 @@ export class MapEdit {
       for (const [button, option] of options) {
         if (one) one = false
         else content += ' '
-        content += `${this.input.name(button).toUpperCase()}/${DESCRIBE_ACTION[option]}`
+        content += `${this.input.name(button)}/${DESCRIBE_ACTION[option]}`
       }
       return content
     }

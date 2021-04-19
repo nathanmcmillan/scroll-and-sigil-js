@@ -30,7 +30,7 @@ export class ThingReference {
 
   export() {
     let content = `${this.x} ${this.z} ${this.entity.id()}`
-    if (this.flags) content += ` flags ${flagsExport(this.flags.join)} end`
+    if (this.flags) content += ` flags ${flagsExport(this.flags)} end`
     if (this.trigger) content += ` trigger ${triggerExport(this.trigger)} end`
     return content
   }

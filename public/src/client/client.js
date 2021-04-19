@@ -15,7 +15,6 @@ import { drawFloorCeil, drawWall } from '../client/render-sector.js'
 import { TouchRender, touchRenderEvent, touchRenderResize } from '../client/render-touch.js'
 import { SfxState } from '../client/sfx-state.js'
 import { intHashCode, Table, tableGet, tablePut } from '../collections/table.js'
-import { TwoWayMap } from '../collections/two-way-map.js'
 import { newPalette } from '../editor/palette.js'
 import { Tape } from '../game/tape.js'
 import * as In from '../input/input.js'
@@ -56,7 +55,7 @@ export class Client {
     this.input = null
     this.touch = false
     this.touchRender = null
-    this.controllers = new Map()
+    this.controllers = []
   }
 
   keyEvent(code, down) {
@@ -361,7 +360,10 @@ export class Client {
 
     rendererUpdateVAO(rendering, this.bufferSky, gl.STATIC_DRAW)
 
-    const keys = new TwoWayMap()
+    const keys = new Map()
+    // const keys = new TwoWayMap()
+
+    // TODO: Move this to input.js
 
     keys.set('Enter', In.BUTTON_START)
     keys.set('Space', In.BUTTON_SELECT)
@@ -385,7 +387,9 @@ export class Client {
     keys.set('KeyO', In.RIGHT_TRIGGER)
 
     this.keys = keys
+
     this.input = new In.Input()
+    In.usingKeyboardMouse(this.input)
 
     await this.openState(main.get('open'))
 

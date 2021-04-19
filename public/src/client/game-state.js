@@ -121,45 +121,27 @@ export class GameState {
   update() {
     if (this.loading) return
 
-    if (this.client.controllers.length > 0) {
-      // button mapping
-      // index | xbox | ps4
-      //  0 | A       | X
-      //  1 | B       | O
-      //  2 | X       | Square
-      //  3 | Y       | Triangle
-      //  4 | LB      | L1
-      //  5 | RB      | R1
-      //  6 | LT      | L2
-      //  7 | RT      | R2
-      //  8 | Bar     | Share
-      //  9 | Menu    | Options
-      // 10 | L Press | '
-      // 11 | R Press | '
-      // 12 | D Up    | '
-      // 13 | D Down  | '
-      // 14 | D Left  | '
-      // 15 | D Right | '
-      // 16 | Logo    | '
+    const controllers = this.client.controllers
+    for (let c = 0; c < controllers.length; c++) {
+      const controller = controllers[c]
 
-      for (const controller of this.client.controllers.values()) {
-        // console.debug(controller.buttons, controller.buttons[0])
-        if (controller.buttons[0].pressed) {
-          console.log('button 0 down')
-        }
-        if (controller.axes[0] !== 0.0) {
-          console.log('axis 0', controller.axes[0])
-        }
-        if (controller.axes[1] !== 0.0) {
-          console.log('axis 1', controller.axes[1])
-        }
-        if (controller.axes[2] !== 0.0) {
-          console.log('axis 2', controller.axes[2])
-        }
-        if (controller.axes[3] !== 0.0) {
-          console.log('axis 3', controller.axes[3])
-        }
+      if (controller.buttons[0].pressed) {
+        console.log('button 0 down')
       }
+      if (controller.axes[0] !== 0.0) {
+        console.log('axis 0', controller.axes[0])
+      }
+      if (controller.axes[1] !== 0.0) {
+        console.log('axis 1', controller.axes[1])
+      }
+      if (controller.axes[2] !== 0.0) {
+        console.log('axis 2', controller.axes[2])
+      }
+      if (controller.axes[3] !== 0.0) {
+        console.log('axis 3', controller.axes[3])
+      }
+
+      this.game.input.controllerUpdate(controller)
     }
 
     this.game.update()

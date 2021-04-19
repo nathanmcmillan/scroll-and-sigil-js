@@ -2,6 +2,28 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+import { floatZero } from '../math/vector'
+
+// button mapping
+// index | xbox | ps4
+//  0 | A       | X
+//  1 | B       | O
+//  2 | X       | Square
+//  3 | Y       | Triangle
+//  4 | LB      | L1
+//  5 | RB      | R1
+//  6 | LT      | L2
+//  7 | RT      | R2
+//  8 | Bar     | Share
+//  9 | Menu    | Options
+// 10 | L Press | '
+// 11 | R Press | '
+// 12 | D Up    | '
+// 13 | D Down  | '
+// 14 | D Left  | '
+// 15 | D Right | '
+// 16 | Logo    | '
+
 export const BUTTON_START = 0
 export const BUTTON_SELECT = 1
 
@@ -18,6 +40,11 @@ export const BUTTON_B = 9
 export const LEFT_TRIGGER = 10
 export const RIGHT_TRIGGER = 11
 
+export const RIGHT_STICK_UP = 12
+export const RIGHT_STICK_DOWN = 13
+export const RIGHT_STICK_LEFT = 14
+export const RIGHT_STICK_RIGHT = 15
+
 const DOUBLE_RATE = 64
 
 export function usingKeyboardMouse(input) {
@@ -30,10 +57,12 @@ export function usingKeyboardMouse(input) {
   names[STICK_RIGHT] = 'D'
   names[BUTTON_X] = 'I'
   names[BUTTON_Y] = 'J'
-  names[BUTTON_A] = 'K'
-  names[BUTTON_B] = 'L'
+  names[BUTTON_A] = 'L'
+  names[BUTTON_B] = 'K'
   names[LEFT_TRIGGER] = 'Q'
-  names[RIGHT_TRIGGER] = 'P'
+  names[RIGHT_TRIGGER] = 'O'
+
+  input.mode = 'computer'
 }
 
 export function usingXbox(input) {
@@ -50,6 +79,8 @@ export function usingXbox(input) {
   names[BUTTON_B] = 'Y'
   names[LEFT_TRIGGER] = 'LEFT TRIGGER'
   names[RIGHT_TRIGGER] = 'RIGHT TRIGGER'
+
+  input.mode = 'xbox'
 }
 
 export function usingPlayStation(input) {
@@ -66,6 +97,8 @@ export function usingPlayStation(input) {
   names[BUTTON_B] = 'Triangle'
   names[LEFT_TRIGGER] = 'LEFT TRIGGER'
   names[RIGHT_TRIGGER] = 'RIGHT TRIGGER'
+
+  input.mode = 'playstation'
 }
 
 export class Input {
@@ -74,11 +107,14 @@ export class Input {
     this.ghost = new Array(12).fill(0)
     this.timers = new Array(12).fill(0)
     this.names = new Array(12).fill('')
+    this.mode = ''
     this.mouseLeftDown = false
     this.mouseRightDown = false
     this.mouseDidMove = false
     this.mousePositionX = 0
     this.mousePositionY = 0
+    this.leftStickAngle = 0.0
+    this.leftStickPower = 0.0
   }
 
   set(index, down) {
@@ -310,33 +346,39 @@ export class Input {
     return this.double(now, RIGHT_TRIGGER)
   }
 
+  controllerUpdate(controller) {
+    this.in[BUTTON_X] = controller.buttons[0].pressed
+    this.in[BUTTON_Y] = controller.buttons[1].pressed
+    this.in[BUTTON_A] = controller.buttons[2].pressed
+    this.in[BUTTON_B] = controller.buttons[3].pressed
+
+    this.in[STICK_UP] = controller.axes[0] < -0.5
+    this.in[STICK_DOWN] = controller.axes[0] > 0.5
+    this.in[STICK_LEFT] = controller.axes[1] < -0.5
+    this.in[STICK_RIGHT] = controller.axes[1] > 0.5
+
+    this.leftStickAngle = Math.atan2(controller.axes[0], controller.axes[1])
+    this.leftStickPower = Math.max(Math.abs(controller.axes[0]), Math.abs(controller.axes[1]))
+
+    // this.in[RIGHT_STICK_UP] = controller.axes[2] < -0.5
+    // this.in[RIGHT_STICK_DOWN] = controller.axes[3] > 0.5
+    // this.in[RIGHT_STICK_LEFT] = controller.axes[4] < -0.5
+    // this.in[RIGHT_STICK_RIGHT] = controller.axes[5] > 0.5
+  }
+
+  leftStickSin(multiple) {
+    if (floatZero(this.leftStickPower)) return 0.0
+    const power = this.leftStickPower * multiple
+    return Math.sin(this.leftStickAngle) * power
+  }
+
+  leftStickCos(multiple) {
+    if (floatZero(this.leftStickPower)) return 0.0
+    const power = this.leftStickPower * multiple
+    return Math.cos(this.leftStickAngle) * power
+  }
+
   name(button) {
-    switch (button) {
-      case BUTTON_START:
-        return 'start'
-      case BUTTON_SELECT:
-        return 'select'
-      case STICK_UP:
-        return 'up'
-      case STICK_DOWN:
-        return 'down'
-      case STICK_LEFT:
-        return 'left'
-      case STICK_RIGHT:
-        return 'right'
-      case BUTTON_X:
-        return 'x'
-      case BUTTON_Y:
-        return 'y'
-      case BUTTON_A:
-        return 'a'
-      case BUTTON_B:
-        return 'b'
-      case LEFT_TRIGGER:
-        return 'left trigger'
-      case RIGHT_TRIGGER:
-        return 'right trigger'
-    }
-    return null
+    return this.names[button]
   }
 }

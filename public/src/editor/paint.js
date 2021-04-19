@@ -8,6 +8,7 @@ import { describeColor, newPalette, newPaletteFloat } from '../editor/palette.js
 import { Dialog } from '../gui/dialog.js'
 import { flexBox, flexSize, flexSolve } from '../gui/flex.js'
 import { TextBox } from '../gui/text-box.js'
+import { BUTTON_A, BUTTON_B, BUTTON_SELECT, BUTTON_X, BUTTON_Y } from '../input/input.js'
 import { TIC_FONT_HEIGHT, TIC_FONT_WIDTH } from '../render/render.js'
 
 const PENCIL = 0
@@ -424,13 +425,13 @@ export class PaintEdit {
   }
 
   bottomRightStatus() {
-    if (this.dialog !== null) return 'A/OK B/CANCEL'
     const input = this.input
-    if (input.x()) return 'X/OK'
-    else if (input.y()) return 'Y/OK'
-    else if (input.b()) return 'B/OK'
-    else if (input.select()) return 'SELECT/OK'
-    else return 'X/COLOR Y/TOOL B/MOVE A/DRAW'
+    if (this.dialog !== null) return `${input.name(BUTTON_A)}/OK ${input.name(BUTTON_B)}/CANCEL`
+    if (input.x()) return `${input.name(BUTTON_X)}/OK`
+    else if (input.y()) return `${input.name(BUTTON_Y)}/OK`
+    else if (input.b()) return `${input.name(BUTTON_B)}/OK`
+    else if (input.select()) return `${input.name(BUTTON_SELECT)}/OK`
+    else return `${input.name(BUTTON_X)}/COLOR ${input.name(BUTTON_Y)}/TOOL ${input.name(BUTTON_B)}/MOVE ${input.name(BUTTON_A)}/DRAW`
   }
 
   immediateInput() {
