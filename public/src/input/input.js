@@ -2,28 +2,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import { floatZero } from '../math/vector'
-
-// button mapping
-// index | xbox | ps4
-//  0 | A       | X
-//  1 | B       | O
-//  2 | X       | Square
-//  3 | Y       | Triangle
-//  4 | LB      | L1
-//  5 | RB      | R1
-//  6 | LT      | L2
-//  7 | RT      | R2
-//  8 | Bar     | Share
-//  9 | Menu    | Options
-// 10 | L Press | '
-// 11 | R Press | '
-// 12 | D Up    | '
-// 13 | D Down  | '
-// 14 | D Left  | '
-// 15 | D Right | '
-// 16 | Logo    | '
-
 export const BUTTON_START = 0
 export const BUTTON_SELECT = 1
 
@@ -40,10 +18,7 @@ export const BUTTON_B = 9
 export const LEFT_TRIGGER = 10
 export const RIGHT_TRIGGER = 11
 
-export const RIGHT_STICK_UP = 12
-export const RIGHT_STICK_DOWN = 13
-export const RIGHT_STICK_LEFT = 14
-export const RIGHT_STICK_RIGHT = 15
+const BUTTONS = 12
 
 const DOUBLE_RATE = 64
 
@@ -61,8 +36,6 @@ export function usingKeyboardMouse(input) {
   names[BUTTON_B] = 'K'
   names[LEFT_TRIGGER] = 'Q'
   names[RIGHT_TRIGGER] = 'O'
-
-  input.mode = 'computer'
 }
 
 export function usingXbox(input) {
@@ -79,8 +52,6 @@ export function usingXbox(input) {
   names[BUTTON_B] = 'Y'
   names[LEFT_TRIGGER] = 'LEFT TRIGGER'
   names[RIGHT_TRIGGER] = 'RIGHT TRIGGER'
-
-  input.mode = 'xbox'
 }
 
 export function usingPlayStation(input) {
@@ -92,22 +63,21 @@ export function usingPlayStation(input) {
   names[STICK_LEFT] = 'LEFT STICK LEFT'
   names[STICK_RIGHT] = 'LEFT STICK RIGHT'
   names[BUTTON_X] = 'X'
-  names[BUTTON_Y] = 'Circle'
-  names[BUTTON_A] = 'Square'
+  names[BUTTON_Y] = 'Square'
+  names[BUTTON_A] = 'Circle'
   names[BUTTON_B] = 'Triangle'
   names[LEFT_TRIGGER] = 'LEFT TRIGGER'
   names[RIGHT_TRIGGER] = 'RIGHT TRIGGER'
-
-  input.mode = 'playstation'
 }
 
 export class Input {
   constructor() {
-    this.in = new Array(12).fill(false)
-    this.ghost = new Array(12).fill(0)
-    this.timers = new Array(12).fill(0)
-    this.names = new Array(12).fill('')
-    this.mode = ''
+    this.in = new Array(BUTTONS).fill(false)
+    this.keyboard = new Array(BUTTONS).fill(false)
+    this.pressed = new Array(BUTTONS).fill(false)
+    this.ghost = new Array(BUTTONS).fill(0)
+    this.timers = new Array(BUTTONS).fill(0)
+    this.names = new Array(BUTTONS).fill('')
     this.mouseLeftDown = false
     this.mouseRightDown = false
     this.mouseDidMove = false
@@ -115,10 +85,12 @@ export class Input {
     this.mousePositionY = 0
     this.leftStickAngle = 0.0
     this.leftStickPower = 0.0
+    this.rightStickX = 0.0
+    this.rightStickY = 0.0
   }
 
   set(index, down) {
-    this.in[index] = down
+    this.keyboard[index] = down
   }
 
   mouseEvent(left, down) {
@@ -193,9 +165,12 @@ export class Input {
   }
 
   press(key) {
-    const down = this.in[key]
-    this.in[key] = false
-    return down
+    if (this.pressed[key]) return false
+    if (this.in[key]) {
+      this.pressed[key] = true
+      return true
+    }
+    return false
   }
 
   start() {
@@ -346,36 +321,106 @@ export class Input {
     return this.double(now, RIGHT_TRIGGER)
   }
 
+  keyboardMouseAnalog() {
+    const down = this.in
+
+    let angle = 0.0
+    let direction = null
+
+    if (down[STICK_UP]) {
+      direction = 'w'
+    }
+
+    if (down[STICK_DOWN]) {
+      if (direction === null) {
+        angle = Math.PI
+        direction = 's'
+      } else {
+        direction = null
+      }
+    }
+
+    if (down[STICK_LEFT]) {
+      if (direction === null) {
+        angle = -0.5 * Math.PI
+        direction = 'a'
+      } else if (direction === 'w') {
+        angle -= 0.25 * Math.PI
+        direction = 'wa'
+      } else if (direction === 's') {
+        angle += 0.25 * Math.PI
+        direction = 'sa'
+      }
+    }
+
+    if (down[STICK_RIGHT]) {
+      if (direction === null) {
+        angle = 0.5 * Math.PI
+        direction = 'd'
+      } else if (direction === 'a') {
+        direction = null
+      } else if (direction === 'wa') {
+        angle = 0.0
+        direction = 'w'
+      } else if (direction === 'sa') {
+        angle = Math.PI
+        direction = 's'
+      } else if (direction === 'w') {
+        angle += 0.25 * Math.PI
+        direction = 'wd'
+      } else if (direction === 's') {
+        angle -= 0.25 * Math.PI
+        direction = 'sd'
+      }
+    }
+
+    if (direction !== null) {
+      this.leftStickAngle = angle
+      this.leftStickPower = 1.0
+    } else {
+      this.leftStickPower = 0.0
+    }
+  }
+
+  keyboardMouseUpdate() {
+    for (let i = 0; i < BUTTONS; i++) this.in[i] = this.keyboard[i]
+  }
+
+  updatePressed() {
+    for (let i = 0; i < BUTTONS; i++) if (!this.in[i]) this.pressed[i] = false
+  }
+
   controllerUpdate(controller) {
-    this.in[BUTTON_X] = controller.buttons[0].pressed
-    this.in[BUTTON_Y] = controller.buttons[1].pressed
-    this.in[BUTTON_A] = controller.buttons[2].pressed
-    this.in[BUTTON_B] = controller.buttons[3].pressed
+    this.in[BUTTON_X] = this.in[BUTTON_X] || controller.buttons[0].pressed
+    this.in[BUTTON_A] = this.in[BUTTON_A] || controller.buttons[1].pressed
+    this.in[BUTTON_Y] = this.in[BUTTON_Y] || controller.buttons[2].pressed
+    this.in[BUTTON_B] = this.in[BUTTON_B] || controller.buttons[3].pressed
 
-    this.in[STICK_UP] = controller.axes[0] < -0.5
-    this.in[STICK_DOWN] = controller.axes[0] > 0.5
-    this.in[STICK_LEFT] = controller.axes[1] < -0.5
-    this.in[STICK_RIGHT] = controller.axes[1] > 0.5
+    this.in[LEFT_TRIGGER] = this.in[LEFT_TRIGGER] || controller.buttons[6].pressed || controller.buttons[4].pressed
+    this.in[RIGHT_TRIGGER] = this.in[RIGHT_TRIGGER] || controller.buttons[7].pressed || controller.buttons[5].pressed
 
-    this.leftStickAngle = Math.atan2(controller.axes[0], controller.axes[1])
+    this.in[BUTTON_START] = this.in[BUTTON_START] || controller.buttons[8].pressed || controller.buttons[11].pressed || controller.buttons[16].pressed
+    this.in[BUTTON_SELECT] = this.in[BUTTON_SELECT] || controller.buttons[9].pressed || controller.buttons[10].pressed
+
+    const sensitivity = 0.5
+
+    this.in[STICK_UP] = this.in[STICK_UP] || controller.axes[1] < -sensitivity || controller.buttons[12].pressed
+    this.in[STICK_DOWN] = this.in[STICK_DOWN] || controller.axes[1] > sensitivity || controller.buttons[13].pressed
+    this.in[STICK_LEFT] = this.in[STICK_LEFT] || controller.axes[0] < -sensitivity || controller.buttons[14].pressed
+    this.in[STICK_RIGHT] = this.in[STICK_RIGHT] || controller.axes[0] > sensitivity || controller.buttons[15].pressed
+
+    this.leftStickAngle = Math.atan2(controller.axes[0], -controller.axes[1])
     this.leftStickPower = Math.max(Math.abs(controller.axes[0]), Math.abs(controller.axes[1]))
 
-    // this.in[RIGHT_STICK_UP] = controller.axes[2] < -0.5
-    // this.in[RIGHT_STICK_DOWN] = controller.axes[3] > 0.5
-    // this.in[RIGHT_STICK_LEFT] = controller.axes[4] < -0.5
-    // this.in[RIGHT_STICK_RIGHT] = controller.axes[5] > 0.5
-  }
+    this.rightStickX = controller.axes[2]
+    this.rightStickY = controller.axes[3]
 
-  leftStickSin(multiple) {
-    if (floatZero(this.leftStickPower)) return 0.0
-    const power = this.leftStickPower * multiple
-    return Math.sin(this.leftStickAngle) * power
-  }
+    const deadzone = 0.1
 
-  leftStickCos(multiple) {
-    if (floatZero(this.leftStickPower)) return 0.0
-    const power = this.leftStickPower * multiple
-    return Math.cos(this.leftStickAngle) * power
+    if (this.leftStickPower < deadzone) this.leftStickPower = 0.0
+
+    if (Math.abs(this.rightStickX) < deadzone) this.rightStickX = 0.0
+    if (Math.abs(this.rightStickY) < deadzone) this.rightStickY = 0.0
   }
 
   name(button) {

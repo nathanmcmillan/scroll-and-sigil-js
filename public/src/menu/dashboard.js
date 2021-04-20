@@ -46,7 +46,9 @@ export class Dashboard {
 
   async load() {}
 
-  immediateInput() {
+  immediate() {}
+
+  events() {
     const input = this.input
     if (this.menu === EDIT_NAME) {
       if (input.pressY()) {
@@ -85,6 +87,8 @@ export class Dashboard {
   }
 
   update(timestamp) {
+    this.events()
+
     if (this.forcePaint) {
       this.doPaint = true
       this.forcePaint = false

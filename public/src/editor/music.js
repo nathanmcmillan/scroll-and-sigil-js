@@ -3,6 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import { Dialog } from '../gui/dialog.js'
+import { BUTTON_A, BUTTON_B, BUTTON_X, BUTTON_Y } from '../input/input.js'
 import { FREQ, LENGTH, newSynthParameters, SUSTAIN, synth, synthTime, VOLUME, WAVE, WAVEFORMS } from '../sound/synth.js'
 
 const INPUT_RATE = 128
@@ -257,13 +258,19 @@ export class MusicEdit {
   }
 
   bottomRightStatus() {
-    let content = this.noteR === 0 ? 'A/DURATION UP B/DURATION DOWN ' : 'A/PITCH UP B/PITCH DOWN '
-    content += 'Y/OPTIONS '
-    content += this.play ? 'X/STOP' : 'X/PLAY'
+    const input = this.input
+    let content = null
+    if (this.noteR === 0) content = `${input.name(BUTTON_A)}/DURATION UP ${input.name(BUTTON_B)}/DURATION DOWN `
+    else content = `${input.name(BUTTON_A)}/PITCH UP ${input.name(BUTTON_B)}/PITCH DOWN `
+    content += `${input.name(BUTTON_Y)}/OPTIONS `
+    content += `${input.name(BUTTON_X)}`
+    content += this.play ? '/STOP' : '/PLAY'
     return content
   }
 
-  immediateInput() {
+  immediate() {}
+
+  events() {
     if (this.dialog === null) return
     const input = this.input
     if (input.pressB()) {
@@ -279,6 +286,8 @@ export class MusicEdit {
   }
 
   update(timestamp) {
+    this.events()
+
     if (this.play) {
       this.updatePlay(timestamp)
       return

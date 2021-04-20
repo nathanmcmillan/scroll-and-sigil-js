@@ -202,10 +202,12 @@ export class Game {
         camera.ry -= 0.05
         if (camera.ry < 0.0) camera.ry += 2.0 * Math.PI
       }
+
       if (input.a()) {
         camera.ry += 0.05
         if (camera.ry >= 2.0 * Math.PI) camera.ry -= 2.0 * Math.PI
       }
+
       // if (input.rightUp()) {
       //   camera.rx -= 0.05
       //   if (camera.rx < -0.5 * Math.PI) camera.rx = -0.5 * Math.PI
@@ -214,6 +216,19 @@ export class Game {
       //   camera.rx += 0.05
       //   if (camera.rx > 0.5 * Math.PI) camera.rx = 0.5 * Math.PI
       // }
+
+      if (input.rightStickX !== 0.0) {
+        camera.ry += input.rightStickX * 0.05
+        if (camera.ry < 0.0) camera.ry += 2.0 * Math.PI
+        else if (camera.ry >= 2.0 * Math.PI) camera.ry -= 2.0 * Math.PI
+      }
+
+      // if (input.rightStickY !== 0.0) {
+      //   camera.rx += input.rightStickY * 0.05
+      //   if (camera.rx < -0.4 * Math.PI) camera.rx = -0.4 * Math.PI
+      //   else if (camera.rx > 0.4 * Math.PI) camera.rx = 0.4 * Math.PI
+      // }
+
       camera.target.rotation = camera.ry - 0.5 * Math.PI
     }
 

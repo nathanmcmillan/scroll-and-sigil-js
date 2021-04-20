@@ -38,7 +38,7 @@ export class DashboardState {
     const dashboard = this.dashboard
     if (this.keys.has(code)) {
       dashboard.input.set(this.keys.get(code), down)
-      dashboard.immediateInput()
+      dashboard.immediate()
     }
   }
 

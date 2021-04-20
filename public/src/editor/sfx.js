@@ -4,6 +4,7 @@
 
 import { fetchText } from '../client/net.js'
 import { Dialog } from '../gui/dialog.js'
+import { BUTTON_A, BUTTON_B, BUTTON_X } from '../input/input.js'
 import {
   ACCEL,
   ATTACK,
@@ -269,10 +270,13 @@ export class SfxEdit {
   }
 
   bottomRightStatus() {
-    return 'A/INCREASE B/DECREASE X/PLAY'
+    const input = this.input
+    return `${input.name(BUTTON_A)}/INCREASE ${input.name(BUTTON_B)}/DECREASE ${input.name(BUTTON_X)}/PLAY`
   }
 
-  immediateInput() {
+  immediate() {}
+
+  events() {
     if (this.dialog === null) return
     const input = this.input
     if (input.pressB()) {
@@ -288,6 +292,8 @@ export class SfxEdit {
   }
 
   update(timestamp) {
+    this.events()
+
     if (this.forcePaint) {
       this.doPaint = true
       this.forcePaint = false

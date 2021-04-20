@@ -37,7 +37,7 @@ export class MapState {
     const maps = this.maps
     if (this.keys.has(code)) {
       maps.input.set(this.keys.get(code), down)
-      maps.immediateInput()
+      maps.immediate()
     }
   }
 

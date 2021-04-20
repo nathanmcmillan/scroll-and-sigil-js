@@ -1636,7 +1636,9 @@ export class MapEdit {
     return null
   }
 
-  immediateInput() {
+  immediate() {}
+
+  events() {
     const input = this.input
     if (this.activeTextBox) {
       if (input.pressY()) {
@@ -1669,6 +1671,8 @@ export class MapEdit {
   }
 
   update(timestamp) {
+    this.events()
+
     if (this.forcePaint) {
       this.doPaint = true
       this.forcePaint = false

@@ -434,7 +434,22 @@ export class PaintEdit {
     else return `${input.name(BUTTON_X)}/COLOR ${input.name(BUTTON_Y)}/TOOL ${input.name(BUTTON_B)}/MOVE ${input.name(BUTTON_A)}/DRAW`
   }
 
-  immediateInput() {
+  toolSwitch(i) {
+    if (this.selectL !== null) {
+      this.selectL = null
+      this.selectR = null
+      this.selectT = null
+      this.selectB = null
+      this.selectDrag = false
+      this.selectCopy = false
+    }
+    this.activeSprite = null
+    this.tool += i
+  }
+
+  immediate() {}
+
+  events() {
     const input = this.input
     if (this.activeTextBox) {
       if (input.pressY()) {
@@ -468,20 +483,9 @@ export class PaintEdit {
     }
   }
 
-  toolSwitch(i) {
-    if (this.selectL !== null) {
-      this.selectL = null
-      this.selectR = null
-      this.selectT = null
-      this.selectB = null
-      this.selectDrag = false
-      this.selectCopy = false
-    }
-    this.activeSprite = null
-    this.tool += i
-  }
-
   update(timestamp) {
+    this.events()
+
     if (this.forcePaint) {
       this.doPaint = true
       this.forcePaint = false

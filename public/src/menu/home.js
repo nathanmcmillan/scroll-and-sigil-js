@@ -121,12 +121,20 @@ export class Home {
     flexSolve(width, height, creditsBox)
   }
 
-  immediateInput() {
+  immediate() {}
+
+  events() {
     const input = this.input
-    if (input.pressA() || input.pressStart()) this.parent.eventCall('ok')
+    if (input.pressA() || input.pressStart()) {
+      this.parent.eventCall('ok')
+      return true
+    }
+    return false
   }
 
   update(timestamp) {
+    if (this.events()) return
+
     if (this.forcePaint) {
       this.doPaint = true
       this.forcePaint = false

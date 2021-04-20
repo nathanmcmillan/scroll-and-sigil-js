@@ -67,7 +67,7 @@ export class SfxState {
     const sfx = this.sfx
     if (this.keys.has(code)) {
       sfx.input.set(this.keys.get(code), down)
-      sfx.immediateInput()
+      sfx.immediate()
     }
   }
 

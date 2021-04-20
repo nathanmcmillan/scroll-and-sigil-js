@@ -50,7 +50,7 @@ export class HomeState {
     const home = this.home
     if (this.keys.has(code)) {
       home.input.set(this.keys.get(code), down)
-      home.immediateInput()
+      home.immediate()
     }
   }
 

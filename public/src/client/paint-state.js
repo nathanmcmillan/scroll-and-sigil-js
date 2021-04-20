@@ -92,7 +92,7 @@ export class PaintState {
     const paint = this.paint
     if (this.keys.has(code)) {
       paint.input.set(this.keys.get(code), down)
-      paint.immediateInput()
+      paint.immediate()
     }
   }
 

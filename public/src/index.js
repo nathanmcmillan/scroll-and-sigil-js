@@ -3,6 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import { Client } from './client/client.js'
+import { usingKeyboardMouse, usingPlayStation } from './input/input.js'
 
 function newCanvas(width, height) {
   const canvas = document.getElementById('canvas')
@@ -156,6 +157,11 @@ async function main() {
   window.addEventListener('gamepadconnected', (event) => {
     const controller = event.gamepad
     console.log('controller connected', controller.buttons.length, 'buttons', controller.axes.length, 'axes')
+    if (controller.buttons.length < 12 || controller.axes.length < 4) {
+      console.warning('controller does not have enough buttons or axes')
+      return
+    }
+    usingPlayStation(client.input)
     client.controllers.push(controller)
   })
 
@@ -166,6 +172,7 @@ async function main() {
     for (let c = 0; c < array.length; c++) {
       if (array[c].index === controller.index) array.splice(c, 1)
     }
+    if (client.controllers.length === 0) usingKeyboardMouse(client.input)
   })
 
   window.onresize = () => {

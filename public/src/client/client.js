@@ -361,9 +361,6 @@ export class Client {
     rendererUpdateVAO(rendering, this.bufferSky, gl.STATIC_DRAW)
 
     const keys = new Map()
-    // const keys = new TwoWayMap()
-
-    // TODO: Move this to input.js
 
     keys.set('Enter', In.BUTTON_START)
     keys.set('Space', In.BUTTON_SELECT)
@@ -440,6 +437,11 @@ export class Client {
   }
 
   update(timestamp) {
+    this.input.keyboardMouseUpdate()
+    const controllers = this.controllers
+    if (controllers.length !== 0) this.input.controllerUpdate(controllers[0])
+    this.input.updatePressed()
+
     this.state.update(timestamp)
   }
 

@@ -393,60 +393,11 @@ function heroMove(self) {
       self.ground = false
       self.deltaY += 0.4
     } else {
-      // let direction = null
-      // let rotation = 0.0
-      // if (input.stickUp()) {
-      //   direction = 'w'
-      //   rotation = self.rotation
-      // }
-      // if (input.stickDown()) {
-      //   if (direction === null) {
-      //     direction = 's'
-      //     rotation = self.rotation + Math.PI
-      //   } else {
-      //     direction = null
-      //     rotation = 0.0
-      //   }
-      // }
-      // if (input.stickLeft()) {
-      //   if (direction === null) {
-      //     direction = 'a'
-      //     rotation = self.rotation - 0.5 * Math.PI
-      //   } else if (direction === 'w') {
-      //     direction = 'wa'
-      //     rotation -= 0.25 * Math.PI
-      //   } else if (direction === 's') {
-      //     direction = 'sa'
-      //     rotation += 0.25 * Math.PI
-      //   }
-      // }
-      // if (input.stickRight()) {
-      //   if (direction === null) {
-      //     direction = 'd'
-      //     rotation = self.rotation + 0.5 * Math.PI
-      //   } else if (direction === 'a') {
-      //     direction = null
-      //     rotation = 0.0
-      //   } else if (direction === 'wa') {
-      //     direction = 'w'
-      //     rotation = self.rotation
-      //   } else if (direction === 'sa') {
-      //     direction = 's'
-      //     rotation = self.rotation + Math.PI
-      //   } else if (direction === 'w') {
-      //     direction = 'wd'
-      //     rotation += 0.25 * Math.PI
-      //   } else if (direction === 's') {
-      //     direction = 'sd'
-      //     rotation -= 0.25 * Math.PI
-      //   }
-      // }
-      const deltaX = input.leftStickCos(self.speed)
-      const deltaZ = input.leftStickSin(self.speed)
-      // if (direction !== null) {
-      if (deltaX !== 0.0 || deltaZ !== 0.0) {
-        // self.deltaX += Math.cos(rotation) * self.speed
-        // self.deltaZ += Math.sin(rotation) * self.speed
+      if (input.leftStickPower !== 0.0) {
+        const power = input.leftStickPower * self.speed
+        const angle = input.leftStickAngle + self.rotation
+        const deltaX = power * Math.cos(angle)
+        const deltaZ = power * Math.sin(angle)
         self.deltaX += deltaX
         self.deltaZ += deltaZ
         if (thingUpdateAnimation(self) === ANIMATION_DONE) self.animationFrame = 0

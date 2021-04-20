@@ -37,7 +37,7 @@ export class MusicState {
     const music = this.music
     if (this.keys.has(code)) {
       music.input.set(this.keys.get(code), down)
-      music.immediateInput()
+      music.immediate()
     }
   }
 
