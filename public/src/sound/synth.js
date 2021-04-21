@@ -56,7 +56,6 @@ const _COUNT = 1
 const rate = 1.0 / SYNTH_RATE
 const pi = Math.PI
 const tau = 2.0 * pi
-const deg = pi / 180
 
 const context = newAudioContext()
 
@@ -78,63 +77,6 @@ export function newSynthParameters() {
 //       data[i] = amplitude * (2.0 * Math.random() - 1.0)
 //       phase -= tau
 //     }
-//   }
-// }
-
-// function process(data, algo, parameters) {
-//   let attack = parameters[ATTACK]
-//   let decay = parameters[DECAY]
-//   let length = parameters[LENGTH]
-//   let release = parameters[RELEASE]
-
-//   if (attack === 0) attack = 4
-//   if (decay === 0) decay = 4
-//   if (release === 0) release = 4
-
-//   attack = Math.floor((attack / 1000) * SYNTH_RATE)
-//   decay = Math.floor((decay / 1000) * SYNTH_RATE)
-//   length = Math.floor((length / 1000) * SYNTH_RATE)
-//   release = Math.floor((release / 1000) * SYNTH_RATE)
-
-//   const volume = parameters[VOLUME]
-//   const sustain = parameters[SUSTAIN]
-//   const hold = volume * sustain
-
-//   const attackRate = volume / attack
-//   const decayRate = (volume - hold) / decay
-//   const releaseRate = hold / release
-
-//   const decayEnd = attack + decay
-//   const lengthEnd = decayEnd + length
-
-//   let amplitude = 0
-
-//   let frequency = diatonic(parameters[FREQ] - SEMITONES)
-//   let speed = parameters[SPEED]
-//   let acceleration = parameters[ACCEL] / SYNTH_RATE
-//   const jerk = parameters[JERK] / SYNTH_RATE / SYNTH_RATE
-
-//   const extra = new Array(_COUNT)
-//   extra[_INTERVAL] = tau * parameters[CYCLE]
-
-//   const size = data.length
-//   let phase = 0
-
-//   for (let i = 0; i < size; i++) {
-//     if (i < attack) amplitude += attackRate
-//     else if (i < decayEnd) amplitude -= decayRate
-//     else if (i > lengthEnd) amplitude -= releaseRate
-//     else amplitude = hold
-
-//     data[i] = algo(amplitude, phase, extra)
-
-//     const increment = tau * frequency * rate
-//     phase += increment
-//     if (phase > tau) phase -= tau
-
-//     frequency += speed
-//     speed += acceleration
-//     acceleration += jerk
 //   }
 // }
 
@@ -356,29 +298,19 @@ function process(data, parameters) {
     }
 
     if (calculate) {
-      let sound = 1.0 // amplitude
-
-      if (vibratoWave !== 0) {
-        const proc = processFromIndex(vibratoWave)
-        const vibrato = proc(vibratoPerc, vibratoPhase, extra)
-        // ???
-
-        const increment = tau * vibratoFreq * rate
-        vibratoPhase += increment
-        if (vibratoPhase > tau) vibratoPhase -= tau
-      }
+      let amp = 1.0
 
       if (tremoloWave !== 0) {
         const proc = processFromIndex(tremoloWave)
         const tremolo = proc(1.0, tremoloPhase, extra)
-        sound *= 1.0 - normalize(0.0, tremoloPerc, tremolo)
+        amp *= 1.0 - normalize(0.0, tremoloPerc, tremolo)
 
         const increment = tau * tremoloFreq * rate
         tremoloPhase += increment
         if (tremoloPhase > tau) tremoloPhase -= tau
       }
 
-      out = proc(sound, phase, extra)
+      out = proc(amp, phase, extra)
 
       if (noise !== 0.0) {
         out = out - out * noise * (1.0 - (((Math.sin(i) + 1.0) * 1e9) % 2))
@@ -409,9 +341,23 @@ function process(data, parameters) {
       }
     }
 
-    data[i] = out * amplitude // out
+    data[i] = out * amplitude
 
-    const increment = tau * frequency * rate
+    let freq = frequency
+
+    if (vibratoWave !== 0) {
+      const proc = processFromIndex(vibratoWave)
+      const vibrato = proc(vibratoPerc, vibratoPhase, extra)
+
+      freq += vibrato * vibratoPerc * 100
+      // freq *= Math.pow(2, (vibrato * vibratoPerc * 100) / 1200)
+
+      const increment = tau * vibratoFreq * rate
+      vibratoPhase += increment
+      if (vibratoPhase > tau) vibratoPhase -= tau
+    }
+
+    const increment = tau * freq * rate
     phase += increment
     if (phase > tau) phase -= tau
 
