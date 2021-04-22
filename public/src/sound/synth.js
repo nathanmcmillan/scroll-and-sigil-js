@@ -38,7 +38,16 @@ export const LOW_PASS = 21
 export const HIGH_PASS = 22
 export const REPEAT = 23
 
-export const PARAMETER_COUNT = 24
+export const HARMONIC_MULT_A = 24
+export const HARMONIC_GAIN_A = 25
+
+export const HARMONIC_MULT_B = 26
+export const HARMONIC_GAIN_B = 27
+
+export const HARMONIC_MULT_C = 28
+export const HARMONIC_GAIN_C = 29
+
+export const PARAMETER_COUNT = 30
 
 export const WAVE_GROUP = ['Wave', 'Cycle']
 export const FREQ_GROUP = ['Frequency', 'Speed', 'Accel', 'Jerk']
@@ -46,10 +55,12 @@ export const VOLUME_GROUP = ['Attack', 'Decay', 'Sustain', 'Length', 'Release', 
 export const VIBRATO_GROUP = ['Vibrato Wave', 'Vibrato Freq', 'Vibrato %']
 export const TREMOLO_GROUP = ['Tremolo Wave', 'Tremolo Freq', 'Tremolo %']
 export const OTHER_GROUP = ['Bit Crush', 'Noise', 'Distortion', 'Low Pass', 'High Pass', 'Repeat']
+export const HARMONIC_GROUP = ['Harmonic Mult A', 'Harmonic Gain A', 'Harmonic Mult B', 'Harmonic Gain B', 'Harmonic Mult C', 'Harmonic Gain C']
 
-export const SYNTH_ARGUMENTS = [].concat(WAVE_GROUP).concat(FREQ_GROUP).concat(VOLUME_GROUP).concat(VIBRATO_GROUP).concat(TREMOLO_GROUP).concat(OTHER_GROUP)
+export const SYNTH_ARGUMENTS = [].concat(WAVE_GROUP).concat(FREQ_GROUP).concat(VOLUME_GROUP).concat(VIBRATO_GROUP).concat(TREMOLO_GROUP).concat(OTHER_GROUP).concat(HARMONIC_GROUP)
 
 const _INTERVAL = 0
+const _INCREMENT = 1
 
 const _COUNT = 1
 
@@ -66,19 +77,6 @@ export function synthTime() {
 export function newSynthParameters() {
   return new Array(PARAMETER_COUNT).fill(0)
 }
-
-// function noise(data, amplitude, frequency) {
-//   const len = data.length
-//   const increment = tau * frequency * rate
-//   let phase = 0
-//   for (let i = 0; i < len; i++) {
-//     phase += increment
-//     if (phase > tau) {
-//       data[i] = amplitude * (2.0 * Math.random() - 1.0)
-//       phase -= tau
-//     }
-//   }
-// }
 
 function normalize(min, max, value) {
   return ((value + 1.0) * (max - min)) / 2.0 + min
@@ -134,8 +132,8 @@ function processSawtooth(amplitude, phase) {
   return amplitude - (amplitude / pi) * phase
 }
 
-function processNoise(amplitude, phase) {
-  return phase > tau ? amplitude * (2.0 * Math.random() - 1.0) : 0.0
+function processNoise(amplitude, phase, extra) {
+  return phase + extra[_INCREMENT] > tau ? amplitude * (2.0 * Math.random() - 1.0) : 0.0
 }
 
 function processStatic(amplitude) {
@@ -170,7 +168,7 @@ function process(data, parameters) {
   const decayEnd = attack + decay
   const lengthEnd = decayEnd + length
 
-  let amplitude = 0
+  let amplitude = 0.0
 
   const startFrequency = diatonic(parameters[FREQ] - SEMITONES)
   const startSpeed = parameters[SPEED]
@@ -185,13 +183,13 @@ function process(data, parameters) {
   const vibratoFreq = parameters[VIBRATO_FREQ]
   const vibratoPerc = parameters[VIBRATO_PERC]
 
-  let vibratoPhase = 0
+  let vibratoPhase = 0.0
 
   const tremoloWave = parameters[TREMOLO_WAVE]
   const tremoloFreq = parameters[TREMOLO_FREQ]
   const tremoloPerc = parameters[TREMOLO_PERC]
 
-  let tremoloPhase = 0
+  let tremoloPhase = 0.0
 
   const crush = parameters[BIT_CRUSH]
   const noise = parameters[NOISE]
@@ -199,6 +197,11 @@ function process(data, parameters) {
   const low = parameters[LOW_PASS]
   const high = parameters[HIGH_PASS]
   const repeat = Math.floor(parameters[REPEAT] * SYNTH_RATE)
+
+  let distort = null
+  if (distortion !== 0.0) {
+    distort = distortionCurve(Math.ceil(distortion * 100.0))
+  }
 
   let lpfid1 = 0.0
   let lpfid2 = 0.0
@@ -272,16 +275,23 @@ function process(data, parameters) {
     hpfca2 = a2 * inverse
   }
 
-  let distort = null
-  if (distortion !== 0.0) {
-    distort = distortionCurve(Math.ceil(distortion * 100.0))
-  }
+  const harmonicA = parameters[HARMONIC_MULT_A]
+  const harmonicB = parameters[HARMONIC_MULT_B]
+  const harmonicC = parameters[HARMONIC_MULT_C]
+
+  const harmonicGainA = parameters[HARMONIC_GAIN_A]
+  const harmonicGainB = parameters[HARMONIC_GAIN_B]
+  const harmonicGainC = parameters[HARMONIC_GAIN_C]
+
+  let harmonicPhaseA = 0.0
+  let harmonicPhaseB = 0.0
+  let harmonicPhaseC = 0.0
 
   const extra = new Array(_COUNT)
   extra[_INTERVAL] = tau * parameters[CYCLE]
 
   const size = data.length
-  let phase = 0
+  let phase = 0.0
 
   let out = 0.0
 
@@ -297,6 +307,22 @@ function process(data, parameters) {
       if (i % Math.floor(crush * 100) !== 0) calculate = false
     }
 
+    let freq = frequency
+
+    if (vibratoWave !== 0) {
+      const proc = processFromIndex(vibratoWave)
+      const vibrato = proc(1.0, vibratoPhase, extra)
+
+      freq += vibrato * vibratoPerc * 100
+      // freq *= Math.pow(2, (vibrato * vibratoPerc * 100) / 1200)
+
+      const increment = tau * vibratoFreq * rate
+      vibratoPhase += increment
+      if (vibratoPhase > tau) vibratoPhase -= tau
+    }
+
+    const increment = tau * freq * rate
+
     if (calculate) {
       let amp = 1.0
 
@@ -310,7 +336,24 @@ function process(data, parameters) {
         if (tremoloPhase > tau) tremoloPhase -= tau
       }
 
+      extra[_INCREMENT] = increment
+
       out = proc(amp, phase, extra)
+
+      if (harmonicA !== 1.0) {
+        const overtone = proc(harmonicGainA, harmonicPhaseA, extra)
+        out += overtone
+      }
+
+      if (harmonicB !== 1.0) {
+        const overtone = proc(harmonicGainB, harmonicPhaseB, extra)
+        out += overtone
+      }
+
+      if (harmonicC !== 1.0) {
+        const overtone = proc(harmonicGainC, harmonicPhaseC, extra)
+        out += overtone
+      }
 
       if (noise !== 0.0) {
         out = out - out * noise * (1.0 - (((Math.sin(i) + 1.0) * 1e9) % 2))
@@ -343,21 +386,6 @@ function process(data, parameters) {
 
     data[i] = out * amplitude
 
-    let freq = frequency
-
-    if (vibratoWave !== 0) {
-      const proc = processFromIndex(vibratoWave)
-      const vibrato = proc(vibratoPerc, vibratoPhase, extra)
-
-      freq += vibrato * vibratoPerc * 100
-      // freq *= Math.pow(2, (vibrato * vibratoPerc * 100) / 1200)
-
-      const increment = tau * vibratoFreq * rate
-      vibratoPhase += increment
-      if (vibratoPhase > tau) vibratoPhase -= tau
-    }
-
-    const increment = tau * freq * rate
     phase += increment
     if (phase > tau) phase -= tau
 
@@ -371,6 +399,24 @@ function process(data, parameters) {
         speed = startSpeed
         acceleration = startAcceleration
       }
+    }
+
+    if (harmonicA !== 1.0) {
+      const increment = tau * frequency * harmonicA * rate
+      harmonicPhaseA += increment
+      if (harmonicPhaseA > tau) harmonicPhaseA -= tau
+    }
+
+    if (harmonicB !== 1.0) {
+      const increment = tau * frequency * harmonicB * rate
+      harmonicPhaseB += increment
+      if (harmonicPhaseB > tau) harmonicPhaseB -= tau
+    }
+
+    if (harmonicC !== 1.0) {
+      const increment = tau * frequency * harmonicC * rate
+      harmonicPhaseC += increment
+      if (harmonicPhaseC > tau) harmonicPhaseC -= tau
     }
   }
 }

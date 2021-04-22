@@ -13,6 +13,12 @@ import {
   DECAY,
   DISTORTION,
   FREQ,
+  HARMONIC_GAIN_A,
+  HARMONIC_GAIN_B,
+  HARMONIC_GAIN_C,
+  HARMONIC_MULT_A,
+  HARMONIC_MULT_B,
+  HARMONIC_MULT_C,
   HIGH_PASS,
   JERK,
   LENGTH,
@@ -50,11 +56,33 @@ export class SfxEdit {
     this.doPaint = true
     this.forcePaint = false
 
-    this.row = 0
-
     this.name = 'untitled'
 
     this.parameters = newSynthParameters()
+    this.range = newSynthParameters()
+
+    this.visualWidth = 200
+    this.visualHeight = 80
+    this.visualPixels = new Uint8Array(this.visualWidth * this.visualHeight * 3)
+    this.refreshPixels = false
+
+    this.row = 0
+
+    this.sounds = []
+
+    this.dialog = null
+    this.dialogStack = []
+
+    this.startMenuDialog = new Dialog('start', null, ['name', 'new', 'open', 'save', 'export', 'exit'])
+    this.askToSaveDialog = new Dialog('ask', 'save current file?', ['save', 'export', 'no'])
+    this.saveOkDialog = new Dialog('ok', 'file saved', ['ok'])
+    this.errorOkDialog = new Dialog('error', null, ['ok'])
+
+    this.clear()
+  }
+
+  clear() {
+    this.name = 'untitled'
 
     this.parameters[WAVE] = 1
     this.parameters[CYCLE] = 0.25
@@ -86,7 +114,14 @@ export class SfxEdit {
     this.parameters[HIGH_PASS] = 0.0
     this.parameters[REPEAT] = 0.0
 
-    this.range = newSynthParameters()
+    this.parameters[HARMONIC_MULT_A] = 1.0
+    this.parameters[HARMONIC_GAIN_A] = 0.5
+
+    this.parameters[HARMONIC_MULT_B] = 1.0
+    this.parameters[HARMONIC_GAIN_B] = 0.25
+
+    this.parameters[HARMONIC_MULT_C] = 1.0
+    this.parameters[HARMONIC_GAIN_C] = 0.125
 
     this.range[WAVE] = [1, 1, WAVEFORMS.length - 1, WAVEFORMS.length]
     this.range[CYCLE] = [0.05, 0.0, 1.0, 0.2]
@@ -104,11 +139,11 @@ export class SfxEdit {
     this.range[VOLUME] = [0.1, 0.1, 2.0, 0.25]
 
     this.range[VIBRATO_WAVE] = [1, 0, WAVEFORMS.length - 1, WAVEFORMS.length]
-    this.range[VIBRATO_FREQ] = [1.0, 1.0, 36.0, 2.0]
+    this.range[VIBRATO_FREQ] = [0.2, 0.2, 24.0, 1.0]
     this.range[VIBRATO_PERC] = [0.05, 0.05, 1.0, 0.2]
 
     this.range[TREMOLO_WAVE] = [1, 0, WAVEFORMS.length - 1, WAVEFORMS.length]
-    this.range[TREMOLO_FREQ] = [1.0, 1.0, 36.0, 2.0]
+    this.range[TREMOLO_FREQ] = [0.2, 0.2, 24.0, 1.0]
     this.range[TREMOLO_PERC] = [0.05, 0.05, 1.0, 0.2]
 
     this.range[BIT_CRUSH] = [0.05, 0.0, 1.0, 0.2]
@@ -118,28 +153,23 @@ export class SfxEdit {
     this.range[HIGH_PASS] = [0.05, 0.0, 1.0, 0.2]
     this.range[REPEAT] = [0.05, 0.0, 1.0, 0.2]
 
-    this.visualWidth = 200
-    this.visualHeight = 80
-    this.visualPixels = new Uint8Array(this.visualWidth * this.visualHeight * 3)
+    this.range[HARMONIC_MULT_A] = [0.25, 1.0, 12.0, 1.0]
+    this.range[HARMONIC_GAIN_A] = [0.005, -1.0, 1.0, 0.1]
+
+    this.range[HARMONIC_MULT_B] = [0.25, 1.0, 12.0, 1.0]
+    this.range[HARMONIC_GAIN_B] = [0.005, -1.0, 1.0, 0.1]
+
+    this.range[HARMONIC_MULT_C] = [0.25, 1.0, 12.0, 1.0]
+    this.range[HARMONIC_GAIN_C] = [0.005, -1.0, 1.0, 0.1]
+
     for (let p = 0; p < this.visualPixels.length; p += 3) {
       this.visualPixels[p] = silver0
       this.visualPixels[p + 1] = silver1
       this.visualPixels[p + 2] = silver2
     }
-    this.refreshPixels = false
 
-    this.sounds = []
-
-    this.dialog = null
-    this.dialogStack = []
-
-    this.startMenuDialog = new Dialog('start', null, ['name', 'new', 'open', 'save', 'export', 'exit'])
-    this.askToSaveDialog = new Dialog('ask', 'save current file?', ['save', 'export', 'no'])
-    this.saveOkDialog = new Dialog('ok', 'file saved', ['ok'])
-    this.errorOkDialog = new Dialog('error', null, ['ok'])
+    this.row = 0
   }
-
-  clear() {}
 
   reset() {
     this.dialogResetAll()

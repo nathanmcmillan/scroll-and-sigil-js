@@ -15,6 +15,10 @@ import {
   diatonic,
   FREQ,
   FREQ_GROUP,
+  HARMONIC_GROUP,
+  HARMONIC_MULT_A,
+  HARMONIC_MULT_B,
+  HARMONIC_MULT_C,
   JERK,
   OTHER_GROUP,
   semitoneName,
@@ -275,8 +279,19 @@ export class SfxState {
     y -= fontHeightAndPad
 
     for (let i = 0; i < OTHER_GROUP.length; i++) {
+      const text = SYNTH_ARGUMENTS[index] + ' = ' + sfx.parameters[index].toFixed(2)
+      if (index === sfx.row) drawTextFont(client.bufferGUI, x, y, text, fontScale, orange0f, orange1f, orange2f, 1.0, font)
+      else drawTextFont(client.bufferGUI, x, y, text, fontScale, silver0f, silver1f, silver2f, 1.0, font)
+      y -= fontHeightAndPad
+      index++
+    }
+
+    y -= fontHeightAndPad
+
+    for (let i = 0; i < HARMONIC_GROUP.length; i++) {
       let text = SYNTH_ARGUMENTS[index] + ' = '
-      text += sfx.parameters[index].toFixed(2)
+      if (index === HARMONIC_MULT_A || index === HARMONIC_MULT_B || index === HARMONIC_MULT_C) text += sfx.parameters[index] === 1 ? 'Off' : sfx.parameters[index].toFixed(2)
+      else text += sfx.parameters[index].toFixed(3)
       if (index === sfx.row) drawTextFont(client.bufferGUI, x, y, text, fontScale, orange0f, orange1f, orange2f, 1.0, font)
       else drawTextFont(client.bufferGUI, x, y, text, fontScale, silver0f, silver1f, silver2f, 1.0, font)
       y -= fontHeightAndPad
