@@ -1,9 +1,9 @@
-package: default
-map: base
-open: music
-open: maps
-open: dashboard
-open: paint
-open: game
-open: home
-open: sfx
+package = default
+map = base
+open = music
+open = maps
+open = dashboard
+open = paint
+open = game
+open = home
+open = sfx

@@ -1,6 +1,6 @@
-map = "base"
+map = base
 vectors [
-    0.0000 127.0000
+    { x = 0.0000 y = 127.0000 }
     127.0000 127.0000
     94.1486 110.1847
     88.0184 107.8859
@@ -36,7 +36,7 @@ vectors [
     127.0000 0.0000
 ]
 lines [
-    0 32 none none none 0 0 0
+    { a:0 b:32 top:none mid:none bot:none t:0 m:0 b:0 }
     1 0 none none none 0 0 0
     2 4 none none stone-floor 0 0 0
     3 2 none none stone-floor 0 0 0

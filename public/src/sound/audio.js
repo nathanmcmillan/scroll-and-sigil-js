@@ -4,7 +4,7 @@
 
 import { zzfxb, zzfxt } from '../external/zzfx.js'
 import { zzfxm } from '../external/zzfxm.js'
-import { newSynthParameters, synth, SYNTH_ARGUMENTS, WAVEFORMS } from '../sound/synth.js'
+import { newSynthParameters, synth, SYNTH_IO, WAVEFORMS } from '../sound/synth.js'
 
 export function parse(str) {
   let music = []
@@ -103,8 +103,8 @@ export class SynthSound {
         const line = sfx[i].split(' ')
         const name = line[0]
         const value = line[1]
-        for (let a = 0; a < SYNTH_ARGUMENTS.length; a++) {
-          if (SYNTH_ARGUMENTS[a].toLowerCase() === name) {
+        for (let a = 0; a < SYNTH_IO.length; a++) {
+          if (SYNTH_IO[a] === name) {
             if (name === 'wave') {
               for (let w = 0; w < WAVEFORMS.length; w++) {
                 if (WAVEFORMS[w].toLowerCase() === value) {

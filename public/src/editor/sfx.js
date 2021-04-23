@@ -30,7 +30,7 @@ import {
   SPEED,
   SUSTAIN,
   synth,
-  SYNTH_ARGUMENTS,
+  SYNTH_IO,
   TREMOLO_FREQ,
   TREMOLO_PERC,
   TREMOLO_WAVE,
@@ -253,8 +253,8 @@ export class SfxEdit {
         const line = sfx[i].split(' ')
         const name = line[0]
         const value = line[1]
-        for (let a = 0; a < SYNTH_ARGUMENTS.length; a++) {
-          if (SYNTH_ARGUMENTS[a].toLowerCase() === name) {
+        for (let a = 0; a < SYNTH_IO.length; a++) {
+          if (SYNTH_IO[a] === name) {
             if (name === 'wave') {
               for (let w = 0; w < WAVEFORMS.length; w++) {
                 if (WAVEFORMS[w].toLowerCase() === value) {
@@ -461,12 +461,17 @@ export class SfxEdit {
   }
 
   export() {
-    let content = `sound ${this.name}\n`
+    // let content = `sound ${this.name}\n`
+    // for (let i = 0; i < this.parameters.length; i++) {
+    //   if (i === WAVE) content += `wave ${WAVEFORMS[this.parameters[i]].toLowerCase()}\n`
+    //   else content += `${SYNTH_IO[i]} ${this.parameters[i]}\n`
+    // }
+    // content += 'end sound\n'
+    let content = `sound = ${this.name}\n`
     for (let i = 0; i < this.parameters.length; i++) {
-      if (i === WAVE) content += `wave ${WAVEFORMS[this.parameters[i]].toLowerCase()}\n`
-      else content += `${SYNTH_ARGUMENTS[i].toLowerCase().replace(' ', '_')} ${this.parameters[i]}\n`
+      if (i === WAVE) content += `wave = ${WAVEFORMS[this.parameters[i]].toLowerCase()}\n`
+      else content += `${SYNTH_IO[i]} = ${this.parameters[i]}\n`
     }
-    content += 'end sound\n'
     return content
   }
 }
