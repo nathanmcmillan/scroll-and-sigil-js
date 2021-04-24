@@ -386,20 +386,22 @@ export class MusicEdit {
   export() {
     const noteRows = this.noteRows
     const tracks = this.tracks
-    let content = `music ${this.name}\n`
+    let content = 'music = ' + this.name + '\ntracks ['
     for (const track of tracks) {
       const notes = track.notes
-      content += `track ${track.name}\n`
-      content += `tuning ${track.tuning}`
+      content += '{\n  name = ' + track.name
+      content += '\n  tuning = ' + track.tuning
+      content += '\n  notes ['
       for (let c = 0; c < notes.length; c++) {
         const note = notes[c]
+        content += '\n    ['
         for (let r = 0; r < noteRows; r++) {
-          if (r === 0) content += '\n'
-          else content += ' '
+          if (r !== 0) content += ' '
           content += note[r]
         }
+        content += ']'
       }
-      content += '\nend track\n'
+      content += '\n    ]\n  }'
     }
     return content
   }

@@ -5,6 +5,7 @@
 import { zzfxb, zzfxt } from '../external/zzfx.js'
 import { zzfxm } from '../external/zzfxm.js'
 import { newSynthParameters, synth, SYNTH_IO, WAVEFORMS } from '../sound/synth.js'
+import { parse as wad_parse } from '../wad/wad.js'
 
 export function parse(str) {
   let music = []
@@ -93,32 +94,32 @@ export class MusicNode {
   }
 }
 
+export function read_synth_wad(parameters, content) {
+  const wad = wad_parse(content)
+  for (const [name, value] of wad.get('parameters')) {
+    for (let a = 0; a < SYNTH_IO.length; a++) {
+      if (SYNTH_IO[a] === name) {
+        if (name === 'wave') {
+          for (let w = 0; w < WAVEFORMS.length; w++) {
+            if (WAVEFORMS[w].toLowerCase() === value) {
+              parameters[a] = w
+              break
+            }
+          }
+        } else {
+          parameters[a] = parseFloat(value)
+        }
+        break
+      }
+    }
+  }
+}
+
 export class SynthSound {
   constructor(content) {
     this.parameters = newSynthParameters()
     try {
-      const sfx = content.split('\n')
-      for (let i = 1; i < sfx.length; i++) {
-        if (sfx[i] === 'end sound') break
-        const line = sfx[i].split(' ')
-        const name = line[0]
-        const value = line[1]
-        for (let a = 0; a < SYNTH_IO.length; a++) {
-          if (SYNTH_IO[a] === name) {
-            if (name === 'wave') {
-              for (let w = 0; w < WAVEFORMS.length; w++) {
-                if (WAVEFORMS[w].toLowerCase() === value) {
-                  this.parameters[a] = w
-                  break
-                }
-              }
-            } else {
-              this.parameters[a] = parseFloat(value)
-            }
-            break
-          }
-        }
-      }
+      read_synth_wad(this.parameters, content)
     } catch (e) {
       console.error(e)
     }

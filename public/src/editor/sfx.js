@@ -42,6 +42,7 @@ import {
   WAVEFORMS,
 } from '../sound/synth.js'
 import { dusk0, dusk1, dusk2, silver0, silver1, silver2 } from './palette.js'
+import { read_synth_wad } from '../sound/audio.js'
 
 const INPUT_RATE = 128
 
@@ -247,28 +248,7 @@ export class SfxEdit {
   read(content) {
     this.clear()
     try {
-      const sfx = content.split('\n')
-      for (let i = 1; i < sfx.length; i++) {
-        if (sfx[i] === 'end sound') break
-        const line = sfx[i].split(' ')
-        const name = line[0]
-        const value = line[1]
-        for (let a = 0; a < SYNTH_IO.length; a++) {
-          if (SYNTH_IO[a] === name) {
-            if (name === 'wave') {
-              for (let w = 0; w < WAVEFORMS.length; w++) {
-                if (WAVEFORMS[w].toLowerCase() === value) {
-                  this.parameters[a] = w
-                  break
-                }
-              }
-            } else {
-              this.parameters[a] = parseFloat(value)
-            }
-            break
-          }
-        }
-      }
+      read_synth_wad(this.parameters, content)
     } catch (e) {
       console.error(e)
       this.errorOkDialog.title = 'Failed reading file'
