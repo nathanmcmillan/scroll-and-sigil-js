@@ -113,7 +113,7 @@ export class GameState {
     switch (type) {
       case 'map':
         this.loading = true
-        this.load('./pack/' + this.client.pack + '/maps/' + args + '.txt')
+        this.load('./pack/' + this.client.pack + '/maps/' + args + '.wad')
         return
     }
   }

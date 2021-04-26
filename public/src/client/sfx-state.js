@@ -114,7 +114,7 @@ export class SfxState {
 
   save() {
     const blob = this.sfx.export()
-    localStorage.setItem('sfx.txt', blob)
+    localStorage.setItem('sfx', blob)
     console.info(blob)
     console.info('saved to local storage!')
   }
@@ -123,7 +123,7 @@ export class SfxState {
     const blob = this.sfx.export()
     const download = document.createElement('a')
     download.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(blob)
-    download.download = 'sfx.txt'
+    download.download = this.sfx.name + '.wad'
     download.click()
   }
 

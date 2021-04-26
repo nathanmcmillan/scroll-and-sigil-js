@@ -16,10 +16,10 @@ import {
   dusk0f,
   dusk1f,
   dusk2f,
-  lavenderf,
   ember0f,
   ember1f,
   ember2f,
+  lavenderf,
   redf,
   silverf,
   slatef,
@@ -165,7 +165,7 @@ export class PaintState {
 
   saveSheet() {
     const blob = this.paint.export()
-    localStorage.setItem('paint.txt', blob)
+    localStorage.setItem('paint', blob)
     console.info(blob)
     console.info('saved to local storage!')
   }
@@ -174,7 +174,7 @@ export class PaintState {
     const blob = this.paint.export()
     const download = document.createElement('a')
     download.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(blob)
-    download.download = this.paint.name + '.txt'
+    download.download = this.paint.name + '.wad'
     download.click()
   }
 

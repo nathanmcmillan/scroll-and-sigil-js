@@ -1,102 +1,102 @@
 map = base
 vectors [
-    { x = 0.0000 y = 127.0000 }
-    127.0000 127.0000
-    94.1486 110.1847
-    88.0184 107.8859
-    100.2788 107.1196
-    86.4859 103.2882
-    97.9800 100.2231
-    91.0835 99.4569
-    38.0500 82.5000
-    46.0500 82.5000
-    54.0500 82.5000
-    62.0500 82.5000
-    40.0500 80.5000
-    46.0500 80.5000
-    54.0500 80.5000
-    60.0500 80.5000
-    40.0500 60.5000
-    60.0500 60.5000
-    38.0500 58.5000
-    62.0500 58.5000
-    16.0500 31.5000
-    26.0500 31.5000
-    36.0500 31.5000
-    44.0500 31.5000
-    18.0500 29.5000
-    26.0500 29.5000
-    36.0500 29.5000
-    42.0500 29.5000
-    18.0500 11.5000
-    42.0500 11.5000
-    16.0500 9.5000
-    44.0500 9.5000
-    0.0000 0.0000
-    127.0000 0.0000
+  {x=0 z=127}
+  {x=127 z=127}
+  {x=94.1486 z=110.1847}
+  {x=88.0184 z=107.8859}
+  {x=100.2788 z=107.1196}
+  {x=86.4859 z=103.2882}
+  {x=97.98 z=100.2231}
+  {x=91.0835 z=99.4569}
+  {x=38.05 z=82.5}
+  {x=46.05 z=82.5}
+  {x=54.05 z=82.5}
+  {x=62.05 z=82.5}
+  {x=40.05 z=80.5}
+  {x=46.05 z=80.5}
+  {x=54.05 z=80.5}
+  {x=60.05 z=80.5}
+  {x=40.05 z=60.5}
+  {x=60.05 z=60.5}
+  {x=38.05 z=58.5}
+  {x=62.05 z=58.5}
+  {x=16.05 z=31.5}
+  {x=26.05 z=31.5}
+  {x=36.05 z=31.5}
+  {x=44.05 z=31.5}
+  {x=18.05 z=29.5}
+  {x=26.05 z=29.5}
+  {x=36.05 z=29.5}
+  {x=42.05 z=29.5}
+  {x=18.05 z=11.5}
+  {x=42.05 z=11.5}
+  {x=16.05 z=9.5}
+  {x=44.05 z=9.5}
+  {x=0 z=0}
+  {x=127 z=0}
 ]
 lines [
-    { a:0 b:32 top:none mid:none bot:none t:0 m:0 b:0 }
-    1 0 none none none 0 0 0
-    2 4 none none stone-floor 0 0 0
-    3 2 none none stone-floor 0 0 0
-    4 6 none none stone-floor 0 0 0
-    5 3 none none stone-floor 0 0 0
-    6 7 none none stone-floor 0 0 0
-    7 5 none none stone-floor 0 0 0
-    8 18 none plank none 0 0 0
-    9 8 none plank none 0 0 0
-    10 9 none none none 0 0 0
-    10 14 none stone-floor none 0 0 0
-    11 10 none plank none 0 0 0
-    12 13 none stone-floor none 0 0 0
-    13 9 none stone-floor none 0 0 0
-    14 15 none stone-floor none 0 0 0
-    15 17 none stone-floor none 0 0 0
-    16 12 none stone-floor none 0 0 0
-    17 16 none stone-floor none 0 0 0
-    18 19 none plank none 0 0 0
-    19 11 none plank none 0 0 0
-    20 30 none stone stone-floor 0 0 0
-    21 20 none stone stone-floor 0 0 0
-    22 21 stone-floor none plank-floor 0 0 0
-    22 26 none plank none 0 0 0
-    23 22 none stone stone-floor 0 0 0
-    24 25 none plank none 0 0 0 [flags not-physical blink]
-    25 21 none plank none 0 0 0
-    26 27 none plank none 0 0 0 [trigger interact map base entrance]
-    27 29 none plank none 0 0 0 [trigger attack cinema]
-    28 24 none plank none 0 0 0 [flags physical]
-    29 28 none plank none 0 0 0 [trigger interact teleport 100 80 gte health 2 or eq group human]
-    30 31 none stone stone-floor 0 0 0
-    31 23 none stone stone-floor 0 0 0
-    32 33 none none none 0 0 0
-    33 1 none none none 0 0 0
+  {s=0 e=32 t=none m=none b=none u=0 v=0 w=0}
+  {s=1 e=0 t=none m=none b=none u=0 v=0 w=0}
+  {s=2 e=4 t=none m=none b=stone-floor u=0 v=0 w=0}
+  {s=3 e=2 t=none m=none b=stone-floor u=0 v=0 w=0}
+  {s=4 e=6 t=none m=none b=stone-floor u=0 v=0 w=0}
+  {s=5 e=3 t=none m=none b=stone-floor u=0 v=0 w=0}
+  {s=6 e=7 t=none m=none b=stone-floor u=0 v=0 w=0}
+  {s=7 e=5 t=none m=none b=stone-floor u=0 v=0 w=0}
+  {s=8 e=18 t=none m=plank b=none u=0 v=0 w=0}
+  {s=9 e=8 t=none m=plank b=none u=0 v=0 w=0}
+  {s=10 e=9 t=none m=none b=none u=0 v=0 w=0}
+  {s=10 e=14 t=none m=stone-floor b=none u=0 v=0 w=0}
+  {s=11 e=10 t=none m=plank b=none u=0 v=0 w=0}
+  {s=12 e=13 t=none m=stone-floor b=none u=0 v=0 w=0}
+  {s=13 e=9 t=none m=stone-floor b=none u=0 v=0 w=0}
+  {s=14 e=15 t=none m=stone-floor b=none u=0 v=0 w=0}
+  {s=15 e=17 t=none m=stone-floor b=none u=0 v=0 w=0}
+  {s=16 e=12 t=none m=stone-floor b=none u=0 v=0 w=0}
+  {s=17 e=16 t=none m=stone-floor b=none u=0 v=0 w=0}
+  {s=18 e=19 t=none m=plank b=none u=0 v=0 w=0}
+  {s=19 e=11 t=none m=plank b=none u=0 v=0 w=0}
+  {s=20 e=30 t=none m=stone b=stone-floor u=0 v=0 w=0}
+  {s=21 e=20 t=none m=stone b=stone-floor u=0 v=0 w=0}
+  {s=22 e=21 t=stone-floor m=none b=plank-floor u=0 v=0 w=0}
+  {s=22 e=26 t=none m=plank b=none u=0 v=0 w=0}
+  {s=23 e=22 t=none m=stone b=stone-floor u=0 v=0 w=0}
+  {s=24 e=25 t=none m=plank b=none u=0 v=0 w=0 flags[not-physical]}
+  {s=25 e=21 t=none m=plank b=none u=0 v=0 w=0}
+  {s=26 e=27 t=none m=plank b=none u=0 v=0 w=0 trigger[3 map base entrance]}
+  {s=27 e=29 t=none m=plank b=none u=0 v=0 w=0 trigger[4 cinema]}
+  {s=28 e=24 t=none m=plank b=none u=0 v=0 w=0 flags[physical]}
+  {s=29 e=28 t=none m=plank b=none u=0 v=0 w=0 trigger[3 teleport 100 80 gte health 2 or eq group human]}
+  {s=30 e=31 t=none m=stone b=stone-floor u=0 v=0 w=0}
+  {s=31 e=23 t=none m=stone b=stone-floor u=0 v=0 w=0}
+  {s=32 e=33 t=none m=none b=none u=0 v=0 w=0}
+  {s=33 e=1 t=none m=none b=none u=0 v=0 w=0}
 ]
 sectors [
-    0 0 10 10 none none 12 18 8 9 13 12 16 17 15 14 10 11 19 12 8 9 14 13 17 18 16 15 11 12 20 19
-    0 1 10 12 none none 12 30 20 21 25 24 28 29 27 26 22 23 31 12 21 22 27 26 30 31 29 28 24 25 33 32
-    0 0 10 10 plank-floor plank 8 9 10 14 15 17 16 12 13 8 10 11 15 16 18 17 13 14 [trigger exit sound beep is x eq foobar]
-    0 1 10 12 stone-floor stone 8 21 22 26 27 29 28 24 25 8 23 24 28 29 31 30 26 27 [flags lava 1 1] [trigger enter sound beep missing medkit]
-    -2 -2 0 0 water none 6 3 2 4 6 7 5 6 3 2 4 6 7 5 [flags water 2]
-    0 0 20 22 grass none 4 32 0 1 33 4 0 1 35 34
+  {b=0 f=0 c=10 t=10 u=none v=none vecs[18 8 9 13 12 16 17 15 14 10 11 19] lines[8 9 14 13 17 18 16 15 11 12 20 19]}
+  {b=0 f=1 c=10 t=12 u=none v=none vecs[30 20 21 25 24 28 29 27 26 22 23 31] lines[21 22 27 26 30 31 29 28 24 25 33 32]}
+  {b=0 f=0 c=10 t=10 u=plank-floor v=plank vecs[9 10 14 15 17 16 12 13] lines[10 11 15 16 18 17 13 14] trigger[2 sound beep is x eq foobar]}
+  {b=0 f=1 c=10 t=12 u=stone-floor v=stone vecs[21 22 26 27 29 28 24 25] lines[23 24 28 29 31 30 26 27] flags[lava1 1] trigger[1 sound beep missing medkit]}
+  {b=-2 f=-2 c=0 t=0 u=water v=none vecs[3 2 4 6 7 5] lines[3 2 4 6 7 5] flags[water2]}
+  {b=0 f=0 c=20 t=22 u=grass v=none vecs[32 0 1 33] lines[0 1 35 34]}
 ]
 things [
-    [50 70 baron [flags boss]]
-    [20 50 zombie [trigger dead set x foobar]]
-    [14 42 tree]
-    [18 42 medkit]
-    [10 40 hero]
-    [30 40 merchant]
-    [60 42 armor]
-    [80 42 peasant]
+  {x=50 z=70 id=baron flags[boss]}
+  {x=20 z=50 id=zombie trigger[5 set x foobar]}
+  {x=14 z=42 id=tree}
+  {x=18 z=42 id=medkit}
+  {x=10 z=40 id=hero}
+  {x=30 z=40 id=merchant}
+  {x=60 z=42 id=armor}
+  {x=80 z=42 id=peasant}
 ]
 triggers [
-    [every 30 seconds spawn zombie 10 100]
+  [0 0 0 spawn zombie 10 100]
 ]
 meta [
-    [music "vampire-killer"]
-    [background night-sky]
-    [new-game 10 40]
-    [entrance-x 100 60]
+  [music vampire-killer]
+  [background night-sky]
+  [new-game 10 40]
+  [entrance-x 100 60]
 ]

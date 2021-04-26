@@ -21,7 +21,7 @@ import * as In from '../input/input.js'
 import { orthographic, perspective } from '../math/matrix.js'
 import { drawSkyBox } from '../render/render.js'
 import { shadePalette } from '../render/shading.js'
-import * as Wad from '../wad/wad.js'
+import { wad_parse } from '../wad/wad.js'
 import { Buffer } from '../webgl/buffer.js'
 import { Renderer, rendererInsertProgram, rendererMakeVAO, rendererUpdateVAO } from '../webgl/renderer.js'
 import { compileProgram, createPixelsToTexture, createTexture } from '../webgl/webgl.js'
@@ -196,10 +196,10 @@ export class Client {
 
     // for (let i = 0; i < localStorage.length; i++) console.debug(localStorage.key(i))
 
-    const main = Wad.parse(await fetchText('start.wad'))
+    const main = wad_parse(await fetchText('start.wad'))
     const pack = main.get('package')
     const directory = './pack/' + pack
-    const contents = Wad.parse(await fetchText(directory + '/' + pack + '.wad'))
+    const contents = wad_parse(await fetchText(directory + '/' + pack + '.wad'))
     const tape = new Tape('tape-1')
 
     this.boot = main
@@ -245,18 +245,18 @@ export class Client {
     const trueColor = true
 
     for (const texture of contents.get('sprites')) {
-      if (texture.endsWith('.txt')) {
-        textures.push(
-          fetchText(directory + '/sprites/' + texture).then((text) => {
-            if (trueColor) return readPaintFile(text, palette)
-            else return readPaintFileAsLookup(text)
-          })
-        )
-      } else {
+      if (texture.endsWith('.png')) {
         const name = texture.substring(0, texture.length - 4)
         textures.push(
           fetchImage(directory + '/sprites/' + texture).then((image) => {
             return { name: name, wrap: 'clamp', image: image }
+          })
+        )
+      } else {
+        textures.push(
+          fetchText(directory + '/sprites/' + texture + '.wad').then((text) => {
+            if (trueColor) return readPaintFile(text, palette)
+            else return readPaintFileAsLookup(text)
           })
         )
       }
@@ -284,11 +284,11 @@ export class Client {
         else saveTexture(texture.name, createPixelsToTexture(gl, texture.width, texture.height, texture.pixels, gl.R8, gl.RED, gl.NEAREST, wrap))
         if (texture.sprites) {
           for (const sprite of texture.sprites) {
-            if (sprite.length < 6 || sprite[5] !== 'tile') continue
-            const left = parseInt(sprite[1])
-            const top = parseInt(sprite[2])
-            const right = parseInt(sprite[3])
-            const bottom = parseInt(sprite[4])
+            if (!sprite.tile) continue
+            const left = sprite.left
+            const top = sprite.top
+            const right = sprite.right
+            const bottom = sprite.bottom
             const width = right - left
             const height = bottom - top
             const source = texture.pixels
@@ -305,7 +305,7 @@ export class Client {
                   pixels[d + 2] = source[s + 2]
                 }
               }
-              saveTile(sprite[0], createPixelsToTexture(gl, width, height, pixels, gl.RGB, gl.RGB, gl.NEAREST, gl.REPEAT))
+              saveTile(sprite.name, createPixelsToTexture(gl, width, height, pixels, gl.RGB, gl.RGB, gl.NEAREST, gl.REPEAT))
             } else {
               const pixels = new Uint8Array(width * height)
               for (let h = 0; h < height; h++) {
@@ -316,7 +316,7 @@ export class Client {
                   pixels[d] = source[s]
                 }
               }
-              saveTile(sprite[0], createPixelsToTexture(gl, width, height, pixels, gl.R8, gl.RED, gl.NEAREST, gl.REPEAT))
+              saveTile(sprite.name, createPixelsToTexture(gl, width, height, pixels, gl.R8, gl.RED, gl.NEAREST, gl.REPEAT))
             }
           }
         }
@@ -426,7 +426,7 @@ export class Client {
         if (this.game === null) this.game = new GameState(this)
         else this.game.reset()
         this.state = this.game
-        if (boot.has('map')) file = './pack/' + this.pack + '/maps/' + boot.get('map') + '.txt'
+        if (boot.has('map')) file = './pack/' + this.pack + '/maps/' + boot.get('map') + '.wad'
         break
       default:
         if (this.home === null) this.home = new HomeState(this)

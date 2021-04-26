@@ -79,7 +79,7 @@ export class MusicState {
 
   save() {
     const blob = this.music.export()
-    localStorage.setItem('music.txt', blob)
+    localStorage.setItem('music', blob)
     console.info(blob)
     console.info('saved to local storage!')
   }
@@ -88,7 +88,7 @@ export class MusicState {
     const blob = this.music.export()
     const download = document.createElement('a')
     download.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(blob)
-    download.download = 'music.txt'
+    download.download = this.music.name + '.wad'
     download.click()
   }
 

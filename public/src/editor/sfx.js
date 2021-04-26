@@ -23,7 +23,7 @@ import {
   JERK,
   LENGTH,
   LOW_PASS,
-  newSynthParameters,
+  new_synth_parameters,
   NOISE,
   RELEASE,
   REPEAT,
@@ -59,8 +59,8 @@ export class SfxEdit {
 
     this.name = 'untitled'
 
-    this.parameters = newSynthParameters()
-    this.range = newSynthParameters()
+    this.parameters = new_synth_parameters()
+    this.range = new_synth_parameters()
 
     this.visualWidth = 200
     this.visualHeight = 80
@@ -248,9 +248,11 @@ export class SfxEdit {
   read(content) {
     this.clear()
     try {
-      read_synth_wad(this.parameters, content)
+      const wad = read_synth_wad(this.parameters, content)
+      this.name = wad.get('sound')
     } catch (e) {
       console.error(e)
+      this.clear()
       this.errorOkDialog.title = 'Failed reading file'
       this.dialog = this.errorOkDialog
     }
@@ -262,7 +264,7 @@ export class SfxEdit {
   async load(file) {
     let content = null
     if (file) content = await fetchText(file)
-    else content = localStorage.getItem('sfx.txt')
+    else content = localStorage.getItem('sfx')
     if (content === null || content === undefined) return this.clear()
     this.read(content)
   }
@@ -441,17 +443,13 @@ export class SfxEdit {
   }
 
   export() {
-    // let content = `sound ${this.name}\n`
-    // for (let i = 0; i < this.parameters.length; i++) {
-    //   if (i === WAVE) content += `wave ${WAVEFORMS[this.parameters[i]].toLowerCase()}\n`
-    //   else content += `${SYNTH_IO[i]} ${this.parameters[i]}\n`
-    // }
-    // content += 'end sound\n'
-    let content = `sound = ${this.name}\n`
+    let content = 'sound = ' + this.name + '\nparameters [\n'
     for (let i = 0; i < this.parameters.length; i++) {
-      if (i === WAVE) content += `wave = ${WAVEFORMS[this.parameters[i]].toLowerCase()}\n`
-      else content += `${SYNTH_IO[i]} = ${this.parameters[i]}\n`
+      content += '  '
+      if (i === WAVE) content += 'wave = ' + WAVEFORMS[this.parameters[i]] + '\n'
+      else content += SYNTH_IO[i] + ' = ' + this.parameters[i] + '\n'
     }
+    content += ']'
     return content
   }
 }

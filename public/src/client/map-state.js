@@ -79,7 +79,7 @@ export class MapState {
 
   save() {
     const blob = this.maps.export()
-    localStorage.setItem('map.txt', blob)
+    localStorage.setItem('map', blob)
     console.info(blob)
     console.info('saved to local storage!')
   }
@@ -88,7 +88,7 @@ export class MapState {
     const blob = this.maps.export()
     const download = document.createElement('a')
     download.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(blob)
-    download.download = 'map.txt'
+    download.download = this.maps.name + '.wad'
     download.click()
   }
 

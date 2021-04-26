@@ -22,8 +22,8 @@ import {
   thingY,
 } from '../thing/thing.js'
 import { FLAG_BOSS } from '../world/flags.js'
-import { ANIMATION_DONE, worldEventTrigger } from '../world/world.js'
 import { TRIGGER_DEAD } from '../world/trigger.js'
+import { ANIMATION_DONE, worldEventTrigger } from '../world/world.js'
 
 const STATUS_LOOK = 0
 const STATUS_CHASE = 1

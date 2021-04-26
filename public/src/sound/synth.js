@@ -76,7 +76,7 @@ export function synthTime() {
   return context.currentTime
 }
 
-export function newSynthParameters() {
+export function new_synth_parameters() {
   return new Array(PARAMETER_COUNT).fill(0)
 }
 

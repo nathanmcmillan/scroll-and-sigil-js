@@ -3,7 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import { fetchText } from '../client/net.js'
-import { MusicNode, parse, SynthSound } from '../sound/audio.js'
+import { MusicNode, SynthSound, zzfx_parse } from '../sound/audio.js'
 
 const SOUNDS = new Map()
 const MUSIC_TABLE = new Map()
@@ -49,7 +49,7 @@ export async function saveMusic(name, path) {
   if (dot === -1) throw 'Extension missing: ' + path
   const extension = path.substring(dot + 1)
   if (extension === 'zzfxm') {
-    const contents = parse(await fetchText(path))
+    const contents = zzfx_parse(await fetchText(path))
     MUSIC_TABLE.set(name, new MusicNode(contents))
   } else {
     MUSIC_TABLE.set(name, new Audio(path))

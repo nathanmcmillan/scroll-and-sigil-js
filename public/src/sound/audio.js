@@ -4,10 +4,10 @@
 
 import { zzfxb, zzfxt } from '../external/zzfx.js'
 import { zzfxm } from '../external/zzfxm.js'
-import { newSynthParameters, synth, SYNTH_IO, WAVEFORMS } from '../sound/synth.js'
-import { parse as wad_parse } from '../wad/wad.js'
+import { new_synth_parameters, synth, SYNTH_IO, WAVEFORMS } from '../sound/synth.js'
+import { wad_parse } from '../wad/wad.js'
 
-export function parse(str) {
+export function zzfx_parse(str) {
   let music = []
   const stack = [music]
   let value = ''
@@ -101,7 +101,7 @@ export function read_synth_wad(parameters, content) {
       if (SYNTH_IO[a] === name) {
         if (name === 'wave') {
           for (let w = 0; w < WAVEFORMS.length; w++) {
-            if (WAVEFORMS[w].toLowerCase() === value) {
+            if (WAVEFORMS[w] === value) {
               parameters[a] = w
               break
             }
@@ -113,11 +113,12 @@ export function read_synth_wad(parameters, content) {
       }
     }
   }
+  return wad
 }
 
 export class SynthSound {
   constructor(content) {
-    this.parameters = newSynthParameters()
+    this.parameters = new_synth_parameters()
     try {
       read_synth_wad(this.parameters, content)
     } catch (e) {

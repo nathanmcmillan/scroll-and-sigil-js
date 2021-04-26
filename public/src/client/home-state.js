@@ -59,7 +59,7 @@ export class HomeState {
   mouseMove() {}
 
   async initialize() {
-    await this.load('./pack/' + this.client.pack + '/maps/home.txt')
+    await this.load('./pack/' + this.client.pack + '/maps/home.wad')
   }
 
   async load(file) {

@@ -17,7 +17,7 @@ function skip(str, i) {
   return i - 1
 }
 
-export function parse(str) {
+export function wad_parse(str) {
   const wad = new Map()
   const stack = [wad]
   let key = ''

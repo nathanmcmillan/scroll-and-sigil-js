@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+import { SpriteBox } from '../assets/sprite-sheet.js'
 import { fetchText } from '../client/net.js'
 import { calcFontScale } from '../editor/editor-util.js'
 import { describeColor, newPalette, newPaletteFloat } from '../editor/palette.js'
@@ -10,6 +11,7 @@ import { flexBox, flexSize, flexSolve } from '../gui/flex.js'
 import { TextBox } from '../gui/text-box.js'
 import { BUTTON_A, BUTTON_B, BUTTON_SELECT, BUTTON_X, BUTTON_Y } from '../input/input.js'
 import { TIC_FONT_HEIGHT, TIC_FONT_WIDTH } from '../render/render.js'
+import { wad_parse } from '../wad/wad.js'
 
 const PENCIL = 0
 const FILL = 1
@@ -21,25 +23,11 @@ export const CLEAR_TOOL = 5
 const INPUT_RATE = 128
 const HISTORY_LIMIT = 50
 
-class SpriteBox {
-  constructor(name, left, top, right, bottom, tile) {
-    this.name = name
-    this.left = left
-    this.top = top
-    this.right = right
-    this.bottom = bottom
-    this.tile = tile
-  }
-
-  select(c, r) {
-    return c >= this.left && c <= this.right && r >= this.top && r <= this.bottom
-  }
-
-  export() {
-    let content = `${this.name} ${this.left} ${this.top} ${this.right} ${this.bottom}`
-    if (this.tile) content += ' tile'
-    return content
-  }
+function exportSpriteBox(sprite) {
+  let content = `{id=${sprite.name} left=${sprite.left} top=${sprite.top} right=${sprite.right} bottom=${sprite.bottom}`
+  if (sprite.tile) content += ' tile=true'
+  content += '}'
+  return content
 }
 
 export class PaintEdit {
@@ -328,19 +316,15 @@ export class PaintEdit {
     this.clear()
 
     try {
-      const image = content.split('\n')
+      const wad = wad_parse(content)
 
-      const info = image[0].split(' ')
+      this.name = wad.get('paint')
 
-      this.name = info[1]
-      let width = parseInt(info[2])
-      let height = parseInt(info[3])
+      let width = parseInt(wad.get('columns'))
+      let height = parseInt(wad.get('rows'))
 
-      let index = 1
-
-      if (image[index].startsWith('transparency')) {
-        this.transparency = parseInt(image[index].split(' ')[1])
-        index++
+      if (wad.has('transparency')) {
+        this.transparency = parseInt(wad.get('transparency'))
       }
 
       const sheet = this.sheet
@@ -350,28 +334,31 @@ export class PaintEdit {
       if (height > rows) height = rows
       if (width > columns) width = columns
 
+      const pixels = wad.get('pixels')
+
       for (let h = 0; h < height; h++) {
-        const row = image[index].split(' ')
+        const row = h * columns
         for (let c = 0; c < width; c++) {
-          sheet[c + h * columns] = parseInt(row[c])
+          const i = c + row
+          sheet[i] = parseInt(pixels[i])
         }
-        index++
       }
 
-      if (index < image.length) {
-        if (image[index] === 'sprites') {
-          index++
-          while (index < image.length) {
-            if (image[index] === 'end sprites') break
-            const sprite = image[index].split(' ')
-            const tile = sprite.length >= 6 && sprite[5] === 'tile'
-            this.sprites.push(new SpriteBox(sprite[0], parseInt(sprite[1]), parseInt(sprite[2]), parseInt(sprite[3]), parseInt(sprite[4]), tile))
-            index++
-          }
+      if (wad.has('sprites')) {
+        const sprites = wad.get('sprites')
+        for (const sprite of sprites) {
+          const name = sprite.get('id')
+          const left = parseInt(sprite.get('left'))
+          const top = parseInt(sprite.get('top'))
+          const right = parseInt(sprite.get('right'))
+          const bottom = parseInt(sprite.get('bottom'))
+          const tile = sprite.has('tile')
+          this.sprites.push(new SpriteBox(name, left, top, right, bottom, tile))
         }
       }
     } catch (e) {
       console.error(e)
+      this.clear()
       this.errorOkDialog.title = 'Failed reading file'
       this.dialog = this.errorOkDialog
     }
@@ -383,7 +370,7 @@ export class PaintEdit {
   async load(file) {
     let content = null
     if (file) content = await fetchText(file)
-    else content = localStorage.getItem('paint.txt')
+    else content = localStorage.getItem('paint')
     if (content === null || content === undefined) return this.clear()
     this.read(content)
   }
@@ -933,22 +920,23 @@ export class PaintEdit {
   export() {
     const rows = this.sheetRows
     const columns = this.sheetColumns
-    let content = `paint ${this.name} ${columns} ${rows}`
-    if (this.transparency !== 0) content += `\ntransparency ${this.transparency}`
+    let content = 'paint = ' + this.name + ' columns = ' + columns + ' rows = ' + rows
+    if (this.transparency !== 0) content += ' transparency = ' + this.transparency
+    content += ' pixels ['
     const sheet = this.sheet
     for (let r = 0; r < rows; r++) {
-      content += '\n'
+      content += '\n  '
       for (let c = 0; c < columns; c++) {
         const index = c + r * columns
         content += sheet[index] + ' '
       }
     }
+    content += '\n]'
     if (this.sprites.length > 0) {
-      content += '\nsprites'
-      for (const sprite of this.sprites) content += `\n${sprite.export()}`
-      content += '\nend sprites'
+      content += '\nsprites ['
+      for (const sprite of this.sprites) content += `\n  ${exportSpriteBox(sprite)}`
+      content += '\n]'
     }
-    content += '\nend paint'
     return content
   }
 }

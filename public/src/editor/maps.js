@@ -16,6 +16,7 @@ import * as In from '../input/input.js'
 import { sectorInsideOutside, sectorLineNeighbors } from '../map/sector.js'
 import { sectorTriangulateForEditor } from '../map/triangulate.js'
 import { Vector2 } from '../math/vector.js'
+import { wad_parse } from '../wad/wad.js'
 import { Flags } from '../world/flags.js'
 import { Trigger, triggerExport } from '../world/trigger.js'
 import { WORLD_SCALE } from '../world/world.js'
@@ -552,251 +553,76 @@ export class MapEdit {
     this.entityList = entityList().sort()
     this.defaultEntity = this.entityList[0]
     try {
-      const map = content.split('\n')
+      const wad = wad_parse(content)
 
-      if (map[0].split(' ')[0] === 'map') {
-        const end = map.length - 1
+      this.name = wad.get('map')
 
-        this.name = map[0].split(' ')[1]
+      for (const vec of wad.get('vectors')) {
+        this.vecs.push(new VectorReference(parseFloat(vec.get('x')), parseFloat(vec.get('z'))))
+      }
 
-        let index = 2
-        while (index < end) {
-          if (map[index] === 'end vectors') break
-          const vec = map[index].split(' ')
-          this.vecs.push(new VectorReference(parseFloat(vec[0]), parseFloat(vec[1])))
-          index++
+      this.checkVectors()
+
+      for (const line of wad.get('lines')) {
+        const a = this.vecs[parseInt(line.get('s'))]
+        const b = this.vecs[parseInt(line.get('e'))]
+        const top = texture(line.get('t'))
+        const middle = texture(line.get('m'))
+        const bottom = texture(line.get('b'))
+        const flags = line.has('flags') ? new Flags(line.get('flags')) : null
+        const trigger = line.has('trigger') ? new Trigger(line.get('trigger')) : null
+        this.lines.push(new LineReference(bottom, middle, top, a, b, flags, trigger))
+      }
+
+      for (const sector of wad.get('sectors')) {
+        const bottom = parseFloat(sector.get('b'))
+        const floor = parseFloat(sector.get('f'))
+        const ceiling = parseFloat(sector.get('c'))
+        const top = parseFloat(sector.get('t'))
+        const floorTexture = texture(sector.get('u'))
+        const ceilingTexture = texture(sector.get('v'))
+        const vecs = sector.get('vecs').map((x) => this.vecs[parseInt(x)])
+        const lines = sector.get('lines').map((x) => this.lines[parseInt(x)])
+        const flags = sector.has('flags') ? new Flags(sector.get('flags')) : null
+        const trigger = sector.has('trigger') ? new Trigger(sector.get('trigger')) : null
+        this.sectors.push(new SectorReference(bottom, floor, ceiling, top, floorTexture, ceilingTexture, flags, trigger, vecs, lines))
+      }
+
+      sectorInsideOutside(this.sectors)
+
+      for (const sector of this.sectors) {
+        try {
+          sectorTriangulateForEditor(sector, WORLD_SCALE)
+        } catch (e) {
+          console.error(e)
         }
-        index++
+      }
 
-        this.checkVectors()
+      sectorLineNeighbors(this.sectors, this.lines, WORLD_SCALE)
 
-        index++
-        while (index < end) {
-          if (map[index] === 'end lines') break
-          const line = map[index].split(' ')
-          const a = this.vecs[parseInt(line[0])]
-          const b = this.vecs[parseInt(line[1])]
-          const top = texture(line[2])
-          const middle = texture(line[3])
-          const bottom = texture(line[4])
-          let flags = null
-          let trigger = null
-          let i = 5
-          while (i < line.length) {
-            if (line[i] === 'flags') {
-              i++
-              const start = i
-              while (i < line.length && line[i] !== 'end') i++
-              flags = new Flags(line.slice(start, i))
-              i++
-            } else if (line[i] === 'trigger') {
-              i++
-              const start = i
-              while (i < line.length && line[i] !== 'end') i++
-              trigger = new Trigger(line.slice(start, i))
-              i++
-            } else i++
-          }
-          this.lines.push(new LineReference(bottom, middle, top, a, b, flags, trigger))
-          index++
+      if (wad.has('things')) {
+        for (const thing of wad.get('things')) {
+          const x = parseFloat(thing.get('x'))
+          const z = parseFloat(thing.get('z'))
+          const entity = entityByName(thing.get('id'))
+          const flags = thing.has('flags') ? new Flags(thing.get('flags')) : null
+          const trigger = thing.has('trigger') ? new Trigger(thing.get('trigger')) : null
+          this.things.push(new ThingReference(entity, x, z, flags, trigger))
         }
-        index++
+      }
 
-        index++
-        while (index < end) {
-          if (map[index] === 'end sectors') break
-          const sector = map[index].split(' ')
-          const bottom = parseFloat(sector[0])
-          const floor = parseFloat(sector[1])
-          const ceiling = parseFloat(sector[2])
-          const top = parseFloat(sector[3])
-          const floorTexture = texture(sector[4])
-          const ceilingTexture = texture(sector[5])
-          let count = parseInt(sector[6])
-          let i = 7
-          let end = i + count
-          const vecs = []
-          for (; i < end; i++) vecs.push(this.vecs[parseInt(sector[i])])
-          count = parseInt(sector[i])
-          i++
-          end = i + count
-          const lines = []
-          for (; i < end; i++) {
-            lines.push(this.lines[parseInt(sector[i])])
-          }
-          let flags = null
-          let trigger = null
-          while (i < sector.length) {
-            if (sector[i] === 'flags') {
-              i++
-              const start = i
-              while (i < sector.length && sector[i] !== 'end') i++
-              flags = new Flags(sector.slice(start, i))
-              i++
-            } else if (sector[i] === 'trigger') {
-              i++
-              const start = i
-              while (i < sector.length && sector[i] !== 'end') i++
-              trigger = new Trigger(sector.slice(start, i))
-              i++
-            } else i++
-          }
-          this.sectors.push(new SectorReference(bottom, floor, ceiling, top, floorTexture, ceilingTexture, flags, trigger, vecs, lines))
-          index++
-        }
-        index++
+      if (wad.has('triggers')) {
+        for (const trigger of wad.get('triggers')) this.triggers.push(new Trigger(trigger))
+      }
 
-        sectorInsideOutside(this.sectors)
-
-        for (const sector of this.sectors) {
-          try {
-            sectorTriangulateForEditor(sector, WORLD_SCALE)
-          } catch (e) {
-            console.error(e)
-          }
-        }
-
-        sectorLineNeighbors(this.sectors, this.lines, WORLD_SCALE)
-
-        while (index < end) {
-          const top = map[index]
-          index++
-          if (top === 'things') {
-            while (index < end) {
-              if (map[index] === 'end things') break
-              const thing = map[index].split(' ')
-              const x = parseFloat(thing[0])
-              const z = parseFloat(thing[1])
-              const entity = entityByName(thing[2])
-              let flags = null
-              let trigger = null
-              let i = 3
-              while (i < thing.length) {
-                if (thing[i] === 'flags') {
-                  i++
-                  const start = i
-                  while (i < thing.length && thing[i] !== 'end') i++
-                  flags = new Flags(thing.slice(start, i))
-                  i++
-                } else if (thing[i] === 'trigger') {
-                  i++
-                  const start = i
-                  while (i < thing.length && thing[i] !== 'end') i++
-                  trigger = new Trigger(thing.slice(start, i))
-                  i++
-                } else i++
-              }
-              this.things.push(new ThingReference(entity, x, z, flags, trigger))
-              index++
-            }
-            index++
-          } else if (top === 'triggers') {
-            while (index < end) {
-              if (map[index] === 'end triggers') break
-              this.triggers.push(new Trigger(map[index].split(' ')))
-              index++
-            }
-            index++
-          } else if (top === 'meta') {
-            while (index < end) {
-              if (map[index] === 'end meta') break
-              this.meta.push(map[index])
-              index++
-            }
-            index++
-          } else if (top === 'end map') {
-            break
-          } else throw `unknown map data: '${top}'`
-        }
-      } else {
-        let index = 0
-
-        const vectors = index + parseInt(map[index].split(' ')[1])
-        index++
-        for (; index <= vectors; index++) {
-          const vec = map[index].split(' ')
-          this.vecs.push(new VectorReference(parseFloat(vec[0]), parseFloat(vec[1])))
-        }
-
-        this.checkVectors()
-
-        const lines = index + parseInt(map[index].split(' ')[1])
-        index++
-        for (; index <= lines; index++) {
-          const line = map[index].split(' ')
-          const a = this.vecs[parseInt(line[0])]
-          const b = this.vecs[parseInt(line[1])]
-          const top = texture(line[2])
-          const middle = texture(line[3])
-          const bottom = texture(line[4])
-          const type = null
-          const trigger = null
-          this.lines.push(new LineReference(bottom, middle, top, a, b, type, trigger))
-        }
-
-        const sectors = index + parseInt(map[index].split(' ')[1])
-        index++
-        for (; index <= sectors; index++) {
-          const sector = map[index].split(' ')
-          const bottom = parseFloat(sector[0])
-          const floor = parseFloat(sector[1])
-          const ceiling = parseFloat(sector[2])
-          const top = parseFloat(sector[3])
-          const floorTexture = texture(sector[4])
-          const ceilingTexture = texture(sector[5])
-          let count = parseInt(sector[6])
-          let i = 7
-          let end = i + count
-          const vecs = []
-          for (; i < end; i++) vecs.push(this.vecs[parseInt(sector[i])])
-          count = parseInt(sector[i])
-          i++
-          end = i + count
-          const lines = []
-          for (; i < end; i++) {
-            lines.push(this.lines[parseInt(sector[i])])
-          }
-          const type = end < sector.length ? sector[end] : null
-          const trigger = null
-          this.sectors.push(new SectorReference(bottom, floor, ceiling, top, floorTexture, ceilingTexture, type, trigger, vecs, lines))
-        }
-
-        sectorInsideOutside(this.sectors)
-
-        for (const sector of this.sectors) {
-          try {
-            sectorTriangulateForEditor(sector, WORLD_SCALE)
-          } catch (e) {
-            console.error(e)
-          }
-        }
-
-        sectorLineNeighbors(this.sectors, this.lines, WORLD_SCALE)
-
-        while (index < map.length - 1) {
-          const top = map[index].split(' ')
-          const count = parseInt(top[1])
-          if (top[0] === 'things') {
-            const things = index + count
-            index++
-            for (; index <= things; index++) {
-              const thing = map[index].split(' ')
-              const x = parseFloat(thing[0])
-              const z = parseFloat(thing[1])
-              const entity = entityByName(thing[2])
-              this.things.push(new ThingReference(entity, x, z))
-            }
-          } else if (top[0] === 'triggers') {
-            index += count + 1
-          } else if (top[0] === 'info') {
-            index += count + 1
-          } else throw `unknown map data: '${top[0]}'`
-        }
+      if (wad.has('meta')) {
+        for (const meta of wad.get('meta')) this.meta.push(meta)
       }
 
       this.updateThingsY()
     } catch (e) {
       console.error(e)
+      this.clear()
       this.errorOkDialog.title = 'Failed reading file'
       this.dialog = this.errorOkDialog
     }
@@ -809,7 +635,7 @@ export class MapEdit {
   async load(file) {
     let content = null
     if (file) content = await fetchText(file)
-    else content = localStorage.getItem('map.txt')
+    else content = localStorage.getItem('map')
     if (content === null || content === undefined) return this.clear()
     this.read(content)
   }
@@ -1692,40 +1518,37 @@ export class MapEdit {
     this.vecs.sort(vecCompare)
     this.lines.sort(lineCompare)
     this.sectors.sort(secCompare)
-    let content = `map ${this.name}\n`
-    content += 'vectors\n'
+    let content = `map = ${this.name}\n`
+    content += 'vectors [\n'
     let index = 0
     for (const vec of this.vecs) {
       vec.index = index++
-      content += vec.export() + '\n'
+      content += '  ' + vec.export() + '\n'
     }
-    content += 'end vectors\n'
-    content += 'lines\n'
+    content += ']\nlines [\n'
     index = 0
     for (const line of this.lines) {
       line.index = index++
-      content += line.export() + '\n'
+      content += '  ' + line.export() + '\n'
     }
-    content += 'end lines\n'
-    content += 'sectors\n'
-    for (const sector of this.sectors) content += sector.export() + '\n'
-    content += 'end sectors\n'
+    content += ']\nsectors [\n'
+    for (const sector of this.sectors) content += '  ' + sector.export() + '\n'
+    content += ']\n'
     if (this.things.length > 0) {
-      content += 'things\n'
-      for (const thing of this.things) content += thing.export() + '\n'
-      content += 'end things\n'
+      content += 'things [\n'
+      for (const thing of this.things) content += '  ' + thing.export() + '\n'
+      content += ']\n'
     }
     if (this.triggers.length > 0) {
-      content += 'triggers\n'
-      for (const trigger of this.triggers) content += triggerExport(trigger) + '\n'
-      content += 'end triggers\n'
+      content += 'triggers [\n'
+      for (const trigger of this.triggers) content += '  ' + triggerExport(trigger) + '\n'
+      content += ']\n'
     }
     if (this.meta.length > 0) {
-      content += 'meta\n'
-      for (const meta of this.meta) content += meta + '\n'
-      content += 'end meta\n'
+      content += 'meta [\n'
+      for (const meta of this.meta) content += '  [' + meta + ']\n'
+      content += ']\n'
     }
-    content += 'end map\n'
     return content
   }
 }

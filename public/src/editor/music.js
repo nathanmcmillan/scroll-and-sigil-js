@@ -2,16 +2,18 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+import { fetchText } from '../client/net.js'
 import { Dialog } from '../gui/dialog.js'
 import { BUTTON_A, BUTTON_B, BUTTON_X, BUTTON_Y } from '../input/input.js'
-import { FREQ, LENGTH, newSynthParameters, SUSTAIN, synth, synthTime, VOLUME, WAVE, WAVEFORMS } from '../sound/synth.js'
+import { FREQ, LENGTH, new_synth_parameters, SUSTAIN, synth, synthTime, VOLUME, WAVE, WAVEFORMS } from '../sound/synth.js'
+import { wad_parse } from '../wad/wad.js'
 
 const INPUT_RATE = 128
 
 class Track {
   constructor(name) {
     this.name = name
-    this.parameters = newSynthParameters()
+    this.parameters = new_synth_parameters()
     this.parameters[WAVE] = WAVEFORMS.indexOf(name)
     this.parameters[SUSTAIN] = 1.0
     this.parameters[SUSTAIN] = 1.0
@@ -156,7 +158,31 @@ export class MusicEdit {
     this.doPaint = true
   }
 
-  async load() {}
+  read(content) {
+    this.clear()
+
+    try {
+      const wad = wad_parse(content)
+
+      this.name = wad.get('music')
+    } catch (e) {
+      console.error(e)
+      this.clear()
+      this.errorOkDialog.title = 'Failed reading file'
+      this.dialog = this.errorOkDialog
+    }
+
+    this.shadowInput = true
+    this.doPaint = true
+  }
+
+  async load(file) {
+    let content = null
+    if (file) content = await fetchText(file)
+    else content = localStorage.getItem('music')
+    if (content === null || content === undefined) return this.clear()
+    this.read(content)
+  }
 
   noteSeconds(duration) {
     // 16 ms tick update
