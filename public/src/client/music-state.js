@@ -6,11 +6,11 @@ import { textureByName } from '../assets/assets.js'
 import { renderDialogBox, renderStatus } from '../client/client-util.js'
 import { calcBottomBarHeight, calcFontScale, calcTopBarHeight, defaultFont } from '../editor/editor-util.js'
 import { lengthName, MusicEdit } from '../editor/music.js'
-import { ember0f, ember1f, ember2f, redf, slatef, whitef } from '../editor/palette.js'
+import { ember0f, ember1f, ember2f, silver0f, silver1f, silver2f, slatef } from '../editor/palette.js'
 import { flexBox, flexSolve } from '../gui/flex.js'
 import { identity, multiply } from '../math/matrix.js'
-import { spr, sprcol } from '../render/pico.js'
-import { drawRectangle, drawTextFontSpecial } from '../render/render.js'
+import { sprcol } from '../render/pico.js'
+import { drawRectangle, drawText } from '../render/render.js'
 import { semitoneName, SEMITONES } from '../sound/synth.js'
 import { bufferZero } from '../webgl/buffer.js'
 import { rendererBindTexture, rendererSetProgram, rendererSetView, rendererUpdateAndDraw, rendererUpdateUniformMatrix } from '../webgl/renderer.js'
@@ -155,7 +155,7 @@ export class MusicState {
     posBox.argX = 20
     posBox.argY = 40
     flexSolve(width, height, posBox)
-    drawTextFontSpecial(client.bufferGUI, posBox.x, posBox.y, text, fontScale, whitef(0), whitef(1), whitef(2), font)
+    drawText(client.bufferGUI, posBox.x, posBox.y, text, fontScale, silver0f, silver1f, silver2f, 1.0, font)
 
     const smallFontScale = Math.floor(1.5 * scale)
     const smallFontWidth = smallFontScale * font.width
@@ -184,22 +184,22 @@ export class MusicState {
         const pitch = num === 0 ? '-' : '' + num
         let xx = pos
         if (pitch >= 10) xx -= smallFontHalfWidth
-        if (c === noteC && r === noteR) drawTextFontSpecial(client.bufferGUI, xx, y - r * noteHeight, pitch, smallFontScale, redf(0), redf(1), redf(2), font)
-        else drawTextFontSpecial(client.bufferGUI, xx, y - r * noteHeight, pitch, smallFontScale, whitef(0), whitef(1), whitef(2), font)
+        if (c === noteC && r === noteR) drawText(client.bufferGUI, xx, y - r * noteHeight, pitch, smallFontScale, ember0f, ember1f, ember2f, 1.0, font)
+        else drawText(client.bufferGUI, xx, y - r * noteHeight, pitch, smallFontScale, silver0f, silver1f, silver2f, 1.0, font)
       }
       pos += noteWidth
     }
 
     const tempoText = 'Tempo:' + music.tempo
-    drawTextFontSpecial(client.bufferGUI, 20, height - fontHeight * 3, tempoText, fontScale, whitef(0), whitef(1), whitef(2), font)
+    drawText(client.bufferGUI, 20, height - fontHeight * 3, tempoText, fontScale, silver0f, silver1f, silver2f, 1.0, font)
 
-    drawTextFontSpecial(client.bufferGUI, 20, 200, lengthName(notes[noteC][0]), smallFontScale, whitef(0), whitef(1), whitef(2), font)
+    drawText(client.bufferGUI, 20, 200, lengthName(notes[noteC][0]), smallFontScale, silver0f, silver1f, silver2f, 1.0, font)
     for (let r = 1; r < noteRows; r++) {
       const note = notes[noteC][r]
       let noteText
       if (note === 0) noteText = '-'
       else noteText = semitoneName(note - SEMITONES)
-      drawTextFontSpecial(client.bufferGUI, 20, 200 - r * noteHeight, noteText, smallFontScale, whitef(0), whitef(1), whitef(2), font)
+      drawText(client.bufferGUI, 20, 200 - r * noteHeight, noteText, smallFontScale, silver0f, silver1f, silver2f, 1.0, font)
     }
 
     //  status text
@@ -232,9 +232,8 @@ export class MusicState {
         pos = x
         y -= 6 * noteHeight
       }
-      sprcol(client.bufferGUI, duration, 1.0, 1.0, pos, y - spriteScale, spriteSize, spriteSize, 0.0, 0.0, 0.0, 1.0)
-      if (c === noteC && r === noteR) sprcol(client.bufferGUI, duration, 1.0, 1.0, pos, y, spriteSize, spriteSize, redf(0), redf(1), redf(2), 1.0)
-      else spr(client.bufferGUI, duration, 1.0, 1.0, pos, y, spriteSize, spriteSize)
+      if (c === noteC && r === noteR) sprcol(client.bufferGUI, duration, 1.0, 1.0, pos, y, spriteSize, spriteSize, ember0f, ember1f, ember2f, 1.0)
+      else sprcol(client.bufferGUI, duration, 1.0, 1.0, pos, y, spriteSize, spriteSize, silver0f, silver1f, silver2f, 1.0)
       pos += noteWidth
     }
 

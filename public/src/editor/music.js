@@ -445,7 +445,9 @@ export class MusicEdit {
       content += '    notes ['
       for (let c = 0; c < notes.length; c++) {
         const note = notes[c]
-        content += '\n      ['
+        if (c % 20 === 0) content += '\n      '
+        else content += ' '
+        content += '['
         for (let r = 0; r < noteRows; r++) {
           if (r !== 0) content += ' '
           content += note[r]
