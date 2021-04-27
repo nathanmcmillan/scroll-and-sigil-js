@@ -50,7 +50,7 @@ export class PaintEdit {
     this.sheetRows = 128
     this.sheetColumns = 128
 
-    this.name = 'untitled'
+    this.name = 'Untitled'
     this.transparency = 0
 
     this.sheet = new Uint8Array(this.sheetRows * this.sheetColumns)
@@ -110,7 +110,7 @@ export class PaintEdit {
   }
 
   clear() {
-    this.name = 'untitled'
+    this.name = 'Untitled'
     this.transparency = 0
 
     let i = this.sheet.length
@@ -813,7 +813,7 @@ export class PaintEdit {
     const r = Math.floor(index / columns)
     if (this.selectR !== null) {
       if (c >= this.selectL && c <= this.selectR && r >= this.selectT && r <= this.selectB) {
-        const sprite = new SpriteBox('untitled', this.selectL, this.selectT, this.selectR, this.selectB, false)
+        const sprite = new SpriteBox('Untitled', this.selectL, this.selectT, this.selectR, this.selectB, false)
         this.sprites.push(sprite)
         this.activeSprite = sprite
         this.spriteDialog.title = sprite.name

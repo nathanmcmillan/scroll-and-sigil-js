@@ -5,7 +5,7 @@
 import { fetchText } from '../client/net.js'
 import { Dialog } from '../gui/dialog.js'
 import { BUTTON_A, BUTTON_B, BUTTON_X, BUTTON_Y } from '../input/input.js'
-import { FREQ, LENGTH, new_synth_parameters, SUSTAIN, synth, synthTime, VOLUME, WAVE, WAVEFORMS } from '../sound/synth.js'
+import { export_synth_parameters, FREQ, LENGTH, new_synth_parameters, SUSTAIN, synth, synthTime, VOLUME, WAVE, WAVEFORMS } from '../sound/synth.js'
 import { wad_parse } from '../wad/wad.js'
 
 const INPUT_RATE = 128
@@ -14,29 +14,28 @@ class Track {
   constructor(name) {
     this.name = name
     this.parameters = new_synth_parameters()
-    this.parameters[WAVE] = WAVEFORMS.indexOf(name)
+    this.parameters[WAVE] = WAVEFORMS.indexOf('Sine')
     this.parameters[SUSTAIN] = 1.0
-    this.parameters[SUSTAIN] = 1.0
-    this.parameters[VOLUME] = 1.0
+    this.parameters[VOLUME] = 0.5
     this.tuning = 0
-    this.notes = [[2, 0, 49, 0]]
+    this.notes = [[3, 0, 49, 0]]
   }
 }
 
 export function lengthName(num) {
   switch (num) {
     case 0:
-      return 'whole'
+      return 'Whole'
     case 1:
-      return 'half'
+      return 'Half'
     case 2:
-      return 'quarter'
+      return 'Quarter'
     case 3:
-      return 'eigth'
+      return 'Eigth'
     case 4:
-      return 'sixteenth'
+      return 'Sixteenth'
     case 5:
-      return 'thirty second'
+      return 'Thirty Second'
     default:
       return null
   }
@@ -59,16 +58,16 @@ export class MusicEdit {
     this.maxPitch = 99
 
     this.noteC = 0
-    this.noteR = 2
+    this.noteR = 0
 
-    this.tempo = 120
+    this.tempo = 0
     this.transpose = 0
     this.play = false
     this.noteTimestamp = 0
 
-    this.name = 'untitled'
+    this.name = ''
 
-    this.tracks = [new Track('Sine')]
+    this.tracks = []
     this.trackIndex = 0
 
     this.sounds = []
@@ -81,9 +80,25 @@ export class MusicEdit {
     this.askToSaveDialog = new Dialog('ask', 'save current file?', ['save', 'export', 'no'])
     this.saveOkDialog = new Dialog('ok', 'file saved', ['ok'])
     this.errorOkDialog = new Dialog('error', null, ['ok'])
+
+    this.clear()
   }
 
-  clear() {}
+  clear() {
+    this.noteC = 0
+    this.noteR = 2
+
+    this.tempo = 120
+    this.transpose = 0
+    this.play = false
+    this.noteTimestamp = 0
+
+    this.name = 'Untitled'
+
+    this.tracks.length = 0
+    this.tracks.push(new Track('Melody'))
+    this.trackIndex = 0
+  }
 
   reset() {
     this.dialogResetAll()
@@ -286,9 +301,9 @@ export class MusicEdit {
   bottomRightStatus() {
     const input = this.input
     let content = null
-    if (this.noteR === 0) content = `${input.name(BUTTON_A)}/DURATION UP ${input.name(BUTTON_B)}/DURATION DOWN `
-    else content = `${input.name(BUTTON_A)}/PITCH UP ${input.name(BUTTON_B)}/PITCH DOWN `
-    content += `${input.name(BUTTON_Y)}/OPTIONS `
+    if (this.noteR === 0) content = `${input.name(BUTTON_A)}/DURATION UP ${input.name(BUTTON_Y)}/DURATION DOWN `
+    else content = `${input.name(BUTTON_A)}/PITCH UP ${input.name(BUTTON_Y)}/PITCH DOWN `
+    content += `${input.name(BUTTON_B)}/OPTIONS `
     content += `${input.name(BUTTON_X)}`
     content += this.play ? '/STOP' : '/PLAY'
     return content
@@ -375,19 +390,24 @@ export class MusicEdit {
       const track = this.tracks[this.trackIndex]
       const note = track.notes[this.noteC]
       if (row === 0) {
-        if (input.leftTrigger()) note[row] = this.maxDuration - 1
-        else if (note[row] < this.maxDuration - 1) note[row]++
+        if (input.leftTrigger()) note[row] = 0
+        else if (note[row] > 0) note[row]--
       } else {
         if (input.leftTrigger()) note[row] = Math.min(note[row] + 12, this.maxPitch)
         else if (note[row] < this.maxPitch) note[row]++
       }
       this.playOneNote(this.noteR)
-    } else if (input.timerB(timestamp, INPUT_RATE)) {
+    } else if (input.timerY(timestamp, INPUT_RATE)) {
       const row = this.noteR
       const track = this.tracks[this.trackIndex]
       const note = track.notes[this.noteC]
-      if (input.leftTrigger()) note[row] = Math.max(note[row] - 12, 0)
-      else if (note[row] > 0) note[row]--
+      if (row === 0) {
+        if (input.leftTrigger()) note[row] = this.maxDuration - 1
+        else if (note[row] < this.maxDuration - 1) note[row]++
+      } else {
+        if (input.leftTrigger()) note[row] = Math.max(note[row] - 12, 0)
+        else if (note[row] > 0) note[row]--
+      }
       this.playOneNote(this.noteR)
     }
 
@@ -398,7 +418,7 @@ export class MusicEdit {
       this.playAndCalculateNote(timestamp)
     }
 
-    if (input.pressY()) {
+    if (input.pressB()) {
       // todo
       // open dialog box with options for insert / delete note
       //
@@ -415,12 +435,17 @@ export class MusicEdit {
     let content = 'music = ' + this.name + '\ntracks ['
     for (const track of tracks) {
       const notes = track.notes
-      content += '{\n  name = ' + track.name
-      content += '\n  tuning = ' + track.tuning
-      content += '\n  notes ['
+      content += '\n  {\n    name = ' + track.name
+      content += '\n    tuning = ' + track.tuning
+      const synth = export_synth_parameters(track.parameters).split('\n')
+      content += '\n'
+      for (const parameter of synth) {
+        content += '    ' + parameter + '\n'
+      }
+      content += '    notes ['
       for (let c = 0; c < notes.length; c++) {
         const note = notes[c]
-        content += '\n    ['
+        content += '\n      ['
         for (let r = 0; r < noteRows; r++) {
           if (r !== 0) content += ' '
           content += note[r]
@@ -429,6 +454,7 @@ export class MusicEdit {
       }
       content += '\n    ]\n  }'
     }
+    content += '\n]'
     return content
   }
 }

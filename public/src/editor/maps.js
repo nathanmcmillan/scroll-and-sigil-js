@@ -220,7 +220,7 @@ export class MapEdit {
     this.zoom = 10.0
     this.cursor = new Vector2(0.5 * width, 0.5 * height)
 
-    this.name = 'untitled'
+    this.name = 'Untitled'
 
     this.vecs = []
     this.lines = []
@@ -270,7 +270,7 @@ export class MapEdit {
   }
 
   clear() {
-    this.name = 'untitled'
+    this.name = 'Untitled'
 
     this.camera.x = 0.0
     this.camera.y = 1.0

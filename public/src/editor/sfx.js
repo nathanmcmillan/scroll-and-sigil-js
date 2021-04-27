@@ -5,6 +5,7 @@
 import { fetchText } from '../client/net.js'
 import { Dialog } from '../gui/dialog.js'
 import { BUTTON_A, BUTTON_B, BUTTON_X } from '../input/input.js'
+import { read_synth_wad } from '../sound/audio.js'
 import {
   ACCEL,
   ATTACK,
@@ -12,6 +13,7 @@ import {
   CYCLE,
   DECAY,
   DISTORTION,
+  export_synth_parameters,
   FREQ,
   HARMONIC_GAIN_A,
   HARMONIC_GAIN_B,
@@ -30,7 +32,6 @@ import {
   SPEED,
   SUSTAIN,
   synth,
-  SYNTH_IO,
   TREMOLO_FREQ,
   TREMOLO_PERC,
   TREMOLO_WAVE,
@@ -42,7 +43,6 @@ import {
   WAVEFORMS,
 } from '../sound/synth.js'
 import { dusk0, dusk1, dusk2, silver0, silver1, silver2 } from './palette.js'
-import { read_synth_wad } from '../sound/audio.js'
 
 const INPUT_RATE = 128
 
@@ -57,7 +57,7 @@ export class SfxEdit {
     this.doPaint = true
     this.forcePaint = false
 
-    this.name = 'untitled'
+    this.name = ''
 
     this.parameters = new_synth_parameters()
     this.range = new_synth_parameters()
@@ -83,7 +83,7 @@ export class SfxEdit {
   }
 
   clear() {
-    this.name = 'untitled'
+    this.name = 'Untitled'
 
     this.parameters[WAVE] = 1
     this.parameters[CYCLE] = 0.25
@@ -443,13 +443,6 @@ export class SfxEdit {
   }
 
   export() {
-    let content = 'sound = ' + this.name + '\nparameters [\n'
-    for (let i = 0; i < this.parameters.length; i++) {
-      content += '  '
-      if (i === WAVE) content += 'wave = ' + WAVEFORMS[this.parameters[i]] + '\n'
-      else content += SYNTH_IO[i] + ' = ' + this.parameters[i] + '\n'
-    }
-    content += ']'
-    return content
+    return 'sound = ' + this.name + '\n' + export_synth_parameters(this.parameters)
   }
 }
