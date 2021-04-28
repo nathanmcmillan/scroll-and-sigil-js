@@ -213,7 +213,7 @@ export class MusicState {
 
     // sprites
 
-    rendererSetProgram(rendering, 'texture2d-rgb')
+    rendererSetProgram(rendering, 'texture2d-ignore')
     rendererSetView(rendering, 0, client.top, width, height)
     rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 

@@ -234,6 +234,7 @@ export class Client {
     let texture3d = fetchText('./shaders/texture3d.glsl')
     let texture2d_rgb = fetchText('./shaders/texture2d-rgb.glsl')
     let texture2d_font = fetchText('./shaders/texture2d-font.glsl')
+    let texture2d_ignore = fetchText('./shaders/texture2d-ignore.glsl')
     let texture3d_rgb = fetchText('./shaders/texture3d-rgb.glsl')
     let texture3d_palette = fetchText('./shaders/texture3d-palette.glsl')
     let texture3d_light = fetchText('./shaders/texture3d-light.glsl')
@@ -339,6 +340,7 @@ export class Client {
     texture3d = await texture3d
     texture2d_rgb = await texture2d_rgb
     texture2d_font = await texture2d_font
+    texture2d_ignore = await texture2d_ignore
     texture3d_rgb = await texture3d_rgb
     texture3d_palette = await texture3d_palette
     texture3d_light = await texture3d_light
@@ -349,6 +351,7 @@ export class Client {
     rendererInsertProgram(rendering, 'texture3d', compileProgram(gl, texture3d))
     rendererInsertProgram(rendering, 'texture2d-rgb', compileProgram(gl, texture2d_rgb))
     rendererInsertProgram(rendering, 'texture2d-font', compileProgram(gl, texture2d_font))
+    rendererInsertProgram(rendering, 'texture2d-ignore', compileProgram(gl, texture2d_ignore))
     rendererInsertProgram(rendering, 'texture3d-rgb', compileProgram(gl, texture3d_rgb))
     rendererInsertProgram(rendering, 'texture3d-palette', compileProgram(gl, texture3d_palette))
     rendererInsertProgram(rendering, 'texture3d-light', compileProgram(gl, texture3d_light))

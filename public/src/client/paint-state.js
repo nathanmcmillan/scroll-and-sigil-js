@@ -19,7 +19,6 @@ import {
   ember0f,
   ember1f,
   ember2f,
-  lavenderf,
   redf,
   silverf,
   slatef,
@@ -29,7 +28,7 @@ import {
 } from '../editor/palette.js'
 import { flexBox, flexSolve } from '../gui/flex.js'
 import { identity, multiply } from '../math/matrix.js'
-import { spr, sprcol } from '../render/pico.js'
+import { sprcol } from '../render/pico.js'
 import { drawHollowRectangle, drawImage, drawRectangle, drawTextFont, drawTextFontSpecial } from '../render/render.js'
 import { bufferZero } from '../webgl/buffer.js'
 import { rendererBindTexture, rendererSetProgram, rendererSetView, rendererUpdateAndDraw, rendererUpdateUniformMatrix } from '../webgl/renderer.js'
@@ -482,7 +481,7 @@ export class PaintState {
 
     // special textures
 
-    rendererSetProgram(rendering, 'texture2d-rgb')
+    rendererSetProgram(rendering, 'texture2d-ignore')
     rendererSetView(rendering, 0, client.top, width, height)
     rendererUpdateUniformMatrix(rendering, 'u_mvp', projection)
 
@@ -497,9 +496,9 @@ export class PaintState {
     for (let c = 0; c < toolColumns; c++) {
       const x = toolLeft + c * toolMagnify
       if (c === paint.tool) {
-        spr(client.bufferGUI, c, 1.0, 1.0, x, y - 2 * scale, toolMagnify, toolMagnify)
+        sprcol(client.bufferGUI, c, 1.0, 1.0, x, y - 2 * scale, toolMagnify, toolMagnify, white0f, white1f, white2f, 1.0)
       } else {
-        sprcol(client.bufferGUI, c, 1.0, 1.0, x, y - 2 * scale, toolMagnify, toolMagnify, lavenderf(0), lavenderf(1), lavenderf(2), 1.0)
+        sprcol(client.bufferGUI, c, 1.0, 1.0, x, y - 2 * scale, toolMagnify, toolMagnify, dusk0f, dusk1f, dusk2f, 1.0)
       }
     }
 

@@ -94,33 +94,38 @@ export class MusicNode {
   }
 }
 
-export function read_synth_wad(parameters, content) {
+export function read_sound_effect_wad(out, content) {
   const wad = wad_parse(content)
-  for (const [name, value] of wad.get('parameters')) {
+  const parameters = wad.get('parameters')
+  read_synth_wad(out, parameters)
+  return wad
+}
+
+export function read_synth_wad(out, parameters) {
+  for (const [name, value] of parameters) {
     for (let a = 0; a < SYNTH_IO.length; a++) {
       if (SYNTH_IO[a] === name) {
         if (name === 'wave') {
           for (let w = 0; w < WAVEFORMS.length; w++) {
             if (WAVEFORMS[w] === value) {
-              parameters[a] = w
+              out[a] = w
               break
             }
           }
         } else {
-          parameters[a] = parseFloat(value)
+          out[a] = parseFloat(value)
         }
         break
       }
     }
   }
-  return wad
 }
 
 export class SynthSound {
   constructor(content) {
     this.parameters = new_synth_parameters()
     try {
-      read_synth_wad(this.parameters, content)
+      read_sound_effect_wad(this.parameters, content)
     } catch (e) {
       console.error(e)
     }

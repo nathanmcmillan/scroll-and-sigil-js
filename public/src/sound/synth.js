@@ -81,13 +81,13 @@ export function new_synth_parameters() {
 }
 
 export function export_synth_parameters(parameters) {
-  let content = 'parameters [\n'
+  let content = 'parameters {\n'
   for (let i = 0; i < parameters.length; i++) {
     content += '  ' + SYNTH_IO[i] + ' = '
     if (i === WAVE) content += WAVEFORMS[parameters[i]] + '\n'
     else content += parameters[i] + '\n'
   }
-  content += ']'
+  content += '}'
   return content
 }
 

@@ -5,7 +5,7 @@
 import { fetchText } from '../client/net.js'
 import { Dialog } from '../gui/dialog.js'
 import { BUTTON_A, BUTTON_B, BUTTON_X } from '../input/input.js'
-import { read_synth_wad } from '../sound/audio.js'
+import { read_sound_effect_wad } from '../sound/audio.js'
 import {
   ACCEL,
   ATTACK,
@@ -248,7 +248,7 @@ export class SfxEdit {
   read(content) {
     this.clear()
     try {
-      const wad = read_synth_wad(this.parameters, content)
+      const wad = read_sound_effect_wad(this.parameters, content)
       this.name = wad.get('sound')
     } catch (e) {
       console.error(e)
