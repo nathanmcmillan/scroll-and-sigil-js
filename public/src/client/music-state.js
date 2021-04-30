@@ -190,15 +190,12 @@ export class MusicState {
       pos += noteWidth
     }
 
-    const tempoText = 'Tempo:' + music.tempo
-    drawText(client.bufferGUI, 20, height - fontHeight * 3, tempoText, fontScale, silver0f, silver1f, silver2f, 1.0, font)
-
     drawText(client.bufferGUI, 20, 200, lengthName(notes[noteC][0]), smallFontScale, silver0f, silver1f, silver2f, 1.0, font)
     for (let r = 1; r < noteRows; r++) {
       const note = notes[noteC][r]
       let noteText
       if (note === 0) noteText = '-'
-      else noteText = semitoneName(note - SEMITONES)
+      else noteText = semitoneName(note + track.tuning - SEMITONES)
       drawText(client.bufferGUI, 20, 200 - r * noteHeight, noteText, smallFontScale, silver0f, silver1f, silver2f, 1.0, font)
     }
 

@@ -19,7 +19,7 @@ class Track {
     this.tuning = 0
     this.parameters = new_synth_parameters()
     this.notes = []
-    this.c = 0 // <- note C
+    this.c = 0
     this.r = 0
   }
 }
@@ -68,8 +68,8 @@ export class MusicEdit {
     this.maxDuration = 6
     this.maxPitch = 99
 
-    // this.noteC = 0 // TODO: MOVE THIS TO TRACK
-    // this.noteR = 0
+    this.noteC = 0 // TODO: MOVE THIS TO TRACK
+    this.noteR = 0
 
     this.play = false
     this.noteTimestamp = 0
@@ -88,7 +88,9 @@ export class MusicEdit {
     this.startMenuDialog = new Dialog('start', null, ['name', 'new', 'open', 'save', 'export', 'exit'])
     this.trackDialog = new Dialog('track', null, ['switch track', 'edit', 'tuning', 'new track', 'delete track', 'tempo'])
     this.noteDialog = new Dialog('note', null, ['insert note', 'delete note'])
-    this.switchDialog = new Dialog('switch', 'track', [])
+    this.tuningDialog = new Dialog('tuning', 'tuning', [''])
+    this.tempoDialog = new Dialog('tempo', 'tempo', [''])
+    this.switchDialog = new Dialog('switch', 'track', null)
     this.askToSaveDialog = new Dialog('ask', 'save current file?', ['save', 'export', 'no'])
     this.saveOkDialog = new Dialog('ok', 'file saved', ['ok'])
     this.errorOkDialog = new Dialog('error', null, ['ok'])
@@ -194,15 +196,46 @@ export class MusicEdit {
         }
       }
       this.dialogEnd()
+    } else if (event === 'track-tuning') {
+      this.dialogStack.push(event)
+      const track = this.tracks[this.trackIndex]
+      this.tuningDialog.options[0] = '' + track.tuning
+      this.dialog = this.tuningDialog
+      this.forcePaint = true
+    } else if (event === 'track-tempo') {
+      this.dialogStack.push(event)
+      this.tempoDialog.options[0] = '' + this.tempo
+      this.dialog = this.tempoDialog
+      this.forcePaint = true
     }
   }
 
-  handleDialogSpecial() {}
+  handleDialogSpecial(left) {
+    const event = this.dialog.id
+    if (event === 'tuning') {
+      const track = this.tracks[this.trackIndex]
+      let tuning = track.tuning
+      if (left) {
+        if (tuning > -12) tuning--
+      } else if (tuning < 12) tuning++
+      this.dialog.options[0] = '' + tuning
+      track.tuning = tuning
+    } else if (event === 'tempo') {
+      let tempo = this.tempo
+      if (left) {
+        if (tempo > 60) tempo--
+      } else if (tempo < 240) tempo++
+      this.dialog.options[0] = '' + tempo
+      this.tempo = tempo
+    }
+  }
 
   dialogResetAll() {
     this.startMenuDialog.reset()
     this.trackDialog.reset()
     this.noteDialog.reset()
+    this.tuningDialog.reset()
+    this.tempoDialog.reset()
     this.switchDialog.reset()
     this.askToSaveDialog.reset()
     this.saveOkDialog.reset()
@@ -301,7 +334,7 @@ export class MusicEdit {
         const num = note[r]
         if (num === 0) continue
         const parameters = track.parameters.slice()
-        parameters[FREQ] = num
+        parameters[FREQ] = num + track.tuning
         parameters[LENGTH] = length
         this.sounds.push(synth(parameters))
       }
@@ -309,7 +342,7 @@ export class MusicEdit {
       const num = note[row]
       if (num > 0) {
         const parameters = track.parameters.slice()
-        parameters[FREQ] = num
+        parameters[FREQ] = num + track.tuning
         parameters[LENGTH] = length
         this.sounds.push(synth(parameters))
       }
@@ -326,7 +359,7 @@ export class MusicEdit {
       const num = note[r]
       if (num === 0) continue
       const parameters = track.parameters.slice()
-      parameters[FREQ] = num
+      parameters[FREQ] = num + track.tuning
       parameters[LENGTH] = length
       this.sounds.push(synth(parameters, when))
     }
@@ -362,7 +395,8 @@ export class MusicEdit {
   }
 
   topRightStatus() {
-    return null
+    const track = this.tracks[this.trackIndex]
+    return 'TRACK ' + track.name.toUpperCase() + ' TUNING ' + track.tuning + ' TEMPO ' + this.tempo
   }
 
   bottomLeftStatus() {
@@ -372,11 +406,10 @@ export class MusicEdit {
   bottomRightStatus() {
     const input = this.input
     let content = null
-    if (this.noteR === 0) content = `${input.name(BUTTON_A)}/DURATION UP ${input.name(BUTTON_Y)}/DURATION DOWN `
-    else content = `${input.name(BUTTON_A)}/PITCH UP ${input.name(BUTTON_Y)}/PITCH DOWN `
-    content += `${input.name(BUTTON_B)}/NOTE `
-    content += `${input.name(BUTTON_X)}`
-    content += this.play ? '/STOP' : '/START'
+    if (this.noteR === 0) content = input.name(BUTTON_A) + '/DURATION UP ' + input.name(BUTTON_Y) + '/DURATION DOWN '
+    else content = input.name(BUTTON_A) + '/PITCH UP ' + input.name(BUTTON_Y) + 'PITCH DOWN '
+    content += input.name(BUTTON_B) + '/NOTE '
+    content += input.name(BUTTON_X) + (this.play ? '/STOP' : '/START')
     return content
   }
 
