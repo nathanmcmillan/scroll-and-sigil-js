@@ -21,10 +21,9 @@ const extensions = {
 
 const server = http.createServer(function (request, response) {
   console.log('request', request.url)
-  let file = request.url
-  if (file === '/') {
-    file = '/index.html'
-  }
+  let file = request.url.split('?')[0]
+  if (file === '/') file = '/index.html'
+  else if (file.indexOf('.') === -1) file += '.html'
   file = directory + file
   const extension = path.extname(file)
   const mime = extensions[extension] || 'text/plain'

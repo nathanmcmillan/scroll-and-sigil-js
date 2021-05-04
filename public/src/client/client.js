@@ -391,7 +391,15 @@ export class Client {
     this.input = new In.Input()
     In.usingKeyboardMouse(this.input)
 
-    await this.openState(main.get('open'))
+    let open = main.get('open')
+
+    const href = window.location.href.split('?')
+    if (href.length >= 2) {
+      const equals = href[1].indexOf('=')
+      if (equals !== -1) open = href[1].substring(0, equals)
+    }
+
+    await this.openState(open)
 
     this.resize(this.width, this.height)
   }
@@ -405,7 +413,7 @@ export class Client {
         else this.paint.reset()
         this.state = this.paint
         break
-      case 'sfx':
+      case 'sound':
         if (this.sfx === null) this.sfx = new SfxState(this)
         else this.sfx.reset()
         this.state = this.sfx

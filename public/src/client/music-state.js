@@ -5,9 +5,9 @@
 import { textureByName } from '../assets/assets.js'
 import { renderDialogBox, renderStatus } from '../client/client-util.js'
 import { calcBottomBarHeight, calcFontScale, calcTopBarHeight, defaultFont } from '../editor/editor-util.js'
-import { lengthName, MusicEdit } from '../editor/music.js'
+import { lengthName, MusicEdit, NOTE_ROWS } from '../editor/music.js'
 import { ember0f, ember1f, ember2f, silver0f, silver1f, silver2f, slatef } from '../editor/palette.js'
-import { flexBox, flexSolve } from '../gui/flex.js'
+// import { flexBox, flexSolve, returnFlexBox } from '../gui/flex.js'
 import { identity, multiply } from '../math/matrix.js'
 import { sprcol } from '../render/pico.js'
 import { drawRectangle, drawText } from '../render/render.js'
@@ -50,11 +50,11 @@ export class MusicState {
   }
 
   eventCall(event) {
-    if (event === 'start-export') this.export()
-    else if (event === 'save-save') this.save()
-    else if (event === 'start-open') this.import()
-    else if (event === 'start-save') this.save()
-    else if (event === 'start-exit') this.returnToDashboard()
+    if (event === 'Start-Export') this.export()
+    else if (event === 'Save-Save') this.save()
+    else if (event === 'Start-Open') this.import()
+    else if (event === 'Start-Save') this.save()
+    else if (event === 'Start-Exit') this.returnToDashboard()
   }
 
   returnToDashboard() {
@@ -118,7 +118,7 @@ export class MusicState {
     const font = defaultFont()
     const fontScale = calcFontScale(scale)
     const fontWidth = fontScale * font.width
-    const fontHeight = fontScale * font.base
+    // const fontHeight = fontScale * font.base
 
     rendererSetProgram(rendering, 'color2d')
     rendererSetView(rendering, 0, client.top, width, height)
@@ -147,23 +147,16 @@ export class MusicState {
 
     bufferZero(client.bufferGUI)
 
-    const track = music.tracks[music.trackIndex]
+    const play = music.play
+    const track = music.track
     const notes = track.notes
-
-    const text = track.name
-    const posBox = flexBox(fontWidth * text.length, fontHeight)
-    posBox.argX = 20
-    posBox.argY = 40
-    flexSolve(width, height, posBox)
-    drawText(client.bufferGUI, posBox.x, posBox.y, text, fontScale, silver0f, silver1f, silver2f, 1.0, font)
+    const noteC = track.c
+    const noteR = track.r
 
     const smallFontScale = Math.floor(1.5 * scale)
     const smallFontWidth = smallFontScale * font.width
     const smallFontHeight = smallFontScale * font.height
     const smallFontHalfWidth = Math.floor(0.5 * smallFontWidth)
-    const noteRows = music.noteRows
-    const noteC = music.noteC
-    const noteR = music.noteR
 
     const noteSides = 20
 
@@ -179,25 +172,33 @@ export class MusicState {
         pos = x
         y -= 6 * noteHeight
       }
-      for (let r = 1; r < noteRows; r++) {
+      for (let r = 1; r < NOTE_ROWS; r++) {
         const num = note[r]
         const pitch = num === 0 ? '-' : '' + num
         let xx = pos
         if (pitch >= 10) xx -= smallFontHalfWidth
-        if (c === noteC && r === noteR) drawText(client.bufferGUI, xx, y - r * noteHeight, pitch, smallFontScale, ember0f, ember1f, ember2f, 1.0, font)
+        if (c === noteC && (play || r === noteR)) drawText(client.bufferGUI, xx, y - r * noteHeight, pitch, smallFontScale, ember0f, ember1f, ember2f, 1.0, font)
         else drawText(client.bufferGUI, xx, y - r * noteHeight, pitch, smallFontScale, silver0f, silver1f, silver2f, 1.0, font)
       }
       pos += noteWidth
     }
 
-    drawText(client.bufferGUI, 20, 200, lengthName(notes[noteC][0]), smallFontScale, silver0f, silver1f, silver2f, 1.0, font)
-    for (let r = 1; r < noteRows; r++) {
+    const noteX = noteSides
+    const noteY = 4 * noteHeight + noteSides
+    drawText(client.bufferGUI, noteX, noteY, lengthName(notes[noteC][0]), smallFontScale, silver0f, silver1f, silver2f, 1.0, font)
+    for (let r = 1; r < NOTE_ROWS; r++) {
       const note = notes[noteC][r]
       let noteText
       if (note === 0) noteText = '-'
       else noteText = semitoneName(note + track.tuning - SEMITONES)
-      drawText(client.bufferGUI, 20, 200 - r * noteHeight, noteText, smallFontScale, silver0f, silver1f, silver2f, 1.0, font)
+      drawText(client.bufferGUI, noteX, noteY - r * noteHeight, noteText, smallFontScale, silver0f, silver1f, silver2f, 1.0, font)
     }
+
+    const musicScaleNotes = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
+    const musicScale = 'C Major: ' + musicScaleNotes.join(' ')
+    const scaleX = width - noteSides - musicScale.length * fontWidth
+    const scaleY = noteHeight + noteSides
+    drawText(client.bufferGUI, scaleX, scaleY, musicScale, smallFontScale, silver0f, silver1f, silver2f, 1.0, font)
 
     //  status text
 
@@ -229,7 +230,7 @@ export class MusicState {
         pos = x
         y -= 6 * noteHeight
       }
-      if (c === noteC && r === noteR) sprcol(client.bufferGUI, duration, 1.0, 1.0, pos, y, spriteSize, spriteSize, ember0f, ember1f, ember2f, 1.0)
+      if (c === noteC && (play || r === noteR)) sprcol(client.bufferGUI, duration, 1.0, 1.0, pos, y, spriteSize, spriteSize, ember0f, ember1f, ember2f, 1.0)
       else sprcol(client.bufferGUI, duration, 1.0, 1.0, pos, y, spriteSize, spriteSize, silver0f, silver1f, silver2f, 1.0)
       pos += noteWidth
     }

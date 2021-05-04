@@ -147,7 +147,13 @@ export class Input {
     return true
   }
 
+  down(key) {
+    if (this.pressed[key]) return false
+    return this.in[key]
+  }
+
   timer(now, rate, key) {
+    if (this.pressed[key]) return false
     const previous = this.timers[key]
     if (now - rate < previous) return false
     const down = this.in[key]
@@ -174,7 +180,7 @@ export class Input {
   }
 
   start() {
-    return this.in[BUTTON_START]
+    return this.down(BUTTON_START)
   }
 
   pressStart() {
@@ -186,7 +192,7 @@ export class Input {
   }
 
   select() {
-    return this.in[BUTTON_SELECT]
+    return this.down(BUTTON_SELECT)
   }
 
   pressSelect() {
@@ -198,7 +204,7 @@ export class Input {
   }
 
   stickUp() {
-    return this.in[STICK_UP]
+    return this.down(STICK_UP)
   }
 
   pressStickUp() {
@@ -210,7 +216,7 @@ export class Input {
   }
 
   stickDown() {
-    return this.in[STICK_DOWN]
+    return this.down(STICK_DOWN)
   }
 
   pressStickDown() {
@@ -222,7 +228,7 @@ export class Input {
   }
 
   stickLeft() {
-    return this.in[STICK_LEFT]
+    return this.down(STICK_LEFT)
   }
 
   pressStickLeft() {
@@ -234,7 +240,7 @@ export class Input {
   }
 
   stickRight() {
-    return this.in[STICK_RIGHT]
+    return this.down(STICK_RIGHT)
   }
 
   pressStickRight() {
@@ -246,7 +252,7 @@ export class Input {
   }
 
   a() {
-    return this.in[BUTTON_A]
+    return this.down(BUTTON_A)
   }
 
   pressA() {
@@ -258,7 +264,7 @@ export class Input {
   }
 
   b() {
-    return this.in[BUTTON_B]
+    return this.down(BUTTON_B)
   }
 
   pressB() {
@@ -270,7 +276,7 @@ export class Input {
   }
 
   x() {
-    return this.in[BUTTON_X]
+    return this.down(BUTTON_X)
   }
 
   pressX() {
@@ -282,7 +288,7 @@ export class Input {
   }
 
   y() {
-    return this.in[BUTTON_Y]
+    return this.down(BUTTON_Y)
   }
 
   pressY() {
@@ -294,7 +300,7 @@ export class Input {
   }
 
   leftTrigger() {
-    return this.in[LEFT_TRIGGER]
+    return this.down(LEFT_TRIGGER)
   }
 
   pressLeftTrigger() {
@@ -306,7 +312,7 @@ export class Input {
   }
 
   rightTrigger() {
-    return this.in[RIGHT_TRIGGER]
+    return this.down(RIGHT_TRIGGER)
   }
 
   pressRightTrigger() {

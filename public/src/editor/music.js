@@ -13,6 +13,16 @@ const INPUT_RATE = 128
 
 const DEFAULT_NOTE_LENGTH = 4
 
+const PITCH_ROWS = 3
+const NOTE_START = 4
+export const NOTE_ROWS = PITCH_ROWS + 1
+
+const MUSIC_SLICE = 500
+
+function newNote() {
+  return [DEFAULT_NOTE_LENGTH, 0, 49, 0, 0]
+}
+
 class Track {
   constructor(name) {
     this.name = name
@@ -20,7 +30,9 @@ class Track {
     this.parameters = new_synth_parameters()
     this.notes = []
     this.c = 0
-    this.r = 0
+    this.r = 2
+    this.save = 0
+    this.i = 0
   }
 }
 
@@ -29,7 +41,7 @@ function defaultTrack() {
   track.parameters[WAVE] = WAVEFORMS.indexOf('Sine')
   track.parameters[SUSTAIN] = 1.0
   track.parameters[VOLUME] = 0.5
-  track.notes.push([DEFAULT_NOTE_LENGTH, 0, 49, 0])
+  track.notes.push(newNote())
   return track
 }
 
@@ -63,54 +75,54 @@ export class MusicEdit {
     this.doPaint = true
     this.forcePaint = false
 
-    this.pitcheRows = 3
-    this.noteRows = this.pitcheRows + 1
     this.maxDuration = 6
     this.maxPitch = 99
 
-    this.noteC = 0 // TODO: MOVE THIS TO TRACK
-    this.noteR = 0
-
     this.play = false
-    this.noteTimestamp = 0
+    this.musicOrigin = 0
+    this.noteTime = 0
+    this.musicTime = 0
+    this.musicFrom = 0
+    this.musicTo = 0
 
     this.name = ''
     this.tempo = 0
 
+    this.track = null
     this.tracks = []
-    this.trackIndex = 0
 
     this.sounds = []
 
     this.dialog = null
     this.dialogStack = []
 
-    this.startMenuDialog = new Dialog('start', null, ['name', 'new', 'open', 'save', 'export', 'exit'])
-    this.trackDialog = new Dialog('track', null, ['switch track', 'edit', 'tuning', 'new track', 'delete track', 'tempo'])
-    this.noteDialog = new Dialog('note', null, ['insert note', 'delete note'])
-    this.tuningDialog = new Dialog('tuning', 'tuning', [''])
-    this.tempoDialog = new Dialog('tempo', 'tempo', [''])
-    this.switchDialog = new Dialog('switch', 'track', null)
-    this.askToSaveDialog = new Dialog('ask', 'save current file?', ['save', 'export', 'no'])
-    this.saveOkDialog = new Dialog('ok', 'file saved', ['ok'])
-    this.errorOkDialog = new Dialog('error', null, ['ok'])
+    this.startMenuDialog = new Dialog('Start', null, ['Name', 'New', 'Open', 'Save', 'Export', 'Exit'])
+    this.trackDialog = new Dialog('Track', null, ['Switch Track', 'Edit', 'Tuning', 'Mute', 'New Track', 'Delete Track', 'Tempo'])
+    this.noteDialog = new Dialog('Note', null, ['Insert Note', 'Delete Note'])
+    this.tuningDialog = new Dialog('Tuning', 'Tuning', [''])
+    this.tempoDialog = new Dialog('Tempo', 'Tempo', [''])
+    this.switchDialog = new Dialog('Switch', 'Track', null)
+    this.askToSaveDialog = new Dialog('Ask', 'Save Current File?', ['Save', 'Export', 'No'])
+    this.saveOkDialog = new Dialog('Ok', 'File Saved', ['Ok'])
+    this.errorOkDialog = new Dialog('Error', null, ['Ok'])
 
     this.clear()
   }
 
   clear() {
-    this.noteC = 0
-    this.noteR = 2
-
     this.play = false
-    this.noteTimestamp = 0
+    this.musicOrigin = 0
+    this.noteTime = 0
+    this.musicTime = 0
+    this.musicFrom = 0
+    this.musicTo = 0
 
     this.name = 'Untitled'
     this.tempo = 120
 
+    this.track = defaultTrack()
     this.tracks.length = 0
-    this.tracks.push(defaultTrack())
-    this.trackIndex = 0
+    this.tracks.push(this.track)
   }
 
   reset() {
@@ -118,109 +130,115 @@ export class MusicEdit {
   }
 
   handleDialog(event) {
-    if (event === 'ask-no') {
+    if (event === 'Ask-No') {
       const poll = this.dialogStack[0]
-      if (poll === 'start-new') this.clear()
+      if (poll === 'Start-New') this.clear()
       else this.parent.eventCall(poll)
       this.dialogEnd()
-    } else if (event === 'ask-save') {
+    } else if (event === 'Ask-Save') {
       const poll = this.dialogStack[0]
-      if (poll === 'start-exit') {
-        this.parent.eventCall('start-save')
+      if (poll === 'Start-Exit') {
+        this.parent.eventCall('Start-Save')
         this.dialogStack.push(event)
         this.dialog = this.saveOkDialog
         this.forcePaint = true
       } else this.dialogEnd()
-    } else if (event === 'ask-export') {
+    } else if (event === 'Ask-Export') {
       const poll = this.dialogStack[0]
-      if (poll === 'start-exit') {
-        this.parent.eventCall('start-export')
-        this.parent.eventCall('start-exit')
+      if (poll === 'Start-Exit') {
+        this.parent.eventCall('Start-Export')
+        this.parent.eventCall('Start-Exit')
       }
       this.dialogEnd()
-    } else if (event === 'start-name') {
+    } else if (event === 'Start-Name') {
       this.textBox.reset(this.name)
       this.askName = true
       this.dialogEnd()
-    } else if (event === 'start-save') {
+    } else if (event === 'Start-Save') {
       this.parent.eventCall(event)
       this.dialog = this.saveOkDialog
       this.forcePaint = true
-    } else if (event === 'start-new' || event === 'start-open' || event === 'start-exit') {
+    } else if (event === 'Start-New' || event === 'Start-Open' || event === 'Start-Exit') {
       this.dialogStack.push(event)
       this.dialog = this.askToSaveDialog
       this.forcePaint = true
-    } else if (event === 'start-export') {
+    } else if (event === 'Start-Export') {
       this.parent.eventCall(event)
       this.dialogEnd()
-    } else if (event === 'ok-ok') {
+    } else if (event === 'Ok-Ok') {
       const poll = this.dialogStack[0]
-      if (poll === 'start-exit') this.parent.eventCall(poll)
+      if (poll === 'Start-Exit') this.parent.eventCall(poll)
       this.dialogEnd()
-    } else if (event === 'error-ok') {
+    } else if (event === 'Error-Ok') {
       this.dialogEnd()
-    } else if (event === 'note-insert note') {
-      const notes = this.tracks[this.trackIndex].notes
-      notes.splice(this.noteC + 1, 0, [DEFAULT_NOTE_LENGTH, 0, 49, 0])
-      this.noteC++
+    } else if (event === 'Note-Insert Note') {
+      const notes = this.track.notes
+      notes.splice(this.track.c + 1, 0, newNote())
+      this.track.c++
       this.dialogEnd()
-    } else if (event === 'note-delete note') {
-      const notes = this.tracks[this.trackIndex].notes
-      if (notes.length > 1) notes.splice(this.noteC, 1)
-      this.dialogEnd()
-    } else if (event === 'track-new track') {
-      this.tracks.push(defaultTrack())
-      this.trackIndex = this.tracks.length - 1
-      console.debug(this.tracks, '//', this.trackIndex)
-      this.dialogEnd()
-    } else if (event === 'track-delete track') {
-      if (this.tracks.length > 1) {
-        this.tracks.splice(this.trackIndex, 1)
-        this.trackIndex = Math.min(this.trackIndex, this.tracks.length - 1)
+    } else if (event === 'Note-Delete Note') {
+      const notes = this.track.notes
+      if (notes.length > 1) {
+        notes.splice(this.track.c, 1)
+        this.track.c = Math.min(this.track.c, this.track.notes.length - 1)
       }
       this.dialogEnd()
-    } else if (event === 'track-switch track') {
+    } else if (event === 'Track-New Track') {
+      this.track = defaultTrack()
+      this.tracks.push(this.track)
+      this.dialogEnd()
+    } else if (event === 'Track-Delete Track') {
+      if (this.tracks.length > 1) {
+        const index = this.tracks.indexOf(this.track)
+        if (index >= 0) {
+          this.tracks.splice(index, 1)
+          this.track = this.tracks[Math.min(index, this.tracks.length - 1)]
+        }
+      }
+      this.dialogEnd()
+    } else if (event === 'Track-Switch Track') {
       this.dialogStack.push(event)
       const options = new Array(this.tracks.length)
       for (let i = 0; i < this.tracks.length; i++) options[i] = this.tracks[i].name
       this.switchDialog.options = options
       this.dialog = this.switchDialog
       this.forcePaint = true
-    } else if (event.startsWith('switch-')) {
+    } else if (event.startsWith('Switch-')) {
       const dash = event.indexOf('-')
       const track = event.substring(dash + 1)
       for (let i = 0; i < this.tracks.length; i++) {
         if (this.tracks[i].name === track) {
-          this.trackIndex = i
+          this.track = this.tracks[i]
           break
         }
       }
       this.dialogEnd()
-    } else if (event === 'track-tuning') {
+    } else if (event === 'Track-Tuning') {
       this.dialogStack.push(event)
-      const track = this.tracks[this.trackIndex]
-      this.tuningDialog.options[0] = '' + track.tuning
+      this.tuningDialog.options[0] = '' + this.track.tuning
       this.dialog = this.tuningDialog
       this.forcePaint = true
-    } else if (event === 'track-tempo') {
+    } else if (event === 'Track-Tempo') {
       this.dialogStack.push(event)
       this.tempoDialog.options[0] = '' + this.tempo
       this.dialog = this.tempoDialog
       this.forcePaint = true
+    } else {
+      this.dialogEnd()
     }
   }
 
   handleDialogSpecial(left) {
     const event = this.dialog.id
-    if (event === 'tuning') {
-      const track = this.tracks[this.trackIndex]
+    if (event === 'Tuning') {
+      const track = this.track
       let tuning = track.tuning
       if (left) {
         if (tuning > -12) tuning--
       } else if (tuning < 12) tuning++
       this.dialog.options[0] = '' + tuning
       track.tuning = tuning
-    } else if (event === 'tempo') {
+    } else if (event === 'Tempo') {
       let tempo = this.tempo
       if (left) {
         if (tempo > 60) tempo--
@@ -267,7 +285,6 @@ export class MusicEdit {
       this.tempo = parseInt(wad.get('tempo'))
 
       this.tracks.length = 0
-
       for (const data of wad.get('tracks')) {
         const name = data.get('name')
         const parameters = data.get('parameters')
@@ -284,6 +301,7 @@ export class MusicEdit {
         }
         this.tracks.push(track)
       }
+      this.track = this.tracks[0]
     } catch (e) {
       console.error(e)
       this.clear()
@@ -303,7 +321,7 @@ export class MusicEdit {
     this.read(content)
   }
 
-  noteSeconds(duration) {
+  duration(note) {
     // 16 ms tick update
     // timestamp is in milliseconds
     // tempo = 120
@@ -313,89 +331,152 @@ export class MusicEdit {
     // 240 eight notes per minute
     // 480 sixteenth notes per minute
     // 960 thirty-second notes per minute
-    let length = 0
-    if (duration === 0) length = this.tempo * 4
-    else if (duration === 1) length = this.tempo * 2
-    else if (duration === 2) length = this.tempo
-    else if (duration === 3) length = this.tempo / 2
-    else if (duration === 4) length = this.tempo / 4
-    else if (duration === 5) length = this.tempo / 8
-    return length / 60
+    const rate = (this.tempo / 60) * 1000
+    if (note === 0) return rate * 4
+    else if (note === 1) return rate * 2
+    else if (note === 2) return rate
+    else if (note === 3) return rate / 2
+    else if (note === 4) return rate / 4
+    else return rate / 8
   }
 
-  playOneNote(row) {
+  playRowNote(row) {
     for (const sound of this.sounds) sound.stop()
     this.sounds.length = 0
-    const track = this.tracks[this.trackIndex]
-    const note = track.notes[this.noteC]
-    const length = this.noteSeconds(note[0]) * 1000
+    const track = this.track
+    const note = track.notes[track.c]
+    const parameters = track.parameters.slice()
+    parameters[LENGTH] = this.duration(note[0])
     if (row === 0) {
-      for (let r = 1; r < this.noteRows; r++) {
+      for (let r = 1; r < NOTE_ROWS; r++) {
         const num = note[r]
         if (num === 0) continue
-        const parameters = track.parameters.slice()
         parameters[FREQ] = num + track.tuning
-        parameters[LENGTH] = length
         this.sounds.push(synth(parameters))
       }
     } else {
       const num = note[row]
       if (num > 0) {
-        const parameters = track.parameters.slice()
         parameters[FREQ] = num + track.tuning
-        parameters[LENGTH] = length
         this.sounds.push(synth(parameters))
       }
     }
   }
 
-  playAndCalculateNote(timestamp) {
-    const time = synthTime()
-    const when = time + (1.0 / 1000.0) * 16.0
-    const track = this.tracks[this.trackIndex]
-    const note = track.notes[this.noteC]
-    const length = this.noteSeconds(note[0]) * 1000
-    for (let r = 1; r < this.noteRows; r++) {
+  calcMusicTime() {
+    const tracks = this.tracks
+    const size = tracks.length
+    for (let t = 0; t < size; t++) {
+      const track = tracks[t]
+      track.i = 0
+      const notes = track.notes
+      const count = notes.length
+      let time = 0
+      for (let n = 0; n < count; n++) {
+        const note = notes[n]
+        note[NOTE_START] = time
+        time += this.duration(note[0])
+      }
+    }
+  }
+
+  timeAtNote() {
+    const track = this.track
+    const note = track.notes[track.c]
+    return note[NOTE_START]
+  }
+
+  playNote(track, note, when) {
+    const parameters = track.parameters.slice()
+    parameters[LENGTH] = this.duration(note[0])
+    for (let r = 1; r < NOTE_ROWS; r++) {
       const num = note[r]
       if (num === 0) continue
-      const parameters = track.parameters.slice()
       parameters[FREQ] = num + track.tuning
-      parameters[LENGTH] = length
       this.sounds.push(synth(parameters, when))
     }
-    this.noteTimestamp = timestamp + length
+  }
+
+  calcNoteTime(timestamp) {
+    const track = this.track
+    const note = track.notes[track.c]
+    this.noteTime = timestamp + this.duration(note[0])
+  }
+
+  playMusic(timestamp) {
+    if (timestamp < this.musicTime) return
+
+    const origin = this.musicOrigin
+    const start = this.musicFrom
+    const end = this.musicTo
+
+    const tracks = this.tracks
+    const size = tracks.length
+    for (let t = 0; t < size; t++) {
+      const track = tracks[t]
+      const notes = track.notes
+      const count = notes.length
+      for (let n = track.i; n < count; n++) {
+        const note = notes[n]
+        const current = note[NOTE_START]
+        if (current < start) continue
+        else if (current >= end) {
+          track.i = n
+          break
+        }
+        const when = origin + current / 1000.0
+        this.playNote(track, note, when)
+      }
+    }
+
+    this.musicTime += MUSIC_SLICE
+    this.musicFrom = this.musicTo
+    this.musicTo += MUSIC_SLICE
+  }
+
+  beginMusic(timestamp) {
+    this.play = true
+    this.track.saved = this.track.c
+    this.calcMusicTime()
+    this.musicTime = timestamp
+    this.musicFrom = this.timeAtNote()
+    this.musicTo = this.musicFrom + MUSIC_SLICE * 2
+    this.musicOrigin = synthTime() - this.musicFrom / 1000.0
+    this.playMusic(timestamp)
+    this.calcNoteTime(timestamp)
   }
 
   updatePlay(timestamp) {
     const input = this.input
+
     if (input.pressX()) {
       for (const sound of this.sounds) sound.stop()
       this.sounds.length = 0
+      this.track.c = this.track.saved
       this.play = false
       this.doPaint = true
       return
     }
-    if (timestamp >= this.noteTimestamp) {
+
+    this.playMusic(timestamp)
+
+    if (timestamp >= this.noteTime) {
       this.doPaint = true
-      this.noteC++
-      if (this.noteC === this.tracks[this.trackIndex].notes.length) {
+      this.track.c++
+      if (this.track.c === this.track.notes.length) {
         this.sounds.length = 0
+        this.track.c = this.track.saved
         this.play = false
-        this.noteC = 0
-      } else {
-        this.playAndCalculateNote(timestamp)
-      }
-    } else {
-      this.doPaint = false
-    }
+      } else this.calcNoteTime(timestamp)
+    } else this.doPaint = false
   }
 
   topLeftStatus() {
-    return 'MUSIC'
+    return 'MUSIC - ' + this.name.toUpperCase()
   }
 
   topRightStatus() {
-    const track = this.tracks[this.trackIndex]
+    const track = this.track
     return 'TRACK ' + track.name.toUpperCase() + ' TUNING ' + track.tuning + ' TEMPO ' + this.tempo
   }
 
@@ -406,8 +487,8 @@ export class MusicEdit {
   bottomRightStatus() {
     const input = this.input
     let content = null
-    if (this.noteR === 0) content = input.name(BUTTON_A) + '/DURATION UP ' + input.name(BUTTON_Y) + '/DURATION DOWN '
-    else content = input.name(BUTTON_A) + '/PITCH UP ' + input.name(BUTTON_Y) + 'PITCH DOWN '
+    if (this.track.r === 0) content = input.name(BUTTON_A) + '/DURATION UP ' + input.name(BUTTON_Y) + '/DURATION DOWN '
+    else content = input.name(BUTTON_A) + '/PITCH UP ' + input.name(BUTTON_Y) + '/PITCH DOWN '
     content += input.name(BUTTON_B) + '/NOTE '
     content += input.name(BUTTON_X) + (this.play ? '/STOP' : '/START')
     return content
@@ -471,25 +552,25 @@ export class MusicEdit {
     }
 
     if (input.timerStickUp(timestamp, INPUT_RATE)) {
-      if (this.noteR > 0) this.noteR--
+      if (this.track.r > 0) this.track.r--
     } else if (input.timerStickDown(timestamp, INPUT_RATE)) {
-      if (this.noteR < this.noteRows - 1) this.noteR++
+      if (this.track.r < NOTE_ROWS - 1) this.track.r++
     }
 
     if (input.timerStickLeft(timestamp, INPUT_RATE)) {
-      if (this.noteC > 0) this.noteC--
+      if (this.track.c > 0) this.track.c--
     } else if (input.timerStickRight(timestamp, INPUT_RATE)) {
-      this.noteC++
-      const notes = this.tracks[this.trackIndex].notes
-      if (this.noteC === notes.length) {
-        notes.push([DEFAULT_NOTE_LENGTH, 0, 49, 0])
+      this.track.c++
+      const notes = this.track.notes
+      if (this.track.c === notes.length) {
+        notes.push(newNote())
       }
     }
 
     if (input.timerA(timestamp, INPUT_RATE)) {
-      const row = this.noteR
-      const track = this.tracks[this.trackIndex]
-      const note = track.notes[this.noteC]
+      const track = this.track
+      const row = track.r
+      const note = track.notes[track.c]
       if (row === 0) {
         if (input.leftTrigger()) note[row] = 0
         else if (note[row] > 0) note[row]--
@@ -497,11 +578,11 @@ export class MusicEdit {
         if (input.leftTrigger()) note[row] = Math.min(note[row] + 12, this.maxPitch)
         else if (note[row] < this.maxPitch) note[row]++
       }
-      this.playOneNote(this.noteR)
+      this.playRowNote(this.track.r)
     } else if (input.timerY(timestamp, INPUT_RATE)) {
-      const row = this.noteR
-      const track = this.tracks[this.trackIndex]
-      const note = track.notes[this.noteC]
+      const track = this.track
+      const row = track.r
+      const note = track.notes[track.c]
       if (row === 0) {
         if (input.leftTrigger()) note[row] = this.maxDuration - 1
         else if (note[row] < this.maxDuration - 1) note[row]++
@@ -509,14 +590,13 @@ export class MusicEdit {
         if (input.leftTrigger()) note[row] = Math.max(note[row] - 12, 0)
         else if (note[row] > 0) note[row]--
       }
-      this.playOneNote(this.noteR)
+      this.playRowNote(this.track.r)
     }
 
-    if (input.pressB()) this.playOneNote(0)
+    if (input.pressB()) this.playRowNote(0)
 
     if (input.pressX()) {
-      this.play = true
-      this.playAndCalculateNote(timestamp)
+      this.beginMusic(timestamp)
     }
 
     if (input.pressRightTrigger()) {
@@ -526,7 +606,6 @@ export class MusicEdit {
   }
 
   export() {
-    const noteRows = this.noteRows
     const tracks = this.tracks
     let content = 'music = ' + this.name
     content += '\ntempo = ' + this.tempo
@@ -546,7 +625,7 @@ export class MusicEdit {
         if (c % 20 === 0) content += '\n      '
         else content += ' '
         content += '['
-        for (let r = 0; r < noteRows; r++) {
+        for (let r = 0; r < NOTE_ROWS; r++) {
           if (r !== 0) content += ' '
           content += note[r]
         }
