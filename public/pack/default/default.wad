@@ -25,6 +25,12 @@ sounds [
   plasma-impact
   pickup-item
   beep.wad
+  noise.wad
+  pulse.wad
+  sine.wad
+  square.wad
+  triangle.wad
+  sawtooth.wad
 ]
 sprites [
   tic-80-font

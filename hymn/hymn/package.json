@@ -1,7 +1,7 @@
 {
-  "name": "tape",
-  "displayName": "Tape",
-  "description": "Space and line deliminated data format.",
+  "name": "hymn",
+  "displayName": "Hymn",
+  "description": "Hymn scripting language.",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.35.0"
@@ -12,22 +12,22 @@
   "contributes": {
     "languages": [
       {
-        "id": "Tape",
+        "id": "Hymn",
         "aliases": [
-          "Tape",
-          "tape"
+          "Hymn",
+          "hymn"
         ],
         "extensions": [
-          "tape"
+          "hm"
         ],
         "configuration": "./language-configuration.json"
       }
     ],
     "grammars": [
       {
-        "language": "Tape",
-        "scopeName": "source.tape",
-        "path": "./syntaxes/tape.tmLanguage.json"
+        "language": "Hymn",
+        "scopeName": "source.hymn",
+        "path": "./syntaxes/hymn.tmLanguage.json"
       }
     ]
   }

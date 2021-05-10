@@ -85,11 +85,11 @@ export class SfxState {
   }
 
   eventCall(event) {
-    if (event === 'start-export') this.export()
-    else if (event === 'save-save') this.save()
-    else if (event === 'start-open') this.import()
-    else if (event === 'start-save') this.save()
-    else if (event === 'start-exit') this.returnToDashboard()
+    if (event === 'Start-Export') this.export()
+    else if (event === 'Save-Save') this.save()
+    else if (event === 'Start-Open') this.import()
+    else if (event === 'Start-Save') this.save()
+    else if (event === 'Start-Exit') this.returnToDashboard()
   }
 
   returnToDashboard() {
@@ -114,7 +114,7 @@ export class SfxState {
 
   save() {
     const blob = this.sfx.export()
-    localStorage.setItem('sfx', blob)
+    localStorage.setItem('sound', blob)
     console.info(blob)
     console.info('saved to local storage!')
   }

@@ -5,7 +5,7 @@
 import { textureByName } from '../assets/assets.js'
 import { renderDialogBox, renderStatus } from '../client/client-util.js'
 import { calcBottomBarHeight, calcFontScale, calcTopBarHeight, defaultFont } from '../editor/editor-util.js'
-import { lengthName, MusicEdit, NOTE_ROWS } from '../editor/music.js'
+import { lengthName, MusicEdit, musicScale, NOTE_ROWS } from '../editor/music.js'
 import { ember0f, ember1f, ember2f, silver0f, silver1f, silver2f, slatef } from '../editor/palette.js'
 // import { flexBox, flexSolve, returnFlexBox } from '../gui/flex.js'
 import { identity, multiply } from '../math/matrix.js'
@@ -194,11 +194,10 @@ export class MusicState {
       drawText(client.bufferGUI, noteX, noteY - r * noteHeight, noteText, smallFontScale, silver0f, silver1f, silver2f, 1.0, font)
     }
 
-    const musicScaleNotes = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
-    const musicScale = 'C Major: ' + musicScaleNotes.join(' ')
-    const scaleX = width - noteSides - musicScale.length * fontWidth
+    const interval = music.scaleRoot + ' ' + music.scaleMode + ': ' + musicScale(music.scaleRoot, music.scaleMode).join(',')
+    const scaleX = width - noteSides - interval.length * fontWidth
     const scaleY = noteHeight + noteSides
-    drawText(client.bufferGUI, scaleX, scaleY, musicScale, smallFontScale, silver0f, silver1f, silver2f, 1.0, font)
+    drawText(client.bufferGUI, scaleX, scaleY, interval, smallFontScale, silver0f, silver1f, silver2f, 1.0, font)
 
     //  status text
 

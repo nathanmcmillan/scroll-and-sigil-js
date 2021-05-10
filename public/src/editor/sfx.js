@@ -74,10 +74,10 @@ export class SfxEdit {
     this.dialog = null
     this.dialogStack = []
 
-    this.startMenuDialog = new Dialog('start', null, ['name', 'new', 'open', 'save', 'export', 'exit'])
-    this.askToSaveDialog = new Dialog('ask', 'save current file?', ['save', 'export', 'no'])
-    this.saveOkDialog = new Dialog('ok', 'file saved', ['ok'])
-    this.errorOkDialog = new Dialog('error', null, ['ok'])
+    this.startMenuDialog = new Dialog('Start', null, ['Name', 'New', 'Open', 'Save', 'Export', 'Exit'])
+    this.askToSaveDialog = new Dialog('Ask', 'Save Current File?', ['Save', 'Export', 'No'])
+    this.saveOkDialog = new Dialog('Ok', 'file saved', ['Ok'])
+    this.errorOkDialog = new Dialog('Error', null, ['Ok'])
 
     this.clear()
   }
@@ -177,46 +177,46 @@ export class SfxEdit {
   }
 
   handleDialog(event) {
-    if (event === 'ask-no') {
+    if (event === 'Ask-No') {
       const poll = this.dialogStack[0]
-      if (poll === 'start-new') this.clear()
+      if (poll === 'Start-New') this.clear()
       else this.parent.eventCall(poll)
       this.dialogEnd()
-    } else if (event === 'ask-save') {
+    } else if (event === 'Ask-Save') {
       const poll = this.dialogStack[0]
-      if (poll === 'start-exit') {
-        this.parent.eventCall('start-save')
+      if (poll === 'Start-Exit') {
+        this.parent.eventCall('Start-Save')
         this.dialogStack.push(event)
         this.dialog = this.saveOkDialog
         this.forcePaint = true
       } else this.dialogEnd()
-    } else if (event === 'ask-export') {
+    } else if (event === 'Ask-Export') {
       const poll = this.dialogStack[0]
-      if (poll === 'start-exit') {
-        this.parent.eventCall('start-export')
-        this.parent.eventCall('start-exit')
+      if (poll === 'Start-Exit') {
+        this.parent.eventCall('Start-Export')
+        this.parent.eventCall('Start-Exit')
       }
       this.dialogEnd()
-    } else if (event === 'start-name') {
+    } else if (event === 'Start-Name') {
       this.textBox.reset(this.name)
       this.askName = true
       this.dialogEnd()
-    } else if (event === 'start-save') {
+    } else if (event === 'Start-Save') {
       this.parent.eventCall(event)
       this.dialog = this.saveOkDialog
       this.forcePaint = true
-    } else if (event === 'start-new' || event === 'start-open' || event === 'start-exit') {
+    } else if (event === 'Start-New' || event === 'Start-Open' || event === 'Start-Exit') {
       this.dialogStack.push(event)
       this.dialog = this.askToSaveDialog
       this.forcePaint = true
-    } else if (event === 'start-export') {
+    } else if (event === 'Start-Export') {
       this.parent.eventCall(event)
       this.dialogEnd()
-    } else if (event === 'ok-ok') {
+    } else if (event === 'Ok-Ok') {
       const poll = this.dialogStack[0]
-      if (poll === 'start-exit') this.parent.eventCall(poll)
+      if (poll === 'Start-Exit') this.parent.eventCall(poll)
       this.dialogEnd()
-    } else if (event === 'error-ok') {
+    } else if (event === 'Error-Ok') {
       this.dialogEnd()
     }
   }
@@ -264,13 +264,13 @@ export class SfxEdit {
   async load(file) {
     let content = null
     if (file) content = await fetchText(file)
-    else content = localStorage.getItem('sfx')
+    else content = localStorage.getItem('sound')
     if (content === null || content === undefined) return this.clear()
     this.read(content)
   }
 
   topLeftStatus() {
-    return 'SOUND EFFECTS'
+    return 'SOUND - ' + this.name.toUpperCase()
   }
 
   topRightStatus() {

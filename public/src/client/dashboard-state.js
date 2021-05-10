@@ -61,7 +61,7 @@ export class DashboardState {
       if (dashboard.programRow === 0) this.client.openState('maps')
       else if (dashboard.programRow === 1) this.client.openState('paint')
       else if (dashboard.programRow === 2) this.client.openState('music')
-      else if (dashboard.programRow === 3) this.client.openState('sfx')
+      else if (dashboard.programRow === 3) this.client.openState('sound')
     } else if (event === 'back') this.client.openState('home')
   }
 

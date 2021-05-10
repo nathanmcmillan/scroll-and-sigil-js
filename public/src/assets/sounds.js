@@ -10,6 +10,10 @@ const MUSIC_TABLE = new Map()
 
 let MUSIC = null
 
+export function soundList() {
+  return SOUNDS
+}
+
 export async function saveSound(name, path) {
   const dot = name.lastIndexOf('.')
   if (dot > 0) {

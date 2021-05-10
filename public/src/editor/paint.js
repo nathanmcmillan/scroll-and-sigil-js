@@ -376,13 +376,7 @@ export class PaintEdit {
   }
 
   topLeftStatus() {
-    if (this.tool === PENCIL) return 'DRAW'
-    else if (this.tool === FILL) return 'FILL'
-    else if (this.tool === DROPLET) return 'COLOR PICKER'
-    else if (this.tool === SELECT) return 'SELECT'
-    else if (this.tool === SPRITE_TOOL) return 'SPRITES'
-    else if (this.tool === CLEAR_TOOL) return 'CLEAR'
-    return null
+    return 'PAINT - ' + this.name.toUpperCase()
   }
 
   topRightStatus() {
@@ -392,7 +386,12 @@ export class PaintEdit {
       if (this.selectR !== null) return 'SELECT READY'
       return 'END SELECT'
     } else if (this.activeSprite) return 'SPRITE: ' + this.activeSprite.name.toUpperCase()
-    return null
+    if (this.tool === PENCIL) return 'DRAW'
+    else if (this.tool === FILL) return 'FILL'
+    else if (this.tool === DROPLET) return 'COLOR PICKER'
+    else if (this.tool === SELECT) return 'SELECT'
+    else if (this.tool === SPRITE_TOOL) return 'SPRITES'
+    else if (this.tool === CLEAR_TOOL) return 'CLEAR'
   }
 
   bottomLeftStatus() {

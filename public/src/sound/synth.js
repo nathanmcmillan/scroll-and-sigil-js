@@ -49,6 +49,10 @@ export const HARMONIC_GAIN_C = 29
 
 export const PARAMETER_COUNT = 30
 
+export const WAVEFORMS = ['None', 'Sine', 'Square', 'Pulse', 'Triangle', 'Sawtooth', 'Noise', 'Static']
+
+export const NOTES = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'G#', 'A', 'Bb', 'B']
+
 export const WAVE_GROUP = ['Wave', 'Cycle']
 export const FREQ_GROUP = ['Frequency', 'Speed', 'Accel', 'Jerk']
 export const VOLUME_GROUP = ['Attack', 'Decay', 'Sustain', 'Length', 'Release', 'Volume']
@@ -446,8 +450,6 @@ export function synth(parameters, when = 0) {
   return source
 }
 
-export const WAVEFORMS = ['None', 'Sine', 'Square', 'Pulse', 'Triangle', 'Sawtooth', 'Noise', 'Static']
-
 function processFromIndex(index) {
   switch (index) {
     case 0:
@@ -471,14 +473,12 @@ function processFromIndex(index) {
   return null
 }
 
-const notes = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'G#', 'A', 'Bb', 'B']
-
 export function semitoneName(semitone) {
   semitone += 9
   let note = semitone % 12
   while (note < 0) note += 12
   const octave = 4 + Math.floor(semitone / 12)
-  return notes[note] + octave
+  return NOTES[note] + octave
 }
 
 export function diatonic(semitone) {

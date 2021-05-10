@@ -1,16 +1,16 @@
-sound = beep
+sound = triangle
 parameters {
-  wave = Sine
-  cycle = 0.5
-  frequency = 43
+  wave = Triangle
+  cycle = 0.25
+  frequency = 49
   speed = 0
   accel = 0
   jerk = 0
   attack = 0
   decay = 0
-  sustain = 1
-  length = 280
-  release = 10
+  sustain = 0.5
+  length = 1000
+  release = 0
   volume = 1
   vibrato-wave = 0
   vibrato-freq = 5
@@ -24,4 +24,10 @@ parameters {
   low-pass = 0
   high-pass = 0
   repeat = 0
+  harmonic-mult-a = 1
+  harmonic-gain-a = 0.5
+  harmonic-mult-b = 1
+  harmonic-gain-b = 0.25
+  harmonic-mult-c = 1
+  harmonic-gain-c = 0.125
 }

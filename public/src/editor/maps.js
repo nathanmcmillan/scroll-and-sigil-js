@@ -1413,7 +1413,7 @@ export class MapEdit {
   }
 
   topLeftStatus() {
-    return DESCRIBE_TOOL[this.tool]
+    return 'MAP - ' + this.name.toUpperCase() + ' :: ' + DESCRIBE_TOOL[this.tool]
   }
 
   topRightStatus() {

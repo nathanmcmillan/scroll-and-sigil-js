@@ -2,22 +2,63 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+import { soundList } from '../assets/sounds.js'
 import { fetchText } from '../client/net.js'
 import { Dialog } from '../gui/dialog.js'
 import { BUTTON_A, BUTTON_B, BUTTON_X, BUTTON_Y } from '../input/input.js'
 import { read_synth_wad } from '../sound/audio.js'
-import { export_synth_parameters, FREQ, LENGTH, new_synth_parameters, SUSTAIN, synth, synthTime, VOLUME, WAVE, WAVEFORMS } from '../sound/synth.js'
+import { export_synth_parameters, FREQ, LENGTH, new_synth_parameters, NOTES, SUSTAIN, synth, synthTime, VOLUME, WAVE, WAVEFORMS } from '../sound/synth.js'
 import { wad_parse } from '../wad/wad.js'
 
 const INPUT_RATE = 128
 
-const DEFAULT_NOTE_LENGTH = 4
+const DEFAULT_NOTE_LENGTH = 3
 
 const PITCH_ROWS = 3
 const NOTE_START = 4
 export const NOTE_ROWS = PITCH_ROWS + 1
 
 const MUSIC_SLICE = 500
+
+export const MUSIC_SCALE_LIST = [
+  'Major',
+  'Minor',
+  'Pentatonic Major',
+  'Pentatonic Minor',
+  'Harmonic Major',
+  'Harmonic Minor',
+  'Melodic Minor',
+  'Augmented',
+  'Blues',
+  'Whole Tone',
+  'Algerian',
+]
+
+export const MUSIC_SCALE = new Map()
+
+MUSIC_SCALE.set('Major', [2, 2, 1, 2, 2, 2, 1])
+MUSIC_SCALE.set('Minor', [2, 1, 2, 2, 1, 2, 2])
+MUSIC_SCALE.set('Pentatonic Major', [2, 2, 3, 2, 3])
+MUSIC_SCALE.set('Pentatonic Minor', [3, 2, 2, 3, 2])
+MUSIC_SCALE.set('Harmonic Major', [2, 2, 1, 2, 1, 3, 1])
+MUSIC_SCALE.set('Harmonic Minor', [2, 1, 2, 2, 1, 3, 1])
+MUSIC_SCALE.set('Melodic Minor', [2, 1, 2, 2, 2, 2, 1])
+MUSIC_SCALE.set('Augmented', [3, 1, 3, 1, 3, 1])
+MUSIC_SCALE.set('Blues', [3, 2, 1, 1, 3, 2])
+MUSIC_SCALE.set('Whole Tone', [2, 2, 2, 2, 2, 2])
+MUSIC_SCALE.set('Algerian', [2, 1, 3, 1, 1, 3, 1, 2, 1, 2])
+
+export function musicScale(root, mode) {
+  const steps = MUSIC_SCALE.get(mode)
+  const out = [root]
+  let index = NOTES.indexOf(root)
+  for (let i = 0; i < steps.length; i++) {
+    index += steps[i]
+    if (index >= NOTES.length) index -= NOTES.length
+    out.push(NOTES[index])
+  }
+  return out
+}
 
 function newNote() {
   return [DEFAULT_NOTE_LENGTH, 0, 49, 0, 0]
@@ -87,6 +128,8 @@ export class MusicEdit {
 
     this.name = ''
     this.tempo = 0
+    this.scaleRoot = ''
+    this.scaleMode = ''
 
     this.track = null
     this.tracks = []
@@ -97,12 +140,17 @@ export class MusicEdit {
     this.dialogStack = []
 
     this.startMenuDialog = new Dialog('Start', null, ['Name', 'New', 'Open', 'Save', 'Export', 'Exit'])
-    this.trackDialog = new Dialog('Track', null, ['Switch Track', 'Edit', 'Tuning', 'Mute', 'New Track', 'Delete Track', 'Tempo'])
+    this.trackDialog = new Dialog('Track', null, ['Switch Track', 'Instrument', 'Tuning', 'Mute', 'New Track', 'Delete Track', 'Tempo', 'Signature'])
     this.noteDialog = new Dialog('Note', null, ['Insert Note', 'Delete Note'])
     this.tuningDialog = new Dialog('Tuning', 'Tuning', [''])
     this.tempoDialog = new Dialog('Tempo', 'Tempo', [''])
+    this.signatureDialog = new Dialog('Signature', 'Music Signature', ['Root Note', 'Music Scale'])
+    this.rootNoteDialog = new Dialog('Root', 'Root Note', null)
+    this.scaleDialog = new Dialog('Scale', 'Music Scale', null)
     this.switchDialog = new Dialog('Switch', 'Track', null)
+    this.instrumentDialog = new Dialog('Instrument', 'Instrument', null)
     this.askToSaveDialog = new Dialog('Ask', 'Save Current File?', ['Save', 'Export', 'No'])
+    this.deleteOkDialog = new Dialog('Delete', 'Delete Current Track?', ['Continue', 'Cancel'])
     this.saveOkDialog = new Dialog('Ok', 'File Saved', ['Ok'])
     this.errorOkDialog = new Dialog('Error', null, ['Ok'])
 
@@ -119,6 +167,8 @@ export class MusicEdit {
 
     this.name = 'Untitled'
     this.tempo = 120
+    this.scaleRoot = 'C'
+    this.scaleMode = 'Major'
 
     this.track = defaultTrack()
     this.tracks.length = 0
@@ -183,12 +233,27 @@ export class MusicEdit {
         this.track.c = Math.min(this.track.c, this.track.notes.length - 1)
       }
       this.dialogEnd()
+    } else if (event === 'Track-Instrument') {
+      const sounds = soundList()
+      const options = []
+      for (const [name, value] of sounds) {
+        if (!(value instanceof Audio)) options.push(name)
+      }
+      this.instrumentDialog.options = options
+      this.dialog = this.instrumentDialog
+      this.forcePaint = true
     } else if (event === 'Track-New Track') {
       this.track = defaultTrack()
       this.tracks.push(this.track)
       this.dialogEnd()
     } else if (event === 'Track-Delete Track') {
-      if (this.tracks.length > 1) {
+      this.dialog = this.deleteOkDialog
+      this.forcePaint = true
+    } else if (event === 'Delete-Continue') {
+      if (this.tracks.length === 1) {
+        this.track = defaultTrack()
+        this.tracks[0] = this.track
+      } else {
         const index = this.tracks.indexOf(this.track)
         if (index >= 0) {
           this.tracks.splice(index, 1)
@@ -197,32 +262,44 @@ export class MusicEdit {
       }
       this.dialogEnd()
     } else if (event === 'Track-Switch Track') {
-      this.dialogStack.push(event)
       const options = new Array(this.tracks.length)
-      for (let i = 0; i < this.tracks.length; i++) options[i] = this.tracks[i].name
+      for (let i = 0; i < options.length; i++) options[i] = this.tracks[i].name
       this.switchDialog.options = options
       this.dialog = this.switchDialog
       this.forcePaint = true
     } else if (event.startsWith('Switch-')) {
-      const dash = event.indexOf('-')
-      const track = event.substring(dash + 1)
-      for (let i = 0; i < this.tracks.length; i++) {
-        if (this.tracks[i].name === track) {
-          this.track = this.tracks[i]
-          break
-        }
-      }
+      this.track = this.tracks[this.switchDialog.pos]
       this.dialogEnd()
     } else if (event === 'Track-Tuning') {
-      this.dialogStack.push(event)
       this.tuningDialog.options[0] = '' + this.track.tuning
       this.dialog = this.tuningDialog
       this.forcePaint = true
     } else if (event === 'Track-Tempo') {
-      this.dialogStack.push(event)
       this.tempoDialog.options[0] = '' + this.tempo
       this.dialog = this.tempoDialog
       this.forcePaint = true
+    } else if (event === 'Track-Signature') {
+      this.dialog = this.signatureDialog
+      this.forcePaint = true
+    } else if (event === 'Signature-Root Note') {
+      this.dialog = this.rootNoteDialog
+      this.dialog.options = NOTES
+      this.forcePaint = true
+    } else if (event === 'Signature-Music Scale') {
+      this.dialog = this.scaleDialog
+      this.dialog.options = MUSIC_SCALE_LIST
+      this.forcePaint = true
+    } else if (event.startsWith('Root-')) {
+      this.scaleRoot = NOTES[this.dialog.pos]
+      this.dialogEnd()
+    } else if (event.startsWith('Scale-')) {
+      this.scaleMode = MUSIC_SCALE_LIST[this.dialog.pos]
+      this.dialogEnd()
+    } else if (event.startsWith('Instrument-')) {
+      const sounds = soundList()
+      const parameters = sounds.get(this.dialog.options[this.dialog.pos]).parameters
+      for (let i = 0; i < parameters.length; i++) this.track.parameters[i] = parameters[i]
+      this.dialogEnd()
     } else {
       this.dialogEnd()
     }
@@ -254,8 +331,13 @@ export class MusicEdit {
     this.noteDialog.reset()
     this.tuningDialog.reset()
     this.tempoDialog.reset()
+    this.signatureDialog.reset()
+    this.rootNoteDialog.reset()
+    this.scaleDialog.reset()
     this.switchDialog.reset()
+    this.instrumentDialog.reset()
     this.askToSaveDialog.reset()
+    this.deleteOkDialog.reset()
     this.saveOkDialog.reset()
     this.errorOkDialog.reset()
   }
@@ -322,22 +404,12 @@ export class MusicEdit {
   }
 
   duration(note) {
-    // 16 ms tick update
-    // timestamp is in milliseconds
-    // tempo = 120
-    // 30 whole notes per minute | 1 whole note === 2 seconds
-    // 60 half notes per minute | 1 half note === 1 second
-    // 120 quarter notes per minute | 1 quarter note ===  0.5 seconds
-    // 240 eight notes per minute
-    // 480 sixteenth notes per minute
-    // 960 thirty-second notes per minute
-    const rate = (this.tempo / 60) * 1000
-    if (note === 0) return rate * 4
-    else if (note === 1) return rate * 2
-    else if (note === 2) return rate
-    else if (note === 3) return rate / 2
-    else if (note === 4) return rate / 4
-    else return rate / 8
+    if (note === 0) return (240 / this.tempo) * 1000
+    else if (note === 1) return (120 / this.tempo) * 1000
+    else if (note === 2) return (60 / this.tempo) * 1000
+    else if (note === 3) return (30 / this.tempo) * 1000
+    else if (note === 4) return (15 / this.tempo) * 1000
+    else return (7.5 / this.tempo) * 1000
   }
 
   playRowNote(row) {
@@ -446,31 +518,6 @@ export class MusicEdit {
     this.calcNoteTime(timestamp)
   }
 
-  updatePlay(timestamp) {
-    const input = this.input
-
-    if (input.pressX()) {
-      for (const sound of this.sounds) sound.stop()
-      this.sounds.length = 0
-      this.track.c = this.track.saved
-      this.play = false
-      this.doPaint = true
-      return
-    }
-
-    this.playMusic(timestamp)
-
-    if (timestamp >= this.noteTime) {
-      this.doPaint = true
-      this.track.c++
-      if (this.track.c === this.track.notes.length) {
-        this.sounds.length = 0
-        this.track.c = this.track.saved
-        this.play = false
-      } else this.calcNoteTime(timestamp)
-    } else this.doPaint = false
-  }
-
   topLeftStatus() {
     return 'MUSIC - ' + this.name.toUpperCase()
   }
@@ -509,6 +556,31 @@ export class MusicEdit {
       const option = this.dialog.options[this.dialog.pos]
       this.handleDialog(id + '-' + option)
     }
+  }
+
+  updatePlay(timestamp) {
+    const input = this.input
+
+    if (input.pressX()) {
+      for (const sound of this.sounds) sound.stop()
+      this.sounds.length = 0
+      this.track.c = this.track.saved
+      this.play = false
+      this.doPaint = true
+      return
+    }
+
+    this.playMusic(timestamp)
+
+    if (timestamp >= this.noteTime) {
+      this.doPaint = true
+      this.track.c++
+      if (this.track.c === this.track.notes.length) {
+        this.sounds.length = 0
+        this.track.c = this.track.saved
+        this.play = false
+      } else this.calcNoteTime(timestamp)
+    } else this.doPaint = false
   }
 
   update(timestamp) {
@@ -572,8 +644,8 @@ export class MusicEdit {
       const row = track.r
       const note = track.notes[track.c]
       if (row === 0) {
-        if (input.leftTrigger()) note[row] = 0
-        else if (note[row] > 0) note[row]--
+        if (input.leftTrigger()) note[row] = this.maxDuration - 1
+        else if (note[row] < this.maxDuration - 1) note[row]++
       } else {
         if (input.leftTrigger()) note[row] = Math.min(note[row] + 12, this.maxPitch)
         else if (note[row] < this.maxPitch) note[row]++
@@ -584,8 +656,8 @@ export class MusicEdit {
       const row = track.r
       const note = track.notes[track.c]
       if (row === 0) {
-        if (input.leftTrigger()) note[row] = this.maxDuration - 1
-        else if (note[row] < this.maxDuration - 1) note[row]++
+        if (input.leftTrigger()) note[row] = 0
+        else if (note[row] > 0) note[row]--
       } else {
         if (input.leftTrigger()) note[row] = Math.max(note[row] - 12, 0)
         else if (note[row] > 0) note[row]--
