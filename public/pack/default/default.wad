@@ -1,7 +1,6 @@
 music [
   vampire-killer.wav
-  depp.zzfxm
-  sanxion.zzfxm
+  song
 ]
 entities [
   hero
@@ -17,20 +16,20 @@ entities [
   zombie
 ]
 sounds [
-  baron-scream
-  baron-melee
-  baron-missile
-  baron-pain
-  baron-death
-  plasma-impact
-  pickup-item
-  beep.wad
-  noise.wad
-  pulse.wad
-  sine.wad
-  square.wad
-  triangle.wad
-  sawtooth.wad
+  baron-scream.wav
+  baron-melee.wav
+  baron-missile.wav
+  baron-pain.wav
+  baron-death.wav
+  plasma-impact.wav
+  pickup-item.wav
+  beep
+  noise
+  pulse
+  sine
+  square
+  triangle
+  sawtooth
 ]
 sprites [
   tic-80-font

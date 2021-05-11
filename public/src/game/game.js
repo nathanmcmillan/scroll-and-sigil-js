@@ -3,7 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import { textureIndexForName } from '../assets/assets.js'
-import { playMusic } from '../assets/sounds.js'
+import { playMusic } from '../assets/sound-manager.js'
 import { fetchText } from '../client/net.js'
 import { Camera, cameraFollowCinema, cameraTowardsTarget } from '../game/camera.js'
 import { Line } from '../map/line.js'

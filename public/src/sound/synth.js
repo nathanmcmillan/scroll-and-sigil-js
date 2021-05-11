@@ -3,6 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import { newAudioContext } from '../sound/web-audio-context.js'
+import { NOTES } from './music-theory.js'
 
 export const SYNTH_RATE = 44100
 
@@ -50,8 +51,6 @@ export const HARMONIC_GAIN_C = 29
 export const PARAMETER_COUNT = 30
 
 export const WAVEFORMS = ['None', 'Sine', 'Square', 'Pulse', 'Triangle', 'Sawtooth', 'Noise', 'Static']
-
-export const NOTES = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'G#', 'A', 'Bb', 'B']
 
 export const WAVE_GROUP = ['Wave', 'Cycle']
 export const FREQ_GROUP = ['Frequency', 'Speed', 'Accel', 'Jerk']
@@ -473,12 +472,16 @@ function processFromIndex(index) {
   return null
 }
 
-export function semitoneName(semitone) {
+export function semitoneNoOctave(semitone) {
   semitone += 9
   let note = semitone % 12
   while (note < 0) note += 12
-  const octave = 4 + Math.floor(semitone / 12)
-  return NOTES[note] + octave
+  return NOTES[note]
+}
+
+export function semitoneName(semitone) {
+  const octave = 4 + Math.floor((semitone + 9) / 12)
+  return semitoneNoOctave(semitone) + octave
 }
 
 export function diatonic(semitone) {

@@ -2,12 +2,13 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import { soundList } from '../assets/sounds.js'
+import { soundList } from '../assets/sound-manager.js'
 import { fetchText } from '../client/net.js'
 import { Dialog } from '../gui/dialog.js'
 import { BUTTON_A, BUTTON_B, BUTTON_X, BUTTON_Y } from '../input/input.js'
-import { read_synth_wad } from '../sound/audio.js'
-import { export_synth_parameters, FREQ, LENGTH, new_synth_parameters, NOTES, SUSTAIN, synth, synthTime, VOLUME, WAVE, WAVEFORMS } from '../sound/synth.js'
+import { musicScale, MUSIC_SCALE_LIST, NOTES } from '../sound/music-theory.js'
+import { read_synth_parameters } from '../sound/sound.js'
+import { export_synth_parameters, FREQ, LENGTH, new_synth_parameters, SUSTAIN, synth, synthTime, VOLUME, WAVE, WAVEFORMS } from '../sound/synth.js'
 import { wad_parse } from '../wad/wad.js'
 
 const INPUT_RATE = 128
@@ -19,46 +20,6 @@ const NOTE_START = 4
 export const NOTE_ROWS = PITCH_ROWS + 1
 
 const MUSIC_SLICE = 500
-
-export const MUSIC_SCALE_LIST = [
-  'Major',
-  'Minor',
-  'Pentatonic Major',
-  'Pentatonic Minor',
-  'Harmonic Major',
-  'Harmonic Minor',
-  'Melodic Minor',
-  'Augmented',
-  'Blues',
-  'Whole Tone',
-  'Algerian',
-]
-
-export const MUSIC_SCALE = new Map()
-
-MUSIC_SCALE.set('Major', [2, 2, 1, 2, 2, 2, 1])
-MUSIC_SCALE.set('Minor', [2, 1, 2, 2, 1, 2, 2])
-MUSIC_SCALE.set('Pentatonic Major', [2, 2, 3, 2, 3])
-MUSIC_SCALE.set('Pentatonic Minor', [3, 2, 2, 3, 2])
-MUSIC_SCALE.set('Harmonic Major', [2, 2, 1, 2, 1, 3, 1])
-MUSIC_SCALE.set('Harmonic Minor', [2, 1, 2, 2, 1, 3, 1])
-MUSIC_SCALE.set('Melodic Minor', [2, 1, 2, 2, 2, 2, 1])
-MUSIC_SCALE.set('Augmented', [3, 1, 3, 1, 3, 1])
-MUSIC_SCALE.set('Blues', [3, 2, 1, 1, 3, 2])
-MUSIC_SCALE.set('Whole Tone', [2, 2, 2, 2, 2, 2])
-MUSIC_SCALE.set('Algerian', [2, 1, 3, 1, 1, 3, 1, 2, 1, 2])
-
-export function musicScale(root, mode) {
-  const steps = MUSIC_SCALE.get(mode)
-  const out = [root]
-  let index = NOTES.indexOf(root)
-  for (let i = 0; i < steps.length; i++) {
-    index += steps[i]
-    if (index >= NOTES.length) index -= NOTES.length
-    out.push(NOTES[index])
-  }
-  return out
-}
 
 function newNote() {
   return [DEFAULT_NOTE_LENGTH, 0, 49, 0, 0]
@@ -128,8 +89,10 @@ export class MusicEdit {
 
     this.name = ''
     this.tempo = 0
+
     this.scaleRoot = ''
     this.scaleMode = ''
+    this.scaleNotes = null
 
     this.track = null
     this.tracks = []
@@ -167,8 +130,10 @@ export class MusicEdit {
 
     this.name = 'Untitled'
     this.tempo = 120
+
     this.scaleRoot = 'C'
     this.scaleMode = 'Major'
+    this.scaleNotes = musicScale(this.scaleRoot, this.scaleMode)
 
     this.track = defaultTrack()
     this.tracks.length = 0
@@ -291,9 +256,11 @@ export class MusicEdit {
       this.forcePaint = true
     } else if (event.startsWith('Root-')) {
       this.scaleRoot = NOTES[this.dialog.pos]
+      this.scaleNotes = musicScale(this.scaleRoot, this.scaleMode)
       this.dialogEnd()
     } else if (event.startsWith('Scale-')) {
       this.scaleMode = MUSIC_SCALE_LIST[this.dialog.pos]
+      this.scaleNotes = musicScale(this.scaleRoot, this.scaleMode)
       this.dialogEnd()
     } else if (event.startsWith('Instrument-')) {
       const sounds = soundList()
@@ -366,6 +333,12 @@ export class MusicEdit {
       this.name = wad.get('music')
       this.tempo = parseInt(wad.get('tempo'))
 
+      const signature = wad.get('signature')
+
+      this.scaleRoot = signature.substring(0, signature.indexOf(' '))
+      this.scaleMode = signature.substring(signature.indexOf(' ') + 1)
+      this.scaleNotes = musicScale(this.scaleRoot, this.scaleMode)
+
       this.tracks.length = 0
       for (const data of wad.get('tracks')) {
         const name = data.get('name')
@@ -373,7 +346,7 @@ export class MusicEdit {
         const notes = data.get('notes')
         const track = new Track(name)
         track.tuning = parseInt(data.get('tuning'))
-        read_synth_wad(track.parameters, parameters)
+        read_synth_parameters(track.parameters, parameters)
         for (const note of notes) {
           const a = parseInt(note[0])
           const b = parseInt(note[1])
@@ -681,6 +654,7 @@ export class MusicEdit {
     const tracks = this.tracks
     let content = 'music = ' + this.name
     content += '\ntempo = ' + this.tempo
+    content += '\nsignature = "' + this.scaleRoot + ' ' + this.scaleMode + '"'
     content += '\ntracks ['
     for (const track of tracks) {
       const notes = track.notes

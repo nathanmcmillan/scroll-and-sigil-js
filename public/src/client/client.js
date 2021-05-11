@@ -3,7 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import { createNewTexturesAndSpriteSheets, readPaintFile, readPaintFileAsLookup, saveEntity, saveTexture, saveTile, waitForResources } from '../assets/assets.js'
-import { pauseMusic, resumeMusic, saveMusic, saveSound } from '../assets/sounds.js'
+import { pauseMusic, resumeMusic, saveMusic, saveSound } from '../assets/sound-manager.js'
 import { DashboardState } from '../client/dashboard-state.js'
 import { GameState } from '../client/game-state.js'
 import { HomeState } from '../client/home-state.js'
@@ -13,7 +13,7 @@ import { fetchImage, fetchText } from '../client/net.js'
 import { PaintState } from '../client/paint-state.js'
 import { drawFloorCeil, drawWall } from '../client/render-sector.js'
 import { TouchRender, touchRenderEvent, touchRenderResize } from '../client/render-touch.js'
-import { SfxState } from '../client/sfx-state.js'
+import { SoundState } from '../client/sound-state.js'
 import { intHashCode, Table, tableGet, tablePut } from '../collections/table.js'
 import { newPalette } from '../editor/palette.js'
 import { Tape } from '../game/tape.js'
@@ -194,7 +194,7 @@ export class Client {
   async initialize() {
     const gl = this.gl
 
-    // for (let i = 0; i < localStorage.length; i++) console.debug(localStorage.key(i))
+    for (let i = 0; i < localStorage.length; i++) console.debug(localStorage.key(i))
 
     const main = wad_parse(await fetchText('start.wad'))
     const pack = main.get('package')
@@ -216,17 +216,14 @@ export class Client {
     gl.cullFace(gl.BACK)
     gl.disable(gl.BLEND)
 
-    for (const music of contents.get('music')) {
-      const dot = music.lastIndexOf('.')
-      if (dot === -1) throw 'Extension missing: ' + music
-      const name = music.substring(0, dot)
-      saveMusic(name, directory + '/music/' + music)
-      tape.music.push(music)
-    }
-
     for (const sound of contents.get('sounds')) {
       saveSound(sound, directory + '/sounds/')
       tape.sounds.push(sound)
+    }
+
+    for (const music of contents.get('music')) {
+      saveMusic(music, directory + '/music/')
+      tape.music.push(music)
     }
 
     let color2d = fetchText('./shaders/color2d.glsl')
@@ -414,7 +411,7 @@ export class Client {
         this.state = this.paint
         break
       case 'sound':
-        if (this.sfx === null) this.sfx = new SfxState(this)
+        if (this.sfx === null) this.sfx = new SoundState(this)
         else this.sfx.reset()
         this.state = this.sfx
         break

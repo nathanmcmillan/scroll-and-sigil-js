@@ -5,7 +5,7 @@
 import { fetchText } from '../client/net.js'
 import { Dialog } from '../gui/dialog.js'
 import { BUTTON_A, BUTTON_B, BUTTON_X } from '../input/input.js'
-import { read_sound_effect_wad } from '../sound/audio.js'
+import { read_sound_wad } from '../sound/sound.js'
 import {
   ACCEL,
   ATTACK,
@@ -46,7 +46,7 @@ import { dusk0, dusk1, dusk2, silver0, silver1, silver2 } from './palette.js'
 
 const INPUT_RATE = 128
 
-export class SfxEdit {
+export class SoundEdit {
   constructor(parent, width, height, scale, input) {
     this.parent = parent
     this.width = width
@@ -248,7 +248,7 @@ export class SfxEdit {
   read(content) {
     this.clear()
     try {
-      const wad = read_sound_effect_wad(this.parameters, content)
+      const wad = read_sound_wad(this.parameters, content)
       this.name = wad.get('sound')
     } catch (e) {
       console.error(e)

@@ -5,7 +5,7 @@
 import { renderMapEditTopMode } from '../client/map-edit-top-mode.js'
 import { renderMapEditViewMode, updateMapEditViewSectorBuffer } from '../client/map-edit-view-mode.js'
 import { renderLoadingInProgress } from '../client/render-loading.js'
-import { MapEdit, SWITCH_MODE_CALLBACK, TOP_MODE, VIEW_MODE } from '../editor/maps.js'
+import { MapEdit, SWITCH_MODE_CALLBACK, TOP_MODE, VIEW_MODE } from '../editor/map-edit.js'
 
 export class MapState {
   constructor(client) {

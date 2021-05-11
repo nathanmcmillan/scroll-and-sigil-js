@@ -3,7 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import { entityByName } from '../assets/assets.js'
-import { playSound } from '../assets/sounds.js'
+import { playSound } from '../assets/sound-manager.js'
 import { atan2, cos, sin } from '../math/approximate.js'
 import { pRandom, pRandomOf, randomFloat } from '../math/random.js'
 import { newPlasma } from '../missile/plasma.js'

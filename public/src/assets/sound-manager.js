@@ -3,7 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import { fetchText } from '../client/net.js'
-import { MusicNode, SynthSound, zzfx_parse } from '../sound/audio.js'
+import { SynthMusic, SynthSound } from '../sound/sound.js'
 
 const SOUNDS = new Map()
 const MUSIC_TABLE = new Map()
@@ -20,7 +20,7 @@ export async function saveSound(name, path) {
     path += name
     name = name.substring(0, dot)
   } else {
-    path += name + '.wav'
+    path += name + '.wad'
   }
   if (SOUNDS.has(name)) return
   if (path.endsWith('.wav')) SOUNDS.set(name, new Audio(path))
@@ -48,15 +48,18 @@ export function playSound(name) {
 }
 
 export async function saveMusic(name, path) {
-  if (MUSIC_TABLE.has(name)) return
-  const dot = path.lastIndexOf('.')
-  if (dot === -1) throw 'Extension missing: ' + path
-  const extension = path.substring(dot + 1)
-  if (extension === 'zzfxm') {
-    const contents = zzfx_parse(await fetchText(path))
-    MUSIC_TABLE.set(name, new MusicNode(contents))
+  const dot = name.lastIndexOf('.')
+  if (dot > 0) {
+    path += name
+    name = name.substring(0, dot)
   } else {
-    MUSIC_TABLE.set(name, new Audio(path))
+    path += name + '.wad'
+  }
+  if (MUSIC_TABLE.has(name)) return
+  if (path.endsWith('.wav')) MUSIC_TABLE.set(name, new Audio(path))
+  else {
+    const contents = await fetchText(path)
+    MUSIC_TABLE.set(name, new SynthMusic(contents))
   }
 }
 
@@ -68,21 +71,20 @@ export function playMusic(name) {
   }
   pauseMusic()
   MUSIC = music
-  if (music.constructor === MusicNode) {
-    music.play()
-  } else {
+  if (music instanceof Audio) {
     music.loop = true
     music.volume = 0.1
     music.currentTime = 0
     const promise = music.play()
     if (promise) promise.then(() => {}).catch(() => {})
+  } else {
+    music.play()
   }
 }
 
 export function resumeMusic() {
   if (!MUSIC) return
-  if (MUSIC.constructor === MusicNode) MUSIC.resume()
-  else MUSIC.play()
+  MUSIC.play()
 }
 
 export function pauseMusic() {

@@ -1,11 +1,7 @@
 # Credits
 
-[zuper zmall zound zynth](https://github.com/KilledByAPixel/ZzFX)
+[PICO-8 Font and Pallete](https://www.lexaloffle.com/pico-8.php)
 
-[zzfx music generator](https://github.com/keithclark/ZzFXM)
+[TIC-80 Fonts](https://tic80.com)
 
-[PICO-8 font and pallete](https://www.lexaloffle.com/pico-8.php)
-
-[TIC-80 fonts](https://tic80.com)
-
-[tiny speech synth](https://heckmeck.de/demoscene/tiny-speech-synth-js)
+[Tiny Speech Synth](https://heckmeck.de/demoscene/tiny-speech-synth-js)

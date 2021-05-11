@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import { playSound } from '../assets/sounds.js'
+import { playSound } from '../assets/sound-manager.js'
 import { calcFontPad, calcFontScale } from '../editor/editor-util.js'
 import { flexSolve, flexText } from '../gui/flex.js'
 import { TIC_FONT_HEIGHT, TIC_FONT_WIDTH } from '../render/render.js'

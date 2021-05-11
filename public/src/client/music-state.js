@@ -5,13 +5,12 @@
 import { textureByName } from '../assets/assets.js'
 import { renderDialogBox, renderStatus } from '../client/client-util.js'
 import { calcBottomBarHeight, calcFontScale, calcTopBarHeight, defaultFont } from '../editor/editor-util.js'
-import { lengthName, MusicEdit, musicScale, NOTE_ROWS } from '../editor/music.js'
-import { ember0f, ember1f, ember2f, silver0f, silver1f, silver2f, slatef } from '../editor/palette.js'
-// import { flexBox, flexSolve, returnFlexBox } from '../gui/flex.js'
+import { lengthName, MusicEdit, NOTE_ROWS } from '../editor/music-edit.js'
+import { ember0f, ember1f, ember2f, lemon0f, lemon1f, lemon2f, salmon0f, salmon1f, salmon2f, silver0f, silver1f, silver2f, slatef } from '../editor/palette.js'
 import { identity, multiply } from '../math/matrix.js'
 import { sprcol } from '../render/pico.js'
 import { drawRectangle, drawText } from '../render/render.js'
-import { semitoneName, SEMITONES } from '../sound/synth.js'
+import { semitoneName, semitoneNoOctave, SEMITONES } from '../sound/synth.js'
 import { bufferZero } from '../webgl/buffer.js'
 import { rendererBindTexture, rendererSetProgram, rendererSetView, rendererUpdateAndDraw, rendererUpdateUniformMatrix } from '../webgl/renderer.js'
 
@@ -177,8 +176,19 @@ export class MusicState {
         const pitch = num === 0 ? '-' : '' + num
         let xx = pos
         if (pitch >= 10) xx -= smallFontHalfWidth
-        if (c === noteC && (play || r === noteR)) drawText(client.bufferGUI, xx, y - r * noteHeight, pitch, smallFontScale, ember0f, ember1f, ember2f, 1.0, font)
-        else drawText(client.bufferGUI, xx, y - r * noteHeight, pitch, smallFontScale, silver0f, silver1f, silver2f, 1.0, font)
+        if (c === noteC && (play || r === noteR)) {
+          if (num === 0 || music.scaleNotes.includes(semitoneNoOctave(num + track.tuning - SEMITONES))) {
+            drawText(client.bufferGUI, xx, y - r * noteHeight, pitch, smallFontScale, ember0f, ember1f, ember2f, 1.0, font)
+          } else {
+            drawText(client.bufferGUI, xx, y - r * noteHeight, pitch, smallFontScale, salmon0f, salmon1f, salmon2f, 1.0, font)
+          }
+        } else {
+          if (num === 0 || music.scaleNotes.includes(semitoneNoOctave(num + track.tuning - SEMITONES))) {
+            drawText(client.bufferGUI, xx, y - r * noteHeight, pitch, smallFontScale, silver0f, silver1f, silver2f, 1.0, font)
+          } else {
+            drawText(client.bufferGUI, xx, y - r * noteHeight, pitch, smallFontScale, lemon0f, lemon1f, lemon2f, 1.0, font)
+          }
+        }
       }
       pos += noteWidth
     }
@@ -188,13 +198,20 @@ export class MusicState {
     drawText(client.bufferGUI, noteX, noteY, lengthName(notes[noteC][0]), smallFontScale, silver0f, silver1f, silver2f, 1.0, font)
     for (let r = 1; r < NOTE_ROWS; r++) {
       const note = notes[noteC][r]
-      let noteText
-      if (note === 0) noteText = '-'
-      else noteText = semitoneName(note + track.tuning - SEMITONES)
-      drawText(client.bufferGUI, noteX, noteY - r * noteHeight, noteText, smallFontScale, silver0f, silver1f, silver2f, 1.0, font)
+      if (note === 0) {
+        drawText(client.bufferGUI, noteX, noteY - r * noteHeight, '-', smallFontScale, silver0f, silver1f, silver2f, 1.0, font)
+      } else {
+        const semitone = note + track.tuning - SEMITONES
+        const noteText = semitoneName(semitone)
+        if (music.scaleNotes.includes(semitoneNoOctave(semitone))) {
+          drawText(client.bufferGUI, noteX, noteY - r * noteHeight, noteText, smallFontScale, silver0f, silver1f, silver2f, 1.0, font)
+        } else {
+          drawText(client.bufferGUI, noteX, noteY - r * noteHeight, noteText, smallFontScale, lemon0f, lemon1f, lemon2f, 1.0, font)
+        }
+      }
     }
 
-    const interval = music.scaleRoot + ' ' + music.scaleMode + ': ' + musicScale(music.scaleRoot, music.scaleMode).join(',')
+    const interval = music.scaleRoot + ' ' + music.scaleMode + ': ' + music.scaleNotes.join(',')
     const scaleX = width - noteSides - interval.length * fontWidth
     const scaleY = noteHeight + noteSides
     drawText(client.bufferGUI, scaleX, scaleY, interval, smallFontScale, silver0f, silver1f, silver2f, 1.0, font)

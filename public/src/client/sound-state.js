@@ -6,7 +6,7 @@ import { textureByName } from '../assets/assets.js'
 import { renderDialogBox, renderStatus } from '../client/client-util.js'
 import { calcBottomBarHeight, calcFontPad, calcFontScale, calcTopBarHeight, defaultFont } from '../editor/editor-util.js'
 import { ember0f, ember1f, ember2f, orange0f, orange1f, orange2f, silver0f, silver1f, silver2f, slatef } from '../editor/palette.js'
-import { SfxEdit } from '../editor/sfx.js'
+import { SoundEdit } from '../editor/sound-edit.js'
 import { flexBox, flexSolve, returnFlexBox } from '../gui/flex.js'
 import { identity, multiply } from '../math/matrix.js'
 import { drawImage, drawRectangle, drawTextFont } from '../render/render.js'
@@ -42,7 +42,7 @@ import { bufferZero } from '../webgl/buffer.js'
 import { rendererBindTexture, rendererSetProgram, rendererSetView, rendererUpdateAndDraw, rendererUpdateUniformMatrix } from '../webgl/renderer.js'
 import { createPixelsToTexture, updatePixelsToTexture } from '../webgl/webgl.js'
 
-export class SfxState {
+export class SoundState {
   constructor(client) {
     this.client = client
     this.keys = client.keys
@@ -50,7 +50,7 @@ export class SfxState {
     this.view = new Float32Array(16)
     this.projection = new Float32Array(16)
 
-    const sfx = new SfxEdit(this, client.width, client.height - client.top, client.scale, client.input)
+    const sfx = new SoundEdit(this, client.width, client.height - client.top, client.scale, client.input)
     this.sfx = sfx
 
     const width = sfx.visualWidth

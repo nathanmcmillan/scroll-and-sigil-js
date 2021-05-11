@@ -7,7 +7,7 @@ import { renderDialogBox, renderStatus, renderTextBox } from '../client/client-u
 import { renderTouch } from '../client/render-touch.js'
 import { compress, decompress } from '../compress/huffman.js'
 import { calcBottomBarHeight, calcFontScale, calcThickness, calcTopBarHeight, defaultFont } from '../editor/editor-util.js'
-import { PaintEdit, paintExportToCanvas, paintUpdatePixels, SPRITE_TOOL } from '../editor/paint.js'
+import { PaintEdit, paintExportToCanvas, paintUpdatePixels, SPRITE_TOOL } from '../editor/paint-edit.js'
 import {
   black0f,
   black1f,
