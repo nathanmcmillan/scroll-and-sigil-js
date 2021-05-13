@@ -3,7 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import { createNewTexturesAndSpriteSheets, readPaintFile, readPaintFileAsLookup, saveEntity, saveTexture, saveTile, waitForResources } from '../assets/assets.js'
-import { pauseMusic, resumeMusic, saveMusic, saveSound } from '../assets/sound-manager.js'
+import { music_tick, pauseMusic, resumeMusic, saveMusic, saveSound } from '../assets/sound-manager.js'
 import { DashboardState } from '../client/dashboard-state.js'
 import { GameState } from '../client/game-state.js'
 import { HomeState } from '../client/home-state.js'
@@ -449,6 +449,8 @@ export class Client {
     const controllers = this.controllers
     if (controllers.length !== 0) this.input.controllerUpdate(controllers[0])
     this.input.updatePressed()
+
+    music_tick(timestamp)
 
     this.state.update(timestamp)
   }

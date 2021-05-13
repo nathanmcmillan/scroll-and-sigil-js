@@ -82,6 +82,12 @@ export function playMusic(name) {
   }
 }
 
+export function music_tick(timestamp) {
+  if (!MUSIC) return
+  if (MUSIC instanceof Audio) return
+  MUSIC.update(timestamp)
+}
+
 export function resumeMusic() {
   if (!MUSIC) return
   MUSIC.play()

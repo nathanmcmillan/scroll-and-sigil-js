@@ -6,36 +6,17 @@ import { soundList } from '../assets/sound-manager.js'
 import { fetchText } from '../client/net.js'
 import { Dialog } from '../gui/dialog.js'
 import { BUTTON_A, BUTTON_B, BUTTON_X, BUTTON_Y } from '../input/input.js'
-import { musicScale, MUSIC_SCALE_LIST, NOTES } from '../sound/music-theory.js'
-import { read_synth_parameters } from '../sound/sound.js'
-import { export_synth_parameters, FREQ, LENGTH, new_synth_parameters, SUSTAIN, synth, synthTime, VOLUME, WAVE, WAVEFORMS } from '../sound/synth.js'
+import { music_note_duration, music_scale, MUSIC_SCALE_LIST, NOTES, Track } from '../sound/music-theory.js'
+import { music_calc_timing, music_play_note, MUSIC_SLICE, NOTE_ROWS, NOTE_START, read_synth_parameters } from '../sound/sound.js'
+import { export_synth_parameters, FREQ, LENGTH, SUSTAIN, synth, synthTime, VOLUME, WAVE, WAVEFORMS } from '../sound/synth.js'
 import { wad_parse } from '../wad/wad.js'
 
 const INPUT_RATE = 128
 
 const DEFAULT_NOTE_LENGTH = 3
 
-const PITCH_ROWS = 3
-const NOTE_START = 4
-export const NOTE_ROWS = PITCH_ROWS + 1
-
-const MUSIC_SLICE = 500
-
 function newNote() {
   return [DEFAULT_NOTE_LENGTH, 0, 49, 0, 0]
-}
-
-class Track {
-  constructor(name) {
-    this.name = name
-    this.tuning = 0
-    this.parameters = new_synth_parameters()
-    this.notes = []
-    this.c = 0
-    this.r = 2
-    this.save = 0
-    this.i = 0
-  }
 }
 
 function defaultTrack() {
@@ -133,7 +114,7 @@ export class MusicEdit {
 
     this.scaleRoot = 'C'
     this.scaleMode = 'Major'
-    this.scaleNotes = musicScale(this.scaleRoot, this.scaleMode)
+    this.scaleNotes = music_scale(this.scaleRoot, this.scaleMode)
 
     this.track = defaultTrack()
     this.tracks.length = 0
@@ -256,11 +237,11 @@ export class MusicEdit {
       this.forcePaint = true
     } else if (event.startsWith('Root-')) {
       this.scaleRoot = NOTES[this.dialog.pos]
-      this.scaleNotes = musicScale(this.scaleRoot, this.scaleMode)
+      this.scaleNotes = music_scale(this.scaleRoot, this.scaleMode)
       this.dialogEnd()
     } else if (event.startsWith('Scale-')) {
       this.scaleMode = MUSIC_SCALE_LIST[this.dialog.pos]
-      this.scaleNotes = musicScale(this.scaleRoot, this.scaleMode)
+      this.scaleNotes = music_scale(this.scaleRoot, this.scaleMode)
       this.dialogEnd()
     } else if (event.startsWith('Instrument-')) {
       const sounds = soundList()
@@ -337,7 +318,7 @@ export class MusicEdit {
 
       this.scaleRoot = signature.substring(0, signature.indexOf(' '))
       this.scaleMode = signature.substring(signature.indexOf(' ') + 1)
-      this.scaleNotes = musicScale(this.scaleRoot, this.scaleMode)
+      this.scaleNotes = music_scale(this.scaleRoot, this.scaleMode)
 
       this.tracks.length = 0
       for (const data of wad.get('tracks')) {
@@ -376,22 +357,13 @@ export class MusicEdit {
     this.read(content)
   }
 
-  duration(note) {
-    if (note === 0) return (240 / this.tempo) * 1000
-    else if (note === 1) return (120 / this.tempo) * 1000
-    else if (note === 2) return (60 / this.tempo) * 1000
-    else if (note === 3) return (30 / this.tempo) * 1000
-    else if (note === 4) return (15 / this.tempo) * 1000
-    else return (7.5 / this.tempo) * 1000
-  }
-
   playRowNote(row) {
     for (const sound of this.sounds) sound.stop()
     this.sounds.length = 0
     const track = this.track
     const note = track.notes[track.c]
     const parameters = track.parameters.slice()
-    parameters[LENGTH] = this.duration(note[0])
+    parameters[LENGTH] = music_note_duration(this.tempo, note[0])
     if (row === 0) {
       for (let r = 1; r < NOTE_ROWS; r++) {
         const num = note[r]
@@ -408,44 +380,16 @@ export class MusicEdit {
     }
   }
 
-  calcMusicTime() {
-    const tracks = this.tracks
-    const size = tracks.length
-    for (let t = 0; t < size; t++) {
-      const track = tracks[t]
-      track.i = 0
-      const notes = track.notes
-      const count = notes.length
-      let time = 0
-      for (let n = 0; n < count; n++) {
-        const note = notes[n]
-        note[NOTE_START] = time
-        time += this.duration(note[0])
-      }
-    }
-  }
-
   timeAtNote() {
     const track = this.track
     const note = track.notes[track.c]
     return note[NOTE_START]
   }
 
-  playNote(track, note, when) {
-    const parameters = track.parameters.slice()
-    parameters[LENGTH] = this.duration(note[0])
-    for (let r = 1; r < NOTE_ROWS; r++) {
-      const num = note[r]
-      if (num === 0) continue
-      parameters[FREQ] = num + track.tuning
-      this.sounds.push(synth(parameters, when))
-    }
-  }
-
   calcNoteTime(timestamp) {
     const track = this.track
     const note = track.notes[track.c]
-    this.noteTime = timestamp + this.duration(note[0])
+    this.noteTime = timestamp + music_note_duration(this.tempo, note[0])
   }
 
   playMusic(timestamp) {
@@ -470,7 +414,7 @@ export class MusicEdit {
           break
         }
         const when = origin + current / 1000.0
-        this.playNote(track, note, when)
+        music_play_note(this.tempo, track, note, when, this.sounds)
       }
     }
 
@@ -482,7 +426,7 @@ export class MusicEdit {
   beginMusic(timestamp) {
     this.play = true
     this.track.saved = this.track.c
-    this.calcMusicTime()
+    music_calc_timing(this.tempo, this.tracks)
     this.musicTime = timestamp
     this.musicFrom = this.timeAtNote()
     this.musicTo = this.musicFrom + MUSIC_SLICE * 2

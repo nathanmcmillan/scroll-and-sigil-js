@@ -95,7 +95,7 @@ triggers [
   [0 0 0 spawn zombie 10 100]
 ]
 meta [
-  [music vampire-killer]
+  [music song]
   [background night-sky]
   [new-game 10 40]
   [entrance-x 100 60]
