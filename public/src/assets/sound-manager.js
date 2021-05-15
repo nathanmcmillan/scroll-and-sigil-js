@@ -69,7 +69,7 @@ export function playMusic(name) {
     console.error('Music not loaded:', name)
     return
   }
-  pauseMusic()
+  music_pause()
   MUSIC = music
   if (music instanceof Audio) {
     music.loop = true
@@ -82,18 +82,19 @@ export function playMusic(name) {
   }
 }
 
-export function music_tick(timestamp) {
+export function music_tick() {
   if (!MUSIC) return
   if (MUSIC instanceof Audio) return
-  MUSIC.update(timestamp)
+  MUSIC.update()
 }
 
-export function resumeMusic() {
+export function music_resume() {
   if (!MUSIC) return
-  MUSIC.play()
+  if (MUSIC instanceof Audio) MUSIC.play()
+  else MUSIC.resume()
 }
 
-export function pauseMusic() {
+export function music_pause() {
   if (!MUSIC) return
   MUSIC.pause()
 }

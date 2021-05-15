@@ -8,7 +8,7 @@ import { Dialog } from '../gui/dialog.js'
 import { BUTTON_A, BUTTON_B, BUTTON_X, BUTTON_Y } from '../input/input.js'
 import { music_note_duration, music_scale, MUSIC_SCALE_LIST, NOTES, Track } from '../sound/music-theory.js'
 import { music_calc_timing, music_play_note, MUSIC_SLICE, NOTE_ROWS, NOTE_START, read_synth_parameters } from '../sound/sound.js'
-import { export_synth_parameters, FREQ, LENGTH, SUSTAIN, synth, synthTime, VOLUME, WAVE, WAVEFORMS } from '../sound/synth.js'
+import { export_synth_parameters, FREQ, LENGTH, SUSTAIN, synth, synth_time, VOLUME, WAVE, WAVEFORMS } from '../sound/synth.js'
 import { wad_parse } from '../wad/wad.js'
 
 const INPUT_RATE = 128
@@ -430,7 +430,7 @@ export class MusicEdit {
     this.musicTime = timestamp
     this.musicFrom = this.timeAtNote()
     this.musicTo = this.musicFrom + MUSIC_SLICE * 2
-    this.musicOrigin = synthTime() - this.musicFrom / 1000.0
+    this.musicOrigin = synth_time() - this.musicFrom / 1000.0
     this.playMusic(timestamp)
     this.calcNoteTime(timestamp)
   }

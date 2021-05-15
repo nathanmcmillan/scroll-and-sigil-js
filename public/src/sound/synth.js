@@ -75,7 +75,7 @@ const tau = 2.0 * pi
 
 const context = newAudioContext()
 
-export function synthTime() {
+export function synth_time() {
   return context.currentTime
 }
 

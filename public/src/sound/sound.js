@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import { FREQ, LENGTH, new_synth_parameters, synth, synthTime, SYNTH_IO, WAVEFORMS } from '../sound/synth.js'
+import { FREQ, LENGTH, new_synth_parameters, synth, SYNTH_IO, synth_time, WAVEFORMS } from '../sound/synth.js'
 import { wad_parse } from '../wad/wad.js'
 import { music_note_duration, Track } from './music-theory.js'
 
@@ -31,8 +31,11 @@ export class SynthMusic {
   constructor(content) {
     this.origin = 0
     this.time = 0
+    this.paused = 0
     this.from = 0
     this.to = 0
+    this.length = 0
+    this.done = 0
     this.sounds = []
 
     try {
@@ -61,10 +64,19 @@ export class SynthMusic {
     } catch (e) {
       console.error(e)
     }
+
+    this.length = music_calc_timing(this.tempo, this.tracks)
   }
 
-  update(timestamp) {
-    if (timestamp < this.time) return
+  update() {
+    const now = Date.now()
+
+    if (now >= this.done) {
+      this.play()
+      return
+    }
+
+    if (now < this.time) return
 
     const origin = this.origin
     const start = this.from
@@ -95,22 +107,37 @@ export class SynthMusic {
   }
 
   play() {
-    const timestamp = Date.now()
-    music_calc_timing(this.tempo, this.tracks)
-    this.time = timestamp
+    for (const sound of this.sounds) sound.stop()
+    this.sounds.length = 0
+
+    const tracks = this.tracks
+    const size = tracks.length
+    for (let t = 0; t < size; t++) tracks[t].i = 0
+
+    this.time = Date.now()
     this.from = 0
     this.to = this.from + MUSIC_SLICE * 2
-    this.origin = synthTime() - this.from / 1000.0
-    this.update(timestamp)
+    this.origin = synth_time() - this.from / 1000.0
+    this.done = this.time + this.length
+    this.update()
+  }
+
+  resume() {
+    const difference = Date.now() - this.paused
+    this.time += difference
+    this.origin += difference / 1000.0
+    this.done += difference
   }
 
   pause() {
     for (const sound of this.sounds) sound.stop()
     this.sounds.length = 0
+    this.paused = Date.now()
   }
 }
 
 export function music_calc_timing(tempo, tracks) {
+  let end = 0
   const size = tracks.length
   for (let t = 0; t < size; t++) {
     const track = tracks[t]
@@ -123,7 +150,9 @@ export function music_calc_timing(tempo, tracks) {
       note[NOTE_START] = time
       time += music_note_duration(tempo, note[0])
     }
+    end = Math.max(end, time)
   }
+  return end
 }
 
 export function music_play_note(tempo, track, note, when, out) {

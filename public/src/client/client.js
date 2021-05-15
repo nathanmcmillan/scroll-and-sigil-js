@@ -3,7 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import { createNewTexturesAndSpriteSheets, readPaintFile, readPaintFileAsLookup, saveEntity, saveTexture, saveTile, waitForResources } from '../assets/assets.js'
-import { music_tick, pauseMusic, resumeMusic, saveMusic, saveSound } from '../assets/sound-manager.js'
+import { music_tick, music_pause, music_resume, saveMusic, saveSound } from '../assets/sound-manager.js'
 import { DashboardState } from '../client/dashboard-state.js'
 import { GameState } from '../client/game-state.js'
 import { HomeState } from '../client/home-state.js'
@@ -105,11 +105,11 @@ export class Client {
   touchMove() {}
 
   pause() {
-    pauseMusic()
+    music_pause()
   }
 
   resume() {
-    resumeMusic()
+    music_resume()
   }
 
   resize(width, height) {
@@ -450,7 +450,7 @@ export class Client {
     if (controllers.length !== 0) this.input.controllerUpdate(controllers[0])
     this.input.updatePressed()
 
-    music_tick(timestamp)
+    music_tick()
 
     this.state.update(timestamp)
   }
