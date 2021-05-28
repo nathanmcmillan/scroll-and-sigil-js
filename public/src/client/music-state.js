@@ -29,6 +29,14 @@ export class MusicState {
 
   reset() {}
 
+  pause() {
+    this.music.pause()
+  }
+
+  resume() {
+    this.music.resume()
+  }
+
   resize(width, height, scale) {
     this.music.resize(width, height, scale)
   }

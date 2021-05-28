@@ -36,6 +36,10 @@ export class Dashboard {
     this.forcePaint = true
   }
 
+  pause() {}
+
+  resume() {}
+
   resize(width, height, scale) {
     this.width = width
     this.height = height
@@ -71,17 +75,17 @@ export class Dashboard {
     } else if (input.pressA() || input.pressStart()) {
       if (this.menu === TAPE_MENU) {
         if (this.tapeRow === 0) this.menu = PROGRAM_MENU
-        else if (this.tapeRow === 1) this.parent.eventCall('export')
+        else if (this.tapeRow === 1) this.parent.eventCall('Export')
         else if (this.tapeRow === 2) {
           this.textBox.reset(this.tape.name)
           this.menu = EDIT_NAME
-        } else if (this.tapeRow === 5) this.parent.eventCall('back')
+        } else if (this.tapeRow === 5) this.parent.eventCall('Back')
         this.forcePaint = true
       } else if (this.menu === PROGRAM_MENU) {
         if (this.programRow === 4) {
           this.menu = TAPE_MENU
           this.forcePaint = true
-        } else this.parent.eventCall('open')
+        } else this.parent.eventCall('Open')
       }
     }
   }

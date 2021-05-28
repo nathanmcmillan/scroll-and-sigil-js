@@ -30,6 +30,14 @@ export class DashboardState {
     this.dashboard.reset()
   }
 
+  pause() {
+    this.dashboard.pause()
+  }
+
+  resume() {
+    this.dashboard.resume()
+  }
+
   resize(width, height, scale) {
     this.dashboard.resize(width, height, scale)
   }
@@ -50,19 +58,19 @@ export class DashboardState {
 
   eventCall(event) {
     const dashboard = this.dashboard
-    if (event === 'export') {
+    if (event === 'Export') {
       const blob = dashboard.tape.export()
       console.info(blob)
       const download = document.createElement('a')
       download.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(blob)
       download.download = dashboard.tape.name + '.txt'
       download.click()
-    } else if (event === 'open') {
+    } else if (event === 'Open') {
       if (dashboard.programRow === 0) this.client.openState('maps')
       else if (dashboard.programRow === 1) this.client.openState('paint')
       else if (dashboard.programRow === 2) this.client.openState('music')
       else if (dashboard.programRow === 3) this.client.openState('sound')
-    } else if (event === 'back') this.client.openState('home')
+    } else if (event === 'Back') this.client.openState('home')
   }
 
   update(timestamp) {

@@ -65,6 +65,14 @@ export class GameState {
     }
   }
 
+  pause() {
+    this.game.pause()
+  }
+
+  resume() {
+    this.game.resume()
+  }
+
   resize() {}
 
   keyEvent(code, down) {

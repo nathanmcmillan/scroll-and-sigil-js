@@ -255,15 +255,15 @@ export class MapEdit {
 
     this.saved = true
 
-    this.startMenuDialog = new Dialog('start', null, ['name', 'new', 'open', 'save', 'export', 'exit'])
-    this.toolDialog = new Dialog('tool', null, ['draw mode', 'thing mode', 'sector mode'])
-    this.editThingDialog = new Dialog('thing', null, ['swap entity', 'set as default'])
-    this.changeEntityDialog = new Dialog('entity', 'swap entity', [])
-    this.editSectorDialog = new Dialog('sector', null, ['', '', '', '', '', '', 'set as default'])
-    this.editLineDialog = new Dialog('line', null, ['', '', '', '', '', '', 'set as default'])
-    this.askToSaveDialog = new Dialog('ask', 'save current file?', ['save', 'export', 'no'])
-    this.saveOkDialog = new Dialog('ok', 'file saved', ['ok'])
-    this.errorOkDialog = new Dialog('error', null, ['ok'])
+    this.startMenuDialog = new Dialog('Start', 'Start Menu', ['Name', 'New', 'Open', 'Save', 'Export', 'Exit'])
+    this.toolDialog = new Dialog('Tool', null, ['Draw Mode', 'Thing Mode', 'Sector Mode'])
+    this.editThingDialog = new Dialog('Thing', null, ['Swap Entity', 'Set as Default'])
+    this.changeEntityDialog = new Dialog('Entity', 'Swap Entity', [])
+    this.editSectorDialog = new Dialog('Sector', null, ['', '', '', '', '', '', 'Set as Default'])
+    this.editLineDialog = new Dialog('Line', null, ['', '', '', '', '', '', 'Set as Default'])
+    this.askToSaveDialog = new Dialog('Ask', 'Save Current File?', ['Save', 'Export', 'No'])
+    this.saveOkDialog = new Dialog('Ok', 'File Saved', ['Ok'])
+    this.errorOkDialog = new Dialog('Error', null, ['Ok'])
 
     this.activeTextBox = false
     this.textBox = new TextBox('', 20)
@@ -315,35 +315,35 @@ export class MapEdit {
   }
 
   handleDialog(event) {
-    if (event === 'ask-no') {
+    if (event === 'Ask-No') {
       const poll = this.dialogStack[0]
-      if (poll === 'start-new') this.clear()
+      if (poll === 'Start-New') this.clear()
       else this.parent.eventCall(poll)
       this.dialogEnd()
-    } else if (event === 'ask-save') {
+    } else if (event === 'Ask-Save') {
       const poll = this.dialogStack[0]
-      if (poll === 'start-exit') {
-        this.parent.eventCall('start-save')
+      if (poll === 'Start-Exit') {
+        this.parent.eventCall('Start-Save')
         this.dialogStack.push(event)
         this.dialog = this.saveOkDialog
         this.forcePaint = true
       } else this.dialogEnd()
-    } else if (event === 'ask-export') {
+    } else if (event === 'Ask-Export') {
       const poll = this.dialogStack[0]
-      if (poll === 'start-exit') {
-        this.parent.eventCall('start-export')
-        this.parent.eventCall('start-exit')
+      if (poll === 'Start-Exit') {
+        this.parent.eventCall('Start-Export')
+        this.parent.eventCall('Start-Exit')
       }
       this.dialogEnd()
-    } else if (event === 'start-name') {
+    } else if (event === 'Start-Name') {
       this.textBox.reset(this.name)
       this.activeTextBox = true
       this.dialogEnd()
-    } else if (event === 'start-save') {
+    } else if (event === 'Start-Save') {
       this.parent.eventCall(event)
       this.dialog = this.saveOkDialog
       this.forcePaint = true
-    } else if (event === 'start-new') {
+    } else if (event === 'Start-New') {
       if (this.saved) {
         this.clear()
         this.dialogEnd()
@@ -352,7 +352,7 @@ export class MapEdit {
         this.dialog = this.askToSaveDialog
         this.forcePaint = true
       }
-    } else if (event === 'start-open' || event === 'start-exit') {
+    } else if (event === 'Start-Open' || event === 'Start-Exit') {
       if (this.saved) {
         this.parent.eventCall(event)
         this.dialogEnd()
@@ -361,44 +361,44 @@ export class MapEdit {
         this.dialog = this.askToSaveDialog
         this.forcePaint = true
       }
-    } else if (event === 'start-export') {
+    } else if (event === 'Start-Export') {
       this.parent.eventCall(event)
       this.dialogEnd()
-    } else if (event === 'ok-ok') {
+    } else if (event === 'Ok-ok') {
       const poll = this.dialogStack[0]
-      if (poll === 'start-exit') this.parent.eventCall(poll)
+      if (poll === 'Start-Exit') this.parent.eventCall(poll)
       this.dialogEnd()
-    } else if (event === 'error-ok') {
+    } else if (event === 'Error-Ok') {
       this.dialogEnd()
-    } else if (event === 'tool-draw mode') {
+    } else if (event === 'Tool-draw mode') {
       this.tool = 0
       this.switchTool()
-    } else if (event === 'tool-thing mode') {
+    } else if (event === 'Tool-thing mode') {
       this.tool = 1
       this.switchTool()
-    } else if (event === 'tool-sector mode') {
+    } else if (event === 'Tool-sector mode') {
       this.tool = 2
       this.switchTool()
       this.updateSectors()
-    } else if (event === 'thing-swap entity') {
+    } else if (event === 'Thing-swap entity') {
       const change = this.changeEntityDialog
       change.options = this.entityList.slice()
       this.dialog = change
       this.forcePaint = true
-    } else if (event === 'thing-set as default') {
+    } else if (event === 'Thing-Set As Default') {
       this.defaultEntity = this.selectedThing.entity.id()
       this.dialogEnd()
-    } else if (event === 'creator-back') {
+    } else if (event === 'Creator-Back') {
       this.dialog = this.editThingDialog
       this.forcePaint = true
-    } else if (event.startsWith('entity-')) {
+    } else if (event.startsWith('Entity-')) {
       const dash = event.indexOf('-')
       const entity = entityByName(event.substring(dash + 1))
       this.selectedThing.setEntity(entity)
       this.dialogEnd()
-    } else if (event.startsWith('sector-') || event.startsWith('line-')) {
-      if (event === 'sector-set as default') this.defaultSector = this.selectedSector
-      else if (event === 'line-set as default') this.defaultLine = this.selectedLine
+    } else if (event.startsWith('Sector-') || event.startsWith('Line-')) {
+      if (event === 'Sector-Set As Default') this.defaultSector = this.selectedSector
+      else if (event === 'Line-Set As Default') this.defaultLine = this.selectedLine
       this.dialogEnd()
     }
   }
@@ -524,6 +524,10 @@ export class MapEdit {
     this.dialogStack.length = 0
     this.forcePaint = true
   }
+
+  pause() {}
+
+  resume() {}
 
   resize(width, height, scale) {
     this.width = width

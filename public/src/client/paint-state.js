@@ -83,6 +83,14 @@ export class PaintState {
     this.paint.reset()
   }
 
+  pause() {
+    this.paint.pause()
+  }
+
+  resume() {
+    this.paint.resume()
+  }
+
   resize(width, height, scale) {
     this.paint.resize(width, height, scale)
   }
@@ -109,13 +117,13 @@ export class PaintState {
   }
 
   eventCall(event) {
-    if (event === 'export-plain text') this.exportPlain()
-    else if (event === 'export-png') this.exportPng()
-    else if (event === 'export-huffman') this.exportHuffman()
-    else if (event === 'save-save') this.saveSheet()
-    else if (event === 'start-open') this.importSheet()
-    else if (event === 'start-save') this.saveSheet()
-    else if (event === 'start-exit') this.returnToDashboard()
+    if (event === 'Export-Plain Text') this.exportPlain()
+    else if (event === 'Export-PNG') this.exportPng()
+    else if (event === 'Export-Huffman') this.exportHuffman()
+    else if (event === 'Save-Save') this.saveSheet()
+    else if (event === 'Start-Open') this.importSheet()
+    else if (event === 'Start-Save') this.saveSheet()
+    else if (event === 'Start-Exit') this.returnToDashboard()
   }
 
   returnToDashboard() {

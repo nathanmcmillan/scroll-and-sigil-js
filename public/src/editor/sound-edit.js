@@ -74,9 +74,9 @@ export class SoundEdit {
     this.dialog = null
     this.dialogStack = []
 
-    this.startMenuDialog = new Dialog('Start', null, ['Name', 'New', 'Open', 'Save', 'Export', 'Exit'])
+    this.startMenuDialog = new Dialog('Start', 'Start Menu', ['Name', 'New', 'Open', 'Save', 'Export', 'Exit'])
     this.askToSaveDialog = new Dialog('Ask', 'Save Current File?', ['Save', 'Export', 'No'])
-    this.saveOkDialog = new Dialog('Ok', 'file saved', ['Ok'])
+    this.saveOkDialog = new Dialog('Ok', 'File Saved', ['Ok'])
     this.errorOkDialog = new Dialog('Error', null, ['Ok'])
 
     this.clear()
@@ -236,6 +236,10 @@ export class SoundEdit {
     this.dialogStack.length = 0
     this.forcePaint = true
   }
+
+  pause() {}
+
+  resume() {}
 
   resize(width, height, scale) {
     this.width = width

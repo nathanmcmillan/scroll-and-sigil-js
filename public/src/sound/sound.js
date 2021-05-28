@@ -10,7 +10,7 @@ export const PITCH_ROWS = 3
 export const NOTE_START = 4
 export const NOTE_ROWS = PITCH_ROWS + 1
 
-export const MUSIC_SLICE = 500
+export const MUSIC_SLICE = 100
 
 export class SynthSound {
   constructor(content) {
@@ -122,17 +122,17 @@ export class SynthMusic {
     this.update()
   }
 
+  pause() {
+    for (const sound of this.sounds) sound.stop()
+    this.sounds.length = 0
+    this.paused = Date.now()
+  }
+
   resume() {
     const difference = Date.now() - this.paused
     this.time += difference
     this.origin += difference / 1000.0
     this.done += difference
-  }
-
-  pause() {
-    for (const sound of this.sounds) sound.stop()
-    this.sounds.length = 0
-    this.paused = Date.now()
   }
 }
 

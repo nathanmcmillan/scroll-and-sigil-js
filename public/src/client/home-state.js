@@ -42,6 +42,14 @@ export class HomeState {
     this.home.reset()
   }
 
+  pause() {
+    this.home.pause()
+  }
+
+  resume() {
+    this.home.resume()
+  }
+
   resize(width, height, scale) {
     this.home.resize(width, height, scale)
   }
@@ -82,7 +90,7 @@ export class HomeState {
   }
 
   eventCall(event) {
-    if (event === 'ok') {
+    if (event === 'Ok') {
       const home = this.home
       const client = this.client
       if (home.row === 0) client.openState('game')

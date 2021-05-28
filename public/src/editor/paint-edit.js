@@ -96,12 +96,12 @@ export class PaintEdit {
     this.dialog = null
     this.dialogStack = []
 
-    this.startMenuDialog = new Dialog('start', null, ['name', 'new', 'open', 'save', 'export', 'exit'])
-    this.exportDialog = new Dialog('export', 'export to file', ['plain text', 'png', 'huffman', 'back'])
-    this.askToSaveDialog = new Dialog('ask', 'save current file?', ['save', 'export', 'no'])
-    this.spriteDialog = new Dialog('sprite', 'sprite', ['name', 'tile', 'delete'])
-    this.saveOkDialog = new Dialog('ok', 'file saved', ['ok'])
-    this.errorOkDialog = new Dialog('error', null, ['ok'])
+    this.startMenuDialog = new Dialog('Start', 'Start Menu', ['Name', 'New', 'Open', 'Save', 'Export', 'Exit'])
+    this.exportDialog = new Dialog('Export', 'Export to File', ['Plain Text', 'PNG', 'Huffman', 'Back'])
+    this.askToSaveDialog = new Dialog('Ask', 'Save Current file?', ['Save', 'Export', 'No'])
+    this.spriteDialog = new Dialog('Sprite', 'Sprite', ['Name', 'Tile', 'Delete'])
+    this.saveOkDialog = new Dialog('Ok', 'File Saved', ['Ok'])
+    this.errorOkDialog = new Dialog('Error', null, ['Ok'])
 
     this.activeTextBox = false
     this.textBox = new TextBox('', 20)
@@ -138,42 +138,42 @@ export class PaintEdit {
 
   handleDialog(event) {
     const poll = this.dialogStack[0]
-    if (event === 'ok-ok') {
-      if (poll === 'start-exit') this.parent.eventCall(poll)
+    if (event === 'Ok-Ok') {
+      if (poll === 'Start-Exit') this.parent.eventCall(poll)
       this.dialogEnd()
-    } else if (event === 'ask-save') {
-      if (poll === 'start-open') {
+    } else if (event === 'Ask-Save') {
+      if (poll === 'Start-Open') {
         this.parent.eventCall(event)
-      } else if (poll === 'start-exit') {
-        this.parent.eventCall('start-save')
+      } else if (poll === 'Start-Exit') {
+        this.parent.eventCall('Start-Save')
         this.dialogStack.push(event)
         this.dialog = this.saveOkDialog
         this.forcePaint = true
       }
-    } else if (event === 'start-name') {
+    } else if (event === 'Start-Name') {
       this.textBox.reset(this.name)
       this.activeTextBox = true
       this.dialogEnd()
-    } else if (event === 'start-export' || event === 'ask-export') {
+    } else if (event === 'Start-Export' || event === 'Ask-Export') {
       this.dialogStack.push(event)
       this.dialog = this.exportDialog
       this.forcePaint = true
-    } else if (event === 'ask-no') {
+    } else if (event === 'Ask-No') {
       this.parent.eventCall(poll)
       this.dialogEnd()
-    } else if (event === 'export-back') {
+    } else if (event === 'Export-Back') {
       this.dialogStack.push(event)
       this.dialog = this.startMenuDialog
       this.forcePaint = true
-    } else if (event === 'export-plain text' || event === 'export-png' || event === 'export-huffman') {
+    } else if (event === 'Export-Plain Text' || event === 'Export-PNG' || event === 'Export-Huffman') {
       this.parent.eventCall(event)
       this.dialogEnd()
-    } else if (event === 'start-save') {
+    } else if (event === 'Start-Save') {
       this.parent.eventCall(event)
       this.dialogStack.push(event)
       this.dialog = this.saveOkDialog
       this.forcePaint = true
-    } else if (event === 'start-new' || event === 'start-open' || event === 'start-exit') {
+    } else if (event === 'Start-New' || event === 'Start-Open' || event === 'Start-Exit') {
       if (this.historyPosition === 0) {
         this.parent.eventCall(event)
         this.dialogEnd()
@@ -182,20 +182,20 @@ export class PaintEdit {
         this.dialog = this.askToSaveDialog
         this.forcePaint = true
       }
-    } else if (event === 'sprite-name') {
+    } else if (event === 'Sprite-Name') {
       this.textBox.reset(this.activeSprite.name)
       this.activeTextBox = true
       this.activeSprite = null
       this.dialogEnd()
-    } else if (event === 'sprite-tile on') {
+    } else if (event === 'Sprite-Tile On') {
       this.activeSprite.tile = false
-      this.spriteDialog.options[1] = 'tile off'
+      this.spriteDialog.options[1] = 'Tile Off'
       this.forcePaint = true
-    } else if (event === 'sprite-tile off') {
+    } else if (event === 'Sprite-Tile Off') {
       this.activeSprite.tile = true
-      this.spriteDialog.options[1] = 'tile on'
+      this.spriteDialog.options[1] = 'Tile On'
       this.forcePaint = true
-    } else if (event === 'sprite-delete') {
+    } else if (event === 'Sprite-Delete') {
       this.sprites.splice(this.sprites.indexOf(this.activeSprite, 1))
       this.activeSprite = null
       this.dialogEnd()
@@ -217,6 +217,10 @@ export class PaintEdit {
     this.dialogStack.length = 0
     this.forcePaint = true
   }
+
+  pause() {}
+
+  resume() {}
 
   resize(width, height, scale) {
     this.width = width
@@ -816,7 +820,7 @@ export class PaintEdit {
         this.sprites.push(sprite)
         this.activeSprite = sprite
         this.spriteDialog.title = sprite.name
-        this.spriteDialog.options[1] = sprite.tile ? 'tile off' : 'tile on'
+        this.spriteDialog.options[1] = sprite.tile ? 'Tile Off' : 'Tile On'
         this.dialog = this.spriteDialog
       }
       this.selectL = null
@@ -830,7 +834,7 @@ export class PaintEdit {
         if (sprite.select(c, r)) {
           this.activeSprite = sprite
           this.spriteDialog.title = sprite.name
-          this.spriteDialog.options[1] = sprite.tile ? 'tile off' : 'tile on'
+          this.spriteDialog.options[1] = sprite.tile ? 'Tile Off' : 'Tile On'
           this.dialog = this.spriteDialog
           return false
         }

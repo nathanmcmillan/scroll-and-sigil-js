@@ -29,6 +29,14 @@ export class MapState {
     this.maps.reset()
   }
 
+  pause() {
+    this.maps.pause()
+  }
+
+  resume() {
+    this.maps.resume()
+  }
+
   resize(width, height, scale) {
     this.maps.resize(width, height, scale)
   }
@@ -51,10 +59,10 @@ export class MapState {
   }
 
   eventCall(event) {
-    if (event === 'start-save') this.save()
-    else if (event === 'start-open') this.import()
-    else if (event === 'start-export') this.export()
-    else if (event === 'start-exit') this.returnToDashboard()
+    if (event === 'Start-Save') this.save()
+    else if (event === 'Start-Open') this.import()
+    else if (event === 'Start-Export') this.export()
+    else if (event === 'Start-Exit') this.returnToDashboard()
   }
 
   returnToDashboard() {

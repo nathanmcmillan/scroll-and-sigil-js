@@ -39,6 +39,10 @@ export class Home {
     this.forcePaint = true
   }
 
+  pause() {}
+
+  resume() {}
+
   resize(width, height, scale) {
     this.width = width
     this.height = height
@@ -68,7 +72,7 @@ export class Home {
     titleBox.argY = 90
     this.titleBox = titleBox
 
-    text = 'continue'
+    text = 'Continue'
     const continueGameBox = flexText(text, fontWidth * text.length, fontHeight)
     continueGameBox.bottomSpace = fontPad
     continueGameBox.funX = '%'
@@ -77,7 +81,7 @@ export class Home {
     continueGameBox.argY = 25
     this.continueGameBox = continueGameBox
 
-    text = 'new game'
+    text = 'New Game'
     const newGameBox = flexText(text, fontWidth * text.length, fontHeight)
     newGameBox.bottomSpace = fontPad
     newGameBox.funX = 'align-left'
@@ -86,7 +90,7 @@ export class Home {
     newGameBox.fromY = continueGameBox
     this.newGameBox = newGameBox
 
-    text = 'editor'
+    text = 'Editor'
     const editorBox = flexText(text, fontWidth * text.length, fontHeight)
     editorBox.bottomSpace = fontPad
     editorBox.funX = 'align-left'
@@ -95,7 +99,7 @@ export class Home {
     editorBox.fromY = newGameBox
     this.editorBox = editorBox
 
-    text = 'options'
+    text = 'Options'
     const optionsBox = flexText(text, fontWidth * text.length, fontHeight)
     optionsBox.bottomSpace = fontPad
     optionsBox.funX = 'align-left'
@@ -104,7 +108,7 @@ export class Home {
     optionsBox.fromY = editorBox
     this.optionsBox = optionsBox
 
-    text = 'credits'
+    text = 'Credits'
     const creditsBox = flexText(text, fontWidth * text.length, fontHeight)
     creditsBox.bottomSpace = fontPad
     creditsBox.funX = 'align-left'
@@ -126,7 +130,7 @@ export class Home {
   events() {
     const input = this.input
     if (input.pressA() || input.pressStart()) {
-      this.parent.eventCall('ok')
+      this.parent.eventCall('Ok')
       return true
     }
     return false

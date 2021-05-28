@@ -83,7 +83,7 @@ export class MusicEdit {
     this.dialog = null
     this.dialogStack = []
 
-    this.startMenuDialog = new Dialog('Start', null, ['Name', 'New', 'Open', 'Save', 'Export', 'Exit'])
+    this.startMenuDialog = new Dialog('Start', 'Start Menu', ['Name', 'New', 'Open', 'Save', 'Export', 'Exit'])
     this.trackDialog = new Dialog('Track', null, ['Switch Track', 'Instrument', 'Tuning', 'Mute', 'New Track', 'Delete Track', 'Tempo', 'Signature'])
     this.noteDialog = new Dialog('Note', null, ['Insert Note', 'Delete Note'])
     this.tuningDialog = new Dialog('Tuning', 'Tuning', [''])
@@ -103,11 +103,14 @@ export class MusicEdit {
 
   clear() {
     this.play = false
-    this.musicOrigin = 0
     this.noteTime = 0
+    this.musicOrigin = 0
     this.musicTime = 0
+    this.musicPaused = 0
     this.musicFrom = 0
     this.musicTo = 0
+    this.musicLength = 0
+    this.musicDone = 0
 
     this.name = 'Untitled'
     this.tempo = 120
@@ -297,6 +300,20 @@ export class MusicEdit {
     this.forcePaint = true
   }
 
+  pause() {
+    for (const sound of this.sounds) sound.stop()
+    this.sounds.length = 0
+    this.musicPaused = Date.now()
+  }
+
+  resume() {
+    const difference = Date.now() - this.musicPaused
+    this.noteTime += difference
+    this.musicTime += difference
+    this.musicOrigin += difference / 1000.0
+    this.musicDone += difference
+  }
+
   resize(width, height, scale) {
     this.width = width
     this.height = height
@@ -386,14 +403,14 @@ export class MusicEdit {
     return note[NOTE_START]
   }
 
-  calcNoteTime(timestamp) {
+  calcNoteTime(now) {
     const track = this.track
     const note = track.notes[track.c]
-    this.noteTime = timestamp + music_note_duration(this.tempo, note[0])
+    this.noteTime = now + music_note_duration(this.tempo, note[0])
   }
 
-  playMusic(timestamp) {
-    if (timestamp < this.musicTime) return
+  updateMusic(now) {
+    if (now < this.musicTime) return
 
     const origin = this.musicOrigin
     const start = this.musicFrom
@@ -423,16 +440,18 @@ export class MusicEdit {
     this.musicTo += MUSIC_SLICE
   }
 
-  beginMusic(timestamp) {
+  beginMusic() {
+    const now = Date.now()
     this.play = true
     this.track.saved = this.track.c
-    music_calc_timing(this.tempo, this.tracks)
-    this.musicTime = timestamp
+    this.musicLength = music_calc_timing(this.tempo, this.tracks)
+    this.musicTime = now
     this.musicFrom = this.timeAtNote()
     this.musicTo = this.musicFrom + MUSIC_SLICE * 2
     this.musicOrigin = synth_time() - this.musicFrom / 1000.0
-    this.playMusic(timestamp)
-    this.calcNoteTime(timestamp)
+    this.musicDone = this.musicTime + this.musicLength
+    this.updateMusic(now)
+    this.calcNoteTime(now)
   }
 
   topLeftStatus() {
@@ -475,7 +494,7 @@ export class MusicEdit {
     }
   }
 
-  updatePlay(timestamp) {
+  updatePlay() {
     const input = this.input
 
     if (input.pressX()) {
@@ -487,24 +506,30 @@ export class MusicEdit {
       return
     }
 
-    this.playMusic(timestamp)
+    const now = Date.now()
 
-    if (timestamp >= this.noteTime) {
-      this.doPaint = true
-      this.track.c++
-      if (this.track.c === this.track.notes.length) {
-        this.sounds.length = 0
-        this.track.c = this.track.saved
-        this.play = false
-      } else this.calcNoteTime(timestamp)
-    } else this.doPaint = false
+    if (now >= this.musicDone) {
+      this.sounds.length = 0
+      this.track.c = this.track.saved
+      this.play = false
+    } else {
+      this.updateMusic(now)
+
+      if (now >= this.noteTime) {
+        if (this.track.c + 1 < this.track.notes.length) {
+          this.track.c++
+          this.calcNoteTime(now)
+          this.doPaint = true
+        }
+      }
+    }
   }
 
   update(timestamp) {
     this.events()
 
     if (this.play) {
-      this.updatePlay(timestamp)
+      this.updatePlay()
       return
     }
 
@@ -584,9 +609,7 @@ export class MusicEdit {
 
     if (input.pressB()) this.playRowNote(0)
 
-    if (input.pressX()) {
-      this.beginMusic(timestamp)
-    }
+    if (input.pressX()) this.beginMusic()
 
     if (input.pressRightTrigger()) {
       this.dialog = this.noteDialog

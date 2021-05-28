@@ -106,10 +106,12 @@ export class Client {
 
   pause() {
     music_pause()
+    this.state.pause()
   }
 
   resume() {
     music_resume()
+    this.state.resume()
   }
 
   resize(width, height) {

@@ -30,6 +30,10 @@ export class Game {
     this.cinema = false
   }
 
+  pause() {}
+
+  resume() {}
+
   read(content) {
     const world = this.world
     worldClear(world)

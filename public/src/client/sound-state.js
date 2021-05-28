@@ -63,6 +63,14 @@ export class SoundState {
 
   reset() {}
 
+  pause() {
+    this.sfx.pause()
+  }
+
+  resume() {
+    this.sfx.resume()
+  }
+
   resize(width, height, scale) {
     this.sfx.resize(width, height, scale)
   }
