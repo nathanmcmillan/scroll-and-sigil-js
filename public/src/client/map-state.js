@@ -86,8 +86,10 @@ export class MapState {
   }
 
   save() {
+    const name = this.maps.name
     const blob = this.maps.export()
-    localStorage.setItem('map', blob)
+    localStorage.setItem('map', name)
+    localStorage.setItem('map.' + name, blob)
     console.info(blob)
     console.info('saved to local storage!')
   }

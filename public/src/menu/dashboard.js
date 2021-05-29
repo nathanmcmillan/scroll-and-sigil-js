@@ -87,6 +87,12 @@ export class Dashboard {
           this.forcePaint = true
         } else this.parent.eventCall('Open')
       }
+    } else if (input.pressB()) {
+      if (this.menu === TAPE_MENU) this.parent.eventCall('Back')
+      else if (this.menu === PROGRAM_MENU) {
+        this.menu = TAPE_MENU
+        this.forcePaint = true
+      }
     }
   }
 

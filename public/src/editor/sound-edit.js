@@ -4,6 +4,7 @@
 
 import { fetchText } from '../client/net.js'
 import { Dialog } from '../gui/dialog.js'
+import { TextBox } from '../gui/text-box.js'
 import { BUTTON_A, BUTTON_B, BUTTON_X } from '../input/input.js'
 import { read_sound_wad } from '../sound/sound.js'
 import {
@@ -78,6 +79,9 @@ export class SoundEdit {
     this.askToSaveDialog = new Dialog('Ask', 'Save Current File?', ['Save', 'Export', 'No'])
     this.saveOkDialog = new Dialog('Ok', 'File Saved', ['Ok'])
     this.errorOkDialog = new Dialog('Error', null, ['Ok'])
+
+    this.activeTextBox = false
+    this.textBox = new TextBox('', 20)
 
     this.clear()
   }
@@ -176,49 +180,56 @@ export class SoundEdit {
     this.dialogResetAll()
   }
 
-  handleDialog(event) {
-    if (event === 'Ask-No') {
-      const poll = this.dialogStack[0]
-      if (poll === 'Start-New') this.clear()
-      else this.parent.eventCall(poll)
-      this.dialogEnd()
-    } else if (event === 'Ask-Save') {
-      const poll = this.dialogStack[0]
-      if (poll === 'Start-Exit') {
-        this.parent.eventCall('Start-Save')
-        this.dialogStack.push(event)
-        this.dialog = this.saveOkDialog
-        this.forcePaint = true
-      } else this.dialogEnd()
-    } else if (event === 'Ask-Export') {
-      const poll = this.dialogStack[0]
-      if (poll === 'Start-Exit') {
-        this.parent.eventCall('Start-Export')
-        this.parent.eventCall('Start-Exit')
+  gotoDialog(dialog, from = null) {
+    this.dialog = dialog
+    this.forcePaint = true
+    if (from === null) this.dialogStack.length = 0
+    else this.dialogStack.push(from)
+  }
+
+  handleDialog() {
+    const dialog = this.dialog
+    const option = dialog.options[dialog.pos]
+    const event = dialog.id + '-' + option
+    if (dialog === this.askToSaveDialog) {
+      if (option === 'No') {
+        const poll = this.dialogStack[0]
+        if (poll === 'Start-New') this.clear()
+        else this.parent.eventCall(poll)
+        this.dialogEnd()
+      } else if (option === 'Save') {
+        const poll = this.dialogStack[0]
+        if (poll === 'Start-Exit') {
+          this.parent.eventCall('Start-Save')
+          this.gotoDialog(this.saveOkDialog, event)
+        } else this.dialogEnd()
+      } else if (option === 'Export') {
+        const poll = this.dialogStack[0]
+        if (poll === 'Start-Exit') {
+          this.parent.eventCall('Start-Export')
+          this.parent.eventCall('Start-Exit')
+        }
+        this.dialogEnd()
       }
-      this.dialogEnd()
-    } else if (event === 'Start-Name') {
-      this.textBox.reset(this.name)
-      this.askName = true
-      this.dialogEnd()
-    } else if (event === 'Start-Save') {
-      this.parent.eventCall(event)
-      this.dialog = this.saveOkDialog
-      this.forcePaint = true
-    } else if (event === 'Start-New' || event === 'Start-Open' || event === 'Start-Exit') {
-      this.dialogStack.push(event)
-      this.dialog = this.askToSaveDialog
-      this.forcePaint = true
-    } else if (event === 'Start-Export') {
-      this.parent.eventCall(event)
-      this.dialogEnd()
-    } else if (event === 'Ok-Ok') {
+    } else if (dialog === this.startMenuDialog) {
+      if (option === 'Name') {
+        this.textBox.reset(this.name)
+        this.activeTextBox = true
+        this.dialogEnd()
+      } else if (option === 'Save') {
+        this.parent.eventCall(event)
+        this.gotoDialog(this.saveOkDialog)
+      } else if (option === 'New' || option === 'Open' || option === 'Exit') {
+        this.gotoDialog(this.askToSaveDialog, event)
+      } else if (option === 'Export') {
+        this.parent.eventCall(event)
+        this.dialogEnd()
+      }
+    } else if (dialog === this.saveOkDialog && option === 'Ok') {
       const poll = this.dialogStack[0]
       if (poll === 'Start-Exit') this.parent.eventCall(poll)
       this.dialogEnd()
-    } else if (event === 'Error-Ok') {
-      this.dialogEnd()
-    }
+    } else this.dialogEnd()
   }
 
   handleDialogSpecial() {}
@@ -268,7 +279,10 @@ export class SoundEdit {
   async load(file) {
     let content = null
     if (file) content = await fetchText(file)
-    else content = localStorage.getItem('sound')
+    else {
+      const ref = localStorage.getItem('sound')
+      if (ref) content = localStorage.getItem('sound.' + ref)
+    }
     if (content === null || content === undefined) return this.clear()
     this.read(content)
   }
@@ -293,18 +307,30 @@ export class SoundEdit {
   immediate() {}
 
   events() {
-    if (this.dialog === null) return
     const input = this.input
+    if (this.activeTextBox) {
+      if (input.pressY()) {
+        this.textBox.erase()
+        this.forcePaint = true
+      } else if (input.pressA()) {
+        if (this.textBox.end()) {
+          this.name = this.textBox.text
+          this.activeTextBox = false
+          this.forcePaint = true
+        } else {
+          this.textBox.apply()
+          this.forcePaint = true
+        }
+      }
+      return
+    }
+    if (this.dialog === null) return
     if (input.pressB()) {
       this.dialog = null
       this.dialogStack.length = 0
       this.forcePaint = true
     }
-    if (input.pressA() || input.pressStart() || input.pressSelect()) {
-      const id = this.dialog.id
-      const option = this.dialog.options[this.dialog.pos]
-      this.handleDialog(id + '-' + option)
-    }
+    if (input.pressA() || input.pressStart() || input.pressSelect()) this.handleDialog()
   }
 
   update(timestamp) {
@@ -330,6 +356,12 @@ export class SoundEdit {
         if (this.dialog.pos < this.dialog.options.length - 1) this.dialog.pos++
       } else if (input.timerStickLeft(timestamp, INPUT_RATE)) this.handleDialogSpecial(true)
       else if (input.timerStickRight(timestamp, INPUT_RATE)) this.handleDialogSpecial(false)
+      return
+    } else if (this.activeTextBox) {
+      if (input.timerStickUp(timestamp, INPUT_RATE)) this.textBox.up()
+      else if (input.timerStickDown(timestamp, INPUT_RATE)) this.textBox.down()
+      else if (input.timerStickLeft(timestamp, INPUT_RATE)) this.textBox.left()
+      else if (input.timerStickRight(timestamp, INPUT_RATE)) this.textBox.right()
       return
     }
 

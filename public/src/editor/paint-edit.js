@@ -374,7 +374,10 @@ export class PaintEdit {
   async load(file) {
     let content = null
     if (file) content = await fetchText(file)
-    else content = localStorage.getItem('paint')
+    else {
+      const ref = localStorage.getItem('paint')
+      if (ref) content = localStorage.getItem('paint.' + ref)
+    }
     if (content === null || content === undefined) return this.clear()
     this.read(content)
   }

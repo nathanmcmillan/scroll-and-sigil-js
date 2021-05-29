@@ -3,7 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import { createNewTexturesAndSpriteSheets, readPaintFile, readPaintFileAsLookup, saveEntity, saveTexture, saveTile, waitForResources } from '../assets/assets.js'
-import { music_tick, music_pause, music_resume, saveMusic, saveSound } from '../assets/sound-manager.js'
+import { music_pause, music_resume, music_tick, saveMusic, saveSound } from '../assets/sound-manager.js'
 import { DashboardState } from '../client/dashboard-state.js'
 import { GameState } from '../client/game-state.js'
 import { HomeState } from '../client/home-state.js'

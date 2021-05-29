@@ -14,6 +14,10 @@ export function soundList() {
   return SOUNDS
 }
 
+export function saveSynthSound(name, content) {
+  SOUNDS.set(name, new SynthSound(content))
+}
+
 export async function saveSound(name, path) {
   const dot = name.lastIndexOf('.')
   if (dot > 0) {
@@ -25,8 +29,8 @@ export async function saveSound(name, path) {
   if (SOUNDS.has(name)) return
   if (path.endsWith('.wav')) SOUNDS.set(name, new Audio(path))
   else {
-    const contents = await fetchText(path)
-    SOUNDS.set(name, new SynthSound(contents))
+    const content = await fetchText(path)
+    saveSynthSound(name, content)
   }
 }
 

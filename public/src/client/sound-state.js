@@ -3,13 +3,14 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import { textureByName } from '../assets/assets.js'
-import { renderDialogBox, renderStatus } from '../client/client-util.js'
+import { saveSynthSound } from '../assets/sound-manager.js'
+import { renderDialogBox, renderStatus, renderTextBox } from '../client/client-util.js'
 import { calcBottomBarHeight, calcFontPad, calcFontScale, calcTopBarHeight, defaultFont } from '../editor/editor-util.js'
-import { ember0f, ember1f, ember2f, orange0f, orange1f, orange2f, silver0f, silver1f, silver2f, slatef } from '../editor/palette.js'
+import { ember0f, ember1f, ember2f, orange0f, orange1f, orange2f, silver0f, silver1f, silver2f, slatef, white0f, white1f, white2f } from '../editor/palette.js'
 import { SoundEdit } from '../editor/sound-edit.js'
 import { flexBox, flexSolve, returnFlexBox } from '../gui/flex.js'
 import { identity, multiply } from '../math/matrix.js'
-import { drawImage, drawRectangle, drawTextFont } from '../render/render.js'
+import { drawImage, drawRectangle, drawTextFont, drawTextFontSpecial } from '../render/render.js'
 import {
   ACCEL,
   diatonic,
@@ -121,10 +122,13 @@ export class SoundState {
   }
 
   save() {
+    const name = this.sfx.name
     const blob = this.sfx.export()
-    localStorage.setItem('sound', blob)
+    localStorage.setItem('sound', name)
+    localStorage.setItem('sound.' + name, blob)
     console.info(blob)
     console.info('saved to local storage!')
+    saveSynthSound(name, blob)
   }
 
   export() {
@@ -324,8 +328,16 @@ export class SoundState {
     rendererBindTexture(rendering, gl.TEXTURE0, this.texture)
     rendererUpdateAndDraw(rendering, client.bufferGUI)
 
-    // dialog box
+    // dialog box or text box
 
     if (sfx.dialog !== null) renderDialogBox(this, scale, font, sfx.dialog)
+    else if (sfx.activeTextBox) {
+      const box = sfx.textBox
+      renderTextBox(this, scale, font, box, 200, 200)
+
+      bufferZero(client.bufferGUI)
+      drawTextFontSpecial(client.bufferGUI, 200, 500, box.text, fontScale, white0f, white1f, white2f, font)
+      rendererUpdateAndDraw(rendering, client.bufferGUI)
+    }
   }
 }

@@ -171,8 +171,10 @@ export class PaintState {
   }
 
   saveSheet() {
+    const name = this.paint.name
     const blob = this.paint.export()
-    localStorage.setItem('paint', blob)
+    localStorage.setItem('paint', name)
+    localStorage.setItem('paint.' + name, blob)
     console.info(blob)
     console.info('saved to local storage!')
   }
@@ -205,7 +207,7 @@ export class PaintState {
     const blob = canvas.toDataURL('image/png')
     const download = document.createElement('a')
     download.href = blob
-    download.download = this.paint.name + '.png'
+    download.download = paint.name + '.png'
     download.click()
   }
 

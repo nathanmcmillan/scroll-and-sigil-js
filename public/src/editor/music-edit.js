@@ -5,6 +5,7 @@
 import { soundList } from '../assets/sound-manager.js'
 import { fetchText } from '../client/net.js'
 import { Dialog } from '../gui/dialog.js'
+import { TextBox } from '../gui/text-box.js'
 import { BUTTON_A, BUTTON_B, BUTTON_X, BUTTON_Y } from '../input/input.js'
 import { music_note_duration, music_scale, MUSIC_SCALE_LIST, NOTES, Track } from '../sound/music-theory.js'
 import { music_calc_timing, music_play_note, MUSIC_SLICE, NOTE_ROWS, NOTE_START, read_synth_parameters } from '../sound/sound.js'
@@ -84,8 +85,8 @@ export class MusicEdit {
     this.dialogStack = []
 
     this.startMenuDialog = new Dialog('Start', 'Start Menu', ['Name', 'New', 'Open', 'Save', 'Export', 'Exit'])
-    this.trackDialog = new Dialog('Track', null, ['Switch Track', 'Instrument', 'Tuning', 'Mute', 'New Track', 'Delete Track', 'Tempo', 'Signature'])
-    this.noteDialog = new Dialog('Note', null, ['Insert Note', 'Delete Note'])
+    this.trackDialog = new Dialog('Track', 'Song Menu', ['Switch Track', 'Instrument', 'Tuning', 'Mute', 'New Track', 'Delete Track', 'Tempo', 'Signature'])
+    this.noteDialog = new Dialog('Note', 'Note Menu', ['Insert Note', 'Delete Note'])
     this.tuningDialog = new Dialog('Tuning', 'Tuning', [''])
     this.tempoDialog = new Dialog('Tempo', 'Tempo', [''])
     this.signatureDialog = new Dialog('Signature', 'Music Signature', ['Root Note', 'Music Scale'])
@@ -97,6 +98,9 @@ export class MusicEdit {
     this.deleteOkDialog = new Dialog('Delete', 'Delete Current Track?', ['Continue', 'Cancel'])
     this.saveOkDialog = new Dialog('Ok', 'File Saved', ['Ok'])
     this.errorOkDialog = new Dialog('Error', null, ['Ok'])
+
+    this.activeTextBox = false
+    this.textBox = new TextBox('', 20)
 
     this.clear()
   }
@@ -128,77 +132,81 @@ export class MusicEdit {
     this.dialogResetAll()
   }
 
-  handleDialog(event) {
-    if (event === 'Ask-No') {
-      const poll = this.dialogStack[0]
-      if (poll === 'Start-New') this.clear()
-      else this.parent.eventCall(poll)
-      this.dialogEnd()
-    } else if (event === 'Ask-Save') {
-      const poll = this.dialogStack[0]
-      if (poll === 'Start-Exit') {
-        this.parent.eventCall('Start-Save')
-        this.dialogStack.push(event)
-        this.dialog = this.saveOkDialog
-        this.forcePaint = true
-      } else this.dialogEnd()
-    } else if (event === 'Ask-Export') {
-      const poll = this.dialogStack[0]
-      if (poll === 'Start-Exit') {
-        this.parent.eventCall('Start-Export')
-        this.parent.eventCall('Start-Exit')
+  gotoDialog(dialog, from = null) {
+    this.dialog = dialog
+    this.forcePaint = true
+    if (from === null) this.dialogStack.length = 0
+    else this.dialogStack.push(from)
+  }
+
+  handleBackDialog() {
+    const dialog = this.dialog
+    if (dialog === this.switchDialog) this.gotoDialog(this.trackDialog)
+    else if (dialog === this.instrumentDialog) this.gotoDialog(this.trackDialog)
+    else if (dialog === this.tuningDialog) this.gotoDialog(this.trackDialog)
+    else if (dialog === this.tempoDialog) this.gotoDialog(this.trackDialog)
+    else if (dialog === this.signatureDialog) this.gotoDialog(this.trackDialog)
+    else if (dialog === this.rootNoteDialog) this.gotoDialog(this.signatureDialog)
+    else if (dialog === this.scaleDialog) this.gotoDialog(this.signatureDialog)
+    else this.gotoDialog(null)
+  }
+
+  handleDialog() {
+    const dialog = this.dialog
+    const option = dialog.options[dialog.pos]
+    const event = dialog.id + '-' + option
+    if (dialog === this.askToSaveDialog) {
+      if (option === 'No') {
+        const poll = this.dialogStack[0]
+        if (poll === 'Start-New') this.clear()
+        else this.parent.eventCall(poll)
+        this.dialogEnd()
+      } else if (option === 'Save') {
+        const poll = this.dialogStack[0]
+        if (poll === 'Start-Exit') {
+          this.parent.eventCall('Start-Save')
+          this.gotoDialog(this.saveOkDialog, event)
+        } else this.dialogEnd()
+      } else if (option === 'Export') {
+        const poll = this.dialogStack[0]
+        if (poll === 'Start-Exit') {
+          this.parent.eventCall('Start-Export')
+          this.parent.eventCall('Start-Exit')
+        }
+        this.dialogEnd()
       }
-      this.dialogEnd()
-    } else if (event === 'Start-Name') {
-      this.textBox.reset(this.name)
-      this.askName = true
-      this.dialogEnd()
-    } else if (event === 'Start-Save') {
-      this.parent.eventCall(event)
-      this.dialog = this.saveOkDialog
-      this.forcePaint = true
-    } else if (event === 'Start-New' || event === 'Start-Open' || event === 'Start-Exit') {
-      this.dialogStack.push(event)
-      this.dialog = this.askToSaveDialog
-      this.forcePaint = true
-    } else if (event === 'Start-Export') {
-      this.parent.eventCall(event)
-      this.dialogEnd()
-    } else if (event === 'Ok-Ok') {
+    } else if (dialog === this.startMenuDialog) {
+      if (option === 'Name') {
+        this.textBox.reset(this.name)
+        this.activeTextBox = true
+        this.dialogEnd()
+      } else if (option === 'Save') {
+        this.parent.eventCall(event)
+        this.gotoDialog(this.saveOkDialog)
+      } else if (option === 'New' || option === 'Open' || option === 'Exit') {
+        this.gotoDialog(this.askToSaveDialog, event)
+      } else if (option === 'Export') {
+        this.parent.eventCall(event)
+        this.dialogEnd()
+      }
+    } else if (dialog === this.saveOkDialog && option === 'Ok') {
       const poll = this.dialogStack[0]
       if (poll === 'Start-Exit') this.parent.eventCall(poll)
       this.dialogEnd()
-    } else if (event === 'Error-Ok') {
-      this.dialogEnd()
-    } else if (event === 'Note-Insert Note') {
-      const notes = this.track.notes
-      notes.splice(this.track.c + 1, 0, newNote())
-      this.track.c++
-      this.dialogEnd()
-    } else if (event === 'Note-Delete Note') {
-      const notes = this.track.notes
-      if (notes.length > 1) {
-        notes.splice(this.track.c, 1)
-        this.track.c = Math.min(this.track.c, this.track.notes.length - 1)
+    } else if (dialog === this.noteDialog) {
+      if (option === 'Insert Note') {
+        const notes = this.track.notes
+        notes.splice(this.track.c + 1, 0, newNote())
+        this.track.c++
+      } else if (option === 'Delete Note') {
+        const notes = this.track.notes
+        if (notes.length > 1) {
+          notes.splice(this.track.c, 1)
+          this.track.c = Math.min(this.track.c, this.track.notes.length - 1)
+        }
       }
       this.dialogEnd()
-    } else if (event === 'Track-Instrument') {
-      const sounds = soundList()
-      const options = []
-      for (const [name, value] of sounds) {
-        if (!(value instanceof Audio)) options.push(name)
-      }
-      this.instrumentDialog.options = options
-      this.dialog = this.instrumentDialog
-      this.forcePaint = true
-    } else if (event === 'Track-New Track') {
-      this.track = defaultTrack()
-      this.tracks.push(this.track)
-      this.dialogEnd()
-    } else if (event === 'Track-Delete Track') {
-      this.dialog = this.deleteOkDialog
-      this.forcePaint = true
-    } else if (event === 'Delete-Continue') {
+    } else if (dialog === this.deleteOkDialog && option === 'Continue') {
       if (this.tracks.length === 1) {
         this.track = defaultTrack()
         this.tracks[0] = this.track
@@ -210,50 +218,62 @@ export class MusicEdit {
         }
       }
       this.dialogEnd()
-    } else if (event === 'Track-Switch Track') {
-      const options = new Array(this.tracks.length)
-      for (let i = 0; i < options.length; i++) options[i] = this.tracks[i].name
-      this.switchDialog.options = options
-      this.dialog = this.switchDialog
-      this.forcePaint = true
-    } else if (event.startsWith('Switch-')) {
+    } else if (dialog === this.trackDialog) {
+      if (option === 'Instrument') {
+        const sounds = soundList()
+        const options = []
+        for (const [name, value] of sounds) {
+          if (!(value instanceof Audio)) options.push(name)
+        }
+        this.instrumentDialog.options = options
+        this.gotoDialog(this.instrumentDialog)
+      } else if (option === 'New Track') {
+        this.track = defaultTrack()
+        this.tracks.push(this.track)
+        this.dialogEnd()
+      } else if (option === 'Delete Track') {
+        this.gotoDialog(this.deleteOkDialog)
+      } else if (option === 'Switch Track') {
+        const options = new Array(this.tracks.length)
+        for (let i = 0; i < options.length; i++) options[i] = this.tracks[i].name
+        this.switchDialog.options = options
+        this.gotoDialog(this.switchDialog)
+      } else if (option === 'Tuning') {
+        this.tuningDialog.options[0] = '' + this.track.tuning
+        this.gotoDialog(this.tuningDialog)
+      } else if (option === 'Tempo') {
+        this.tempoDialog.options[0] = '' + this.tempo
+        this.gotoDialog(this.tempoDialog)
+      } else if (option === 'Signature') {
+        this.gotoDialog(this.signatureDialog)
+      }
+    } else if (dialog === this.switchDialog) {
       this.track = this.tracks[this.switchDialog.pos]
       this.dialogEnd()
-    } else if (event === 'Track-Tuning') {
-      this.tuningDialog.options[0] = '' + this.track.tuning
-      this.dialog = this.tuningDialog
-      this.forcePaint = true
-    } else if (event === 'Track-Tempo') {
-      this.tempoDialog.options[0] = '' + this.tempo
-      this.dialog = this.tempoDialog
-      this.forcePaint = true
-    } else if (event === 'Track-Signature') {
-      this.dialog = this.signatureDialog
-      this.forcePaint = true
-    } else if (event === 'Signature-Root Note') {
-      this.dialog = this.rootNoteDialog
-      this.dialog.options = NOTES
-      this.forcePaint = true
-    } else if (event === 'Signature-Music Scale') {
-      this.dialog = this.scaleDialog
-      this.dialog.options = MUSIC_SCALE_LIST
-      this.forcePaint = true
-    } else if (event.startsWith('Root-')) {
+    } else if (dialog === this.signatureDialog) {
+      if (option === 'Root Note') {
+        this.rootNoteDialog.options = NOTES
+        this.gotoDialog(this.rootNoteDialog)
+      } else if (option === 'Music Scale') {
+        this.scaleDialog.options = MUSIC_SCALE_LIST
+        this.gotoDialog(this.scaleDialog)
+      }
+    } else if (dialog === this.rootNoteDialog) {
       this.scaleRoot = NOTES[this.dialog.pos]
       this.scaleNotes = music_scale(this.scaleRoot, this.scaleMode)
-      this.dialogEnd()
-    } else if (event.startsWith('Scale-')) {
+      this.handleBackDialog()
+    } else if (dialog === this.scaleDialog) {
       this.scaleMode = MUSIC_SCALE_LIST[this.dialog.pos]
       this.scaleNotes = music_scale(this.scaleRoot, this.scaleMode)
-      this.dialogEnd()
-    } else if (event.startsWith('Instrument-')) {
+      this.handleBackDialog()
+    } else if (dialog === this.instrumentDialog) {
       const sounds = soundList()
       const parameters = sounds.get(this.dialog.options[this.dialog.pos]).parameters
       for (let i = 0; i < parameters.length; i++) this.track.parameters[i] = parameters[i]
-      this.dialogEnd()
-    } else {
-      this.dialogEnd()
-    }
+      this.handleBackDialog()
+    } else if (dialog === this.tuningDialog) this.handleBackDialog()
+    else if (dialog === this.tempoDialog) this.handleBackDialog()
+    else this.dialogEnd()
   }
 
   handleDialogSpecial(left) {
@@ -369,7 +389,10 @@ export class MusicEdit {
   async load(file) {
     let content = null
     if (file) content = await fetchText(file)
-    else content = localStorage.getItem('music')
+    else {
+      const ref = localStorage.getItem('music')
+      if (ref) content = localStorage.getItem('music.' + ref)
+    }
     if (content === null || content === undefined) return this.clear()
     this.read(content)
   }
@@ -480,18 +503,26 @@ export class MusicEdit {
   immediate() {}
 
   events() {
-    if (this.dialog === null) return
     const input = this.input
-    if (input.pressB()) {
-      this.dialog = null
-      this.dialogStack.length = 0
-      this.forcePaint = true
+    if (this.activeTextBox) {
+      if (input.pressY()) {
+        this.textBox.erase()
+        this.forcePaint = true
+      } else if (input.pressA()) {
+        if (this.textBox.end()) {
+          this.name = this.textBox.text
+          this.activeTextBox = false
+          this.forcePaint = true
+        } else {
+          this.textBox.apply()
+          this.forcePaint = true
+        }
+      }
+      return
     }
-    if (input.pressA() || input.pressStart() || input.pressSelect()) {
-      const id = this.dialog.id
-      const option = this.dialog.options[this.dialog.pos]
-      this.handleDialog(id + '-' + option)
-    }
+    if (this.dialog === null) return
+    if (input.pressB()) this.handleBackDialog()
+    else if (input.pressA() || input.pressStart() || input.pressSelect()) this.handleDialog()
   }
 
   updatePlay() {
@@ -552,6 +583,12 @@ export class MusicEdit {
         if (this.dialog.pos < this.dialog.options.length - 1) this.dialog.pos++
       } else if (input.timerStickLeft(timestamp, INPUT_RATE)) this.handleDialogSpecial(true)
       else if (input.timerStickRight(timestamp, INPUT_RATE)) this.handleDialogSpecial(false)
+      return
+    } else if (this.activeTextBox) {
+      if (input.timerStickUp(timestamp, INPUT_RATE)) this.textBox.up()
+      else if (input.timerStickDown(timestamp, INPUT_RATE)) this.textBox.down()
+      else if (input.timerStickLeft(timestamp, INPUT_RATE)) this.textBox.left()
+      else if (input.timerStickRight(timestamp, INPUT_RATE)) this.textBox.right()
       return
     }
 

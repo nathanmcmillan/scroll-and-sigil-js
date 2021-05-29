@@ -639,7 +639,10 @@ export class MapEdit {
   async load(file) {
     let content = null
     if (file) content = await fetchText(file)
-    else content = localStorage.getItem('map')
+    else {
+      const ref = localStorage.getItem('map')
+      if (ref) content = localStorage.getItem('map.' + ref)
+    }
     if (content === null || content === undefined) return this.clear()
     this.read(content)
   }

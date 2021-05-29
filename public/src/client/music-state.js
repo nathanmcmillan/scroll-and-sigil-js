@@ -3,13 +3,30 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import { textureByName } from '../assets/assets.js'
-import { renderDialogBox, renderStatus } from '../client/client-util.js'
+import { renderDialogBox, renderStatus, renderTextBox } from '../client/client-util.js'
 import { calcBottomBarHeight, calcFontScale, calcTopBarHeight, defaultFont } from '../editor/editor-util.js'
 import { lengthName, MusicEdit } from '../editor/music-edit.js'
-import { ember0f, ember1f, ember2f, lemon0f, lemon1f, lemon2f, salmon0f, salmon1f, salmon2f, silver0f, silver1f, silver2f, slatef } from '../editor/palette.js'
+import {
+  ember0f,
+  ember1f,
+  ember2f,
+  lemon0f,
+  lemon1f,
+  lemon2f,
+  salmon0f,
+  salmon1f,
+  salmon2f,
+  silver0f,
+  silver1f,
+  silver2f,
+  slatef,
+  white0f,
+  white1f,
+  white2f,
+} from '../editor/palette.js'
 import { identity, multiply } from '../math/matrix.js'
 import { sprcol } from '../render/pico.js'
-import { drawRectangle, drawText } from '../render/render.js'
+import { drawRectangle, drawText, drawTextFontSpecial } from '../render/render.js'
 import { NOTE_ROWS } from '../sound/sound.js'
 import { semitoneName, semitoneNoOctave, SEMITONES } from '../sound/synth.js'
 import { bufferZero } from '../webgl/buffer.js'
@@ -86,8 +103,10 @@ export class MusicState {
   }
 
   save() {
+    const name = this.music.name
     const blob = this.music.export()
-    localStorage.setItem('music', blob)
+    localStorage.setItem('music', name)
+    localStorage.setItem('music.' + name, blob)
     console.info(blob)
     console.info('saved to local storage!')
   }
@@ -263,8 +282,16 @@ export class MusicState {
     rendererBindTexture(rendering, gl.TEXTURE0, textureByName('editor-sprites').texture)
     rendererUpdateAndDraw(rendering, client.bufferGUI)
 
-    // dialog box
+    // dialog box or text box
 
     if (music.dialog !== null) renderDialogBox(this, scale, font, music.dialog)
+    else if (music.activeTextBox) {
+      const box = music.textBox
+      renderTextBox(this, scale, font, box, 200, 200)
+
+      bufferZero(client.bufferGUI)
+      drawTextFontSpecial(client.bufferGUI, 200, 500, box.text, fontScale, white0f, white1f, white2f, font)
+      rendererUpdateAndDraw(rendering, client.bufferGUI)
+    }
   }
 }
