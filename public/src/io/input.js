@@ -18,6 +18,8 @@ export const BUTTON_B = 9
 export const LEFT_TRIGGER = 10
 export const RIGHT_TRIGGER = 11
 
+export const INPUT_RATE = 128
+
 const BUTTONS = 12
 
 const DOUBLE_RATE = 64

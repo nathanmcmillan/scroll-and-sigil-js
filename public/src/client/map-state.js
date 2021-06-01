@@ -6,6 +6,7 @@ import { renderMapEditTopMode } from '../client/map-edit-top-mode.js'
 import { renderMapEditViewMode, updateMapEditViewSectorBuffer } from '../client/map-edit-view-mode.js'
 import { renderLoadingInProgress } from '../client/render-loading.js'
 import { MapEdit, SWITCH_MODE_CALLBACK, TOP_MODE, VIEW_MODE } from '../editor/map-edit.js'
+import { local_storage_get, local_storage_set } from '../io/files.js'
 
 export class MapState {
   constructor(client) {
@@ -53,8 +54,12 @@ export class MapState {
 
   mouseMove() {}
 
-  async initialize(file) {
-    await this.maps.load(file)
+  async initialize() {
+    let map = null
+    const tape = this.client.tape.name
+    const name = local_storage_get('tape:' + tape + ':map')
+    if (name) map = local_storage_get('tape:' + tape + ':map:' + name)
+    this.maps.load(map)
     this.loading = false
   }
 
@@ -86,10 +91,11 @@ export class MapState {
   }
 
   save() {
+    const tape = this.client.tape.name
     const name = this.maps.name
     const blob = this.maps.export()
-    localStorage.setItem('map', name)
-    localStorage.setItem('map.' + name, blob)
+    local_storage_set('tape:' + tape + ':map', name)
+    local_storage_set('tape:' + tape + ':map:' + name, blob)
     console.info(blob)
     console.info('saved to local storage!')
   }

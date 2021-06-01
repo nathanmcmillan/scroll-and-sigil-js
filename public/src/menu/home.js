@@ -3,11 +3,9 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import { playSound } from '../assets/sound-manager.js'
-import { calcFontPad, calcFontScale } from '../editor/editor-util.js'
+import { calcFontPad, calcFontScale, defaultFont } from '../editor/editor-util.js'
 import { flexSolve, flexText } from '../gui/flex.js'
-import { TIC_FONT_HEIGHT, TIC_FONT_WIDTH } from '../render/render.js'
-
-const INPUT_RATE = 128
+import { INPUT_RATE } from '../io/input.js'
 
 export class Home {
   constructor(parent, width, height, scale, input) {
@@ -59,9 +57,10 @@ export class Home {
     const width = this.width
     const height = this.height
 
+    const font = defaultFont()
     const fontScale = calcFontScale(this.scale)
-    const fontWidth = fontScale * TIC_FONT_WIDTH
-    const fontHeight = fontScale * TIC_FONT_HEIGHT
+    const fontWidth = fontScale * font.width
+    const fontHeight = fontScale * font.height
     const fontPad = calcFontPad(fontHeight)
 
     let text = 'Scroll and Sigil'

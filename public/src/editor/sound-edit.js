@@ -2,10 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import { fetchText } from '../client/net.js'
 import { Dialog } from '../gui/dialog.js'
 import { TextBox } from '../gui/text-box.js'
-import { BUTTON_A, BUTTON_B, BUTTON_X } from '../input/input.js'
+import { BUTTON_A, BUTTON_B, BUTTON_X, INPUT_RATE } from '../io/input.js'
 import { read_sound_wad } from '../sound/sound.js'
 import {
   ACCEL,
@@ -44,8 +43,6 @@ import {
   WAVEFORMS,
 } from '../sound/synth.js'
 import { dusk0, dusk1, dusk2, silver0, silver1, silver2 } from './palette.js'
-
-const INPUT_RATE = 128
 
 export class SoundEdit {
   constructor(parent, width, height, scale, input) {
@@ -87,7 +84,7 @@ export class SoundEdit {
   }
 
   clear() {
-    this.name = 'Untitled'
+    this.name = 'untitled'
 
     this.parameters[WAVE] = 1
     this.parameters[CYCLE] = 0.25
@@ -276,15 +273,9 @@ export class SoundEdit {
     this.doPaint = true
   }
 
-  async load(file) {
-    let content = null
-    if (file) content = await fetchText(file)
-    else {
-      const ref = localStorage.getItem('sound')
-      if (ref) content = localStorage.getItem('sound.' + ref)
-    }
-    if (content === null || content === undefined) return this.clear()
-    this.read(content)
+  async load(sound) {
+    if (sound === null || sound === undefined) return this.clear()
+    this.read(sound)
   }
 
   topLeftStatus() {

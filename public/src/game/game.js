@@ -3,9 +3,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import { textureIndexForName } from '../assets/assets.js'
-import { playMusic } from '../assets/sound-manager.js'
-import { fetchText } from '../client/net.js'
+import { musicVolume, playMusic, setMusicVolume, setSoundVolume, soundVolume } from '../assets/sound-manager.js'
 import { Camera, cameraFollowCinema, cameraTowardsTarget } from '../game/camera.js'
+import { Dialog } from '../gui/dialog.js'
+import { INPUT_RATE } from '../io/input.js'
 import { Line } from '../map/line.js'
 import { Sector } from '../map/sector.js'
 import { Vector2 } from '../math/vector.js'
@@ -28,6 +29,107 @@ export class Game {
     this.hero = null
     this.camera = new Camera(0.0, 0.0, 0.0, 0.0, 0.0, 12.0)
     this.cinema = false
+
+    this.name = 'untitled'
+
+    this.dialog = null
+    this.dialogStack = []
+
+    this.pauseMenuDialog = new Dialog('Pause', 'Pause Menu', ['Resume', 'Save', 'Options', 'Export', 'Exit'])
+    this.optionsDialog = new Dialog('Options', 'Options', ['Music Volume', 'Sound Volume'])
+    this.askToSaveDialog = new Dialog('Ask', 'Save Game?', ['Save', 'Export', 'No'])
+    this.saveOkDialog = new Dialog('Ok', 'Game Saved', ['Ok'])
+  }
+
+  gotoDialog(dialog, from = null) {
+    this.dialog = dialog
+    this.forcePaint = true
+    if (from === null) this.dialogStack.length = 0
+    else this.dialogStack.push(from)
+  }
+
+  handleBackDialog() {
+    const dialog = this.dialog
+    if (dialog === this.optionsDialog) this.gotoDialog(this.pauseMenuDialog)
+    else this.gotoDialog(null)
+  }
+
+  handleDialog() {
+    const dialog = this.dialog
+    const option = dialog.options[dialog.pos]
+    const event = dialog.id + '-' + option
+    if (dialog === this.askToSaveDialog) {
+      if (option === 'No') {
+        const poll = this.dialogStack[0]
+        this.parent.eventCall(poll)
+        this.dialogEnd()
+      } else if (option === 'Save') {
+        const poll = this.dialogStack[0]
+        if (poll === 'Pause-Exit') {
+          this.parent.eventCall('Pause-Save')
+          this.gotoDialog(this.saveOkDialog, event)
+        } else this.dialogEnd()
+      } else if (option === 'Export') {
+        const poll = this.dialogStack[0]
+        if (poll === 'Pause-Exit') {
+          this.parent.eventCall('Pause-Export')
+          this.parent.eventCall('Pause-Exit')
+        }
+        this.dialogEnd()
+      }
+    } else if (dialog === this.pauseMenuDialog) {
+      if (option === 'Settings') {
+        this.optionsDialog.options[0] = 'Music Volume: ' + musicVolume()
+        this.optionsDialog.options[1] = 'Sound Volume: ' + soundVolume()
+        this.gotoDialog(this.optionsDialog)
+      } else if (option === 'Save') {
+        this.parent.eventCall(event)
+      } else if (option === 'Exit') {
+        this.gotoDialog(this.askToSaveDialog, event)
+      } else if (option === 'Export') {
+        this.parent.eventCall(event)
+        this.dialogEnd()
+      }
+    } else if (dialog === this.saveOkDialog && option === 'Ok') {
+      const poll = this.dialogStack[0]
+      if (poll === 'Pause-Exit') this.parent.eventCall(poll)
+      this.dialogEnd()
+    } else this.dialogEnd()
+  }
+
+  handleDialogSpecial(left) {
+    const dialog = this.dialog
+    if (dialog === this.optionsDialog) {
+      if (dialog.pos === 0) {
+        let volume = musicVolume()
+        if (left) {
+          if (volume > 0) volume--
+        } else if (volume < 10) volume++
+        this.dialog.options[0] = 'Music Volume: ' + volume
+        setMusicVolume(volume)
+      } else if (dialog.pos === 1) {
+        let volume = soundVolume()
+        if (left) {
+          if (volume > 0) volume--
+        } else if (volume < 10) volume++
+        this.dialog.options[0] = 'Sound Volume: ' + volume
+        setSoundVolume(volume)
+      }
+    }
+  }
+
+  dialogResetAll() {
+    this.pauseMenuDialog.reset()
+    this.optionsDialog.reset()
+    this.askToSaveDialog.reset()
+    this.saveOkDialog.reset()
+  }
+
+  dialogEnd() {
+    this.dialogResetAll()
+    this.dialog = null
+    this.dialogStack.length = 0
+    this.forcePaint = true
   }
 
   pause() {}
@@ -105,13 +207,31 @@ export class Game {
     }
   }
 
-  async load(file) {
-    const map = await fetchText(file)
+  load(map) {
     this.read(map)
   }
 
-  update() {
+  update(timestamp) {
     const input = this.input
+
+    if (this.dialog !== null) {
+      if (input.pressB()) this.handleBackDialog()
+      else if (input.pressA() || input.pressStart() || input.pressSelect()) this.handleDialog()
+
+      if (input.timerStickUp(timestamp, INPUT_RATE)) {
+        if (this.dialog.pos > 0) this.dialog.pos--
+      } else if (input.timerStickDown(timestamp, INPUT_RATE)) {
+        if (this.dialog.pos < this.dialog.options.length - 1) this.dialog.pos++
+      } else if (input.timerStickLeft(timestamp, INPUT_RATE)) this.handleDialogSpecial(true)
+      else if (input.timerStickRight(timestamp, INPUT_RATE)) this.handleDialogSpecial(false)
+      return
+    }
+
+    if (input.pressStart()) {
+      this.dialog = this.pauseMenuDialog
+      return
+    }
+
     const camera = this.camera
 
     if (!this.cinema) {
@@ -165,5 +285,12 @@ export class Game {
         return
     }
     this.parent.notify(type, args)
+  }
+
+  export() {
+    let content = 'game = ' + this.name
+    content += '\npack = ' + this.pack
+    content += '\nworld {\n' + this.world.export + '}'
+    return content
   }
 }

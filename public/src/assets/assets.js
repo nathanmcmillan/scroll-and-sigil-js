@@ -12,6 +12,8 @@ const PROMISES = []
 const TEXTURE_NAME_TO_INDEX = new Map()
 const TEXTURES = []
 
+export const TRUE_COLOR = true
+
 export function readPaintFile(content, palette) {
   const wad = wad_parse(content)
 
@@ -87,13 +89,15 @@ export function readPaintFileAsLookup(content) {
 
   const pixels = wad.get('pixels')
 
+  const out = new Uint8Array(width * height)
+
   for (let h = 0; h < height; h++) {
     const row = h * width
     for (let c = 0; c < width; c++) {
       const i = c + row
       const p = parseInt(pixels[c])
-      if (p === transparency) pixels[i] = 255
-      else pixels[i] = p
+      if (p === transparency) out[i] = 255
+      else out[i] = p
     }
   }
 
@@ -114,7 +118,7 @@ export function readPaintFileAsLookup(content) {
     }
   }
 
-  return { name: name, wrap: 'clamp', width: width, height: height, pixels: pixels, sprites: sprites }
+  return { name: name, wrap: 'clamp', width: width, height: height, pixels: out, sprites: sprites }
 }
 
 export function saveTexture(name, texture) {
@@ -244,14 +248,12 @@ export function spritesByName(name) {
   return SPRITE_SHEETS.get(name)
 }
 
-const trueColor = true
-
 export function createNewTexturesAndSpriteSheets(palette, closure) {
   for (const sprite of ASYNC_SPRITE_NAMES) {
     if (SPRITE_SHEETS.has(sprite)) continue
     const image = SPRITE_IMAGES.get(sprite)
     let paint
-    if (trueColor) paint = readPaintFile(image, palette)
+    if (TRUE_COLOR) paint = readPaintFile(image, palette)
     else paint = readPaintFileAsLookup(image)
     const texture = closure(paint)
     saveTexture(sprite, texture)

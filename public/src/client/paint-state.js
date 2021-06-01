@@ -27,6 +27,7 @@ import {
   white2f,
 } from '../editor/palette.js'
 import { flexBox, flexSolve } from '../gui/flex.js'
+import { local_storage_get, local_storage_set } from '../io/files.js'
 import { identity, multiply } from '../math/matrix.js'
 import { sprcol } from '../render/pico.js'
 import { drawHollowRectangle, drawImage, drawRectangle, drawTextFont, drawTextFontSpecial } from '../render/render.js'
@@ -111,8 +112,12 @@ export class PaintState {
     this.paint.input.mouseMove(x, y)
   }
 
-  async initialize(file) {
-    await this.paint.load(file)
+  async initialize() {
+    let paint = null
+    const tape = this.client.tape.name
+    const name = local_storage_get('tape:' + tape + ':paint')
+    if (name) paint = local_storage_get('tape:' + tape + ':paint:' + name)
+    this.paint.load(paint)
     this.updateTexture()
   }
 
@@ -171,10 +176,11 @@ export class PaintState {
   }
 
   saveSheet() {
+    const tape = this.client.tape.name
     const name = this.paint.name
     const blob = this.paint.export()
-    localStorage.setItem('paint', name)
-    localStorage.setItem('paint.' + name, blob)
+    local_storage_set('tape:' + tape + ':paint', name)
+    local_storage_set('tape:' + tape + ':paint:' + name, blob)
     console.info(blob)
     console.info('saved to local storage!')
   }

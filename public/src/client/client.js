@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import { createNewTexturesAndSpriteSheets, readPaintFile, readPaintFileAsLookup, saveEntity, saveTexture, saveTile, waitForResources } from '../assets/assets.js'
+import { createNewTexturesAndSpriteSheets, readPaintFile, readPaintFileAsLookup, saveEntity, saveTexture, saveTile, TRUE_COLOR, waitForResources } from '../assets/assets.js'
 import { music_pause, music_resume, music_tick, saveMusic, saveSound } from '../assets/sound-manager.js'
 import { DashboardState } from '../client/dashboard-state.js'
 import { GameState } from '../client/game-state.js'
@@ -17,7 +17,7 @@ import { SoundState } from '../client/sound-state.js'
 import { intHashCode, Table, tableGet, tablePut } from '../collections/table.js'
 import { newPalette } from '../editor/palette.js'
 import { Tape } from '../game/tape.js'
-import * as In from '../input/input.js'
+import * as In from '../io/input.js'
 import { orthographic, perspective } from '../math/matrix.js'
 import { drawSkyBox } from '../render/render.js'
 import { shadePalette } from '../render/shading.js'
@@ -196,7 +196,7 @@ export class Client {
   async initialize() {
     const gl = this.gl
 
-    for (let i = 0; i < localStorage.length; i++) console.debug(localStorage.key(i))
+    for (let i = 0; i < localStorage.length; i++) console.debug(localStorage.key(i) + ' => ' + localStorage.getItem(localStorage.key(i)).substring(0, 50))
 
     const main = wad_parse(await fetchText('start.wad'))
     const pack = main.get('package')
@@ -242,8 +242,6 @@ export class Client {
     const textures = []
     const palette = newPalette()
 
-    const trueColor = true
-
     for (const texture of contents.get('sprites')) {
       if (texture.endsWith('.png')) {
         const name = texture.substring(0, texture.length - 4)
@@ -255,7 +253,7 @@ export class Client {
       } else {
         textures.push(
           fetchText(directory + '/sprites/' + texture + '.wad').then((text) => {
-            if (trueColor) return readPaintFile(text, palette)
+            if (TRUE_COLOR) return readPaintFile(text, palette)
             else return readPaintFileAsLookup(text)
           })
         )
@@ -266,11 +264,11 @@ export class Client {
     await waitForResources()
 
     createNewTexturesAndSpriteSheets(palette, (image) => {
-      if (trueColor) return createPixelsToTexture(gl, image.width, image.height, image.pixels, gl.RGB, gl.RGB, gl.NEAREST, gl.CLAMP_TO_EDGE)
+      if (TRUE_COLOR) return createPixelsToTexture(gl, image.width, image.height, image.pixels, gl.RGB, gl.RGB, gl.NEAREST, gl.CLAMP_TO_EDGE)
       else return createPixelsToTexture(gl, image.width, image.height, image.pixels, gl.R8, gl.RED, gl.NEAREST, gl.CLAMP_TO_EDGE)
     })
 
-    if (!trueColor) {
+    if (!TRUE_COLOR) {
       const lights = shadePalette(64, 32, newPalette())
       const shading = createPixelsToTexture(gl, 64, 32, lights, gl.RGB, gl.RGB, gl.NEAREST, gl.CLAMP_TO_EDGE)
       saveTexture('_shading', shading)
@@ -280,7 +278,7 @@ export class Client {
       texture = await texture
       const wrap = texture.wrap === 'repeat' ? gl.REPEAT : gl.CLAMP_TO_EDGE
       if (texture.pixels) {
-        if (trueColor) saveTexture(texture.name, createPixelsToTexture(gl, texture.width, texture.height, texture.pixels, gl.RGB, gl.RGB, gl.NEAREST, wrap))
+        if (TRUE_COLOR) saveTexture(texture.name, createPixelsToTexture(gl, texture.width, texture.height, texture.pixels, gl.RGB, gl.RGB, gl.NEAREST, wrap))
         else saveTexture(texture.name, createPixelsToTexture(gl, texture.width, texture.height, texture.pixels, gl.R8, gl.RED, gl.NEAREST, wrap))
         if (texture.sprites) {
           for (const sprite of texture.sprites) {
@@ -293,7 +291,7 @@ export class Client {
             const height = bottom - top
             const source = texture.pixels
             const srcwid = texture.width
-            if (trueColor) {
+            if (TRUE_COLOR) {
               const pixels = new Uint8Array(width * height * 3)
               for (let h = 0; h < height; h++) {
                 const row = top + h
@@ -403,9 +401,7 @@ export class Client {
     this.resize(this.width, this.height)
   }
 
-  async openState(open) {
-    const boot = this.boot
-    let file = null
+  async openState(open, args) {
     switch (open) {
       case 'paint':
         if (this.paint === null) this.paint = new PaintState(this)
@@ -436,14 +432,13 @@ export class Client {
         if (this.game === null) this.game = new GameState(this)
         else this.game.reset()
         this.state = this.game
-        if (boot.has('map')) file = './pack/' + this.pack + '/maps/' + boot.get('map') + '.wad'
         break
       default:
         if (this.home === null) this.home = new HomeState(this)
         else this.home.reset()
         this.state = this.home
     }
-    await this.state.initialize(file)
+    await this.state.initialize(args)
   }
 
   update(timestamp) {

@@ -24,6 +24,7 @@ import {
   white1f,
   white2f,
 } from '../editor/palette.js'
+import { local_storage_get, local_storage_set } from '../io/files.js'
 import { identity, multiply } from '../math/matrix.js'
 import { sprcol } from '../render/pico.js'
 import { drawRectangle, drawText, drawTextFontSpecial } from '../render/render.js'
@@ -71,14 +72,17 @@ export class MusicState {
   mouseMove() {}
 
   async initialize() {
-    await this.music.load()
+    let music = null
+    const tape = this.client.tape.name
+    const name = local_storage_get('tape:' + tape + ':music')
+    if (name) music = local_storage_get('tape:' + tape + ':music:' + name)
+    this.music.load(music)
   }
 
   eventCall(event) {
-    if (event === 'Start-Export') this.export()
-    else if (event === 'Save-Save') this.save()
+    if (event === 'Save-Save') this.save()
+    else if (event === 'Start-Export') this.export()
     else if (event === 'Start-Open') this.import()
-    else if (event === 'Start-Save') this.save()
     else if (event === 'Start-Exit') this.returnToDashboard()
   }
 
@@ -103,10 +107,11 @@ export class MusicState {
   }
 
   save() {
+    const tape = this.client.tape.name
     const name = this.music.name
     const blob = this.music.export()
-    localStorage.setItem('music', name)
-    localStorage.setItem('music.' + name, blob)
+    local_storage_set('tape:' + tape + ':music', name)
+    local_storage_set('tape:' + tape + ':music:' + name, blob)
     console.info(blob)
     console.info('saved to local storage!')
   }

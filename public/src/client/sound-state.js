@@ -9,6 +9,7 @@ import { calcBottomBarHeight, calcFontPad, calcFontScale, calcTopBarHeight, defa
 import { ember0f, ember1f, ember2f, orange0f, orange1f, orange2f, silver0f, silver1f, silver2f, slatef, white0f, white1f, white2f } from '../editor/palette.js'
 import { SoundEdit } from '../editor/sound-edit.js'
 import { flexBox, flexSolve, returnFlexBox } from '../gui/flex.js'
+import { local_storage_get, local_storage_set } from '../io/files.js'
 import { identity, multiply } from '../math/matrix.js'
 import { drawImage, drawRectangle, drawTextFont, drawTextFontSpecial } from '../render/render.js'
 import {
@@ -89,15 +90,18 @@ export class SoundState {
   mouseMove() {}
 
   async initialize() {
-    await this.sfx.load()
+    let sound = null
+    const tape = this.client.tape.name
+    const name = local_storage_get('tape:' + tape + ':sound')
+    if (name) sound = local_storage_get('tape:' + tape + ':sound:' + name)
+    this.sfx.load(sound)
     this.updateTexture()
   }
 
   eventCall(event) {
-    if (event === 'Start-Export') this.export()
-    else if (event === 'Save-Save') this.save()
+    if (event === 'Start-Save') this.save()
+    else if (event === 'Start-Export') this.export()
     else if (event === 'Start-Open') this.import()
-    else if (event === 'Start-Save') this.save()
     else if (event === 'Start-Exit') this.returnToDashboard()
   }
 
@@ -122,10 +126,18 @@ export class SoundState {
   }
 
   save() {
+    // TODO
+    // How do we enable hot loading of assets
+    // So that the edit - game loop is immediate
+    // Due to browser persistent storage limitations
+    // How do we make sure saving work doesn't lose anything
+    // We must use localStorage
+    // There must be a 1-to-1 mapping from localStorage to game assets
+    const tape = this.client.tape.name
     const name = this.sfx.name
     const blob = this.sfx.export()
-    localStorage.setItem('sound', name)
-    localStorage.setItem('sound.' + name, blob)
+    local_storage_set('tape:' + tape + ':sound', name)
+    local_storage_set('tape:' + tape + ':sound:' + name, blob)
     console.info(blob)
     console.info('saved to local storage!')
     saveSynthSound(name, blob)

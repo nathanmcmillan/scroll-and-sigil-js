@@ -3,7 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import { Client } from './client/client.js'
-import { usingKeyboardMouse, usingPlayStation } from './input/input.js'
+import { usingKeyboardMouse, usingPlayStation } from './io/input.js'
 
 function newCanvas(width, height) {
   const canvas = document.getElementById('canvas')

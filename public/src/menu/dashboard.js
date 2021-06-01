@@ -4,12 +4,11 @@
 
 import { playSound } from '../assets/sound-manager.js'
 import { TextBox } from '../gui/text-box.js'
+import { INPUT_RATE } from '../io/input.js'
 
 export const TAPE_MENU = 0
 export const PROGRAM_MENU = 1
 export const EDIT_NAME = 2
-
-const INPUT_RATE = 128
 
 export class Dashboard {
   constructor(parent, width, height, scale, input) {

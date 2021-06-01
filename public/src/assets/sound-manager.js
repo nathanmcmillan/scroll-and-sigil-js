@@ -9,11 +9,29 @@ const SOUNDS = new Map()
 const MUSIC_TABLE = new Map()
 
 let MUSIC = null
+let MUSIC_VOLUME = 5
+
+let SOUND_VOLUME = 5
 
 export function soundList() {
   return SOUNDS
 }
 
+export function soundVolume() {
+  return SOUND_VOLUME
+}
+
+export function setSoundVolume(value) {
+  SOUND_VOLUME = value
+}
+
+export function musicVolume() {
+  return MUSIC_VOLUME
+}
+
+export function setMusicVolume(value) {
+  MUSIC_VOLUME = value
+}
 export function saveSynthSound(name, content) {
   SOUNDS.set(name, new SynthSound(content))
 }
@@ -75,9 +93,10 @@ export function playMusic(name) {
   }
   music_pause()
   MUSIC = music
+  if (MUSIC_VOLUME === 0) return
   if (music instanceof Audio) {
     music.loop = true
-    music.volume = 0.1
+    music.volume = MUSIC_VOLUME / 10.0
     music.currentTime = 0
     const promise = music.play()
     if (promise) promise.then(() => {}).catch(() => {})
@@ -87,18 +106,18 @@ export function playMusic(name) {
 }
 
 export function music_tick() {
-  if (!MUSIC) return
+  if (!MUSIC || MUSIC_VOLUME === 0) return
   if (MUSIC instanceof Audio) return
   MUSIC.update()
 }
 
 export function music_resume() {
-  if (!MUSIC) return
+  if (!MUSIC || MUSIC_VOLUME === 0) return
   if (MUSIC instanceof Audio) MUSIC.play()
   else MUSIC.resume()
 }
 
 export function music_pause() {
-  if (!MUSIC) return
+  if (!MUSIC || MUSIC_VOLUME === 0) return
   MUSIC.pause()
 }

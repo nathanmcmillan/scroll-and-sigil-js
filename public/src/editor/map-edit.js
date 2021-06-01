@@ -3,7 +3,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import { entityByName, entityList, tileCount, tileList } from '../assets/assets.js'
-import { fetchText } from '../client/net.js'
 import { LineReference } from '../editor/map-edit-line-reference.js'
 import { SectorReference } from '../editor/map-edit-sector-reference.js'
 import { computeSectors } from '../editor/map-edit-sectors.js'
@@ -12,7 +11,7 @@ import { VectorReference } from '../editor/map-edit-vec-reference.js'
 import { Camera } from '../game/camera.js'
 import { Dialog } from '../gui/dialog.js'
 import { TextBox } from '../gui/text-box.js'
-import * as In from '../input/input.js'
+import { BUTTON_A, BUTTON_X, BUTTON_Y, INPUT_RATE } from '../io/input.js'
 import { sectorInsideOutside, sectorLineNeighbors } from '../map/sector.js'
 import { sectorTriangulateForEditor } from '../map/triangulate.js'
 import { Vector2 } from '../math/vector.js'
@@ -103,61 +102,59 @@ DESCRIBE_ACTION[DO_CANCEL] = 'Cancel'
 export const DESCRIBE_OPTIONS = new Array(OPTION_COUNT)
 
 const DRAW_MODE_OPTIONS = new Map()
-DRAW_MODE_OPTIONS.set(In.BUTTON_A, DO_PLACE_LINE)
+DRAW_MODE_OPTIONS.set(BUTTON_A, DO_PLACE_LINE)
 DESCRIBE_OPTIONS[OPTION_DRAW_MODE_DEFAULT] = DRAW_MODE_OPTIONS
 
 const VECTOR_UNDER_CURSOR_OPTIONS = new Map()
-VECTOR_UNDER_CURSOR_OPTIONS.set(In.BUTTON_A, DO_START_LINE)
-VECTOR_UNDER_CURSOR_OPTIONS.set(In.BUTTON_Y, DO_MOVE_VECTOR)
+VECTOR_UNDER_CURSOR_OPTIONS.set(BUTTON_A, DO_START_LINE)
+VECTOR_UNDER_CURSOR_OPTIONS.set(BUTTON_Y, DO_MOVE_VECTOR)
 DESCRIBE_OPTIONS[OPTION_VECTOR_UNDER_CURSOR] = VECTOR_UNDER_CURSOR_OPTIONS
 
 const MOVE_VECTOR_OPTIONS = new Map()
-MOVE_VECTOR_OPTIONS.set(In.BUTTON_A, DO_END_MOVING_VECTOR)
+MOVE_VECTOR_OPTIONS.set(BUTTON_A, DO_END_MOVING_VECTOR)
 DESCRIBE_OPTIONS[OPTION_MOVE_VECTOR] = MOVE_VECTOR_OPTIONS
 
 const VECTOR_OVERLAP_OPTIONS = new Map()
-VECTOR_OVERLAP_OPTIONS.set(In.BUTTON_A, DO_MERGE_VECTOR)
+VECTOR_OVERLAP_OPTIONS.set(BUTTON_A, DO_MERGE_VECTOR)
 DESCRIBE_OPTIONS[OPTION_VECTOR_OVERLAP] = VECTOR_OVERLAP_OPTIONS
 
 const LINE_UNDER_CURSOR_OPTIONS = new Map()
-LINE_UNDER_CURSOR_OPTIONS.set(In.BUTTON_A, DO_FLIP_LINE)
-LINE_UNDER_CURSOR_OPTIONS.set(In.BUTTON_Y, DO_DELETE_LINE)
-LINE_UNDER_CURSOR_OPTIONS.set(In.BUTTON_X, DO_SPLIT_LINE)
+LINE_UNDER_CURSOR_OPTIONS.set(BUTTON_A, DO_FLIP_LINE)
+LINE_UNDER_CURSOR_OPTIONS.set(BUTTON_Y, DO_DELETE_LINE)
+LINE_UNDER_CURSOR_OPTIONS.set(BUTTON_X, DO_SPLIT_LINE)
 DESCRIBE_OPTIONS[OPTION_LINE_UNDER_CURSOR] = LINE_UNDER_CURSOR_OPTIONS
 
 const END_LINE_OPTIONS = new Map()
-END_LINE_OPTIONS.set(In.BUTTON_A, DO_END_LINE)
-END_LINE_OPTIONS.set(In.BUTTON_Y, DO_CANCEL)
+END_LINE_OPTIONS.set(BUTTON_A, DO_END_LINE)
+END_LINE_OPTIONS.set(BUTTON_Y, DO_CANCEL)
 DESCRIBE_OPTIONS[OPTION_END_LINE] = END_LINE_OPTIONS
 
 const DO_END_LINE_NEW_VECTOR_OPTIONS = new Map()
-DO_END_LINE_NEW_VECTOR_OPTIONS.set(In.BUTTON_A, DO_END_LINE_NEW_VECTOR)
-DO_END_LINE_NEW_VECTOR_OPTIONS.set(In.BUTTON_Y, DO_CANCEL)
+DO_END_LINE_NEW_VECTOR_OPTIONS.set(BUTTON_A, DO_END_LINE_NEW_VECTOR)
+DO_END_LINE_NEW_VECTOR_OPTIONS.set(BUTTON_Y, DO_CANCEL)
 DESCRIBE_OPTIONS[OPTION_END_LINE_NEW_VECTOR] = DO_END_LINE_NEW_VECTOR_OPTIONS
 
 const THING_MODE_OPTIONS = new Map()
-THING_MODE_OPTIONS.set(In.BUTTON_A, DO_PLACE_THING)
+THING_MODE_OPTIONS.set(BUTTON_A, DO_PLACE_THING)
 DESCRIBE_OPTIONS[OPTION_THING_MODE_DEFAULT] = THING_MODE_OPTIONS
 
 const THING_UNDER_CURSOR_OPTIONS = new Map()
-THING_UNDER_CURSOR_OPTIONS.set(In.BUTTON_A, DO_MOVE_THING)
-THING_UNDER_CURSOR_OPTIONS.set(In.BUTTON_Y, DO_DELETE_THING)
-THING_UNDER_CURSOR_OPTIONS.set(In.BUTTON_X, DO_EDIT_THING)
+THING_UNDER_CURSOR_OPTIONS.set(BUTTON_A, DO_MOVE_THING)
+THING_UNDER_CURSOR_OPTIONS.set(BUTTON_Y, DO_DELETE_THING)
+THING_UNDER_CURSOR_OPTIONS.set(BUTTON_X, DO_EDIT_THING)
 DESCRIBE_OPTIONS[OPTION_THING_UNDER_CURSOR] = THING_UNDER_CURSOR_OPTIONS
 
 const MOVING_THING_OPTIONS = new Map()
-MOVING_THING_OPTIONS.set(In.BUTTON_A, DO_END_MOVING_THING)
+MOVING_THING_OPTIONS.set(BUTTON_A, DO_END_MOVING_THING)
 DESCRIBE_OPTIONS[OPTION_MOVE_THING] = MOVING_THING_OPTIONS
 
 const SECTOR_UNDER_CURSOR_OPTIONS = new Map()
-SECTOR_UNDER_CURSOR_OPTIONS.set(In.BUTTON_A, DO_EDIT_SECTOR)
+SECTOR_UNDER_CURSOR_OPTIONS.set(BUTTON_A, DO_EDIT_SECTOR)
 DESCRIBE_OPTIONS[OPTION_SECTOR_UNDER_CURSOR] = SECTOR_UNDER_CURSOR_OPTIONS
 
 const SECTOR_MODE_LINE_UNDER_CURSOR_OPTIONS = new Map()
-SECTOR_MODE_LINE_UNDER_CURSOR_OPTIONS.set(In.BUTTON_A, DO_EDIT_LINE)
+SECTOR_MODE_LINE_UNDER_CURSOR_OPTIONS.set(BUTTON_A, DO_EDIT_LINE)
 DESCRIBE_OPTIONS[OPTION_SECTOR_MODE_LINE_UNDER_CURSOR] = SECTOR_MODE_LINE_UNDER_CURSOR_OPTIONS
-
-const INPUT_RATE = 128
 
 function strvec(vec) {
   return JSON.stringify({ x: vec.x, y: vec.y })
@@ -220,7 +217,7 @@ export class MapEdit {
     this.zoom = 10.0
     this.cursor = new Vector2(0.5 * width, 0.5 * height)
 
-    this.name = 'Untitled'
+    this.name = 'untitled'
 
     this.vecs = []
     this.lines = []
@@ -270,7 +267,7 @@ export class MapEdit {
   }
 
   clear() {
-    this.name = 'Untitled'
+    this.name = 'untitled'
 
     this.camera.x = 0.0
     this.camera.y = 1.0
@@ -636,15 +633,9 @@ export class MapEdit {
     this.doPaint = true
   }
 
-  async load(file) {
-    let content = null
-    if (file) content = await fetchText(file)
-    else {
-      const ref = localStorage.getItem('map')
-      if (ref) content = localStorage.getItem('map.' + ref)
-    }
-    if (content === null || content === undefined) return this.clear()
-    this.read(content)
+  async load(map) {
+    if (map === null || map === undefined) return this.clear()
+    this.read(map)
   }
 
   vectorUnderCursor(ignore = null) {

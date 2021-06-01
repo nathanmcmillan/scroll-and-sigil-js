@@ -3,13 +3,12 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import { SpriteBox } from '../assets/sprite-sheet.js'
-import { fetchText } from '../client/net.js'
 import { calcFontScale } from '../editor/editor-util.js'
 import { describeColor, newPalette, newPaletteFloat } from '../editor/palette.js'
 import { Dialog } from '../gui/dialog.js'
 import { flexBox, flexSize, flexSolve } from '../gui/flex.js'
 import { TextBox } from '../gui/text-box.js'
-import { BUTTON_A, BUTTON_B, BUTTON_SELECT, BUTTON_X, BUTTON_Y } from '../input/input.js'
+import { BUTTON_A, BUTTON_B, BUTTON_SELECT, BUTTON_X, BUTTON_Y, INPUT_RATE } from '../io/input.js'
 import { TIC_FONT_HEIGHT, TIC_FONT_WIDTH } from '../render/render.js'
 import { wad_parse } from '../wad/wad.js'
 
@@ -20,7 +19,6 @@ const SELECT = 3
 export const SPRITE_TOOL = 4
 export const CLEAR_TOOL = 5
 
-const INPUT_RATE = 128
 const HISTORY_LIMIT = 50
 
 function exportSpriteBox(sprite) {
@@ -50,7 +48,7 @@ export class PaintEdit {
     this.sheetRows = 128
     this.sheetColumns = 128
 
-    this.name = 'Untitled'
+    this.name = 'untitled'
     this.transparency = 0
 
     this.sheet = new Uint8Array(this.sheetRows * this.sheetColumns)
@@ -110,7 +108,7 @@ export class PaintEdit {
   }
 
   clear() {
-    this.name = 'Untitled'
+    this.name = 'untitled'
     this.transparency = 0
 
     let i = this.sheet.length
@@ -371,15 +369,9 @@ export class PaintEdit {
     this.doPaint = true
   }
 
-  async load(file) {
-    let content = null
-    if (file) content = await fetchText(file)
-    else {
-      const ref = localStorage.getItem('paint')
-      if (ref) content = localStorage.getItem('paint.' + ref)
-    }
-    if (content === null || content === undefined) return this.clear()
-    this.read(content)
+  async load(paint) {
+    if (paint === null || paint === undefined) return this.clear()
+    this.read(paint)
   }
 
   topLeftStatus() {
@@ -819,7 +811,7 @@ export class PaintEdit {
     const r = Math.floor(index / columns)
     if (this.selectR !== null) {
       if (c >= this.selectL && c <= this.selectR && r >= this.selectT && r <= this.selectB) {
-        const sprite = new SpriteBox('Untitled', this.selectL, this.selectT, this.selectR, this.selectB, false)
+        const sprite = new SpriteBox('untitled', this.selectL, this.selectT, this.selectR, this.selectB, false)
         this.sprites.push(sprite)
         this.activeSprite = sprite
         this.spriteDialog.title = sprite.name

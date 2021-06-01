@@ -3,16 +3,13 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import { soundList } from '../assets/sound-manager.js'
-import { fetchText } from '../client/net.js'
 import { Dialog } from '../gui/dialog.js'
 import { TextBox } from '../gui/text-box.js'
-import { BUTTON_A, BUTTON_B, BUTTON_X, BUTTON_Y } from '../input/input.js'
+import { BUTTON_A, BUTTON_B, BUTTON_X, BUTTON_Y, INPUT_RATE } from '../io/input.js'
 import { music_note_duration, music_scale, MUSIC_SCALE_LIST, NOTES, Track } from '../sound/music-theory.js'
 import { music_calc_timing, music_play_note, MUSIC_SLICE, NOTE_ROWS, NOTE_START, read_synth_parameters } from '../sound/sound.js'
 import { export_synth_parameters, FREQ, LENGTH, SUSTAIN, synth, synth_time, VOLUME, WAVE, WAVEFORMS } from '../sound/synth.js'
 import { wad_parse } from '../wad/wad.js'
-
-const INPUT_RATE = 128
 
 const DEFAULT_NOTE_LENGTH = 3
 
@@ -21,7 +18,7 @@ function newNote() {
 }
 
 function defaultTrack() {
-  const track = new Track('Untitled')
+  const track = new Track('untitled')
   track.parameters[WAVE] = WAVEFORMS.indexOf('Sine')
   track.parameters[SUSTAIN] = 1.0
   track.parameters[VOLUME] = 0.5
@@ -116,7 +113,7 @@ export class MusicEdit {
     this.musicLength = 0
     this.musicDone = 0
 
-    this.name = 'Untitled'
+    this.name = 'untitled'
     this.tempo = 120
 
     this.scaleRoot = 'C'
@@ -277,8 +274,8 @@ export class MusicEdit {
   }
 
   handleDialogSpecial(left) {
-    const event = this.dialog.id
-    if (event === 'Tuning') {
+    const dialog = this.dialog
+    if (dialog === this.tuningDialog) {
       const track = this.track
       let tuning = track.tuning
       if (left) {
@@ -286,7 +283,7 @@ export class MusicEdit {
       } else if (tuning < 12) tuning++
       this.dialog.options[0] = '' + tuning
       track.tuning = tuning
-    } else if (event === 'Tempo') {
+    } else if (dialog === this.tempoDialog) {
       let tempo = this.tempo
       if (left) {
         if (tempo > 60) tempo--
@@ -386,15 +383,9 @@ export class MusicEdit {
     this.doPaint = true
   }
 
-  async load(file) {
-    let content = null
-    if (file) content = await fetchText(file)
-    else {
-      const ref = localStorage.getItem('music')
-      if (ref) content = localStorage.getItem('music.' + ref)
-    }
-    if (content === null || content === undefined) return this.clear()
-    this.read(content)
+  async load(music) {
+    if (music === null || music === undefined) return this.clear()
+    this.read(music)
   }
 
   playRowNote(row) {
