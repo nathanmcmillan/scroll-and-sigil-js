@@ -8,7 +8,7 @@ function skip(str, i) {
   if (c !== '\n' && c !== ' ') {
     return i - 1
   }
-  const size = str.sizegth
+  const size = str.length
   do {
     i++
     if (i === size) return i
