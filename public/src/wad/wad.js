@@ -31,7 +31,7 @@ export function wad_parse(str) {
       pc = c
       i++
       while (i < size && str[c] !== '\n') i++
-    } else if (c === '\n') {
+    } else if (c === '\n' || c === ' ') {
       if (!iskey && pc !== '}' && pc !== ']') {
         if (stack[0].constructor === Array) {
           stack[0].push(value)
@@ -46,19 +46,6 @@ export function wad_parse(str) {
       i = skip(str, i)
     } else if (c === '=') {
       iskey = false
-      pc = c
-      i = skip(str, i)
-    } else if (c === ' ') {
-      if (!iskey && pc !== '}' && pc !== ']') {
-        if (stack[0].constructor === Array) {
-          stack[0].push(value)
-        } else {
-          stack[0].set(key.trim(), value)
-          key = ''
-          iskey = true
-        }
-        value = ''
-      }
       pc = c
       i = skip(str, i)
     } else if (c === '{') {
