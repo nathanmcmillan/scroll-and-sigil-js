@@ -94,26 +94,26 @@ export function wad_parse(str) {
     } else if (iskey) {
       pc = c
       key += c
-    } else {
-      if (c === '"') {
-        i++
-        let e = str[i]
-        while (i < size) {
-          if (e === '"') break
-          if (e === '\n') throw 'Unclosed string in wad `' + value + '`'
-          if (e === '\\' && i + 1 < size && str[i + 1] === '"') {
-            value += '"'
-            i += 2
-            e = str[i]
-          } else {
-            value += e
-            i++
-            e = str[i]
-          }
+    } else if (c === '"') {
+      pc = c
+      i++
+      if (i === size) throw 'End of wad `' + value + '`'
+      let e = str[i]
+      while (i < size) {
+        if (e === '"') break
+        if (e === '\n') throw 'Unclosed string in wad `' + value + '`'
+        if (e === '\\' && i + 1 < size && str[i + 1] === '"') {
+          value += '"'
+          i += 2
+          e = str[i]
+        } else {
+          value += e
+          i++
+          e = str[i]
         }
-      } else {
-        value += c
       }
+    } else {
+      value += c
       pc = c
     }
   }
